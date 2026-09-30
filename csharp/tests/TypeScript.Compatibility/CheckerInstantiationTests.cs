@@ -22,10 +22,10 @@ internal static class CheckerInstantiationTests
         var algebra = new TypeAlgebra(context, new([]), relations);
         var host = new InstantiationFixtureHost(context, algebra, links, relations);
         var engine = host.Engine;
-        var t = context.NewTypeParameter(new(SymbolFlags.TypeParameter, "T"));
-        var u = context.NewTypeParameter(new(SymbolFlags.TypeParameter, "U"));
+        var t = context.NewTypeParameter(new(SymbolFlags.TypeParameter, "T"u8));
+        var u = context.NewTypeParameter(new(SymbolFlags.TypeParameter, "U"u8));
         var mapping = TypeMapper.Create([t], [context.NumberType]);
-        var target = (InterfaceType)context.NewObjectType(ObjectFlags.Interface | ObjectFlags.Reference, new(SymbolFlags.Interface, "I"));
+        var target = (InterfaceType)context.NewObjectType(ObjectFlags.Interface | ObjectFlags.Reference, new(SymbolFlags.Interface, "I"u8));
         Type chain = t;
         for (int i = 0; i < 100; i++)
             chain = context.CreateTypeReference(target, [chain]);
@@ -74,16 +74,16 @@ internal static class CheckerInstantiationTests
 
         var genericParameter = new Symbol(
             SymbolFlags.FunctionScopedVariable,
-            "value")
+            "value"u8)
         { CheckFlags = CheckFlags.Readonly | CheckFlags.Mapped };
-        var primitiveParameter = new Symbol(SymbolFlags.FunctionScopedVariable, "count");
-        var setter = new Symbol(SymbolFlags.SetAccessor, "setter");
+        var primitiveParameter = new Symbol(SymbolFlags.FunctionScopedVariable, "count"u8);
+        var setter = new Symbol(SymbolFlags.SetAccessor, "setter"u8);
         links.Values.Get(genericParameter).ResolvedType = t;
         links.Values.Get(primitiveParameter).ResolvedType = context.NumberType;
         links.Values.Get(setter).ResolvedType = context.NumberType;
         links.Values.Get(setter).WriteType = t;
         var signature = context.NewSignature(SignatureFlags.HasRestParameter | SignatureFlags.IsOuterCallChain, null, [t], null,
-            [genericParameter, primitiveParameter, setter], t, new(TypePredicateKind.Identifier, 0, "value", t), 1);
+            [genericParameter, primitiveParameter, setter], t, new(TypePredicateKind.Identifier, 0, "value"u8, t), 1);
         var fresh = engine.SignatureAsync(signature, mapping, false).GetAwaiter().GetResult();
         Check(fresh.Target == signature && fresh.Flags == SignatureFlags.HasRestParameter && fresh.MinArgumentCount == 1);
         Check(fresh.TypeParameters.Count == 1 && fresh.TypeParameters[0] != t && fresh.TypeParameters[0].Target == t);

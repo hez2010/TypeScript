@@ -9,7 +9,7 @@ namespace TypeScript.Compiler.Checking;
 internal sealed partial class Checker
 {
     public async ValueTask<Type> DiscriminateJsxContextAsync(JsxAttributesNode node, UnionType type, CancellationToken cancellation)
-        => await TypeDiscrimination.JsxAsync(node, type, await JsxPropertyNameAsync("ElementChildrenAttribute", node, cancellation),
+        => await TypeDiscrimination.JsxAsync(node, type, await JsxPropertyNameAsync(Utf8Literals.ElementChildrenAttribute, node, cancellation),
             node.Parent?.Parent is JsxElementNode element && JsxSemanticChildren(element).Count != 0, cancellation);
 
     private async ValueTask<int> JsxReferenceKindAsync(SyntaxNode node, CancellationToken cancellation)
@@ -49,13 +49,13 @@ internal sealed partial class Checker
         Type? props;
         if (classComponent)
         {
-            var name = await JsxPropertyNameAsync("ElementAttributesProperty", node, cancellation);
+            var name = await JsxPropertyNameAsync(Utf8Literals.ElementAttributesProperty, node, cancellation);
             props = name is null ? signature.Parameters.Count == 0
                 ? context.UnknownType
                 : await Parameters.AtAsync(signature, 0, cancellation)
                 : name.Value.Length == 0
                     ? await Signatures.ReturnAsync(signature, cancellation)
-                    : await JsxMemberPropsAsync(signature, (name).Value, cancellation);
+                    : await JsxMemberPropsAsync(signature, name.Value, cancellation);
             if (props is null)
             {
                 if (JsxAttributes(node)?.Properties?.Count > 0)
@@ -66,7 +66,7 @@ internal sealed partial class Checker
         else
             props = signature.Parameters.Count == 0 ? context.UnknownType : await Parameters.AtAsync(signature, 0, cancellation);
         var ns = await JsxNamespaceAsync(node, cancellation);
-        if (ns is not null && program.Symbols.Lookup(ns.Exports, "LibraryManagedAttributes", SymbolFlags.Type) is { } managed)
+        if (ns is not null && program.Symbols.Lookup(ns.Exports, Utf8Literals.LibraryManagedAttributes, SymbolFlags.Type) is { } managed)
         {
             var constructor = node is JsxOpeningFragmentNode ? await JsxFragmentTypeAsync(node, cancellation)
                 : IntrinsicJsx(JsxTag(node)) ? context.AnyType : await Expressions.CheckAsync(JsxTag(node)!, cancellation: cancellation);
@@ -76,7 +76,7 @@ internal sealed partial class Checker
         {
             if ((props.Flags & TypeFlags.Any) != 0)
                 return props;
-            if (ns is not null && program.Symbols.Lookup(ns.Exports, "IntrinsicClassAttributes", SymbolFlags.Type) is { } symbol)
+            if (ns is not null && program.Symbols.Lookup(ns.Exports, Utf8Literals.IntrinsicClassAttributes, SymbolFlags.Type) is { } symbol)
             {
                 var intrinsic = await Declared.GetAsync(symbol, cancellation);
                 IReadOnlyList<TypeParameter> parameters = intrinsic.Symbol is { } intrinsicSymbol
@@ -94,11 +94,11 @@ internal sealed partial class Checker
                 props = await Algebra.IntersectionAsync([intrinsic, props], cancellation: cancellation);
             }
         }
-        var attributes = await JsxTypeAsync("IntrinsicAttributes", node, cancellation);
+        var attributes = await JsxTypeAsync(Utf8Literals.IntrinsicAttributes, node, cancellation);
         return attributes == context.ErrorType ? props : await Algebra.IntersectionAsync([attributes, props], cancellation: cancellation);
     }
 
-    private async ValueTask<Type?> JsxMemberPropsAsync(Signature signature, TextSlice name, CancellationToken cancellation)
+    private async ValueTask<Type?> JsxMemberPropsAsync(Signature signature, Utf8String name, CancellationToken cancellation)
     {
         var types = new List<Type>();
         foreach (var part in signature.Composite?.Signatures ?? [signature])
@@ -139,10 +139,10 @@ internal sealed partial class Checker
         if (node.Parent is JsxElementNode element)
         {
             var props = await Contexts.ApparentAsync(element.OpeningElement!.Attributes!, flags, cancellation);
-            var name = await JsxPropertyNameAsync("ElementChildrenAttribute", element, cancellation);
+            var name = await JsxPropertyNameAsync(Utf8Literals.ElementChildrenAttribute, element, cancellation);
             if (props is null || (props.Flags & TypeFlags.Any) != 0 || name is null or { IsEmpty: true })
                 return null;
-            var type = await ContextualPropertyAsync(await Views.ApparentAsync(props, cancellation), (name).Value, cancellation);
+            var type = await ContextualPropertyAsync(await Views.ApparentAsync(props, cancellation), name.Value, cancellation);
             if (type is null)
                 return null;
             var children = JsxSemanticChildren(element);

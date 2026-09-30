@@ -32,7 +32,7 @@ internal static class CheckerAliasTests
     {
         internal Dictionary<ExportDeclarationNode, Symbol> Modules { get; } = [];
         internal Action? BeforeResolve { get; set; }
-        internal List<(string Specifier, string Name)> Conflicts { get; } = [];
+        internal List<(Utf8String Specifier, Utf8String Name)> Conflicts { get; } = [];
 
         public ValueTask<Symbol?> ExportStarModuleAsync(ExportDeclarationNode declaration, CancellationToken cancellation)
         {
@@ -41,8 +41,8 @@ internal static class CheckerAliasTests
             return ValueTask.FromResult<Symbol?>(Modules[declaration]);
         }
 
-        public void AmbiguousExport(ExportDeclarationNode declaration, TextSlice earlierSpecifierText, TextSlice name)
-                    => Conflicts.Add((earlierSpecifierText.ToString(), name.ToString()));
+        public void AmbiguousExport(ExportDeclarationNode declaration, Utf8String earlierSpecifierText, Utf8String name)
+                    => Conflicts.Add((earlierSpecifierText, name));
     }
 
     internal static async Task Safety()
@@ -55,10 +55,10 @@ internal static class CheckerAliasTests
             checks++;
         }
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/input.ts"] = Wtf8.Encode("namespace N { export interface I {} }") }), "/project",
-            new("/project/tsconfig.json", options, ["/project/input.ts"], [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/input.ts"u8] = Wtf8.Encode("namespace N { export interface I {} }") }), "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/input.ts"u8], [], [], []));
         var context = new TypeContext();
         var links = new CheckerLinks();
         var programHost = new CheckerEnvironment(context, links);
@@ -66,7 +66,7 @@ internal static class CheckerAliasTests
         var host = new Host();
         var resolutions = new TypeResolutionStack(links);
         var aliases = new AliasResolver(symbols, links, resolutions, host);
-        Symbol Alias(string name, Symbol? target, SymbolFlags extra = 0)
+        Symbol Alias(Utf8String name, Symbol? target, SymbolFlags extra = 0)
         {
             var symbol = new Symbol(SymbolFlags.Alias | extra, name);
             var declaration = new ImportEqualsDeclarationNode { Name = new IdentifierNode { Text = name } };
@@ -74,10 +74,10 @@ internal static class CheckerAliasTests
             host.Targets[declaration] = _ => ValueTask.FromResult(target);
             return symbol;
         }
-        var value = new Symbol(SymbolFlags.BlockScopedVariable, "value");
-        var first = Alias("First", value);
-        var second = Alias("Second", first);
-        var typeOnly = new ImportClauseNode { PhaseModifier = SyntaxKind.TypeKeyword, Name = new IdentifierNode { Text = "First" } };
+        var value = new Symbol(SymbolFlags.BlockScopedVariable, "value"u8);
+        var first = Alias("First"u8, value);
+        var second = Alias("Second"u8, first);
+        var typeOnly = new ImportClauseNode { PhaseModifier = SyntaxKind.TypeKeyword, Name = new IdentifierNode { Text = "First"u8 } };
         links.Aliases.Get(first).TypeOnlyDeclaration = typeOnly;
         Check(await aliases.ResolveAsync(second) == value);
         Check(await aliases.ImmediateAsync(second) == first);
@@ -85,22 +85,22 @@ internal static class CheckerAliasTests
         Check((await aliases.FlagsAsync(second) & SymbolFlags.Value) != 0);
         Check(await aliases.FlagsAsync(second, excludeTypeOnly: true) == SymbolFlags.Alias);
         Check(await aliases.FlagsAsync(second, excludeLocal: true) == value.Flags);
-        var mixed = Alias("Mixed", value, SymbolFlags.TypeAlias);
-        var outer = Alias("Outer", mixed);
+        var mixed = Alias("Mixed"u8, value, SymbolFlags.TypeAlias);
+        var outer = Alias("Outer"u8, mixed);
         Check(await aliases.ResolveAsync(outer) == mixed);
         Check((await aliases.FlagsAsync(outer) & (SymbolFlags.TypeAlias | SymbolFlags.BlockScopedVariable))
             == (SymbolFlags.TypeAlias | SymbolFlags.BlockScopedVariable));
         Check(await aliases.SymbolAsync(mixed) == mixed && await aliases.SymbolAsync(first, true) == first);
 
-        var a = Alias("A", null);
-        var b = Alias("B", a);
+        var a = Alias("A"u8, null);
+        var b = Alias("B"u8, a);
         host.Targets[a.Declarations[0]] = _ => ValueTask.FromResult<Symbol?>(b);
         Check(await aliases.ResolveAsync(a) == symbols.UnknownSymbol);
         Check(host.Cycles.Count == 2 && resolutions.Count == 0);
         Check(await aliases.FlagsAsync(a) == SymbolFlags.All);
         Check(await aliases.ResolveAsync(b) == symbols.UnknownSymbol && host.Cycles.Count == 2);
 
-        var failed = Alias("Failed", value);
+        var failed = Alias("Failed"u8, value);
         host.Targets[failed.Declarations[0]] = _ =>
         {
             links.Aliases.Get(failed).TypeOnlyDeclaration = typeOnly;
@@ -121,7 +121,7 @@ internal static class CheckerAliasTests
                 && resolutions.Count == 0);
         host.Targets[failed.Declarations[0]] = _ => ValueTask.FromResult<Symbol?>(value);
         Check(await aliases.ResolveAsync(failed) == value);
-        var probing = Alias("Probing", value);
+        var probing = Alias("Probing"u8, value);
         host.Targets[probing.Declarations[0]] = async cancellation =>
         {
             Check(await aliases.TryResolveAsync(probing, cancellation) is null);
@@ -129,13 +129,13 @@ internal static class CheckerAliasTests
         };
         Check(await aliases.ResolveAsync(probing) == value && resolutions.Count == 0);
 
-        var deprecated = Alias("Deprecated", value);
-        var exposed = Alias("Exposed", deprecated);
+        var deprecated = Alias("Deprecated"u8, value);
+        var exposed = Alias("Exposed"u8, deprecated);
         host.Deprecated.Add(deprecated);
         Check(await aliases.WithDeprecationAsync(exposed, new IdentifierNode()) == value && host.Warnings.SequenceEqual([deprecated]));
         var chain = value;
         for (int i = 0; i < 20_000; i++)
-            chain = Alias("A" + i, chain);
+            chain = Alias(Utf8String.Copy("A"u8) + i, chain);
         Check(await aliases.ResolveAsync(chain) == value && resolutions.Count == 0);
         using var cancelled = new CancellationTokenSource();
         cancelled.Cancel();
@@ -149,8 +149,8 @@ internal static class CheckerAliasTests
             checks++;
         }
 
-        var module = new Symbol(SymbolFlags.ValueModule, "module");
-        module.ExportTable.Add("value", value);
+        var module = new Symbol(SymbolFlags.ValueModule, "module"u8);
+        module.ExportTable.Add("value"u8, value);
         module.DeclarationList = module.DeclarationList.Add(program.SourceFiles[0].Syntax);
         var memberType = context.NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved, module);
         memberType.Members = module.Exports;
@@ -160,25 +160,25 @@ internal static class CheckerAliasTests
         var cloner = new ModuleTypes(context, links, aliases, new([]));
         var import = new ImportDeclarationNode(SyntaxKind.ImportDeclaration);
         var clone = await cloner.CloneAsync(module, memberType, import);
-        Check(clone != module && clone.Exports["value"] == value && clone.Declarations[0] == module.Declarations[0]);
+        Check(clone != module && clone.Exports["value"u8] == value && clone.Declarations[0] == module.Declarations[0]);
         var cloneType = (ObjectType)links.Values.Get(clone).ResolvedType!;
         Check(cloneType.CallSignatures.Count == 0 && cloneType.ConstructSignatures.Count == 0 && memberType.CallSignatures.Count == 1);
         Check(cloneType.IndexInfos == memberType.IndexInfos && cloneType.Properties!.SequenceEqual([value]));
         Check(links.ExportTypes.Get(clone).Target == module && links.ExportTypes.Get(clone).OriginatingImport == import);
-        clone.ExportTable.Add("extra", value);
-        Check(!module.Exports.ContainsKey("extra"));
+        clone.ExportTable.Add("extra"u8, value);
+        Check(!module.Exports.ContainsKey("extra"u8));
         var exportHost = new ExportHost();
         var exports = new ModuleExports(links, aliases, programHost.AliasTargets, exportHost);
-        var left = new Symbol(SymbolFlags.ValueModule, "left");
-        var right = new Symbol(SymbolFlags.ValueModule, "right");
-        left.ExportTable.Add("shared", new(SymbolFlags.BlockScopedVariable, "shared"));
-        right.ExportTable.Add("shared", new(SymbolFlags.BlockScopedVariable, "shared"));
+        var left = new Symbol(SymbolFlags.ValueModule, "left"u8);
+        var right = new Symbol(SymbolFlags.ValueModule, "right"u8);
+        left.ExportTable.Add("shared"u8, new(SymbolFlags.BlockScopedVariable, "shared"u8));
+        right.ExportTable.Add("shared"u8, new(SymbolFlags.BlockScopedVariable, "shared"u8));
         var exportFile = Parser.ParseSourceFile(
-            new("/exports.ts"),
-            new SourceText("export * from /*first*/ './left'; export * from './right';"));
+            new("/exports.ts"u8),
+            new SourceText("export * from /*first*/ './left'; export * from './right';"u8));
         var declarations = exportFile.Statements!.Cast<ExportDeclarationNode>().ToArray();
-        var parent = new Symbol(SymbolFlags.ValueModule, "parent");
-        var stars = new Symbol(SymbolFlags.ExportStar, Symbol.InternalPrefix + "export");
+        var parent = new Symbol(SymbolFlags.ValueModule, "parent"u8);
+        var stars = new Symbol(SymbolFlags.ExportStar, Symbol.InternalPrefix + "export"u8);
         stars.DeclarationList = stars.DeclarationList.AddRange(declarations);
         parent.ExportTable.Add(stars.Name, stars);
         exportHost.Modules.Add(declarations[0], left);
@@ -201,8 +201,8 @@ internal static class CheckerAliasTests
         Check(links.Modules.Get(parent).ResolvedExports is null && links.Modules.Get(parent).TypeOnlyExportStars is null);
         exportHost.BeforeResolve = null;
         var mergedExports = await exports.ResolveAsync(parent);
-        Check(mergedExports["shared"] == left.Exports["shared"] && !parent.Exports.ContainsKey("shared"));
-        Check(exportHost.Conflicts.SequenceEqual([("'./left'", "shared")]));
+        Check(mergedExports["shared"u8] == left.Exports["shared"u8] && !parent.Exports.ContainsKey("shared"u8));
+        Check(exportHost.Conflicts.SequenceEqual([(Utf8String.Copy("'./left'"u8), Utf8String.Copy("shared"u8))]));
         Check(await exports.ResolveAsync(parent) == mergedExports && exportHost.Conflicts.Count == 1);
         Console.WriteLine($"{checks} alias/cycle/cancellation/module-export assertions; alias chain depth 20000");
     }

@@ -14,7 +14,7 @@ internal interface ITypeWideningHost
 
     ValueTask<IReadOnlyList<Symbol>> ObjectPropertiesAsync(Type type, CancellationToken cancellation);
 
-    ValueTask<Symbol?> ObjectPropertyAsync(Type type, TextSlice name, CancellationToken cancellation);
+    ValueTask<Symbol?> ObjectPropertyAsync(Type type, Utf8String name, CancellationToken cancellation);
 
     ValueTask<Type> SymbolTypeAsync(Symbol symbol, CancellationToken cancellation);
 
@@ -27,18 +27,18 @@ internal sealed class TypeWidening(TypeContext context, TypeAlgebra algebra, Typ
 {
     private readonly Dictionary<Type, Type> widened = [];
     private readonly Dictionary<Type, Type> literalBases = [];
-    private readonly Dictionary<TextSlice, Symbol> undefinedProperties = [];
+    private readonly Dictionary<Utf8String, Symbol> undefinedProperties = [];
 
-    private sealed class WideningContext(WideningContext? parent, TextSlice? name, IReadOnlyList<Type>? siblings)
+    private sealed class WideningContext(WideningContext? parent, Utf8String? name, IReadOnlyList<Type>? siblings)
     {
         internal WideningContext? Parent { get; } = parent;
-        internal TextSlice? Name { get; } = name;
+        internal Utf8String? Name { get; } = name;
         internal IReadOnlyList<Type>? Siblings { get; set; } = siblings;
         internal IReadOnlyList<Symbol>? Properties { get; set; }
         internal Dictionary<Type, Type> Types { get; } = [];
-        internal Dictionary<TextSlice, WideningContext> Children { get; } = [];
+        internal Dictionary<Utf8String, WideningContext> Children { get; } = [];
 
-        internal WideningContext Child(TextSlice name)
+        internal WideningContext Child(Utf8String name)
         {
             if (!Children.TryGetValue(name, out var child))
                 Children[name] = child = new(this, name, null);
@@ -107,7 +107,7 @@ internal sealed class TypeWidening(TypeContext context, TypeAlgebra algebra, Typ
     {
         if (widening?.Types.TryGetValue(type, out var cached) == true)
             return cached;
-        var members = new Dictionary<TextSlice, Symbol>();
+        var members = new Dictionary<Utf8String, Symbol>();
         foreach (var property in await host.ObjectPropertiesAsync(type, cancellation).ConfigureAwait(false))
         {
             var next = property;
@@ -153,7 +153,7 @@ internal sealed class TypeWidening(TypeContext context, TypeAlgebra algebra, Typ
     {
         if (widening.Properties is { } cached)
             return cached;
-        var properties = new Dictionary<TextSlice, Symbol>();
+        var properties = new Dictionary<Utf8String, Symbol>();
         foreach (var type in await SiblingsAsync(widening, cancellation).ConfigureAwait(false))
             if ((type.ObjectFlags & (ObjectFlags.ObjectLiteral | ObjectFlags.ContainsSpread)) == ObjectFlags.ObjectLiteral)
                 foreach (var property in await host.PropertiesAsync(type, cancellation).ConfigureAwait(false))

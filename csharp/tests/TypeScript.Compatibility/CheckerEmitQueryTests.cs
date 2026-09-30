@@ -22,15 +22,15 @@ internal static class CheckerEmitQueryTests
             checks++;
         }
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("reactNamespace", "\"Custom.Nested\"");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("reactNamespace"u8, "\"Custom.Nested\""u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
         {
-            ["/project/main.ts"] = Wtf8.Encode("import {named as first,named as second} from './dep';first;second;"),
-            ["/project/dep.ts"] = Wtf8.Encode("export const named=1;")
-        }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts", "/project/dep.ts"], [], [], []));
+            ["/project/main.ts"u8] = Wtf8.Encode("import {named as first,named as second} from './dep';first;second;"),
+            ["/project/dep.ts"u8] = Wtf8.Encode("export const named=1;")
+        }), "/project"u8, new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8, "/project/dep.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
-        var source = program.GetFile("/project/main.ts")!.Syntax;
+        var source = program.GetFile("/project/main.ts"u8)!.Syntax;
         var aliases = source.DescendantsAndSelf().OfType<ImportSpecifierNode>().ToArray();
         var snapshot = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
         Check(!await checker.IsReferencedAliasForEmitAsync(aliases[0]) && !await checker.IsReferencedAliasForEmitAsync(aliases[1]));
@@ -38,7 +38,7 @@ internal static class CheckerEmitQueryTests
         bool reached = false;
         checker.BeforeEmitLinkedReference = node =>
         {
-            if (node is IdentifierNode { Text: { Span: "second" }, Parent: ExpressionStatementNode })
+            if (node is IdentifierNode { Text: { Span: var matchedText }, Parent: ExpressionStatementNode } && matchedText.SequenceEqual("second"u8))
             {
                 reached = true;
                 stop.Cancel();
@@ -62,13 +62,13 @@ internal static class CheckerEmitQueryTests
         Check(await checker.IsReferencedAliasForEmitAsync(aliases[0]) && await checker.IsReferencedAliasForEmitAsync(aliases[1]));
         var other = await program.CreateCheckerAsync();
         var firstUse = source.DescendantsAndSelf().OfType<IdentifierNode>().Single(
-            n => n.Text == "first" && n.Parent is ExpressionStatementNode);
+            n => n.Text == "first"u8 && n.Parent is ExpressionStatementNode);
         await other.GetExpressionTypeAsync(firstUse);
         Check(await other.IsReferencedAliasForEmitAsync(aliases[0]));
         using var secondStop = new CancellationTokenSource();
         other.BeforeEmitLinkedReference = node =>
         {
-            if (node is IdentifierNode { Text: { Span: "second" }, Parent: ExpressionStatementNode })
+            if (node is IdentifierNode { Text: { Span: var matchedText2 }, Parent: ExpressionStatementNode } && matchedText2.SequenceEqual("second"u8))
                 secondStop.Cancel();
         };
         try
@@ -85,7 +85,7 @@ internal static class CheckerEmitQueryTests
         Check(await checker.GetJsxFactoryForEmitAsync(null) is null);
         var factory = await checker.GetJsxFactoryForEmitAsync(source);
         Check(
-            factory is QualifiedNameNode { Left: IdentifierNode { Text: { Span: "Custom.Nested" } }, Right: IdentifierNode { Text: { Span: "createElement" } } });
+            factory is QualifiedNameNode { Left: IdentifierNode { Text: { Span: var matchedText3 } }, Right: IdentifierNode { Text: { Span: var matchedText4 } } } && matchedText3.SequenceEqual("Custom.Nested"u8) && matchedText4.SequenceEqual("createElement"u8));
         Check(await checker.GetJsxFactoryForEmitAsync(null) == factory);
         Check(await checker.GetJsxFactoryForEmitAsync(source, true) is null);
         Check(snapshot.All(p => p.Parent == p.Node.Parent && p.Pos == p.Node.Pos && p.End == p.Node.End && p.Flags == p.Node.Flags));
@@ -94,9 +94,9 @@ internal static class CheckerEmitQueryTests
 
     internal static async Task WriteServicesAsync(Utf8JsonWriter writer, SyntaxNode[] nodes, Checker checker, Func<SyntaxNode?, int> nodeId)
     {
-        writer.WriteStartArray("emitQueries");
+        writer.WriteStartArray("emitQueries"u8);
         foreach (var node in nodes.Where(
-            n => SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main.", StringComparison.Ordinal) == true))
+            n => SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main."u8, StringComparison.Ordinal) == true))
         {
             if (QuerySyntax.Declaration(node) && node.Parent is not null)
                 foreach (var mask in new[]
@@ -143,17 +143,17 @@ internal static class CheckerEmitQueryTests
         }
         void Scalar(object? value)
         {
-            if (value is TextSlice text)
+            if (value is Utf8String text)
             {
                 writer.WriteStartArray();
-                writer.WriteStringValue("string");
-                writer.WriteBase64StringValue(Wtf8.Encode(text));
+                writer.WriteStringValue("string"u8);
+                writer.WriteBase64StringValue(text.Span.ToArray());
                 writer.WriteEndArray();
             }
             else if (value is double number)
             {
                 writer.WriteStartArray();
-                writer.WriteStringValue("number");
+                writer.WriteStringValue("number"u8);
                 writer.WriteStringValue(
                     BitConverter.DoubleToUInt64Bits(number).ToString("x16", System.Globalization.CultureInfo.InvariantCulture));
                 writer.WriteEndArray();
@@ -166,9 +166,9 @@ internal static class CheckerEmitQueryTests
     internal static async Task WriteJsxAsync(Utf8JsonWriter writer, SyntaxNode[] nodes, Checker checker, Func<SyntaxNode?, int> nodeId)
     {
         SyntaxNode?[] locations = [null,..nodes.Where(
-            n=>SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main.",StringComparison.Ordinal)==true
+            n=>SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main."u8,StringComparison.Ordinal)==true
             && n is SourceFileNode or JsxOpeningFragmentNode or JsxOpeningElementNode or JsxSelfClosingElementNode),null];
-        writer.WriteStartArray("emitQueries");
+        writer.WriteStartArray("emitQueries"u8);
         foreach (var location in locations)
             foreach (bool fragment in new[] { false, true })
             {
@@ -189,8 +189,8 @@ internal static class CheckerEmitQueryTests
     internal static async Task WriteLinksAsync(Utf8JsonWriter writer, SyntaxNode[] nodes, Checker checker, Func<SyntaxNode?, int> nodeId)
     {
         var main = nodes.Where(
-            n => SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main.", StringComparison.Ordinal) == true).ToArray();
-        writer.WriteStartArray("emitQueries");
+            n => SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main."u8, StringComparison.Ordinal) == true).ToArray();
+        writer.WriteStartArray("emitQueries"u8);
         for (int pass = 0; pass < 3; pass++)
         {
             if (pass != 0)
@@ -218,31 +218,31 @@ internal static class CheckerEmitQueryTests
             checks++;
         }
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
         {
-            ["/project/main.ts"] = Wtf8.Encode(
+            ["/project/main.ts"u8] = Wtf8.Encode(
                 "import {named as value} from './dep';function f(x:string):string;function f(x:any){return x}function g(x:number=1,y:string,z?:number){}const literal=1;const widened:number=1;type Num=number;let n:Num;value;"),
-            ["/project/dep.ts"] = Wtf8.Encode("export const named=1;")
-        }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts", "/project/dep.ts"], [], [], []));
+            ["/project/dep.ts"u8] = Wtf8.Encode("export const named=1;")
+        }), "/project"u8, new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8, "/project/dep.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
-        var source = program.GetFile("/project/main.ts")!.Syntax;
+        var source = program.GetFile("/project/main.ts"u8)!.Syntax;
         var nodes = source.DescendantsAndSelf().ToArray();
         var import = nodes.OfType<ImportDeclarationNode>().Single();
         var alias = nodes.OfType<ImportSpecifierNode>().Single();
-        var f = nodes.OfType<FunctionDeclarationNode>().Last(n => n.Name?.Text == "f");
-        var g = nodes.OfType<FunctionDeclarationNode>().Single(n => n.Name?.Text == "g");
+        var f = nodes.OfType<FunctionDeclarationNode>().Last(n => n.Name?.Text == "f"u8);
+        var g = nodes.OfType<FunctionDeclarationNode>().Single(n => n.Name?.Text == "g"u8);
         Check(await checker.IsImplementationOfOverloadAsync(f));
         Check(!await checker.IsImplementationOfOverloadAsync(g));
         Check(
             await checker.IsLiteralConstDeclarationAsync(
-                nodes.OfType<VariableDeclarationNode>().Single(n => n.Name is IdentifierNode { Text: { Span: "literal" } })));
+                nodes.OfType<VariableDeclarationNode>().Single(n => (n.Name is IdentifierNode { Text: { Span: var matchedText5 } } && matchedText5.SequenceEqual("literal"u8)))));
         Check(
             !await checker.IsLiteralConstDeclarationAsync(
-                nodes.OfType<VariableDeclarationNode>().Single(n => n.Name is IdentifierNode { Text: { Span: "widened" } })));
+                nodes.OfType<VariableDeclarationNode>().Single(n => (n.Name is IdentifierNode { Text: { Span: var matchedText6 } } && matchedText6.SequenceEqual("widened"u8)))));
         Check(await checker.IsValueAliasForEmitAsync(alias));
-        Check((await checker.GetExternalModuleFileForEmitAsync(import))?.FileName == "/project/dep.ts");
+        Check((await checker.GetExternalModuleFileForEmitAsync(import))?.FileName == "/project/dep.ts"u8);
         Check(!await checker.IsOptionalParameterForEmitAsync(g.Parameters![0]));
         Check(await checker.RequiresImplicitUndefinedForEmitAsync(g.Parameters[0], null, source));
         Check(await checker.IsOptionalParameterForEmitAsync(g.Parameters[2]));
@@ -250,14 +250,14 @@ internal static class CheckerEmitQueryTests
             await checker.GetTypeReferenceSerializationKindAsync(
                 nodes.OfType<TypeReferenceNode>().Single().TypeName,
                 source) == TypeReferenceSerializationKind.NumberLikeType);
-        var synthetic = new NodeFactory().NewIdentifier("generated");
+        var synthetic = new NodeFactory().NewIdentifier("generated"u8);
         synthetic.Flags |= NodeFlags.Synthesized;
         Check(await checker.GetReferencedImportForEmitAsync(synthetic) is null);
         await checker.SetReferencedImportForEmitAsync(synthetic, alias);
         Check(await checker.GetReferencedImportForEmitAsync(synthetic) == alias);
         var other = await program.CreateCheckerAsync();
         Check(await other.GetReferencedImportForEmitAsync(synthetic) is null);
-        var foreign = Parser.ParseSourceFile(new("/foreign.ts"), new SourceText("let foreign=1;"));
+        var foreign = Parser.ParseSourceFile(new("/foreign.ts"u8), new SourceText("let foreign=1;"u8));
         try
         {
             await checker.SetReferencedImportForEmitAsync(synthetic, foreign);
@@ -279,7 +279,7 @@ internal static class CheckerEmitQueryTests
         {
             checks++;
         }
-        Check((await checker.GetExternalModuleFileForEmitAsync(import))?.FileName == "/project/dep.ts");
+        Check((await checker.GetExternalModuleFileForEmitAsync(import))?.FileName == "/project/dep.ts"u8);
         Check(!await checker.IsLateBoundDeclarationAsync(synthetic) && await checker.IsValueAliasForEmitAsync(synthetic));
         return checks;
     }
@@ -291,9 +291,9 @@ internal static class CheckerEmitQueryTests
         Func<SyntaxNode?, int> nodeId)
     {
         var main = nodes.Where(
-            n => SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main.", StringComparison.Ordinal) == true).ToArray();
+            n => SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main."u8, StringComparison.Ordinal) == true).ToArray();
         SyntaxNode?[] locations = [null, .. main.Where(n => n is SourceFileNode or ClassDeclarationNode or FunctionDeclarationNode)];
-        writer.WriteStartArray("emitQueries");
+        writer.WriteStartArray("emitQueries"u8);
         foreach (var node in main.OfType<TypeReferenceNode>())
             foreach (var location in locations)
             {
@@ -313,9 +313,9 @@ internal static class CheckerEmitQueryTests
         Func<SyntaxNode?, int> nodeId,
         Func<Symbol?, int> symbolId)
     {
-        writer.WriteStartArray("emitQueries");
+        writer.WriteStartArray("emitQueries"u8);
         foreach (var node in nodes.Where(
-            n => SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main.", StringComparison.Ordinal) == true))
+            n => SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main."u8, StringComparison.Ordinal) == true))
         {
             if (node is IdentifierNode identifier)
             {
@@ -371,9 +371,9 @@ internal static class CheckerEmitQueryTests
     internal static async Task WriteAsync(Utf8JsonWriter writer, SyntaxNode[] nodes, Checker checker, Func<SyntaxNode?, int> nodeId)
     {
         var main = nodes.Where(
-            n => SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main.", StringComparison.Ordinal) == true).ToArray();
+            n => SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main."u8, StringComparison.Ordinal) == true).ToArray();
         SyntaxNode?[] locations = [null, .. main.Where(n => n is SourceFileNode or FunctionDeclarationNode or ClassDeclarationNode)];
-        writer.WriteStartArray("emitQueries");
+        writer.WriteStartArray("emitQueries"u8);
         foreach (var node in main)
         {
             if (QuerySyntax.Declaration(node) || node is BinaryExpressionNode && (node.Flags & NodeFlags.JavaScriptFile) != 0)
@@ -410,7 +410,7 @@ internal static class CheckerEmitQueryTests
                 or ModuleDeclarationNode { Name: StringLiteralNode })
             {
                 Start(4, node);
-                writer.WriteStringValue((await checker.GetExternalModuleFileForEmitAsync(node))?.FileName ?? "");
+                writer.WriteStringValue((await checker.GetExternalModuleFileForEmitAsync(node))?.FileName ?? ""u8);
                 writer.WriteBooleanValue(node is ImportDeclarationNode import && await checker.IsImportRequiredByAugmentationAsync(import));
                 writer.WriteEndArray();
             }
@@ -423,7 +423,7 @@ internal static class CheckerEmitQueryTests
                     writer.WriteEndArray();
                 }
             if (node is SourceFileNode or FunctionDeclarationNode or ClassDeclarationNode)
-                foreach (string name in new[] { "Symbol", "globalThis", "value", "T", "Missing" })
+                foreach (Utf8String name in new Utf8String[] { "Symbol"u8, "globalThis"u8, "value"u8, "T"u8, "Missing"u8 })
                 {
                     Start(6, node);
                     writer.WriteStringValue(name);

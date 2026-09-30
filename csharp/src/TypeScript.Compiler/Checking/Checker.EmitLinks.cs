@@ -173,7 +173,7 @@ internal sealed partial class Checker
             if (current.Parent is ImportEqualsDeclarationNode import && current == import.ModuleReference)
                 return;
         var left = node is PropertyAccessExpressionNode access ? access.Expression : ((QualifiedNameNode)node).Left;
-        if (left is not IdentifierNode identifier || identifier.Text == "this")
+        if (left is not IdentifierNode identifier || identifier.Text == Utf8Literals.This)
             return;
         var parent = ResolveReference(identifier, cancellation);
         if (parent == UnknownSymbol)

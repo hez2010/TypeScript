@@ -23,17 +23,17 @@ public enum FileIncludeKind
     ProjectReference,
     MapperSupplemental
 }
-public sealed record FileIncludeReason(FileIncludeKind Kind, string FileName, string ContainingFile = "", int Position = 0, int Length = 0);
+public sealed record FileIncludeReason(FileIncludeKind Kind, Utf8String FileName, Utf8String ContainingFile = default, int Position = 0, int Length = 0);
 public sealed record ModuleReference(
-    string Specifier,
+    Utf8String Specifier,
     ReferenceResolutionMode Mode,
     SyntaxNode? Node,
     ResolvedModule Resolution,
     bool TypeReference = false,
     bool Augmentation = false);
 public sealed record ProgramFile(SourceFileNode Syntax, BoundSourceFile Binding, ParseOptions ParseOptions,
-    ReferenceResolutionMode ImpliedFormat, string PackageDirectory, string PackageType, IReadOnlyList<ModuleReference> Resolutions,
-    IReadOnlyList<string> Dependencies, bool Library = false)
+    ReferenceResolutionMode ImpliedFormat, Utf8String PackageDirectory, Utf8String PackageType, IReadOnlyList<ModuleReference> Resolutions,
+    IReadOnlyList<Utf8String> Dependencies, bool Library = false)
 {
     public MappedSourceFile? Mapping { get; init; }
 }
@@ -41,23 +41,23 @@ public sealed record ProgramFile(SourceFileNode Syntax, BoundSourceFile Binding,
 /// <summary>A published program owns a deterministic graph; rebuilding never mutates an older program.</summary>
 public sealed partial class CompilerProgram
 {
-    private readonly Dictionary<string, ProgramFile> files;
+    private readonly Dictionary<Utf8String, ProgramFile> files;
     private readonly IFileSystem fileSystem;
-    private readonly HashSet<string> externalLibraryFiles;
-    internal string CurrentDirectory { get; }
-    internal string GlobalTypingsCache { get; }
-    internal string ModuleResolutionKind { get; }
+    private readonly HashSet<Utf8String> externalLibraryFiles;
+    internal Utf8String CurrentDirectory { get; }
+    internal Utf8String GlobalTypingsCache { get; }
+    internal Utf8String ModuleResolutionKind { get; }
     public IReadOnlyList<ProgramFile> SourceFiles { get; }
-    public IReadOnlyList<string> RootFileNames { get; }
+    public IReadOnlyList<Utf8String> RootFileNames { get; }
     public IReadOnlyList<Diagnostic> Diagnostics { get; }
     internal IReadOnlyList<Diagnostic> IncludeDiagnostics { get; }
-    public IReadOnlyList<string> MissingFiles { get; }
-    public IReadOnlyDictionary<string, IReadOnlyList<FileIncludeReason>> IncludeReasons { get; }
-    public IReadOnlyDictionary<string, string> Redirects { get; }
+    public IReadOnlyList<Utf8String> MissingFiles { get; }
+    public IReadOnlyDictionary<Utf8String, IReadOnlyList<FileIncludeReason>> IncludeReasons { get; }
+    public IReadOnlyDictionary<Utf8String, Utf8String> Redirects { get; }
     public ProjectReferences ProjectReferences { get; }
     public ParsedConfig Configuration { get; }
     public int ReusedSourceFiles { get; }
-    public string CommonSourceDirectory { get; }
+    public Utf8String CommonSourceDirectory { get; }
     internal bool UseCaseSensitiveFileNames => fileSystem.CaseSensitive;
 
     private CompilerProgram(Builder builder, ProgramFile[] ordered)
@@ -79,18 +79,18 @@ public sealed partial class CompilerProgram
             p => p.Key,
             p => (IReadOnlyList<FileIncludeReason>)p.Value.AsReadOnly(),
             files.Comparer);
-        string common = Configuration.Options.RootDir ?? (Configuration.FileName.Length != 0
+        Utf8String common = Configuration.Options.RootDir ?? (Configuration.FileName.Length != 0
             ? CompilerPath.DirectoryName(Configuration.FileName) : ProjectReferences.CommonDirectory(
                 ordered.Where(f => SourceFileMayBeEmitted(f.Syntax)).Select(f => f.Syntax.FileName), fileSystem.CaseSensitive));
         if (common.Length == 0 && ordered.All(f => !SourceFileMayBeEmitted(f.Syntax)))
             common = CurrentDirectory;
-        CommonSourceDirectory = common.Length == 0 ? "" : CompilerPath.EnsureTrailingSeparator(common);
+        CommonSourceDirectory = common.Length == 0 ? Utf8String.Empty : CompilerPath.EnsureTrailingSeparator(common);
         Diagnostics = builder.diagnostics.Concat(ModulePathOptionDiagnostics()).OrderBy(
-            d => d.FileName ?? "", StringComparer.Ordinal).ThenBy(d => d.Start).ThenBy(d => d.Code).ToArray();
+            d => d.FileName ?? Utf8String.Empty, Utf8StringComparer.Ordinal).ThenBy(d => d.Start).ThenBy(d => d.Code).ToArray();
         IncludeDiagnostics = Array.AsReadOnly(builder.includeDiagnostics.ToArray());
     }
 
-    public ProgramFile? GetFile(string path)
+    public ProgramFile? GetFile(Utf8String path)
     {
         int remaining = Redirects.Count;
         while (Redirects.TryGetValue(path, out var target) && target != path)
@@ -102,12 +102,12 @@ public sealed partial class CompilerProgram
         return files.GetValueOrDefault(path);
     }
 
-    internal bool FileExists(string path) => fileSystem.FileExists(path);
+    internal bool FileExists(Utf8String path) => fileSystem.FileExists(path);
 
-    public static ValueTask<CompilerProgram> CreateAsync(IFileSystem fileSystem, string currentDirectory, ParsedConfig config,
+    public static ValueTask<CompilerProgram> CreateAsync(IFileSystem fileSystem, Utf8String currentDirectory, ParsedConfig config,
         CompilerProgram? previous = null, bool useProjectReferenceSources = false, int concurrency = 4,
-        string? defaultLibraryDirectory = null, ContentMapperProject? mapperProject = null, CancellationToken cancellation = default,
-        string globalTypingsCache = "") =>
+        Utf8String? defaultLibraryDirectory = null, ContentMapperProject? mapperProject = null, CancellationToken cancellation = default,
+        Utf8String globalTypingsCache = default) =>
         new Builder(
             fileSystem,
             currentDirectory,
@@ -125,20 +125,20 @@ public sealed partial class CompilerProgram
         private readonly IFileSystem resolutionFs;
         internal readonly ParsedConfig config;
         private readonly CompilerProgram? previous;
-        private readonly string cwd, libraryDirectory;
-        internal string CurrentDirectory => cwd;
-        internal string GlobalTypingsCache { get; }
-        internal IEnumerable<string> ExternalLibraryFiles => loadedDepth.Where(p => p.Value > 0).Select(p => p.Key);
+        private readonly Utf8String cwd, libraryDirectory;
+        internal Utf8String CurrentDirectory => cwd;
+        internal Utf8String GlobalTypingsCache { get; }
+        internal IEnumerable<Utf8String> ExternalLibraryFiles => loadedDepth.Where(p => p.Value > 0).Select(p => p.Key);
         private readonly int concurrency;
         private readonly SemaphoreSlim parseSlots;
         private readonly CancellationToken cancellation;
         internal readonly ProjectReferences references;
-        internal readonly Dictionary<string, ProgramFile> files;
-        internal readonly Dictionary<string, string> redirects;
-        internal readonly Dictionary<string, List<FileIncludeReason>> reasons;
+        internal readonly Dictionary<Utf8String, ProgramFile> files;
+        internal readonly Dictionary<Utf8String, Utf8String> redirects;
+        internal readonly Dictionary<Utf8String, List<FileIncludeReason>> reasons;
         internal readonly List<Diagnostic> diagnostics = [];
         internal readonly List<Diagnostic> includeDiagnostics = [];
-        private readonly List<(string Path, IReadOnlyList<Diagnostic> Diagnostics)> includeFailures = [];
+        private readonly List<(Utf8String Path, IReadOnlyList<Diagnostic> Diagnostics)> includeFailures = [];
 
         private void AddIncludeDiagnostic(Diagnostic diagnostic)
         {
@@ -146,22 +146,22 @@ public sealed partial class CompilerProgram
             includeDiagnostics.Add(diagnostic);
         }
 
-        internal readonly List<string> missing = [];
+        internal readonly List<Utf8String> missing = [];
         internal int reused;
-        private readonly Dictionary<string, ModuleResolver> resolvers;
-        private readonly Dictionary<string, PackageId> filePackages;
-        private readonly List<string> roots = [];
-        private readonly HashSet<string> seen;
-        private readonly Dictionary<string, int> loadedDepth;
+        private readonly Dictionary<Utf8String, ModuleResolver> resolvers;
+        private readonly Dictionary<Utf8String, PackageId> filePackages;
+        private readonly List<Utf8String> roots = [];
+        private readonly HashSet<Utf8String> seen;
+        private readonly Dictionary<Utf8String, int> loadedDepth;
         private ContentMapperProject? mapperProject;
-        private readonly ConcurrentDictionary<string, MappedSourceFile> supplemental;
+        private readonly ConcurrentDictionary<Utf8String, MappedSourceFile> supplemental;
 
         private sealed record ParsedSource(
             SourceFileNode? File,
             ParseOptions Options,
             ReferenceResolutionMode Format,
-                    string PackageDirectory,
-            string PackageType,
+                    Utf8String PackageDirectory,
+            Utf8String PackageType,
             MappedSourceFiles? Mapping = null,
             Diagnostic[]? Diagnostics = null,
             bool FailedLookup = false)
@@ -171,15 +171,15 @@ public sealed partial class CompilerProgram
 
         internal Builder(
             IFileSystem fs,
-            string cwd,
+            Utf8String cwd,
             ParsedConfig config,
             CompilerProgram? previous,
             bool useSources,
             int concurrency,
-            string? libraryDirectory,
+            Utf8String? libraryDirectory,
             ContentMapperProject? mapperProject,
             CancellationToken cancellation,
-            string globalTypingsCache)
+            Utf8String globalTypingsCache)
         {
             ArgumentOutOfRangeException.ThrowIfLessThan(concurrency, 1);
             this.fs = fs;
@@ -198,8 +198,8 @@ public sealed partial class CompilerProgram
             this.concurrency = concurrency;
             parseSlots = new(concurrency, concurrency);
             this.cancellation = cancellation;
-            this.libraryDirectory = libraryDirectory ?? (fs is LibraryFileSystem libraries ? libraries.LibraryDirectory : "");
-            var comparer = fs.CaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
+            this.libraryDirectory = libraryDirectory ?? (fs is LibraryFileSystem libraries ? libraries.LibraryDirectory : Utf8String.Empty);
+            var comparer = fs.CaseSensitive ? Utf8StringComparer.Ordinal : Utf8StringComparer.OrdinalIgnoreCase;
             files = new(comparer);
             redirects = new(comparer);
             reasons = new(comparer);
@@ -215,7 +215,7 @@ public sealed partial class CompilerProgram
             diagnostics.AddRange(references.Diagnostics);
         }
 
-        internal string ResolutionKind => Resolver(config).ResolutionKind;
+        internal Utf8String ResolutionKind => Resolver(config).ResolutionKind;
 
         private ModuleResolver Resolver(ParsedConfig project)
         {
@@ -240,7 +240,7 @@ public sealed partial class CompilerProgram
             {
                 if (mapperProject is null && config.ContentMappers.Length != 0)
                 {
-                    ownedHost = new(config.Options.Locale ?? "");
+                    ownedHost = new(config.Options.Locale ?? Utf8String.Empty);
                     mapperProject = await ownedHost.GetProjectAsync(config, cancellation).ConfigureAwait(false);
                 }
                 return await BuildGraph().ConfigureAwait(false);
@@ -265,17 +265,17 @@ public sealed partial class CompilerProgram
         private async ValueTask<CompilerProgram> BuildGraph()
         {
             var pending = new Queue<(FileIncludeReason Reason, bool Library, int Depth, PackageId? Package)>();
-            foreach (string root in config.FileNames)
+            foreach (Utf8String root in config.FileNames)
             {
-                string path = RootPath(root);
+                Utf8String path = RootPath(root);
                 roots.Add(path);
                 pending.Enqueue((new(FileIncludeKind.Root, path), false, 0, null));
             }
-            foreach (string type in Resolver(config).AutomaticTypeDirectives())
+            foreach (Utf8String type in Resolver(config).AutomaticTypeDirectives())
             {
                 var result = await Resolver(config).ResolveAsync(
                     type,
-                    CompilerPath.Combine(cwd, "__inferred type names__.ts"),
+                    CompilerPath.Combine(cwd, Utf8Literals.InferredTypeNamesTs),
                     typeReference: true,
                     cancellation: cancellation).ConfigureAwait(false);
                 if (result.IsResolved)
@@ -289,20 +289,20 @@ public sealed partial class CompilerProgram
             await LoadPending(pending).ConfigureAwait(false);
             if (config.FileNames.Length != 0 && config.Options.NoLib != true)
             {
-                string[] libs = config.Options.Lib ?? [DefaultLibrary(config.Options)];
-                foreach (string lib in libs)
+                Utf8String[] libs = config.Options.Lib ?? [DefaultLibrary(config.Options)];
+                foreach (Utf8String lib in libs)
                 {
-                    string path = await LibraryPath(lib).ConfigureAwait(false);
+                    Utf8String path = await LibraryPath(lib).ConfigureAwait(false);
                     roots.Add(path);
                     pending.Enqueue((new(FileIncludeKind.Library, path), true, 0, null));
                 }
                 await LoadPending(pending).ConfigureAwait(false);
             }
             var order = new List<ProgramFile>();
-            var visited = new HashSet<string>(files.Comparer);
-            var packageOwners = new Dictionary<PackageId, string>();
-            var spellings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            var stack = new Stack<(string Path, bool Exit, FileIncludeReason? Reason)>();
+            var visited = new HashSet<Utf8String>(files.Comparer);
+            var packageOwners = new Dictionary<PackageId, Utf8String>();
+            var spellings = new Dictionary<Utf8String, Utf8String>(Utf8StringComparer.OrdinalIgnoreCase);
+            var stack = new Stack<(Utf8String Path, bool Exit, FileIncludeReason? Reason)>();
             for (int i = roots.Count - 1; i >= 0; i--)
                 stack.Push((roots[i], false,
                 reasons.GetValueOrDefault(roots[i])?.FirstOrDefault(r => r.ContainingFile.Length == 0) ?? new(
@@ -310,7 +310,7 @@ public sealed partial class CompilerProgram
                     roots[i])));
             while (stack.TryPop(out var entry))
             {
-                string path = redirects.GetValueOrDefault(entry.Path, entry.Path);
+                Utf8String path = redirects.GetValueOrDefault(entry.Path, entry.Path);
                 if (!files.TryGetValue(path, out var file))
                     continue;
                 if (entry.Exit)
@@ -320,19 +320,19 @@ public sealed partial class CompilerProgram
                 }
                 if (fs.CaseSensitive && visited.Contains(path))
                     continue;
-                if (spellings.TryGetValue(path, out string? spelling) && spelling != path
+                if (spellings.TryGetValue(path, out Utf8String spelling) && spelling != path
                     && (fs.CaseSensitive || config.Options.ForceConsistentCasingInFileNames != false)
                     && spelling[CompilerPath.RootLength(spelling)..] != path[CompilerPath.RootLength(path)..])
                 {
                     var reason = entry.Reason;
-                    bool rootAfterReference = string.IsNullOrEmpty(reason?.ContainingFile)
+                    bool rootAfterReference = Utf8String.IsNullOrEmpty(reason?.ContainingFile)
                         && reasons.GetValueOrDefault(path)?.Any(r => r.ContainingFile.Length != 0) == true;
                     AddIncludeDiagnostic(
                         new(
                         rootAfterReference ? Messages.Already_included_file_name_0_differs_from_file_name_1_only_in_casing
                             : Messages.File_name_0_differs_from_already_included_file_name_1_only_in_casing,
                         reason?.Position ?? 0, reason?.Length ?? 0, rootAfterReference ? [spelling, path] : [path, spelling])
-                        { FileName = string.IsNullOrEmpty(reason?.ContainingFile) ? null : reason.ContainingFile });
+                        { FileName = reason?.ContainingFile is { IsEmpty: false } containingFile ? containingFile : (Utf8String?)null });
                 }
                 else
                     spellings.TryAdd(path, path);
@@ -369,7 +369,7 @@ public sealed partial class CompilerProgram
                 }
                 if (config.Options.DeduplicatePackages != false && filePackages.TryGetValue(path, out var package))
                 {
-                    if (packageOwners.TryGetValue(package, out string? owner) && owner != path)
+                    if (packageOwners.TryGetValue(package, out Utf8String owner) && owner != path)
                     {
                         redirects[path] = owner;
                         continue;
@@ -379,20 +379,20 @@ public sealed partial class CompilerProgram
                 stack.Push((path, true, entry.Reason));
                 for (int i = file.Dependencies.Count - 1; i >= 0; i--)
                 {
-                    string dependency = file.Dependencies[i];
+                    Utf8String dependency = file.Dependencies[i];
                     stack.Push(
                         (dependency, false, reasons.GetValueOrDefault(dependency)?.FirstOrDefault(r => files.Comparer.Equals(
                             r.ContainingFile,
                             path))));
                 }
             }
-            var libraryNames = OptionDefinitions.All.First(o => o.Name == "lib").Values;
+            var libraryNames = OptionDefinitions.All.First(o => o.Name == Utf8Literals.Lib).Values;
             int Priority(ProgramFile f)
             {
-                string name = CompilerPath.BaseName(f.Syntax.FileName);
-                if (name is "lib.d.ts" or "lib.es6.d.ts")
+                Utf8String name = CompilerPath.BaseName(f.Syntax.FileName);
+                if (name == "lib.d.ts"u8 || name == "lib.es6.d.ts"u8)
                     return 0;
-                int index = name.StartsWith("lib.", StringComparison.Ordinal) && name.EndsWith(".d.ts", StringComparison.Ordinal)
+                int index = name.StartsWith("lib."u8, StringComparison.Ordinal) && name.EndsWith(".d.ts"u8, StringComparison.Ordinal)
                     ? Array.IndexOf(libraryNames, name[4..^5]) : -1;
                 return index < 0 ? libraryNames.Length + 2 : index + 1;
             }
@@ -410,10 +410,10 @@ public sealed partial class CompilerProgram
                                         or DiagnosticCode.CouldNotResolveThePath0WithTheExtensionsColon1
                                         && reason.Kind == FileIncludeKind.PathReference
                                         && files.TryGetValue(reason.ContainingFile, out var containing)
-                                        ? [containing.Syntax.Source.Text[containing.Syntax.Source.ToUtf16Position(reason.Position)
-                                            ..containing.Syntax.Source.ToUtf16Position(reason.Position + reason.Length)].Replace('\\', '/'),
+                                        ? [containing.Syntax.Source.Text[reason.Position
+                                            ..(reason.Position + reason.Length)].Replace((byte)'\\', (byte)'/'),
                                             .. diagnostic.Arguments.Skip(1)] : diagnostic.Arguments,
-                                    FileName = reason.ContainingFile.Length == 0 ? null : reason.ContainingFile
+                                    FileName = reason.ContainingFile.Length == 0 ? (Utf8String?)null : reason.ContainingFile
                                 });
             VerifyOutputPaths(ordered);
             return new(this, ordered);
@@ -422,7 +422,7 @@ public sealed partial class CompilerProgram
         private async ValueTask LoadPending(Queue<(FileIncludeReason Reason, bool Library, int Depth, PackageId? Package)> pending)
         {
             // Keep file-local parsing and binding busy while publishing the graph in discovery order.
-            var scheduled = new Queue<(string Path, bool Library, ParsedConfig Project, ValueTask<ParsedSource> Task)>();
+            var scheduled = new Queue<(Utf8String Path, bool Library, ParsedConfig Project, ValueTask<ParsedSource> Task)>();
             try
             {
                 while (pending.Count != 0 || scheduled.Count != 0)
@@ -433,7 +433,7 @@ public sealed partial class CompilerProgram
                     while (pending.Count != 0 && (concurrency > 1 || scheduled.Count == 0))
                     {
                         var item = pending.Dequeue();
-                        string original = CompilerPath.Resolve(cwd, item.Reason.FileName), path = references.Redirect(original);
+                        Utf8String original = CompilerPath.Resolve(cwd, item.Reason.FileName), path = references.Redirect(original);
                         if (!reasons.TryGetValue(original, out var why))
                             reasons[original] = why = [];
                         if (!why.Contains(item.Reason))
@@ -459,13 +459,13 @@ public sealed partial class CompilerProgram
                                         if (resolution.IsArbitraryExtension && !existing.Syntax.IsDeclarationFile
                                             && projectOptions.AllowArbitraryExtensions != true)
                                             continue;
-                                        if (resolution.Extension is ".js" or ".jsx" or ".mjs" or ".cjs"
+                                        if ((resolution.Extension == ".js"u8 || resolution.Extension == ".jsx"u8 || resolution.Extension == ".mjs"u8 || resolution.Extension == ".cjs"u8)
                                             && !(projectOptions.AllowJs ?? projectOptions.CheckJs == true))
                                             continue;
-                                        if (resolution.Extension is ".jsx" or ".tsx" && projectOptions.Jsx == JsxEmit.None)
+                                        if ((resolution.Extension == ".jsx"u8 || resolution.Extension == ".tsx"u8) && projectOptions.Jsx == JsxEmit.None)
                                             continue;
                                         int depth = item.Depth + (resolution.External ? 1 : 0);
-                                        bool externalJs = resolution.External && resolution.Extension is ".js" or ".jsx" or ".mjs" or ".cjs";
+                                        bool externalJs = resolution.External && (resolution.Extension == ".js"u8 || resolution.Extension == ".jsx"u8 || resolution.Extension == ".mjs"u8 || resolution.Extension == ".cjs"u8);
                                         if (externalJs && depth > (projectOptions.MaxNodeModuleJsDepth ?? 0))
                                         {
                                             if (!existingDependencies.Contains(resolution.FileName, files.Comparer))
@@ -503,13 +503,13 @@ public sealed partial class CompilerProgram
                     if (parsed.Diagnostics is not null)
                         diagnostics.AddRange(parsed.Diagnostics);
                     int currentDepth = loadedDepth[entry.Path];
-                    var dependencies = new List<string>();
+                    var dependencies = new List<Utf8String>();
                     var resolutions = new List<ModuleReference>();
                     var resolver = Resolver(entry.Project);
                     var options = entry.Project.Options;
-                    string resolutionFile = references.Find(entry.Path)?.Source ?? entry.Path;
+                    Utf8String resolutionFile = references.Find(entry.Path)?.Source ?? entry.Path;
                     void Include(
-                        string path,
+                        Utf8String path,
                         FileIncludeKind kind,
                         int pos,
                         bool lib = false,
@@ -524,7 +524,7 @@ public sealed partial class CompilerProgram
                     {
                         foreach (var reference in syntax.ReferencedFiles)
                         {
-                            string path = RootPath(CompilerPath.Resolve(CompilerPath.DirectoryName(entry.Path), reference.FileName));
+                            Utf8String path = RootPath(CompilerPath.Resolve(CompilerPath.DirectoryName(entry.Path), reference.FileName));
                             if (files.Comparer.Equals(path, entry.Path))
                                 AddIncludeDiagnostic(
                                     new(
@@ -573,23 +573,23 @@ public sealed partial class CompilerProgram
                                 reference.Pos,
                                 true,
                                 length: reference.End - reference.Pos);
-                    var imports = new List<(SyntaxNode? Node, string Name)>();
+                    var imports = new List<(SyntaxNode? Node, Utf8String Name)>();
                     bool javaScript = syntax.ScriptKind is ScriptKind.JS or ScriptKind.JSX;
                     if (options.ImportHelpers == true && (javaScript || !syntax.IsDeclarationFile
                         && (syntax.ExternalModuleIndicator is not null
                             || options.IsolatedModules == true
                             || options.VerbatimModuleSyntax == true)))
-                        imports.Add((null, "tslib"));
-                    string? Pragma(string name) =>
-                        syntax.Pragmas.LastOrDefault(p => p.Name == name).Arguments?.GetValueOrDefault("factory").Value;
-                    if ((javaScript || syntax.ScriptKind == ScriptKind.TSX) && Pragma("jsxruntime") != "classic"
+                        imports.Add((null, Utf8Literals.Tslib));
+                    Utf8String? Pragma(Utf8String name) =>
+                        syntax.Pragmas.LastOrDefault(p => p.Name == name).Arguments?.GetValueOrDefault(Utf8Literals.Factory).Value;
+                    if ((javaScript || syntax.ScriptKind == ScriptKind.TSX) && Pragma(Utf8Literals.Jsxruntime) != Utf8Literals.Classic
                         && (options.Jsx is JsxEmit.ReactJSX or JsxEmit.ReactJSXDev || options.JsxImportSource is not null
-                            || Pragma("jsximportsource") is not null || Pragma("jsxruntime") == "automatic"))
+                            || Pragma(Utf8Literals.Jsximportsource) is not null || Pragma(Utf8Literals.Jsxruntime) == Utf8Literals.Automatic))
                     {
-                        string jsx = Pragma("jsximportsource") ?? options.JsxImportSource ?? "react";
-                        imports.Add((null, jsx + (options.Jsx == JsxEmit.ReactJSXDev ? "/jsx-dev-runtime" : "/jsx-runtime")));
+                        Utf8String jsx = Pragma(Utf8Literals.Jsximportsource) ?? options.JsxImportSource ?? Utf8Literals.React;
+                        imports.Add((null, jsx + (options.Jsx == JsxEmit.ReactJSXDev ? Utf8Literals.JsxDevRuntime : Utf8Literals.JsxRuntime)));
                     }
-                    imports.AddRange(syntax.Imports.Select(n => (Node: (SyntaxNode?)n, Name: ImportText(n).ToString())));
+                    imports.AddRange(syntax.Imports.Select(n => (Node: (SyntaxNode?)n, Name: ImportText(n))));
                     foreach (var import in imports)
                     {
                         if (import.Name.Length == 0)
@@ -612,18 +612,18 @@ public sealed partial class CompilerProgram
                             && (import.Node?.Flags & NodeFlags.JSDoc) != 0
                             && import.Node is not null)
                             continue;
-                        bool js = resolved.Extension is ".js" or ".jsx" or ".mjs" or ".cjs";
+                        bool js = resolved.Extension == ".js"u8 || resolved.Extension == ".jsx"u8 || resolved.Extension == ".mjs"u8 || resolved.Extension == ".cjs"u8;
                         int depth = currentDepth + (resolved.External ? 1 : 0);
                         if (js && !(options.AllowJs ?? options.CheckJs == true))
                             continue;
-                        if (js && resolved.External && resolved.FileName.Contains("/node_modules/", StringComparison.Ordinal)
+                        if (js && resolved.External && resolved.FileName.Contains("/node_modules/"u8, StringComparison.Ordinal)
                             && depth > (options.MaxNodeModuleJsDepth ?? 0))
                         {
                             // An elided dependency can still be loaded through an explicit root or a shallower import.
                             dependencies.Add(resolved.FileName);
                             continue;
                         }
-                        if (resolved.Extension is ".tsx" or ".jsx" && options.Jsx == JsxEmit.None)
+                        if ((resolved.Extension == ".tsx"u8 || resolved.Extension == ".jsx"u8) && options.Jsx == JsxEmit.None)
                             continue;
                         Include(resolved.FileName, FileIncludeKind.Import, import.Node?.Pos ?? 0, depth: depth, package: resolved.PackageId,
                             length: import.Node is null ? 0 : import.Node.End - import.Node.Pos);
@@ -632,11 +632,11 @@ public sealed partial class CompilerProgram
                     {
                         var mode = UsageMode(augmentation, entry.Path, options, parsed.Format, parsed.PackageType);
                         var resolved = await resolver.ResolveAsync(
-                            augmentation.Text.ToString(),
+                            augmentation.Text,
                             resolutionFile,
                             mode,
                             cancellation: cancellation).ConfigureAwait(false);
-                        resolutions.Add(new(augmentation.Text.ToString(), mode, augmentation, resolved, Augmentation: true));
+                        resolutions.Add(new(augmentation.Text, mode, augmentation, resolved, Augmentation: true));
                         diagnostics.AddRange(resolved.Diagnostics);
                     }
                     if (parsed.Mapping is { } mappedFiles)
@@ -658,7 +658,7 @@ public sealed partial class CompilerProgram
             }
         }
 
-        private async ValueTask<ParsedSource> ParseAndBind(string path, ParsedConfig project, bool library)
+        private async ValueTask<ParsedSource> ParseAndBind(Utf8String path, ParsedConfig project, bool library)
         {
             if (concurrency > 1)
                 await parseSlots.WaitAsync(cancellation).ConfigureAwait(false);
@@ -677,7 +677,7 @@ public sealed partial class CompilerProgram
         }
 
         private async ValueTask<ParsedSource> Parse(
-            string path, ParsedConfig project, bool library)
+            Utf8String path, ParsedConfig project, bool library)
         {
             // Parallel execution may finish in any order; publication above always follows discovery order.
             var mapper = config.ContentMappers.FirstOrDefault(m => m.Extensions.Any(e => path.EndsWith(e, StringComparison.Ordinal)));
@@ -686,39 +686,39 @@ public sealed partial class CompilerProgram
             cancellation.ThrowIfCancellationRequested();
             var resolver = Resolver(project);
             var scope = library ? null : resolver.Packages.Scope(CompilerPath.DirectoryName(path));
-            string ext = ModuleResolver.Extension(path);
-            bool explicitFormat = path.EndsWith(".mts", StringComparison.Ordinal) || path.EndsWith(".cts", StringComparison.Ordinal)
-                || path.EndsWith(".mjs", StringComparison.Ordinal) || path.EndsWith(".cjs", StringComparison.Ordinal);
-            string type = (!explicitFormat && resolver.ResolutionKind != "bundler"
-                || path.Contains("/node_modules/", StringComparison.Ordinal))
-                ? scope?.Type ?? ""
-                : "";
-            var format = ext is ".mts" or ".mjs" or ".d.mts" || ext is not (".cts" or ".cjs" or ".d.cts") && type == "module"
+            Utf8String ext = ModuleResolver.Extension(path);
+            bool explicitFormat = path.EndsWith(".mts"u8, StringComparison.Ordinal) || path.EndsWith(".cts"u8, StringComparison.Ordinal)
+                || path.EndsWith(".mjs"u8, StringComparison.Ordinal) || path.EndsWith(".cjs"u8, StringComparison.Ordinal);
+            Utf8String type = (!explicitFormat && resolver.ResolutionKind != Utf8Literals.Bundler
+                || path.Contains("/node_modules/"u8, StringComparison.Ordinal))
+                ? scope?.Type ?? Utf8String.Empty
+                : Utf8String.Empty;
+            var format = ext == ".mts"u8 || ext == ".mjs"u8 || ext == ".d.mts"u8 || !(ext == ".cts"u8 || ext == ".cjs"u8 || ext == ".d.cts"u8) && type == Utf8Literals.Module
                 ? ReferenceResolutionMode.Import : ReferenceResolutionMode.Require;
-            if (ext == ".json")
+            if (ext == Utf8Literals.Json)
                 format = ReferenceResolutionMode.Unspecified;
             var options = project.Options;
             ModuleDetectionKind detection = options.EmitModuleDetectionKind;
             bool force = !CompilerPath.IsDeclarationFile(path) && (detection == ModuleDetectionKind.Force || detection == ModuleDetectionKind.Auto
-                && (ext is ".mts" or ".cts" or ".mjs" or ".cjs"
+                && (ext == ".mts"u8 || ext == ".cts"u8 || ext == ".mjs"u8 || ext == ".cjs"u8
                     || ImpliedMode(path, options, format, type) == ReferenceResolutionMode.Import));
             var parseOptions = new ParseOptions(path, ForceExternalModule: force,
                 JsxExternalModule: detection == ModuleDetectionKind.Auto && options.Jsx is JsxEmit.ReactJSX or JsxEmit.ReactJSXDev);
             if (supplemental.TryGetValue(path, out var mappedSource))
-                return new(mappedSource.Syntax, parseOptions, format, scope?.Directory ?? "", type);
+                return new(mappedSource.Syntax, parseOptions, format, scope?.Directory ?? Utf8String.Empty, type);
             if (options.AllowNonTsExtensions != true && !SupportedSource(path, project))
             {
-                bool js = ext is ".js" or ".jsx" or ".mjs" or ".cjs";
+                bool js = ext == ".js"u8 || ext == ".jsx"u8 || ext == ".mjs"u8 || ext == ".cjs"u8;
                 var diagnostic = new Diagnostic(ext.Length == 0 ? Messages.Could_not_resolve_the_path_0_with_the_extensions_Colon_1
                     : js ? Messages.File_0_is_a_JavaScript_file_Did_you_mean_to_enable_the_allowJs_option
                     : Messages.File_0_has_an_unsupported_extension_The_only_supported_extensions_are_1, 0, 0,
                     js ? [path] : [path, SupportedExtensionsText(project)]);
-                return new(null, parseOptions, format, scope?.Directory ?? "", type, Diagnostics: [diagnostic], FailedLookup: true);
+                return new(null, parseOptions, format, scope?.Directory ?? Utf8String.Empty, type, Diagnostics: [diagnostic], FailedLookup: true);
             }
             SourceText? source = (fs as LibraryFileSystem)?.ReadBundledSource(path);
             byte[]? bytes = source is null ? fs.ReadFile(path) : null;
             if (source is null && bytes is null)
-                return new(null, parseOptions, format, scope?.Directory ?? "", type);
+                return new(null, parseOptions, format, scope?.Directory ?? Utf8String.Empty, type);
             if (bytes is not null)
                 bytes = SourceEncoding.DecodeOwnedBytes(bytes);
             if (mapper is not null)
@@ -727,15 +727,15 @@ public sealed partial class CompilerProgram
                     parseOptions,
                     source ?? SourceText.FromOwnedBytes(bytes!),
                     format,
-                    scope?.Directory ?? "",
+                    scope?.Directory ?? Utf8String.Empty,
                     type).ConfigureAwait(false);
             if (previous?.GetFile(path) is { } old && old.ParseOptions == parseOptions && old.Syntax.Source.Bytes.Span.SequenceEqual(source is null ? bytes : source.Bytes.Span))
             {
                 Interlocked.Increment(ref reused);
-                return new(old.Syntax, parseOptions, format, scope?.Directory ?? "", type);
+                return new(old.Syntax, parseOptions, format, scope?.Directory ?? Utf8String.Empty, type);
             }
             var syntax = await Parser.ParseSourceFileAsync(parseOptions, source ?? SourceText.FromOwnedBytes(bytes!), cancellation).ConfigureAwait(false);
-            return new(syntax, parseOptions, format, scope?.Directory ?? "", type);
+            return new(syntax, parseOptions, format, scope?.Directory ?? Utf8String.Empty, type);
         }
     }
 }

@@ -14,7 +14,7 @@ public sealed partial class Parser
         int end,
         CancellationToken cancellation = default)
     {
-        var parser = new Parser(new("/documentation", scriptKind), source, cancellation, start, end, true);
+        var parser = new Parser(new(Utf8Literals.Documentation, scriptKind), source, cancellation, start, end, true);
         await parser.ParseStack;
         parser.Expected(K.ImportKeyword);
         int clauseStart = parser.Pos;
@@ -51,7 +51,7 @@ public sealed partial class Parser
                 parser.ErrorAt(Messages.Expression_expected, parser.Pos, 0);
             else
                 parser.Error(Messages.Expression_expected);
-            specifier = parser.Token == K.EndOfFile ? parser.Finish(parser.factory.NewIdentifier(""), parser.Pos, parser.Pos)
+            specifier = parser.Token == K.EndOfFile ? parser.Finish(parser.factory.NewIdentifier(Utf8String.Empty), parser.Pos, parser.Pos)
                 : await parser.ExpressionCore().ConfigureAwait(false);
         }
         else
@@ -93,13 +93,13 @@ public sealed partial class Parser
         NodeFlags additionalContext = 0,
         CancellationToken cancellation = default)
     {
-        var parser = new Parser(new("/documentation", scriptKind), source, cancellation, start, end, true);
+        var parser = new Parser(new(Utf8Literals.Documentation, scriptKind), source, cancellation, start, end, true);
         await parser.ParseStack;
         parser.context |= additionalContext;
         int pos = parser.Pos;
         bool braces = parser.Take(K.OpenBraceToken);
         if (!braces && !mayOmitBraces)
-            parser.Error(Messages.X_0_expected, "{");
+            parser.Error(Messages.X_0_expected, Utf8Literals.OpenBrace);
         SyntaxNode type = await parser.TypeOrPredicateCore().ConfigureAwait(false);
         if (parser.Take(K.EqualsToken))
             type = parser.Finish(parser.factory.NewJSDocOptionalType(type), type.Pos);
@@ -116,7 +116,7 @@ public sealed partial class Parser
         NodeFlags SourceFlags)> DocumentationHeritageAsync(
         SourceText source, ScriptKind scriptKind, int start, int end, NodeFlags context, CancellationToken cancellation)
     {
-        var parser = new Parser(new("/documentation", scriptKind), source, cancellation, start, end, true);
+        var parser = new Parser(new(Utf8Literals.Documentation, scriptKind), source, cancellation, start, end, true);
         await parser.ParseStack;
         parser.context |= context;
         bool braces = parser.Take(K.OpenBraceToken);
@@ -140,7 +140,7 @@ public sealed partial class Parser
         NodeFlags SourceFlags)> DocumentationTypeParameterAsync(
         SourceText source, ScriptKind scriptKind, int start, int end, CancellationToken cancellation = default)
     {
-        var parser = new Parser(new("/documentation", scriptKind), source, cancellation, start, end, true);
+        var parser = new Parser(new(Utf8Literals.Documentation, scriptKind), source, cancellation, start, end, true);
         await parser.ParseStack;
         int pos = parser.Pos;
         bool bracketed = parser.Take(K.OpenBracketToken);

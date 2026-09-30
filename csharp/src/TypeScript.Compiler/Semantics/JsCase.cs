@@ -5,38 +5,40 @@ namespace TypeScript.Compiler.Semantics;
 
 internal static partial class JsCase
 {
-    internal static TextSlice Upper(TextSlice text) => Convert(text, true);
+    internal static Utf8String Upper(Utf8String text) => Convert(text, true);
 
-    internal static TextSlice Lower(TextSlice text) => Convert(text, false);
+    internal static Utf8String Lower(Utf8String text) => Convert(text, false);
 
-    private static TextSlice Convert(TextSlice text, bool upper)
+    private static Utf8String Convert(Utf8String text, bool upper)
     {
-        if (!text.Span.ContainsAnyExceptInRange('\0', '\x7f'))
+        if (Ascii.IsValid(text))
         {
-            char[] mapped = new char[text.Length];
+            byte[] mapped = new byte[text.Length];
             if (upper)
-                text.Span.ToUpperInvariant(mapped);
+                Ascii.ToUpper(text, mapped, out _);
             else
-                text.Span.ToLowerInvariant(mapped);
+                Ascii.ToLower(text, mapped, out _);
             return new(mapped);
         }
-        var result = new StringBuilder(text.Length);
+        var result = new Utf8StringBuilder(text.Length);
         bool casedBefore = false;
         for (int i = 0; i < text.Length;)
         {
             int start = i, scalar = Next(text, ref i);
             if (Mappings.TryGetValue(scalar, out var mapping))
-                result.Append(upper ? mapping.Upper : mapping.FinalLower is not null && casedBefore && !CasedAfter(text, i)
-                    ? mapping.FinalLower : mapping.Lower);
-            else
+                result.Append(upper ? mapping.Upper : mapping.FinalLower is { } final && casedBefore && !CasedAfter(text, i)
+                    ? final : mapping.Lower);
+            else if (scalar is >= 0xD800 and <= 0xDFFF)
                 result.Append(text.Span.Slice(start, i - start));
+            else
+                result.AppendCodePoint(scalar);
             if (!InRanges(CaseIgnorable, scalar))
                 casedBefore = InRanges(Cased, scalar);
         }
-        return TextSlice.FromBuilder(result);
+        return Utf8String.FromBuilder(result);
     }
 
-    private static bool CasedAfter(TextSlice text, int index)
+    private static bool CasedAfter(Utf8String text, int index)
     {
         while (index < text.Length)
         {
@@ -47,14 +49,17 @@ internal static partial class JsCase
         return false;
     }
 
-    internal static int FirstScalarLength(TextSlice text) => text.Length == 0 ? 0
-        : text.Length >= 2 && char.IsSurrogatePair(text[0], text[1]) ? 2 : 1;
-
-    private static int Next(TextSlice text, ref int index)
+    internal static int FirstScalarLength(Utf8String text)
     {
-        char first = text[index++];
-        return char.IsHighSurrogate(first) && index < text.Length && char.IsLowSurrogate(text[index])
-            ? char.ConvertToUtf32(first, text[index++]) : first;
+        Wtf8.Decode(text, out int width);
+        return width;
+    }
+
+    private static int Next(Utf8String text, ref int index)
+    {
+        int point = Wtf8.Decode(text.Span[index..], out int width);
+        index += width;
+        return point;
     }
 
     private static bool InRanges(ReadOnlySpan<int> ranges, int value)

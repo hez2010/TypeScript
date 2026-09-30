@@ -52,7 +52,7 @@ internal sealed partial class Checker
             source = await Widening.LiteralBaseAsync(source, cancellation);
             sourceText = await TypeDisplay.GetAsync(source, NodeBuilderFlags.UseFullyQualifiedType, cancellation);
         }
-        TextSlice[] arguments;
+        Utf8String[] arguments;
         if (code is DiagnosticCode.Type0IsMissingTheFollowingPropertiesFromType1Colon2
             or DiagnosticCode.Type0IsMissingTheFollowingPropertiesFromType1Colon2And3More
             or DiagnosticCode.Property0IsMissingInType1ButRequiredInType2
@@ -61,10 +61,10 @@ internal sealed partial class Checker
             if (code == DiagnosticCode.Property0IsMissingInType1ButRequiredInType2)
                 arguments = [TypeDisplay.SymbolName(missing[0]), sourceText, targetText];
             else if (code == DiagnosticCode.Type0IsMissingTheFollowingPropertiesFromType1Colon2And3More)
-                arguments = [sourceText, targetText, TextSlice.Join(", ", missing.Take(4).Select(TypeDisplay.SymbolName)),
-                    TextSlice.Format((missing.Count - 4))];
+                arguments = [sourceText, targetText, Utf8String.Join(", "u8, missing.Take(4).Select(TypeDisplay.SymbolName)),
+                    Utf8String.Format(missing.Count - 4)];
             else
-                arguments = [sourceText, targetText, TextSlice.Join(", ", missing.Select(TypeDisplay.SymbolName))];
+                arguments = [sourceText, targetText, Utf8String.Join(", "u8, missing.Select(TypeDisplay.SymbolName))];
         }
         else
             arguments = [sourceText, targetText];
@@ -121,8 +121,8 @@ internal sealed partial class Checker
     {
         if ((source.ObjectFlags & ObjectFlags.JsxAttributes) == 0 || target is not IntersectionType intersection)
             return false;
-        var intrinsic = await JsxTypeAsync("IntrinsicAttributes", node, cancellation);
-        var classIntrinsic = await JsxTypeAsync("IntrinsicClassAttributes", node, cancellation);
+        var intrinsic = await JsxTypeAsync(Utf8Literals.IntrinsicAttributes, node, cancellation);
+        var classIntrinsic = await JsxTypeAsync(Utf8Literals.IntrinsicClassAttributes, node, cancellation);
         return intrinsic != context.ErrorType && classIntrinsic != context.ErrorType
             && (intersection.Types.Contains(intrinsic) || intersection.Types.Contains(classIntrinsic));
     }
@@ -131,7 +131,7 @@ internal sealed partial class Checker
         (source is TypeReference { Target: TupleType { IsReadonly: true } } || IsReadonlyArray(source))
         && (target is TypeReference { Target: TupleType { IsReadonly: false } } || IsArray(target) && !IsReadonlyArray(target));
 
-    private Diagnostic SelectRelationDiagnostic(Diagnostic diagnostic, Type source, Type target, TextSlice sourceText, TextSlice targetText)
+    private Diagnostic SelectRelationDiagnostic(Diagnostic diagnostic, Type source, Type target, Utf8String sourceText, Utf8String targetText)
     {
         if (ReadonlyAssignment(source, target))
             return diagnostic with
@@ -263,7 +263,7 @@ internal sealed partial class Checker
             var excessDiagnostic = name is not null && SemanticSyntax.Source(name)?.FileName == location.FileName
                 ? CheckerDiagnostic.Create(name, Messages.Object_literal_may_only_specify_known_properties_and_0_does_not_exist_in_type_1)
                 : location;
-            TextSlice propertyText = TypeDisplay.SymbolName(property), targetText = await TypeDisplay.GetAsync(target, cancellation);
+            Utf8String propertyText = TypeDisplay.SymbolName(property), targetText = await TypeDisplay.GetAsync(target, cancellation);
             return excessDiagnostic with
             {
                 Message = DiagnosticLocalization.GetMessage(
@@ -305,15 +305,15 @@ internal sealed partial class Checker
         }
         if (explanation.Arguments is { } supplied)
         {
-            var arguments = new TextSlice[supplied.Count];
+            var arguments = new Utf8String[supplied.Count];
             for (int i = 0; i < arguments.Length; i++)
                 arguments[i] = supplied[i] switch
                 {
-                    TextSlice text => text,
-                    int count => TextSlice.Format(count),
+                    Utf8String text => text,
+                    int count => Utf8String.Format(count),
                     Type type => await TypeDisplay.GetAsync(type, cancellation),
                     Symbol symbol => TypeDisplay.SymbolName(symbol),
-                    IReadOnlyList<Symbol> symbols => TextSlice.Join(", ", symbols.Select(TypeDisplay.SymbolName)),
+                    IReadOnlyList<Symbol> symbols => Utf8String.Join(", "u8, symbols.Select(TypeDisplay.SymbolName)),
                     Signature signature => await TypeDisplay.GetSignatureAsync(signature, cancellation),
                     TypePredicate predicate => await TypeDisplay.GetPredicateAsync(predicate, cancellation),
                     _ => throw new InvalidOperationException("Unsupported relation argument")
@@ -367,13 +367,13 @@ internal sealed partial class Checker
                 and <= DiagnosticCode.ConstructSignaturesWithNoArgumentsHaveIncompatibleReturnTypes0And1
             } marker)
         {
-            TextSlice name = PropertyPath(diagnostic.Arguments[0]);
-            TextSlice path = marker.Code switch
+            Utf8String name = PropertyPath(diagnostic.Arguments[0]);
+            Utf8String path = marker.Code switch
             {
-                DiagnosticCode.CallSignatureReturnTypes0And1AreIncompatible => TextSlice.Concat(name, "(...)"),
-                DiagnosticCode.ConstructSignatureReturnTypes0And1AreIncompatible => TextSlice.Concat("new ", name, "(...)"),
-                DiagnosticCode.CallSignaturesWithNoArgumentsHaveIncompatibleReturnTypes0And1 => TextSlice.Concat(name, "()"),
-                _ => TextSlice.Concat("new ", name, "()")
+                DiagnosticCode.CallSignatureReturnTypes0And1AreIncompatible => Utf8String.Concat(name, "(...)"u8),
+                DiagnosticCode.ConstructSignatureReturnTypes0And1AreIncompatible => Utf8String.Concat("new "u8, name, "(...)"u8),
+                DiagnosticCode.CallSignaturesWithNoArgumentsHaveIncompatibleReturnTypes0And1 => Utf8String.Concat(name, "()"u8),
+                _ => Utf8String.Concat("new "u8, name, "()"u8)
             };
             diagnostic = diagnostic with
             {
@@ -392,15 +392,15 @@ internal sealed partial class Checker
                 or DiagnosticCode.TheTypesReturnedBy0AreIncompatibleBetweenTheseTypes
             } inner)
         {
-            TextSlice head = PropertyPath(diagnostic.Arguments[0]), tail = PropertyPath(inner.Arguments[0]);
-            if (head.Span.StartsWith("new ", StringComparison.Ordinal))
-                head = TextSlice.Concat("(", head, ")");
+            Utf8String head = PropertyPath(diagnostic.Arguments[0]), tail = PropertyPath(inner.Arguments[0]);
+            if (head.Span.StartsWith("new "u8, StringComparison.Ordinal))
+                head = Utf8String.Concat("("u8, head, ")"u8);
             int pos = 0;
             while (pos < tail.Length)
             {
                 if (tail[pos] == '(')
                     pos++;
-                else if (tail.Span.Slice(pos).StartsWith("new ", StringComparison.Ordinal))
+                else if (tail.Span.Slice(pos).StartsWith("new "u8, StringComparison.Ordinal))
                     pos += 4;
                 else
                     break;
@@ -411,14 +411,14 @@ internal sealed partial class Checker
                     diagnostic.Code == DiagnosticCode.TypesOfProperty0AreIncompatible
                         ? DiagnosticCode.TheTypesOf0AreIncompatibleBetweenTheseTypes
                         : diagnostic.Code),
-                Arguments = [TextSlice.ConcatMany(tail[..pos], head, (tail.Span.Slice(pos).StartsWith("[", StringComparison.Ordinal) ? "" : "."), tail[pos..])],
+                Arguments = [Utf8String.ConcatMany(tail[..pos], head, tail.Span.Slice(pos).StartsWith("["u8, StringComparison.Ordinal) ? Utf8String.Empty : Utf8Literals.Dot, tail[pos..])],
                 MessageChain = inner.MessageChain
             };
         }
         return diagnostic;
     }
 
-    private static TextSlice PropertyPath(TextSlice name) => name.Length != 0 && name[0] is '\'' or '"' or '`' ? TextSlice.Concat("[", name, "]") : name;
+    private static Utf8String PropertyPath(Utf8String name) => name.Length != 0 && name[0] is (byte)'\'' or (byte)'"' or (byte)'`' ? Utf8String.Concat("["u8, name, "]"u8) : name;
 
     private static Diagnostic WithRelatedInformation(Diagnostic diagnostic, IReadOnlyList<Diagnostic> related)
     {
@@ -440,9 +440,9 @@ internal sealed partial class Checker
         Type target,
         CancellationToken cancellation)
     {
-        TextSlice? name = TextSlice.FromNullable(target == context.StringType ? "String" : target == context.NumberType ? "Number"
-            : target == context.BooleanType ? "Boolean" : target == context.ESSymbolType ? "Symbol" : null);
-        if (name is null || source is not ObjectType || source != await program.Globals.GetAsync((name).Value, 0, false, cancellation))
+        Utf8String? name = target == context.StringType ? Utf8String.Copy("String"u8) : target == context.NumberType ? Utf8String.Copy("Number"u8)
+            : target == context.BooleanType ? Utf8String.Copy("Boolean"u8) : target == context.ESSymbolType ? Utf8String.Copy("Symbol"u8) : null;
+        if (name is null || source is not ObjectType || source != await program.Globals.GetAsync(name.Value, 0, false, cancellation))
             return diagnostic;
         return diagnostic with
         {
@@ -505,7 +505,7 @@ internal sealed partial class Checker
     }
 
     private async ValueTask<Diagnostic> RelationMessageKindAsync(Diagnostic diagnostic, Type source, Type target,
-        TextSlice sourceText, TextSlice targetText, CancellationToken cancellation)
+        Utf8String sourceText, Utf8String targetText, CancellationToken cancellation)
     {
         if (diagnostic.Code != DiagnosticCode.Type0IsNotAssignableToType1)
             return diagnostic;
@@ -515,7 +515,7 @@ internal sealed partial class Checker
                 Message = DiagnosticLocalization.GetMessage(
                 DiagnosticCode.Type0IsNotAssignableToType1TwoDifferentTypesWithThisNameExistButTheyAreUnrelated)
             };
-        if (source is LiteralType { Value: TextSlice text } && target is UnionType union
+        if (source is LiteralType { Value: Utf8String text } && target is UnionType union
             && await SymbolSuggestions.StringLiteralAsync(text, union, cancellation) is { } suggestion)
             return diagnostic with
             {
@@ -525,9 +525,9 @@ internal sealed partial class Checker
         return diagnostic;
     }
 
-    private async ValueTask<(TextSlice Source, TextSlice Target)> RelationTypeNamesAsync(Type source, Type target, CancellationToken cancellation)
+    private async ValueTask<(Utf8String Source, Utf8String Target)> RelationTypeNamesAsync(Type source, Type target, CancellationToken cancellation)
     {
-        async ValueTask<TextSlice> Name(Type type)
+        async ValueTask<Utf8String> Name(Type type)
         {
             var enclosing = type.Symbol?.ValueDeclaration;
             if (enclosing is null || !QuerySyntax.Expression(enclosing) || program.IsContextSensitive(enclosing))
@@ -535,7 +535,7 @@ internal sealed partial class Checker
             return await TypeDisplay.GetAsync(type, enclosing,
                 TypeFormatFlags.AllowUniqueESSymbolType | TypeFormatFlags.UseAliasDefinedOutsideCurrentScope, cancellation);
         }
-        TextSlice sourceText = await Name(source), targetText = await Name(target);
+        Utf8String sourceText = await Name(source), targetText = await Name(target);
         if (sourceText == targetText)
         {
             sourceText = await TypeDisplay.GetAsync(source, NodeBuilderFlags.UseFullyQualifiedType, cancellation);
@@ -545,7 +545,7 @@ internal sealed partial class Checker
     }
 
     private async ValueTask<Diagnostic> ConstraintReasonAsync(Diagnostic diagnostic, Type originalSource, Type source, Type target,
-        TextSlice sourceText, TextSlice targetText, CancellationToken cancellation)
+        Utf8String sourceText, Utf8String targetText, CancellationToken cancellation)
     {
         var targetFlags = target is IndexedAccessType indexed && originalSource is not IndexedAccessType
             ? indexed.ObjectType.Flags
@@ -554,7 +554,7 @@ internal sealed partial class Checker
             return diagnostic;
         var constraint = await Instantiation.Constraints.BaseConstraintAsync(target, cancellation);
         DiagnosticCode code;
-        TextSlice[] arguments;
+        Utf8String[] arguments;
         if (target is TypeParameter { IsDistributed: true, Constraint: { } distributed }
             && await Relations.RelatedAsync(source, distributed, RelationKind.Assignable, cancellation))
         {

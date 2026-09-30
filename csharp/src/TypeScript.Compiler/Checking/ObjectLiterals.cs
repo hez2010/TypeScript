@@ -29,7 +29,7 @@ internal interface IObjectLiteralHost
 
     ValueTask TypeExpressionErrorAsync(SyntaxNode node, DiagnosticCode code, Type type, CancellationToken cancellation);
 
-    void DuplicateObjectProperty(SyntaxNode node, TextSlice name);
+    void DuplicateObjectProperty(SyntaxNode node, Utf8String name);
 
     void SpreadOverride(SyntaxNode node, Symbol property, SyntaxNode spread);
 
@@ -42,7 +42,7 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
     ObjectSpreads spreads, Dictionary<Type, SyntaxNode> patterns, IObjectLiteralHost host)
 {
     private readonly Dictionary<Type, Type> regular = [];
-    private readonly Dictionary<SyntaxNode, TextSlice?> effectiveNames = [];
+    private readonly Dictionary<SyntaxNode, Utf8String?> effectiveNames = [];
 
     internal async ValueTask<Type> CheckAsync(
         ObjectLiteralExpressionNode node,
@@ -58,8 +58,8 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
         await GrammarAsync(node, destructuring, cancellation).ConfigureAwait(false);
         return await contexts.CachedAsync(node, async () =>
         {
-            var all = context.StrictNullChecks ? new Dictionary<TextSlice, Symbol>() : null;
-            var table = new Dictionary<TextSlice, Symbol>();
+            var all = context.StrictNullChecks ? new Dictionary<Utf8String, Symbol>() : null;
+            var table = new Dictionary<Utf8String, Symbol>();
             var ordered = new List<Symbol>();
             Type spreadType = context.EmptyObjectType;
             var contextual = await contexts.ApparentAsync(node, cancellation: cancellation).ConfigureAwait(false);
@@ -138,7 +138,7 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
                             isConst,
                             cancellation).ConfigureAwait(false);
                         ordered.Clear();
-                        table = new(TextSliceComparer.Ordinal);
+                        table = new(Utf8StringComparer.Ordinal);
                         stringKey = numberKey = symbolKey = false;
                     }
                     var type = await views.ReducedAsync(
@@ -219,7 +219,7 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
                         isConst,
                         cancellation).ConfigureAwait(false);
                     ordered.Clear();
-                    table = new(TextSliceComparer.Ordinal);
+                    table = new(Utf8StringComparer.Ordinal);
                     stringKey = numberKey = false;
                 }
                 return (await algebra.MapAsync(spreadType, async part => part == context.EmptyObjectType
@@ -311,7 +311,7 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
         foreach (var symbol in symbols)
         {
             var name = (symbol.Declarations.FirstOrDefault() as INamedNode)?.Name;
-            bool symbolName = symbol.Name.Span.StartsWith(Symbol.InternalPrefix + "@", StringComparison.Ordinal);
+            bool symbolName = symbol.Name.Span.StartsWith(Symbol.InternalUnique, StringComparison.Ordinal);
             if (!symbolName && name is ComputedPropertyNameNode computed)
                 symbolName = await predicates.AssignableAsync(
                     await ComputedAsync(computed, cancellation).ConfigureAwait(false),
@@ -344,7 +344,7 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
         if (regular.TryGetValue(type, out var cached))
             return cached;
         var resolved = await members.ResolveAsync((StructuredType)type, cancellation).ConfigureAwait(false);
-        var table = new Dictionary<TextSlice, Symbol>();
+        var table = new Dictionary<Utf8String, Symbol>();
         foreach (var property in resolved.Properties!)
         {
             var original = await values.GetAsync(property, cancellation).ConfigureAwait(false);
@@ -361,7 +361,7 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
 
     private async ValueTask GrammarAsync(ObjectLiteralExpressionNode node, bool destructuring, CancellationToken cancellation)
     {
-        var seen = new Dictionary<TextSlice, int>(TextSliceComparer.Ordinal);
+        var seen = new Dictionary<Utf8String, int>(Utf8StringComparer.Ordinal);
         bool grammarErrors = SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0;
         void Error(SyntaxNode location, DiagnosticCode code)
         {
@@ -431,24 +431,24 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
                 var type = name is ComputedPropertyNameNode computed
                     ? await host.CheckExpressionAsync(computed.Expression!, CheckMode.TypeOnly, cancellation).ConfigureAwait(false)
                     : await host.LiteralNameTypeAsync(name, cancellation).ConfigureAwait(false);
-                text = (type.Flags & TypeFlags.StringOrNumberLiteralOrUnique) != 0 ? MappedMembers.PropertyName(type) : (TextSlice?)null;
+                text = (type.Flags & TypeFlags.StringOrNumberLiteralOrUnique) != 0 ? MappedMembers.PropertyName(type) : (Utf8String?)null;
                 effectiveNames[name] = text;
             }
             if (text is null)
                 continue;
-            if (!seen.TryGetValue((text).Value, out int old))
-                seen[(text).Value] = kind;
+            if (!seen.TryGetValue(text.Value, out int old))
+                seen[text.Value] = kind;
             else if ((kind & old & 2) != 0)
                 Error(name, DiagnosticCode.DuplicateIdentifier0);
             else if ((kind & old & 1) != 0)
             {
                 if (SemanticSyntax.Source(name)?.ParseDiagnostics.Count == 0)
-                    host.DuplicateObjectProperty(name, (text).Value);
+                    host.DuplicateObjectProperty(name, text.Value);
             }
             else if ((kind & 12) != 0 && (old & 12) != 0)
             {
                 if (old != 12 && kind != old)
-                    seen[(text).Value] = kind | old;
+                    seen[text.Value] = kind | old;
                 else
                 {
                     Error(name, DiagnosticCode.AnObjectLiteralCannotHaveMultipleGetSlashsetAccessorsWithTheSameName);

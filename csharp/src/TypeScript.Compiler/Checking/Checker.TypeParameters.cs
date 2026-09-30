@@ -43,7 +43,7 @@ internal sealed partial class Checker
             }
             if (code != DiagnosticCode.None)
             {
-                Error(modifier, code, code == DiagnosticCode.X0ModifierMustPrecede1Modifier ? ["in", "out"]
+                Error(modifier, code, code == DiagnosticCode.X0ModifierMustPrecede1Modifier ? [Utf8Literals.InKeyword, Utf8Literals.Out]
                     : code is DiagnosticCode.X0ModifierCanOnlyAppearOnATypeParameterOfAFunctionMethodOrClass
                         or DiagnosticCode.X0ModifierCanOnlyAppearOnATypeParameterOfAClassInterfaceOrTypeAlias
                         or DiagnosticCode.X0ModifierAlreadySeen or DiagnosticCode.X0ModifierCannotAppearOnATypeParameter

@@ -38,7 +38,7 @@ internal sealed class TypeFactQueries(
             return strict ? TypeFacts.StringStrictFacts : TypeFacts.StringFacts;
         if ((flags & (TypeFlags.StringLiteral | TypeFlags.TemplateLiteral)) != 0)
         {
-            bool empty = type is LiteralType { Value: TextSlice text } && text.Length == 0;
+            bool empty = type is LiteralType { Value: Utf8String text } && text.Length == 0;
             return strict
                 ? empty ? TypeFacts.EmptyStringStrictFacts : TypeFacts.NonEmptyStringStrictFacts
                 : empty ? TypeFacts.EmptyStringFacts : TypeFacts.NonEmptyStringFacts;
@@ -124,7 +124,7 @@ internal sealed class TypeFactQueries(
             return false;
         var resolved = await members.ResolveAsync(type, cancellation).ConfigureAwait(false);
         return resolved.CallSignatures.Count != 0 || resolved.ConstructSignatures.Count != 0
-            || resolved.Members?.ContainsKey("bind") == true
+            || resolved.Members?.ContainsKey(Utf8Literals.Bind) == true
                 && await host.SubtypeAsync(type, host.GlobalFunction, cancellation).ConfigureAwait(false);
     }
 

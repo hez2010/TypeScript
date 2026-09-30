@@ -1,6 +1,5 @@
 using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
@@ -25,7 +24,7 @@ public sealed partial class Binder
     private readonly CancellationToken cancellation;
     private readonly List<Diagnostic> diagnostics = [];
     private readonly List<SyntaxNode> containers = [];
-    private readonly Dictionary<TextSlice, Symbol> globalExports = new();
+    private readonly SymbolTable globalExports = new();
     private readonly HashSet<Symbol> notConstEnumOnly = [];
 
     private sealed class PatternIdentity
@@ -45,7 +44,7 @@ public sealed partial class Binder
     private bool explicitReturn, seenThis, assignmentPattern, hasFlowEffects, seenParseError;
     private NodeFlags emitFlags;
 
-    private readonly record struct ActiveLabel(TextSlice Name, FlowNode Break, FlowNode? Continue, bool Referenced = false);
+    private readonly record struct ActiveLabel(Utf8String Name, FlowNode Break, FlowNode? Continue, bool Referenced = false);
 
     private Binder(SourceFileNode file, CancellationToken cancellation)
     {
@@ -165,7 +164,7 @@ public sealed partial class Binder
                     Data(node).Flow = currentFlow;
                     CheckIdentifier(node);
                     break;
-                case K.PrivateIdentifier when node is PrivateIdentifierNode { Text.Span: "#constructor" }:
+                case K.PrivateIdentifier when node is PrivateIdentifierNode { Text.Span: var matchedText } && matchedText.SequenceEqual("#constructor"u8):
                     if (file.ParseDiagnostics.Count == 0)
                         Error(node, Messages.X_constructor_is_a_reserved_word, SourceName(node));
                     break;
@@ -275,7 +274,7 @@ public sealed partial class Binder
                 if (parameter.Name is BindingPatternNode)
                 {
                     int index = node.Parent is IFunctionSignature { Parameters: { } parameters } ? parameters.IndexOf(node) : 0;
-                    Anonymous(node, S.FunctionScopedVariable, TextSlice.Concat("__", TextSlice.Format(index)));
+                    Anonymous(node, S.FunctionScopedVariable, Utf8String.Concat("__"u8, Utf8String.Format(index)));
                 }
                 else
                     Member(node, S.FunctionScopedVariable, S.ParameterExcludes);
@@ -315,20 +314,20 @@ public sealed partial class Binder
             case K.FunctionExpression or K.ArrowFunction when node is (FunctionExpressionNode or ArrowFunctionNode):
                 CheckEval(node, Name(node));
                 Data(node).Flow = currentFlow;
-                Anonymous(node, S.Function, Name(node) is { } functionName ? NameText(functionName) : (Symbol.InternalPrefix + "function"));
+                Anonymous(node, S.Function, Name(node) is { } functionName ? NameText(functionName) : (Symbol.InternalFunction));
                 break;
             case K.ClassDeclaration or K.ClassExpression when node is (ClassDeclarationNode or ClassExpressionNode):
                 if (node is ClassDeclarationNode)
                     BlockMember(node, S.Class, S.ClassExcludes);
                 else
-                    Anonymous(node, S.Class, Name(node) is { } className ? NameText(className) : (Symbol.InternalPrefix + "class"));
+                    Anonymous(node, S.Class, Name(node) is { } className ? NameText(className) : (Symbol.InternalClass));
                 var classSymbol = SymbolOf(node)!;
-                if (classSymbol.ExportTable.TryGetValue("prototype", out var old) && old.Declarations.Length != 0)
+                if (classSymbol.ExportTable.TryGetValue(Utf8Literals.Prototype, out var old) && old.Declarations.Length != 0)
                     Error(
                         Name(old.Declarations[0]) ?? old.Declarations[0],
                         Messages.Duplicate_identifier_0,
                         DisplayName(old.Declarations[0]));
-                classSymbol.ExportTable["prototype"] = NewSymbol(S.Property | S.Prototype, "prototype", classSymbol);
+                classSymbol.ExportTable[Utf8Literals.Prototype] = NewSymbol(S.Property | S.Prototype, Utf8Literals.Prototype, classSymbol);
                 break;
             case K.InterfaceDeclaration when node is InterfaceDeclarationNode:
                 BlockMember(node, S.Interface, S.InterfaceExcludes);
@@ -359,10 +358,10 @@ public sealed partial class Binder
                             node,
                             Messages.X_export_modifier_cannot_be_applied_to_ambient_modules_and_module_augmentations_since_they_are_always_visible,
                             firstToken: true);
-                    if (!augmentation && module.Name is StringLiteralNode literal && literal.Text.Span.Count('*') > 1)
+                    if (!augmentation && module.Name is StringLiteralNode literal && literal.Text.Span.Count((byte)'*') > 1)
                         Error(literal, Messages.Pattern_0_can_have_at_most_one_Asterisk_character, literal.Text);
                     else if (!augmentation && module.Name is StringLiteralNode { Text: { } moduleName }
-                        && !moduleName.Span.Contains('*')
+                        && !moduleName.Span.Contains((byte)'*')
                         && module.Attributes is not null)
                         Error(
                             module.Name,
@@ -410,17 +409,17 @@ public sealed partial class Binder
                 break;
             case K.FunctionType or K.ConstructorType when node is (FunctionTypeNode or ConstructorTypeNode):
                 var signature = Anonymous(node, S.Signature, DeclarationName(node));
-                var type = Anonymous(node, S.TypeLiteral, (Symbol.InternalPrefix + "type"));
+                var type = Anonymous(node, S.TypeLiteral, Symbol.InternalType);
                 type.MemberTable[signature.Name] = signature;
                 break;
             case K.TypeLiteral or K.MappedType when node is (TypeLiteralNode or MappedTypeNode):
-                Anonymous(node, S.TypeLiteral, (Symbol.InternalPrefix + "type"));
+                Anonymous(node, S.TypeLiteral, Symbol.InternalType);
                 break;
             case K.ObjectLiteralExpression when node is ObjectLiteralExpressionNode:
-                Anonymous(node, S.ObjectLiteral, (Symbol.InternalPrefix + "object"));
+                Anonymous(node, S.ObjectLiteral, Symbol.InternalObject);
                 break;
             case K.JsxAttributes when node is JsxAttributesNode:
-                Anonymous(node, S.ObjectLiteral, (Symbol.InternalPrefix + "jsxAttributes"));
+                Anonymous(node, S.ObjectLiteral, Symbol.InternalJsxAttributes);
                 break;
             case K.JsxAttribute when node is JsxAttributeNode:
                 Member(node, S.Property, S.PropertyExcludes);
@@ -432,7 +431,7 @@ public sealed partial class Binder
             case K.ExportDeclaration when node is (ExportDeclarationNode export):
                 var owner = SymbolOf(container);
                 if (owner is null)
-                    Anonymous(node, S.ExportStar, (Symbol.InternalPrefix + "export"));
+                    Anonymous(node, S.ExportStar, Symbol.InternalExport);
                 else if (export.ExportClause is null)
                     Declare(owner.ExportTable, owner, node, S.ExportStar, 0);
                 else if (export.ExportClause is NamespaceExportNode clause)
@@ -474,7 +473,7 @@ public sealed partial class Binder
                 break;
             case K.CallExpression when node is (CallExpressionNode call):
                 if (file.ScriptKind is ScriptKind.JS or ScriptKind.JSX
-                    && call.Expression is IdentifierNode { Text.Span: "require" }
+                    && call.Expression is IdentifierNode { Text.Span: var matchedText2 } && matchedText2.SequenceEqual("require"u8)
                     && call.Arguments?.Count == 1)
                     CommonJS(node);
                 BindDefineProperty(call);
@@ -494,8 +493,8 @@ public sealed partial class Binder
             case K.WithStatement when node is WithStatementNode:
                 Error(node, Messages.X_with_statements_are_not_allowed_in_strict_mode, firstToken: true);
                 break;
-            case K.LabeledStatement when node is (LabeledStatementNode label) && (label.Statement?.Kind is K.VariableStatement or K.FunctionDeclaration or K.ClassDeclaration
-                or K.InterfaceDeclaration or K.TypeAliasDeclaration or K.EnumDeclaration or K.ModuleDeclaration or K.ImportEqualsDeclaration):
+            case K.LabeledStatement when node is (LabeledStatementNode label) && label.Statement?.Kind is K.VariableStatement or K.FunctionDeclaration or K.ClassDeclaration
+                or K.InterfaceDeclaration or K.TypeAliasDeclaration or K.EnumDeclaration or K.ModuleDeclaration or K.ImportEqualsDeclaration:
                 Error(label.Label!, Messages.A_label_is_not_allowed_here, firstToken: true);
                 break;
         }
@@ -505,7 +504,7 @@ public sealed partial class Binder
             seenThis = true;
     }
 
-    private Symbol NewSymbol(S flags, TextSlice name, Symbol? parent = null)
+    private Symbol NewSymbol(S flags, Utf8String name, Symbol? parent = null)
     {
         result.SymbolCount++;
         return new(flags, name) { Parent = parent };
@@ -520,7 +519,7 @@ public sealed partial class Binder
         _ => 0
     };
 
-    private Symbol Anonymous(SyntaxNode node, S flags, TextSlice name)
+    private Symbol Anonymous(SyntaxNode node, S flags, Utf8String name)
     {
         var symbol = NewSymbol(flags, name, (flags & (S.EnumMember | S.ClassMember)) != 0 ? SymbolOf(container) : null);
         AddDeclaration(symbol, node, flags);
@@ -550,20 +549,20 @@ public sealed partial class Binder
             symbol.ValueDeclaration = node;
     }
 
-    private Symbol Declare(Dictionary<TextSlice, Symbol> table, Symbol? parent, SyntaxNode node, S includes, S excludes,
-        TextSlice? suppliedName = null, bool replaceable = false)
+    private Symbol Declare(SymbolTable table, Symbol? parent, SyntaxNode node, S includes, S excludes,
+        Utf8String? suppliedName = null, bool replaceable = false)
     {
         bool isDefault = Has(node, K.DefaultKeyword)
-            || node is ExportSpecifierNode { Name: { } exportName } && NameText(exportName) == "default";
-        TextSlice name = suppliedName ?? (isDefault && parent is not null ? "default" : DeclarationName(node));
-        bool missing = name == (Symbol.InternalPrefix + "missing");
+            || node is ExportSpecifierNode { Name: { } exportName } && NameText(exportName) == Utf8Literals.Default;
+        Utf8String name = suppliedName ?? (isDefault && parent is not null ? Utf8Literals.Default : DeclarationName(node));
+        bool missing = name == Symbol.InternalMissing;
         Symbol symbol;
         bool existing = false;
         if (missing)
             symbol = NewSymbol(replaceable ? S.ReplaceableByMethod : 0, name);
         else
         {
-            ref Symbol? entry = ref CollectionsMarshal.GetValueRefOrAddDefault(table, name, out existing);
+            ref Symbol? entry = ref table.GetValueRefOrAddDefault(name, out existing);
             if (!existing)
                 entry = NewSymbol(replaceable ? S.ReplaceableByMethod : 0, name);
             symbol = entry!;
@@ -598,7 +597,7 @@ public sealed partial class Binder
                 var related = new List<Diagnostic>();
                 if (node is TypeAliasDeclarationNode { Type: { } type, Name: { } alias } && type.Pos == type.End
                     && Has(node, K.ExportKeyword) && (symbol.Flags & (S.Alias | S.Type | S.Namespace)) != 0)
-                    related.Add(CreateDiagnostic(node, Messages.Did_you_mean_0, [TextSlice.Concat("export type { ", alias.Text, " }")]));
+                    related.Add(CreateDiagnostic(node, Messages.Did_you_mean_0, [Utf8String.Concat("export type { "u8, alias.Text, " }"u8)]));
                 for (int i = 0; i < symbol.Declarations.Length; i++)
                 {
                     var previous = symbol.Declarations[i];
@@ -682,99 +681,96 @@ public sealed partial class Binder
             && node.Parent?.Kind is K.ObjectLiteralExpression or K.ClassExpression)
             Data(node).Flow = currentFlow;
         if (Name(node) is ComputedPropertyNameNode computed && LiteralName(computed.Expression) is null)
-            Anonymous(node, flags, (Symbol.InternalPrefix + "computed"));
+            Anonymous(node, flags, Symbol.InternalComputed);
         else
             Member(node, flags, excludes);
     }
 
-    private static TextSlice Internal(TextSlice text) => TextSlice.Concat(Symbol.InternalPrefix, text);
+    private static Utf8String Internal(Utf8String text) => Utf8String.Concat(Symbol.InternalPrefix, text);
 
-    private static TextSlice UserName(TextSlice text) =>
-        text.Span.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal) ? TextSlice.Concat(Symbol.InternalPrefix, text) : text;
-
-    private static TextSlice? LiteralName(SyntaxNode? node) => node switch
+    private static Utf8String? LiteralName(SyntaxNode? node) => node switch
     {
         StringLiteralNode n => n.Text,
         NumericLiteralNode n => n.Text,
         NoSubstitutionTemplateLiteralNode n => n.Text,
-        PrefixUnaryExpressionNode { Operator: K.PlusToken or K.MinusToken, Operand: NumericLiteralNode n } p => TextSlice.Concat(TokenFacts.Text(p.Operator), n.Text),
-        _ => (TextSlice?)null
+        PrefixUnaryExpressionNode { Operator: K.PlusToken or K.MinusToken, Operand: NumericLiteralNode n } p => Utf8String.Concat(TokenFacts.Text(p.Operator), n.Text),
+        _ => (Utf8String?)null
     };
 
-    private static TextSlice NameText(SyntaxNode node) => UserName(node switch
+    private static Utf8String NameText(SyntaxNode node) => node switch
     {
         IdentifierNode n => n.Text,
         PrivateIdentifierNode n => n.Text,
-        JsxNamespacedNameNode n => TextSlice.Concat(NameText(n.Namespace!), ":", NameText(n.Name!)),
-        _ => LiteralName(node) ?? ""
-    });
+        JsxNamespacedNameNode n => Utf8String.Concat(NameText(n.Namespace!), ":"u8, NameText(n.Name!)),
+        _ => LiteralName(node) ?? Utf8String.Empty
+    };
 
-    private TextSlice DeclarationName(SyntaxNode node)
+    private Utf8String DeclarationName(SyntaxNode node)
     {
         if (node is ExportAssignmentNode export)
-            return export.IsExportEquals ? "export=" : "default";
+            return export.IsExportEquals ? Utf8Literals.ExportEquals : Utf8Literals.Default;
         if (Name(node) is { } name)
         {
             if (AmbientModule(node))
             {
                 if (node is ModuleDeclarationNode { Keyword: K.GlobalKeyword })
-                    return (Symbol.InternalPrefix + "global");
-                if (node is ModuleDeclarationNode { Attributes: { } attributes } && NameText(name).Span.Count('*') == 1)
+                    return Symbol.InternalGlobal;
+                if (node is ModuleDeclarationNode { Attributes: { } attributes } && NameText(name).Span.Count((byte)'*') == 1)
                 {
-                    return Internal(TextSlice.ConcatMany("\"", NameText(name), "\"pattern@", TextSlice.Format(PatternIdentities.GetValue(attributes, static _ => new()).Value)));
+                    return Internal(Utf8String.ConcatMany(Utf8Literals.DoubleQuote, NameText(name), Utf8Literals.Pattern, Utf8String.Format(PatternIdentities.GetValue(attributes, static _ => new()).Value)));
                 }
-                return TextSlice.Concat("\"", NameText(name), "\"");
+                return Utf8String.Concat("\""u8, NameText(name), "\""u8);
             }
             if (name is PrivateIdentifierNode p)
-                return ContainingClass(node) is { } owner ? Internal(TextSlice.ConcatMany("#", TextSlice.Format(SymbolOf(owner)!.Id), "@", p.Text)) : (Symbol.InternalPrefix + "missing");
+                return ContainingClass(node) is { } owner ? Internal(Utf8String.ConcatMany(Utf8Literals.Hash, Utf8String.Format(SymbolOf(owner)!.Id), Utf8Literals.At, p.Text)) : (Symbol.InternalMissing);
             if (name is ComputedPropertyNameNode computed)
-                return LiteralName(computed.Expression) is { } literal ? UserName(literal) : (Symbol.InternalPrefix + "computed");
+                return LiteralName(computed.Expression) ?? Symbol.InternalComputed;
             if (name is ElementAccessExpressionNode access)
-                return LiteralName(SkipParentheses(access.ArgumentExpression)) is not null ? (Symbol.InternalPrefix + "missing") : (Symbol.InternalPrefix + "computed");
+                return LiteralName(SkipParentheses(access.ArgumentExpression)) is not null ? (Symbol.InternalMissing) : (Symbol.InternalComputed);
             if (name is not (IdentifierNode or JsxNamespacedNameNode) && LiteralName(name) is null)
-                return (Symbol.InternalPrefix + "missing");
+                return Symbol.InternalMissing;
             return NameText(name);
         }
         return node.Kind switch
         {
-            K.Constructor => (Symbol.InternalPrefix + "constructor"),
-            K.FunctionType or K.CallSignature => (Symbol.InternalPrefix + "call"),
-            K.ConstructorType or K.ConstructSignature => (Symbol.InternalPrefix + "new"),
-            K.IndexSignature => (Symbol.InternalPrefix + "index"),
-            K.ExportDeclaration => (Symbol.InternalPrefix + "export"),
-            K.SourceFile or K.BinaryExpression => "export=",
-            _ => (Symbol.InternalPrefix + "missing")
+            K.Constructor => Symbol.InternalConstructor,
+            K.FunctionType or K.CallSignature => Symbol.InternalCall,
+            K.ConstructorType or K.ConstructSignature => Symbol.InternalNew,
+            K.IndexSignature => Symbol.InternalIndex,
+            K.ExportDeclaration => Symbol.InternalExport,
+            K.SourceFile or K.BinaryExpression => Utf8Literals.ExportEquals,
+            _ => Symbol.InternalMissing
         };
     }
 
-    private TextSlice DisplayName(SyntaxNode node)
+    private Utf8String DisplayName(SyntaxNode node)
     {
         if (node is ExportAssignmentNode)
             return DeclarationName(node);
         if (Name(node) is not { } name)
         {
-            TextSlice value = DeclarationName(node);
-            return value == (Symbol.InternalPrefix + "missing") ? "(Missing)" : value;
+            Utf8String value = DeclarationName(node);
+            return value == Symbol.InternalMissing ? Utf8Literals.MissingDisplay : value;
         }
         return SourceName(name);
     }
 
-    private TextSlice SourceName(SyntaxNode name)
+    private Utf8String SourceName(SyntaxNode name)
     {
         if (name.Pos == name.End)
-            return "(Missing)";
+            return Utf8Literals.MissingDisplay;
         if (name.Pos < 0)
             return NameText(name);
         if ((name.Flags & NodeFlags.ReparserTransformedLiteral) != 0 && name is IdentifierNode identifier)
             return identifier.Text;
         var scanner = new Scanner(file.Source);
-        scanner.ResetPosition(file.Source.ToUtf16Position(name.Pos));
+        scanner.ResetPosition(name.Pos);
         scanner.Scan();
-        return file.Source.Text[scanner.TokenStart..file.Source.ToUtf16Position(name.End)];
+        return file.Source.Text[scanner.TokenStart..name.End];
     }
 
     private void ExternalModule() =>
-        Anonymous(file, S.ValueModule, TextSlice.Concat("\"", file.FileName.AsSpan()[..^ModuleResolver.Extension(file.FileName).Length], "\""));
+        Anonymous(file, S.ValueModule, Utf8String.Concat("\""u8, file.FileName.AsSpan()[..^ModuleResolver.Extension(file.FileName).Length], "\""u8));
 
     private bool CommonJS(SyntaxNode node)
     {

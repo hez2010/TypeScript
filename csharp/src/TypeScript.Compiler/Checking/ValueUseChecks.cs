@@ -13,18 +13,18 @@ internal interface IValueUseHost
 
     bool ValidTypeOnlyUse(SyntaxNode node);
 
-    bool MissingPrefix(SyntaxNode node, TextSlice name);
+    bool MissingPrefix(SyntaxNode node, Utf8String name);
 
-    void ValueUseError(SyntaxNode? node, DiagnosticMessage message, params TextSlice[] arguments);
+    void ValueUseError(SyntaxNode? node, DiagnosticMessage message, params Utf8String[] arguments);
 
-    void ValueUseSuggestion(SyntaxNode node, DiagnosticMessage message, TextSlice name);
+    void ValueUseSuggestion(SyntaxNode node, DiagnosticMessage message, Utf8String name);
 
-    void DeclarationRelatedInfo(SyntaxNode? location, DiagnosticCode code, SyntaxNode declaration, bool typeOnly, TextSlice name);
+    void DeclarationRelatedInfo(SyntaxNode? location, DiagnosticCode code, SyntaxNode declaration, bool typeOnly, Utf8String name);
 }
 
 internal sealed class ValueUseChecks(CheckerSymbols symbols, AliasResolver aliases, DeclarationOrder order, IValueUseHost host)
 {
-    internal bool InvalidInitializer(SyntaxNode? location, TextSlice name, SyntaxNode declaration, Symbol? result)
+    internal bool InvalidInitializer(SyntaxNode? location, Utf8String name, SyntaxNode declaration, Symbol? result)
     {
         if (order.StandardClassFields)
             return false;
@@ -44,7 +44,7 @@ internal sealed class ValueUseChecks(CheckerSymbols symbols, AliasResolver alias
         SyntaxNode? associatedDeclaration, bool deferred, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
-        TextSlice name = symbol.Name;
+        Utf8String name = symbol.Name;
         bool inModule = last is SourceFileNode && symbols.Binding(last)?.IsModule == true;
         bool valueMeaning = (meaning & SymbolFlags.Value) == SymbolFlags.Value;
         if (location is not null && ((meaning & SymbolFlags.BlockScopedVariable) != 0
@@ -84,7 +84,7 @@ internal sealed class ValueUseChecks(CheckerSymbols symbols, AliasResolver alias
                     candidate.Name,
                     meaning) == candidate)
                 host.ValueUseError(location, Messages.Parameter_0_cannot_reference_identifier_1_declared_after_it,
-                    NameText(associatedDeclaration), location is null ? "" : NameText(location));
+                    NameText(associatedDeclaration), location is null ? Utf8String.Empty : NameText(location));
         }
         if (location is not null && (meaning & SymbolFlags.Value) != 0 && (symbol.Flags & SymbolFlags.Alias) != 0
             && (symbol.Flags & SymbolFlags.Value) == 0 && !host.ValidTypeOnlyUse(location)
@@ -135,16 +135,16 @@ internal sealed class ValueUseChecks(CheckerSymbols symbols, AliasResolver alias
         }
     }
 
-    private static TextSlice NameText(SyntaxNode node)
+    private static Utf8String NameText(SyntaxNode node)
     {
         node = Name(node) ?? node;
         if (node.Pos == node.End)
-            return "(Missing)";
+            return Utf8Literals.MissingDisplay;
         if (Source(node) is not { Source: var source })
-            return node is IdentifierNode identifier ? identifier.Text : "";
+            return node is IdentifierNode identifier ? identifier.Text : Utf8String.Empty;
         var scanner = new Scanner(source);
-        scanner.ResetPosition(source.ToUtf16Position(node.Pos));
+        scanner.ResetPosition(node.Pos);
         scanner.Scan();
-        return source.Text[scanner.TokenStart..source.ToUtf16Position(node.End)];
+        return source.Text[scanner.TokenStart..node.End];
     }
 }

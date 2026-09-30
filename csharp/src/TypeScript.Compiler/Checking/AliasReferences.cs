@@ -83,7 +83,7 @@ internal sealed class AliasReferences(CheckerSymbols symbols, CheckerLinks links
             if (current.Parent is ImportEqualsDeclarationNode import && import.ModuleReference == current)
                 return;
         var left = location is QualifiedNameNode qualified ? qualified.Left : FlowReferences.Receiver(location);
-        if (left is not IdentifierNode identifier || identifier.Text == "this")
+        if (left is not IdentifierNode identifier || identifier.Text == Utf8Literals.This)
             return;
         var parent = references.Resolve(identifier, cancellation);
         if (parent == symbols.UnknownSymbol)

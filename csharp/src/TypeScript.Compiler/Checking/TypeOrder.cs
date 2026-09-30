@@ -291,7 +291,7 @@ internal sealed class TypeOrder : IComparer<Type>, IComparer<Symbol>
 
     private static int CompareLiteralValues(LiteralType left, LiteralType right) => left.Value switch
     {
-        TextSlice text => CompareText(text, (TextSlice)right.Value!),
+        Utf8String text => CompareText(text, (Utf8String)right.Value!),
         double number => number.CompareTo((double)right.Value!),
         BigInteger integer => integer.CompareTo((BigInteger)right.Value!),
         bool boolean => boolean.CompareTo((bool)right.Value!),
@@ -377,41 +377,7 @@ internal sealed class TypeOrder : IComparer<Type>, IComparer<Symbol>
         return 0;
     }
 
-    // UTF-8/WTF-8 byte order equals code point order, including lone surrogates.
-    // UTF-16 ordinal comparison alone reverses some BMP/supplementary pairs.
-    internal static int CompareSymbolNames(TextSlice left, TextSlice right)
-    {
-        bool leftPrefixed = left.Span.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal);
-        bool rightPrefixed = right.Span.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal);
-        bool leftInternal = leftPrefixed && !left.Span.StartsWith(Symbol.InternalPrefix + Symbol.InternalPrefix, StringComparison.Ordinal);
-        bool rightInternal = rightPrefixed && !right.Span.StartsWith(Symbol.InternalPrefix + Symbol.InternalPrefix, StringComparison.Ordinal);
-        // Go's internal sentinel is byte FE, after every valid UTF-8 name. A
-        // doubled C# prefix instead denotes a user name and is unescaped once.
-        if (leftInternal != rightInternal)
-            return leftInternal ? 1 : -1;
-        return CompareText(left.Span.Slice(leftPrefixed ? 1 : 0), right.Span.Slice(rightPrefixed ? 1 : 0));
-    }
+    internal static int CompareSymbolNames(Utf8String left, Utf8String right) => left.Span.SequenceCompareTo(right.Span);
 
-    internal static int CompareText(ReadOnlySpan<char> left, ReadOnlySpan<char> right)
-    {
-        int prefix = left.CommonPrefixLength(right);
-        // A shared high surrogate may be paired on only one side of the first difference.
-        if (prefix > 0 && char.IsHighSurrogate(left[prefix - 1]))
-            prefix--;
-        int a = prefix, b = prefix;
-        while (a < left.Length && b < right.Length)
-        {
-            int x = Next(left, ref a), y = Next(right, ref b);
-            if (x != y)
-                return x.CompareTo(y);
-        }
-        return (left.Length - a).CompareTo(right.Length - b);
-
-        static int Next(ReadOnlySpan<char> text, ref int index)
-        {
-            char first = text[index++];
-            return char.IsHighSurrogate(first) && index < text.Length && char.IsLowSurrogate(text[index])
-                ? char.ConvertToUtf32(first, text[index++]) : first;
-        }
-    }
+    internal static int CompareText(ReadOnlySpan<byte> left, ReadOnlySpan<byte> right) => left.SequenceCompareTo(right);
 }

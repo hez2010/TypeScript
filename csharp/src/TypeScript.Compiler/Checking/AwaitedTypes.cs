@@ -73,7 +73,7 @@ internal sealed class AwaitedTypes(TypeContext context, TypeAlgebra algebra, Typ
             await constraints.BaseConstraintOrTypeAsync(type, cancellation).ConfigureAwait(false),
             cancellation).ConfigureAwait(false))
             return (null, null);
-        var then = await PropertyTypeAsync(type, "then", cancellation).ConfigureAwait(false);
+        var then = await PropertyTypeAsync(type, Utf8Literals.Then, cancellation).ConfigureAwait(false);
         if (then is not null && (then.Flags & TypeFlags.Any) != 0)
             return (null, null);
         var signatures = then is null ? [] : await host.SignaturesAsync(then, false, cancellation).ConfigureAwait(false);
@@ -280,7 +280,7 @@ internal sealed class AwaitedTypes(TypeContext context, TypeAlgebra algebra, Typ
             await constraints.BaseConstraintOrTypeAsync(type, cancellation).ConfigureAwait(false),
             cancellation).ConfigureAwait(false))
             return false;
-        var then = await PropertyTypeAsync(type, "then", cancellation).ConfigureAwait(false);
+        var then = await PropertyTypeAsync(type, Utf8Literals.Then, cancellation).ConfigureAwait(false);
         return then is not null
             && (await host.SignaturesAsync(
                 await facts.FilterAsync(then, TypeFacts.NEUndefinedOrNull, cancellation).ConfigureAwait(false),
@@ -299,7 +299,7 @@ internal sealed class AwaitedTypes(TypeContext context, TypeAlgebra algebra, Typ
         return true;
     }
 
-    private async ValueTask<Type?> PropertyTypeAsync(Type type, TextSlice name, CancellationToken cancellation)
+    private async ValueTask<Type?> PropertyTypeAsync(Type type, Utf8String name, CancellationToken cancellation)
             =>
                 await properties.PropertyAsync(type, name, cancellation: cancellation).ConfigureAwait(false) is { } property
                     ? await values.GetAsync(property, cancellation).ConfigureAwait(false)

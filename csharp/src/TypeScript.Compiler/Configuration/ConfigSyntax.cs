@@ -14,7 +14,7 @@ internal sealed class ConfigSyntax
     public JsonElement Root { get; }
     private readonly SyntaxNode? root;
 
-    public ConfigSyntax(string fileName, byte[] bytes, List<Diagnostic> errors, CancellationToken cancellation)
+    public ConfigSyntax(Utf8String fileName, byte[] bytes, List<Diagnostic> errors, CancellationToken cancellation)
     {
         Source = Parser.ParseSourceFile(new(fileName, ScriptKind.JSON), new SourceText(SourceEncoding.DecodeBytes(bytes)), cancellation);
         errors.AddRange(Source.ParseDiagnostics.Select(d => d with { FileName = fileName }));
@@ -32,10 +32,9 @@ internal sealed class ConfigSyntax
             root = null;
         }
         using var buffer = new MemoryStream();
-        var namePatches = new List<(int Start, int End, string Name)>();
         using (var writer = new Utf8JsonWriter(buffer, new() { MaxDepth = int.MaxValue }))
         {
-            var pending = new Stack<(SyntaxNode? Node, TextSlice? Name, byte Operation)>();
+            var pending = new Stack<(SyntaxNode? Node, Utf8String? Name, byte Operation)>();
             if (root is null)
             {
                 writer.WriteStartObject();
@@ -57,7 +56,7 @@ internal sealed class ConfigSyntax
                     continue;
                 }
                 if (item.Name is not null)
-                    JsonStrings.WriteName(writer, item.Name.Value.ToString(), namePatches);
+                    JsonStrings.WriteName(writer, item.Name.Value);
                 switch (item.Node)
                 {
                     case ObjectLiteralExpressionNode obj:
@@ -67,12 +66,12 @@ internal sealed class ConfigSyntax
                             for (int i = obj.Properties.Count - 1; i >= 0; i--)
                                 if (obj.Properties[i] is PropertyAssignmentNode property)
                                 {
-                                    TextSlice? name = property.Name switch
+                                    Utf8String? name = property.Name switch
                                     {
                                         StringLiteralNode text => text.Text,
                                         IdentifierNode identifier => identifier.Text,
                                         NumericLiteralNode number => number.Text,
-                                        _ => (TextSlice?)null
+                                        _ => (Utf8String?)null
                                     };
                                     if (name is null)
                                     {
@@ -135,7 +134,7 @@ internal sealed class ConfigSyntax
                 if (jsonNumber)
                 {
                     if (negative)
-                        writer.WriteRawValue("-" + System.Text.Encoding.UTF8.GetString(raw), skipInputValidation: true);
+                        writer.WriteRawValue(Utf8String.Concat("-"u8, raw).Span, skipInputValidation: true);
                     else
                         writer.WriteRawValue(raw, skipInputValidation: true);
                 }
@@ -158,7 +157,7 @@ internal sealed class ConfigSyntax
                 }
             }
         }
-        Root = JsonStrings.Parse(buffer, namePatches);
+        Root = JsonStrings.Parse(buffer);
         void CheckDoubleQuoted(SyntaxNode? node)
         {
             if (node is null)
@@ -169,10 +168,10 @@ internal sealed class ConfigSyntax
         }
     }
 
-    public SyntaxNode? Value(params ReadOnlySpan<string> keys)
+    public SyntaxNode? Value(params ReadOnlySpan<Utf8String> keys)
     {
         SyntaxNode? node = root;
-        foreach (string key in keys)
+        foreach (Utf8String key in keys)
             node = node is ObjectLiteralExpressionNode obj
                 ? obj.Properties?.OfType<PropertyAssignmentNode>().LastOrDefault(
                     p => p.Name is StringLiteralNode text && text.Text == key
@@ -181,7 +180,7 @@ internal sealed class ConfigSyntax
         return node;
     }
 
-    public SyntaxNode? PropertyName(string section, string name)
+    public SyntaxNode? PropertyName(Utf8String section, Utf8String name)
     {
         SyntaxNode? node = section.Length == 0 ? root : Value(section);
         return node is ObjectLiteralExpressionNode obj
@@ -194,12 +193,12 @@ internal sealed class ConfigSyntax
     private int Start(SyntaxNode node)
     {
         var scanner = new Scanner(Source.Source);
-        scanner.ResetPosition(Source.Source.ToUtf16Position(Math.Max(0, node.Pos)));
+        scanner.ResetPosition(Math.Max(0, node.Pos));
         scanner.Scan();
-        return Source.Source.ToBytePosition(scanner.TokenStart);
+        return scanner.TokenStart;
     }
 
-    public Diagnostic Diagnostic(DiagnosticMessage message, SyntaxNode? node, params TextSlice[] arguments)
+    public Diagnostic Diagnostic(DiagnosticMessage message, SyntaxNode? node, params Utf8String[] arguments)
     {
         int start = node is null ? 0 : Start(node);
         return new(message, start, node is null ? 0 : Math.Max(0, node.End - start), arguments) { FileName = Source.FileName };

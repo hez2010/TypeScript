@@ -50,9 +50,9 @@ internal sealed partial class Checker
             }
             else if (parent is MetaPropertyNode meta && meta.Name == node)
             {
-                if (meta.KeywordToken == SyntaxKind.NewKeyword && identifier.Text == "target")
+                if (meta.KeywordToken == SyntaxKind.NewKeyword && identifier.Text == Utf8Literals.Target)
                     return (await ValueExpressions.MetaAsync(meta, cancellation)).Symbol;
-                if (meta.KeywordToken == SyntaxKind.ImportKeyword && identifier.Text == "meta")
+                if (meta.KeywordToken == SyntaxKind.ImportKeyword && identifier.Text == Utf8Literals.Meta)
                     return await ImportMetaPropertyAsync(cancellation);
                 return null;
             }
@@ -89,11 +89,7 @@ internal sealed partial class Checker
                 if (ModuleSpecifierLocation(node))
                     return await ResolveImportModuleAsync(node, node, await ModuleSpecifierAttributesAsync(node, cancellation),
                         cancellation, ignoreErrors: true);
-                if (parent is CallExpressionNode
-                    {
-                        Expression: PropertyAccessExpressionNode { Expression: IdentifierNode { Text.Span: "Object" }, Name: IdentifierNode { Text.Span: "defineProperty" } },
-                        Arguments: { Count: 3 } arguments
-                    } && arguments[1] == node)
+                if (parent is CallExpressionNode { Expression: PropertyAccessExpressionNode { Expression: IdentifierNode { Text.Span: var matchedText }, Name: IdentifierNode { Text.Span: var matchedText2 } }, Arguments: { Count: 3 } arguments } && matchedText.SequenceEqual("Object"u8) && matchedText2.SequenceEqual("defineProperty"u8) && arguments[1] == node)
                     return program.Symbols.Declaration(parent);
                 goto case SyntaxKind.NumericLiteral;
             case SyntaxKind.NumericLiteral:
@@ -283,7 +279,7 @@ internal sealed partial class Checker
             if ((symbol.Flags & SymbolFlags.Value) != 0
                 && await Properties.PropertyAsync(
                     await Values.GetAsync(symbol, cancellation),
-                    "prototype",
+                    Utf8Literals.Prototype,
                     cancellation: cancellation) is { } prototype)
                 type = await Values.GetAsync(prototype, cancellation);
             type ??= await Declared.GetAsync(symbol, cancellation);
@@ -297,9 +293,9 @@ internal sealed partial class Checker
         if (importMetaProperty is not null)
             return importMetaProperty;
         var type = await ImportMetaTypeAsync(cancellation);
-        var owner = new Symbol(SymbolFlags.Transient, "ImportMetaExpression");
-        var symbol = new Symbol(SymbolFlags.Property | SymbolFlags.Transient, "meta") { Parent = owner, CheckFlags = CheckFlags.Readonly };
-        owner.MemberTable.Add("meta", symbol);
+        var owner = new Symbol(SymbolFlags.Transient, Utf8Literals.ImportMetaExpression);
+        var symbol = new Symbol(SymbolFlags.Property | SymbolFlags.Transient, Utf8Literals.Meta) { Parent = owner, CheckFlags = CheckFlags.Readonly };
+        owner.MemberTable.Add(Utf8Literals.Meta, symbol);
         links.Values.Get(symbol).ResolvedType = type;
         cancellation.ThrowIfCancellationRequested();
         return importMetaProperty = symbol;
@@ -329,7 +325,7 @@ internal sealed partial class Checker
                     declarations.Add(index.Declaration);
         if (declarations.Count == 0)
             return null;
-        var symbol = new Symbol(SymbolFlags.Property | SymbolFlags.Transient, Symbol.InternalPrefix + "index")
+        var symbol = new Symbol(SymbolFlags.Property | SymbolFlags.Transient, Symbol.InternalIndex)
         { CheckFlags = CheckFlags.IndexSymbol, Parent = type.Symbol, ValueDeclaration = declarations[0] };
         symbol.DeclarationList = symbol.DeclarationList.AddRange(declarations);
         links.Values.Get(symbol).ResolvedType = info.ValueType;
@@ -359,7 +355,7 @@ internal sealed partial class Checker
         if (node.Parent is CallExpressionNode { Arguments: { Count: > 1 } arguments } call && IsImportCall(call)
             && await Properties.PropertyAsync(
                 await CachedExpressionAsync(arguments[1], 0, cancellation),
-                "with",
+                Utf8Literals.With,
                 cancellation: cancellation) is { } property)
             return await Values.GetAsync(property, cancellation);
         return null;

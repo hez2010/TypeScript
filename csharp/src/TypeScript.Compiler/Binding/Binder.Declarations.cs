@@ -18,7 +18,7 @@ public sealed partial class Binder
         _ => null
     };
 
-    private static TextSlice? AccessName(SyntaxNode? node) => node switch
+    private static Utf8String? AccessName(SyntaxNode? node) => node switch
     {
         PropertyAccessExpressionNode { Name: IdentifierNode name } => NameText(name),
         ElementAccessExpressionNode e when LiteralLike(SkipParentheses(e.ArgumentExpression)) => LiteralName(SkipParentheses(e.ArgumentExpression)),
@@ -26,9 +26,9 @@ public sealed partial class Binder
     };
 
     private static bool ModuleExports(SyntaxNode? node) =>
-        AccessBase(node) is IdentifierNode { Text.Span: "module" } && AccessName(node) == "exports";
+        AccessBase(node) is IdentifierNode { Text.Span: var matchedText } && matchedText.SequenceEqual("module"u8) && AccessName(node) == Utf8Literals.Exports;
 
-    private static bool ExportsBase(SyntaxNode? node) => node is IdentifierNode { Text.Span: "exports" } || ModuleExports(node);
+    private static bool ExportsBase(SyntaxNode? node) => node is IdentifierNode { Text.Span: var matchedText2 } && matchedText2.SequenceEqual("exports"u8) || ModuleExports(node);
 
     private static bool AliasExpression(SyntaxNode? node)
     {
@@ -46,22 +46,18 @@ public sealed partial class Binder
         if (node is BindingElementNode && node.Parent?.Parent is { } declaration)
             node = declaration;
         return file.ScriptKind is ScriptKind.JS or ScriptKind.JSX && !CombinedHas(node, K.ExportKeyword)
-            && node is VariableDeclarationNode
-            {
-                Type: null, Initializer: CallExpressionNode
-                { Expression: IdentifierNode { Text.Span: "require" }, Arguments: { Count: 1 } args }
-            } && args[0] is StringLiteralNode or NoSubstitutionTemplateLiteralNode;
+            && node is VariableDeclarationNode { Type: null, Initializer: CallExpressionNode { Expression: IdentifierNode { Text.Span: var matchedText3 }, Arguments: { Count: 1 } args } } && matchedText3.SequenceEqual("require"u8) && args[0] is StringLiteralNode or NoSubstitutionTemplateLiteralNode;
     }
 
     private void BindAssignmentDeclaration(BinaryExpressionNode node)
     {
         bool js = file.ScriptKind is ScriptKind.JS or ScriptKind.JSX;
-        if (js && ModuleExports(node.Left) && node.Right is not IdentifierNode { Text.Span: "exports" })
+        if (js && ModuleExports(node.Left) && !(node.Right is IdentifierNode { Text.Span: var matchedText4 } && matchedText4.SequenceEqual("exports"u8)))
         {
             if (CommonJS(node))
             {
                 var owner = SymbolOf(file)!;
-                SetValue(Declare(owner.ExportTable, owner, node, AliasExpression(node.Right) ? S.Alias : S.Property, 0, "export="), node);
+                SetValue(Declare(owner.ExportTable, owner, node, AliasExpression(node.Right) ? S.Alias : S.Property, 0, Utf8Literals.ExportEquals), node);
             }
         }
         else if (js && ExportsBase(AccessBase(node.Left)) && AccessName(node.Left) is not null)
@@ -70,7 +66,7 @@ public sealed partial class Binder
             {
                 var owner = SymbolOf(file)!;
                 Declare(owner.ExportTable, owner, node, AliasExpression(node.Right) ? S.Alias : S.FunctionScopedVariable,
-                    S.FunctionScopedVariableExcludes, AccessName(node.Left) ?? (Symbol.InternalPrefix + "computed"));
+                    S.FunctionScopedVariableExcludes, AccessName(node.Left) ?? Symbol.InternalComputed);
             }
         }
         else if (js && AccessBase(node.Left)?.Kind == K.ThisKeyword)
@@ -81,8 +77,8 @@ public sealed partial class Binder
                 or K.ClassStaticBlockDeclaration
                 && thisContainer.Parent is { } parent && SymbolOf(parent) is { } owner)
             {
-                TextSlice name = DeclarationName(node);
-                bool dynamic = name == (Symbol.InternalPrefix + "computed");
+                Utf8String name = DeclarationName(node);
+                bool dynamic = name == Symbol.InternalComputed;
                 Declare(
                     Has(thisContainer, K.StaticKeyword) || thisContainer.Kind == K.ClassStaticBlockDeclaration
                         ? owner.ExportTable
@@ -99,7 +95,7 @@ public sealed partial class Binder
     private void BindDefineProperty(CallExpressionNode node)
     {
         if (file.ScriptKind is not (ScriptKind.JS or ScriptKind.JSX)
-            || node.Expression is not PropertyAccessExpressionNode { Expression: IdentifierNode { Text.Span: "Object" }, Name: IdentifierNode { Text.Span: "defineProperty" } }
+            || !(node.Expression is PropertyAccessExpressionNode { Expression: IdentifierNode { Text.Span: var matchedText5 }, Name: IdentifierNode { Text.Span: var matchedText6 } } && matchedText5.SequenceEqual("Object"u8) && matchedText6.SequenceEqual("defineProperty"u8))
             || node.Arguments is not { Count: 3 } args || !LiteralLike(args[1]))
             return;
         if (ExportsBase(args[0]))
@@ -116,7 +112,7 @@ public sealed partial class Binder
 
     private Symbol? LookupEntity(SyntaxNode? node, SyntaxNode scope)
     {
-        var names = new Stack<TextSlice>();
+        var names = new Stack<Utf8String>();
         while (node is PropertyAccessExpressionNode or ElementAccessExpressionNode)
         {
             if (AccessName(node) is not { } name)
@@ -127,9 +123,9 @@ public sealed partial class Binder
         if (node is not IdentifierNode identifier)
             return null;
         Symbol? symbol = null;
-        symbol = result.Get(scope)?.Locals.GetValueOrDefault(UserName(identifier.Text)) ?? SymbolOf(scope)?.Exports.GetValueOrDefault(UserName(identifier.Text));
+        symbol = result.Get(scope)?.Locals.GetValueOrDefault(identifier.Text) ?? SymbolOf(scope)?.Exports.GetValueOrDefault(identifier.Text);
         symbol = symbol?.ExportSymbol ?? symbol;
-        while (names.TryPop(out TextSlice name))
+        while (names.TryPop(out Utf8String name))
             symbol = InitializerSymbol(symbol)?.Exports.GetValueOrDefault(name);
         return symbol?.ExportSymbol ?? symbol;
     }
@@ -164,8 +160,8 @@ public sealed partial class Binder
             var symbol = InitializerSymbol(LookupEntity(target, blockContainer) ?? LookupEntity(target, container));
             if (symbol is null)
                 continue;
-            TextSlice name = DeclarationName(node);
-            if (name == (Symbol.InternalPrefix + "computed"))
+            Utf8String name = DeclarationName(node);
+            if (name == Symbol.InternalComputed)
             {
                 Anonymous(node, S.Property | S.Assignment, name);
                 LateAssignment(symbol, node);
@@ -177,24 +173,24 @@ public sealed partial class Binder
 
     private void LateAssignment(Symbol symbol, SyntaxNode node)
     {
-        if (!symbol.ExportTable.TryGetValue((Symbol.InternalPrefix + "assignment"), out var assignments))
-            symbol.ExportTable[(Symbol.InternalPrefix + "assignment")] = assignments = NewSymbol(0, (Symbol.InternalPrefix + "assignment"));
+        if (!symbol.ExportTable.TryGetValue(Symbol.InternalAssignment, out var assignments))
+            symbol.ExportTable[Symbol.InternalAssignment] = assignments = NewSymbol(0, Symbol.InternalAssignment);
         assignments.DeclarationList = assignments.DeclarationList.Add(node);
     }
 
     private void FinishModule(Symbol? symbol)
     {
-        if (symbol?.Exports.GetValueOrDefault("export=") is not { } exported)
+        if (symbol?.Exports.GetValueOrDefault(Utf8Literals.ExportEquals) is not { } exported)
             return;
         foreach (var entry in symbol.Exports)
-            if (entry.Key != "export=" && (entry.Value.Flags & (S.Type | S.Namespace)) != 0)
+            if (entry.Key != Utf8Literals.ExportEquals && (entry.Value.Flags & (S.Type | S.Namespace)) != 0)
             {
                 exported.ExportTable[entry.Key] = entry.Value;
                 exported.Flags |= S.NamespaceModule;
             }
     }
 
-    private void CommonJSVariable(TextSlice name)
+    private void CommonJSVariable(Utf8String name)
     {
         if (Data(file).LocalTable.ContainsKey(name))
             return;
@@ -202,18 +198,18 @@ public sealed partial class Binder
         symbol.DeclarationList = symbol.DeclarationList.Add(file);
         symbol.ValueDeclaration = file;
         Data(file).LocalTable[name] = symbol;
-        if (name == "module")
+        if (name == Utf8Literals.Module)
         {
-            var exports = NewSymbol(S.ModuleExports | S.Property, "exports", symbol);
+            var exports = NewSymbol(S.ModuleExports | S.Property, Utf8Literals.Exports, symbol);
             exports.DeclarationList = exports.DeclarationList.Add(file);
             exports.ValueDeclaration = file;
-            symbol.MemberTable["exports"] = exports;
+            symbol.MemberTable[Utf8Literals.Exports] = exports;
         }
     }
 
     private void CheckEval(SyntaxNode context, SyntaxNode? name)
     {
-        if (name is not IdentifierNode { Text.Span: "eval" or "arguments" } identifier)
+        if (!(name is IdentifierNode { Text.Span: var matchedText7 } identifier && (matchedText7.SequenceEqual("eval"u8) || matchedText7.SequenceEqual("arguments"u8))))
             return;
         var message = ContainingClass(context) is not null ? Messages.Code_contained_in_a_class_is_evaluated_in_JavaScript_s_strict_mode_which_does_not_allow_this_use_of_0_For_more_information_see_https_Colon_Slash_Slashdeveloper_mozilla_org_Slashen_US_Slashdocs_SlashWeb_SlashJavaScript_SlashReference_SlashStrict_mode
             : file.ExternalModuleIndicator is not null
@@ -226,7 +222,7 @@ public sealed partial class Binder
     {
         if (file.ParseDiagnostics.Count != 0 || (node.Flags & (NodeFlags.Ambient | NodeFlags.JSDoc)) != 0 || IdentifierName(node))
             return;
-        TextSlice text = ((IdentifierNode)node).Text;
+        Utf8String text = ((IdentifierNode)node).Text;
         K keyword = TokenFacts.FromText(text);
         if (keyword >= K.FirstFutureReservedWord && keyword <= K.LastFutureReservedWord)
             Error(node, ContainingClass(node) is not null
@@ -267,13 +263,13 @@ public sealed partial class Binder
         _ => false
     };
 
-    private void Error(SyntaxNode node, DiagnosticMessage message, TextSlice argument, bool firstToken = false) =>
+    private void Error(SyntaxNode node, DiagnosticMessage message, Utf8String argument, bool firstToken = false) =>
         Error(node, message, [argument], firstToken);
 
-    private void Error(SyntaxNode node, DiagnosticMessage message, TextSlice[]? arguments = null, bool firstToken = false)
+    private void Error(SyntaxNode node, DiagnosticMessage message, Utf8String[]? arguments = null, bool firstToken = false)
         => diagnostics.Add(CreateDiagnostic(node, message, arguments, firstToken));
 
-    private Diagnostic CreateDiagnostic(SyntaxNode node, DiagnosticMessage message, TextSlice[]? arguments = null, bool firstToken = false)
+    private Diagnostic CreateDiagnostic(SyntaxNode node, DiagnosticMessage message, Utf8String[]? arguments = null, bool firstToken = false)
     {
         if (!firstToken && node.Kind is K.FunctionDeclaration or K.FunctionExpression or K.ClassDeclaration or K.ClassExpression
             or K.VariableDeclaration or K.BindingElement or K.InterfaceDeclaration or K.ModuleDeclaration or K.EnumDeclaration
@@ -290,10 +286,10 @@ public sealed partial class Binder
             return new(message, node.Pos, 0, arguments ?? []) { FileName = file.FileName };
         }
         var scanner = new Scanner(file.Source);
-        scanner.ResetPosition(file.Source.ToUtf16Position(Math.Max(0, node.Pos)));
+        scanner.ResetPosition(Math.Max(0, node.Pos));
         scanner.Scan();
-        int start = file.Source.ToBytePosition(scanner.TokenStart);
-        int end = firstToken ? file.Source.ToBytePosition(scanner.Position) : node.End;
+        int start = scanner.TokenStart;
+        int end = firstToken ? scanner.Position : node.End;
         return new(message, start, Math.Max(0, end - start), arguments ?? []) { FileName = file.FileName };
     }
 }

@@ -15,10 +15,10 @@ internal static class CheckerPoolTests
     {
         int checks = 0;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        var files = new Dictionary<string, byte[]> { ["/project/main.ts"] = Wtf8.Encode("const x=1;const y=2;") };
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
-            new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        var files = new Dictionary<Utf8String, byte[]> { ["/project/main.ts"u8] = Wtf8.Encode("const x=1;const y=2;") };
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project"u8,
+            new("/project/tsconfig.json"u8, options, files.Keys.ToArray(), [], [], []));
         using var cancellation = new CancellationTokenSource();
         var pool = await program.CreateCheckerPoolAsync();
         var file = program.SourceFiles[0].Syntax;
@@ -61,8 +61,8 @@ internal static class CheckerPoolTests
         if (recovered.Semantic.Count != 0)
             throw new InvalidOperationException("Fresh checker did not recover after cancellation");
         checks++;
-        var empty = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>()), "/project",
-            new("/project/tsconfig.json", options, [], [], [], []));
+        var empty = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>()), "/project"u8,
+            new("/project/tsconfig.json"u8, options, [], [], [], []));
         var emptyPool = await empty.CreateCheckerPoolAsync();
         var emptyResult = await emptyPool.GetDiagnosticsAsync();
         if (emptyPool.Count != 1 || emptyResult.Semantic.Count != 0)
@@ -70,19 +70,19 @@ internal static class CheckerPoolTests
         return checks + 1;
     }
 
-    internal static void Partitions(string input, string output)
+    internal static void Partitions(Utf8String input, Utf8String output)
     {
-        using var document = JsonDocument.Parse(File.ReadAllBytes(input));
+        using var document = JsonDocument.Parse(File.ReadAllBytes(input.ToString()));
         var results = new List<int[]>();
         foreach (var row in document.RootElement.EnumerateArray())
             results.Add(CheckerPartitions.Assign(
-                row.GetProperty("weights").EnumerateArray().Select(x => x.GetInt64()).ToArray(),
-                row.GetProperty("imports").EnumerateArray().Select(x => x.GetInt32()).ToArray(),
-                row.GetProperty("declarations").EnumerateArray().Select(x => x.GetBoolean()).ToArray(),
-                row.GetProperty("adjacency").EnumerateArray().Select(
+                row.GetProperty("weights"u8).EnumerateArray().Select(x => x.GetInt64()).ToArray(),
+                row.GetProperty("imports"u8).EnumerateArray().Select(x => x.GetInt32()).ToArray(),
+                row.GetProperty("declarations"u8).EnumerateArray().Select(x => x.GetBoolean()).ToArray(),
+                row.GetProperty("adjacency"u8).EnumerateArray().Select(
                     x => (IReadOnlyList<int>)x.EnumerateArray().Select(n => n.GetInt32()).ToArray()).ToArray(),
-                row.GetProperty("count").GetInt32()));
-        using var stream = File.Create(output);
+                row.GetProperty("count"u8).GetInt32()));
+        using var stream = File.Create(output.ToString());
         using var writer = new Utf8JsonWriter(stream);
         writer.WriteStartArray();
         foreach (var row in results)
@@ -105,13 +105,13 @@ internal static class CheckerPoolTests
             checks++;
         }
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        var files = new Dictionary<string, byte[]>();
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        var files = new Dictionary<Utf8String, byte[]>();
         for (int i = 0; i < 12; i++)
-            files[$"/project/file{i}.ts"] = Wtf8.Encode($"export const value{i}:number='error';");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
-            new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
+            files[Utf8String.ConcatMany("/project/file"u8, Utf8String.Format(i), ".ts"u8)] = Wtf8.Encode($"export const value{i}:number='error';");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project"u8,
+            new("/project/tsconfig.json"u8, options, files.Keys.ToArray(), [], [], []));
         var nodes = program.SourceFiles.SelectMany(f => f.Syntax.DescendantsAndSelf())
             .Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
         var pool = await program.CreateCheckerPoolAsync();
@@ -185,14 +185,14 @@ internal static class CheckerPoolTests
         }
         Check(nodes.All(n => n.Node.Parent == n.Parent && n.Node.Pos == n.Pos && n.Node.End == n.End && n.Node.Flags == n.Flags));
         Check(program.SourceFiles.All(f => f.Syntax.NodeCount > 0));
-        options.SetRaw("checkers", "2");
-        var configured = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
-            new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
+        options.SetRaw("checkers"u8, "2"u8);
+        var configured = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project"u8,
+            new("/project/tsconfig.json"u8, options, files.Keys.ToArray(), [], [], []));
         Check((await configured.CreateCheckerPoolAsync()).Count == 2);
         Check((await configured.CreateCheckerPoolAsync(singleThreaded: true)).Count == 1);
-        options.SetRaw("checkers", "999");
-        var clamped = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
-            new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
+        options.SetRaw("checkers"u8, "999"u8);
+        var clamped = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project"u8,
+            new("/project/tsconfig.json"u8, options, files.Keys.ToArray(), [], [], []));
         Check((await clamped.CreateCheckerPoolAsync()).Count == files.Count);
         return checks;
     }

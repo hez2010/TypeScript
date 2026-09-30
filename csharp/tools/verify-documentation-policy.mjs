@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { gunzipSync } from "node:zlib";
+import { documentationBytePositions } from "./documentation-byte-positions.mjs";
 import {
     classifyDocumentationDifference,
     digest,
@@ -10,6 +11,8 @@ import {
 const evidence = JSON.parse(gunzipSync(readFileSync(new URL("../tests/fixtures/jsdoc/documentation-evidence.json.gz", import.meta.url))));
 const sample = evidence.find(record => record.actual[0].length >= 2 && record.actual[0][0][0] === record.actual[0][1][0] && record.actual[0][0][1] !== record.actual[0][1][1]);
 assert.ok(sample, "Need distinct same-kind documentation hosts");
+sample.expected = documentationBytePositions(sample.input, sample.expected);
+sample.actual = documentationBytePositions(sample.input, sample.actual);
 assert.ok(classifyDocumentationDifference(sample.input, sample.expected, sample.actual));
 const mutations = [
     out => {

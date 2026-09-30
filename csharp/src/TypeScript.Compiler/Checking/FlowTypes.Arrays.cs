@@ -41,8 +41,8 @@ internal sealed partial class FlowTypes
     {
         var root = FlowReferences.Root(node);
         var parent = root.Parent;
-        bool property = parent is PropertyAccessExpressionNode access && (SyntaxNameText.Get(access.Name) == "length"
-            || access.Parent is CallExpressionNode && access.Name is IdentifierNode { Text.Span: "push" or "unshift" });
+        bool property = parent is PropertyAccessExpressionNode access && (SyntaxNameText.Get(access.Name) == Utf8Literals.Length
+            || access.Parent is CallExpressionNode && access.Name is IdentifierNode { Text.Span: var matchedText } && (matchedText.SequenceEqual("push"u8) || matchedText.SequenceEqual("unshift"u8)));
         // Evaluate the element case independently, as in the reference.
         bool element = parent is ElementAccessExpressionNode index && index.Expression == root
             && index.Parent is BinaryExpressionNode { OperatorToken.Kind: SyntaxKind.EqualsToken } assignment

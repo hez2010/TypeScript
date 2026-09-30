@@ -40,7 +40,7 @@ internal sealed partial class Checker
     }
 
     internal async ValueTask<(Symbol Parameter, Symbol Property)> GetSymbolsOfParameterPropertyDeclarationAsync(
-        ParameterDeclarationNode parameter, TextSlice name, CancellationToken cancellation = default)
+        ParameterDeclarationNode parameter, Utf8String name, CancellationToken cancellation = default)
     {
         using var query = await EnterQueryAsync(parameter, cancellation).ConfigureAwait(false);
         var constructor = parameter.Parent!;

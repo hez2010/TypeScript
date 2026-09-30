@@ -87,10 +87,10 @@ internal sealed class ConstantEvaluator
                         SyntaxKind.AsteriskAsteriskToken => JsNumber.Exponentiate(a, b),
                         _ => null
                     };
-                else if (left.Value is TextSlice or double
-                    && right.Value is TextSlice or double
+                else if (left.Value is Utf8String or double
+                    && right.Value is Utf8String or double
                     && binary.OperatorToken!.Kind == SyntaxKind.PlusToken)
-                    value = TextSlice.Concat(ToText(left.Value), ToText(right.Value));
+                    value = Utf8String.Concat(ToText(left.Value), ToText(right.Value));
                 return new(
                     value,
                     text,
@@ -103,7 +103,7 @@ internal sealed class ConstantEvaluator
             case NumericLiteralNode numeric:
                 return new(JsNumber.FromString(numeric.Text));
             case TemplateExpressionNode template:
-                var builder = new StringBuilder().Append(((TemplateHeadNode)template.Head!).Text.Span);
+                var builder = new Utf8StringBuilder().Append(((TemplateHeadNode)template.Head!).Text.Span);
                 bool otherFiles = false, external = false;
                 foreach (var node in template.TemplateSpans!)
                 {
@@ -121,7 +121,7 @@ internal sealed class ConstantEvaluator
                     otherFiles |= part.ResolvedOtherFiles;
                     external |= part.HasExternalReferences;
                 }
-                return new(TextSlice.FromBuilder(builder), true, otherFiles, external);
+                return new(Utf8String.FromBuilder(builder), true, otherFiles, external);
             case IdentifierNode:
                 return await entity(expression, location, cancellation).ConfigureAwait(false);
             case PropertyAccessExpressionNode property when EntityName(property.Expression!):
@@ -165,18 +165,18 @@ internal sealed class ConstantEvaluator
         return node is IdentifierNode;
     }
 
-    internal static TextSlice ToText(object value) => value switch
+    internal static Utf8String ToText(object value) => value switch
     {
-        TextSlice text => text,
+        Utf8String text => text,
         double number => TokenFacts.NumberText(number),
-        bool boolean => boolean ? "true" : "false",
-        BigInteger integer => TextSlice.Format(integer),
+        bool boolean => boolean ? Utf8Literals.True : Utf8Literals.False,
+        BigInteger integer => Utf8String.Format(integer),
         _ => throw new ArgumentException("Unsupported constant value", nameof(value))
     };
 
     internal static bool IsTruthy(object value) => value switch
     {
-        TextSlice text => text.Length != 0,
+        Utf8String text => text.Length != 0,
         double number => number != 0 && !double.IsNaN(number),
         bool boolean => boolean,
         BigInteger integer => integer != 0,

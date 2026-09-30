@@ -15,8 +15,8 @@ internal sealed partial class Checker
         foreach (var renamed in RenamedBindingElements)
             if (SemanticSyntax.Source(renamed) == file && program.Symbols.ReferenceKinds(program.Symbols.Declaration(renamed)!) == 0)
             {
-                TextSlice name = CheckerDiagnostic.DeclarationName(renamed.Name!);
-                TextSlice property = CheckerDiagnostic.DeclarationName(renamed.PropertyName!);
+                Utf8String name = CheckerDiagnostic.DeclarationName(renamed.Name!);
+                Utf8String property = CheckerDiagnostic.DeclarationName(renamed.PropertyName!);
                 var diagnostic = CheckerDiagnostic.Create(
                     renamed.Name!,
                     Messages.X_0_is_an_unused_renaming_of_1_Did_you_intend_to_use_it_as_a_type_annotation,
@@ -75,7 +75,7 @@ internal sealed partial class Checker
         var options = program.Symbols.Program.Configuration.Options;
         if ((parameter ? options.NoUnusedParameters : options.NoUnusedLocals) == true)
         {
-            TextSlice[] arguments = [];
+            Utf8String[] arguments = [];
             if (code is DiagnosticCode.X0IsDeclaredButItsValueIsNeverRead or DiagnosticCode.Property0IsDeclaredButItsValueIsNeverRead
                 or DiagnosticCode.X0IsDeclaredButNeverUsed)
             {
@@ -206,7 +206,7 @@ internal sealed partial class Checker
             var name = SemanticSyntax.Name(declaration);
             if (name is null
                 || ParameterProperty(declaration)
-                || declaration is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: "this" } })
+                || declaration is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: var matchedText } } && matchedText.SequenceEqual("this"u8))
                 continue;
             if (name is BindingPatternNode pattern)
             {
@@ -253,7 +253,7 @@ internal sealed partial class Checker
         return true;
     }
 
-    private static bool StartsWithUnderscore(SyntaxNode? node) => node is IdentifierNode identifier && identifier.Text.Span.StartsWith('_');
+    private static bool StartsWithUnderscore(SyntaxNode? node) => node is IdentifierNode identifier && identifier.Text.Span.StartsWith((byte)'_');
 
     private bool UnreferencedTypeParameter(SyntaxNode parameter) => !StartsWithUnderscore(SemanticSyntax.Name(parameter))
         && (program.Symbols.ReferenceKinds(program.Symbols.Declaration(parameter)!) & SymbolFlags.TypeParameter) == 0;

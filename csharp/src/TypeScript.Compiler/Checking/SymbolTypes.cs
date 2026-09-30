@@ -311,7 +311,7 @@ internal sealed class SymbolTypes(TypeContext context, CheckerLinks links, Check
         GetAccessorDeclarationNode getter => getter.Type,
         PropertyDeclarationNode property => property.Type,
         SetAccessorDeclarationNode { Parameters: { Count: > 0 } parameters } => ((ParameterDeclarationNode)parameters[
-            parameters.Count == 2 && parameters[0] is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: "this" } } ? 1 : 0]).Type,
+            parameters.Count == 2 && parameters[0] is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: var matchedText } } && matchedText.SequenceEqual("this"u8) ? 1 : 0]).Type,
         _ => null
     };
 }

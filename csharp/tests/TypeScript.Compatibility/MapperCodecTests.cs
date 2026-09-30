@@ -18,23 +18,23 @@ internal static class MapperCodecTests
             using var stream = new MemoryStream();
             using (var writer = new Utf8JsonWriter(stream))
             {
-                if (input.GetProperty("operation").GetString() == "identity")
+                if (JsonStrings.GetString(input.GetProperty("operation"u8)) == "identity"u8)
                 {
-                    var fs = new MemoryFileSystem(new Dictionary<string, byte[]>
+                    var fs = new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
                     {
-                        ["/project/tsconfig.json"] = Encoding.UTF8.GetBytes(
-                        "{\"files\":[\"a.ts\"],\"compilerOptions\":" + input.GetProperty("options").GetRawText() + "}")
+                        ["/project/tsconfig.json"u8] = Utf8String.Concat(
+                            "{\"files\":[\"a.ts\"],\"compilerOptions\":"u8, JsonStrings.Raw(input.GetProperty("options"u8)), "}"u8).Span.ToArray()
                     });
-                    var options = new ConfigParser(fs, "/project").Parse("/project/tsconfig.json").Options;
-                    var mapper = new ContentMapper("p", [".view"], input.TryGetProperty("mapperOptions", out var config) ? config : null,
-                        "/project",
-                        input.GetProperty("name").GetString()!,
-                        input.GetProperty("version").GetString()!,
+                    var options = new ConfigParser(fs, "/project"u8).Parse("/project/tsconfig.json"u8).Options;
+                    var mapper = new ContentMapper("p"u8, [".view"u8], input.TryGetProperty("mapperOptions"u8, out var config) ? config : null,
+                        "/project"u8,
+                        JsonStrings.GetString(input.GetProperty("name"u8))!,
+                        JsonStrings.GetString(input.GetProperty("version"u8))!,
                         [],
-                        input.GetProperty("declared"),
-                        input.GetProperty("dynamic").GetBoolean());
-                    var entry = new ContentMapperHost.ProjectEntry(mapper, options, "/project/tsconfig.json", "handle", new(mapper))
-                    { ConfigIdentity = input.GetProperty("configIdentity").GetString()! };
+                        input.GetProperty("declared"u8),
+                        input.GetProperty("dynamic"u8).GetBoolean());
+                    var entry = new ContentMapperHost.ProjectEntry(mapper, options, "/project/tsconfig.json"u8, "handle"u8, new(mapper))
+                    { ConfigIdentity = TypeScript.Compiler.Configuration.JsonStrings.GetString(input.GetProperty("configIdentity"u8))! };
                     writer.WriteStartArray();
                     writer.WriteStringValue(ContentMapperHost.TransformIdentity(entry));
                     byte[] declared = ContentMapperHost.DeclaredOptions(mapper, options);
@@ -48,10 +48,9 @@ internal static class MapperCodecTests
                     try
                     {
                         result = MapperOutputDecoder.Decode(
-                            input.GetProperty("result"),
-                            new SourceText(input.GetProperty("original").GetString()!),
-                            input.GetProperty("encoding").GetString()!,
-                            input.GetProperty("source").GetString()!);
+                            input.GetProperty("result"u8),
+                            new SourceText(JsonStrings.GetString(input.GetProperty("original"u8))!),
+                            JsonStrings.GetString(input.GetProperty("source"u8))!);
                     }
                     catch (Exception e) when (e is IOException or InvalidDataException or InvalidOperationException or OverflowException
                         or KeyNotFoundException or FormatException)
@@ -95,7 +94,10 @@ internal static class MapperCodecTests
                             writer.WriteNumberValue(diagnostic.Start);
                             writer.WriteNumberValue(diagnostic.Length);
                             writer.WriteNumberValue((int)diagnostic.Code);
-                            writer.WriteStringValue(diagnostic.Source);
+                            if (diagnostic.Source is { } source)
+                                writer.WriteStringValue(source.Span);
+                            else
+                                writer.WriteNullValue();
                             writer.WriteStringValue(diagnostic.Format());
                             writer.WriteEndArray();
                         }

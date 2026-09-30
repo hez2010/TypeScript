@@ -13,14 +13,14 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class TypeAlgebra
 {
-    private readonly Dictionary<(TypeCacheKey Types, TextSlice Texts), TemplateLiteralType> templates = new()
+    private readonly Dictionary<(TypeCacheKey Types, Utf8String Texts), TemplateLiteralType> templates = new()
     {
-        [(new TypeCacheKey([context.NumberType]), "0:0:")] = context.NumericStringType
+        [(new TypeCacheKey([context.NumberType]), Utf8Literals.EmptyFrame)] = context.NumericStringType
     };
     private readonly Dictionary<(Symbol Symbol, Type Target), StringMappingType> stringMappings = [];
 
     internal async ValueTask<Type> TemplateAsync(
-        IReadOnlyList<TextSlice> texts,
+        IReadOnlyList<Utf8String> texts,
         IReadOnlyList<Type> types,
         CancellationToken cancellation = default)
     {
@@ -47,9 +47,9 @@ internal sealed partial class TypeAlgebra
         if (types.Contains(context.WildcardType))
             return context.WildcardType;
         var newTypes = new List<Type>();
-        var newTexts = new List<TextSlice>();
-        var text = new StringBuilder().Append(texts[0].Span);
-        var frames = new Stack<(IReadOnlyList<TextSlice> Texts, IReadOnlyList<Type> Types, int Index, TextSlice? Suffix)>();
+        var newTexts = new List<Utf8String>();
+        var text = new Utf8StringBuilder().Append(texts[0].Span);
+        var frames = new Stack<(IReadOnlyList<Utf8String> Texts, IReadOnlyList<Type> Types, int Index, Utf8String? Suffix)>();
         frames.Push((texts, types, 0, null));
         while (frames.TryPop(out var frame))
         {
@@ -61,7 +61,7 @@ internal sealed partial class TypeAlgebra
                 continue;
             }
             var type = frame.Types[frame.Index];
-            TextSlice following = frame.Texts[frame.Index + 1];
+            Utf8String following = frame.Texts[frame.Index + 1];
             frames.Push((frame.Texts, frame.Types, frame.Index + 1, frame.Suffix));
             if ((type.Flags & (F.Literal | F.Nullable)) != 0)
             {
@@ -76,7 +76,7 @@ internal sealed partial class TypeAlgebra
             else if (await host.IsGenericIndexAsync(type, cancellation).ConfigureAwait(false) || IsPatternPlaceholder(type))
             {
                 newTypes.Add(type);
-                newTexts.Add(TextSlice.FromBuilder(text));
+                newTexts.Add(Wtf8.CombineSurrogatePairs(text.ToUtf8String()));
                 text.Clear();
                 text.Append(following.Span);
             }
@@ -84,8 +84,8 @@ internal sealed partial class TypeAlgebra
                 return context.StringType;
         }
         if (newTypes.Count == 0)
-            return context.GetStringLiteralType(TextSlice.FromBuilder(text));
-        newTexts.Add(TextSlice.FromBuilder(text));
+            return context.GetStringLiteralType(Wtf8.CombineSurrogatePairs(text.ToUtf8String()));
+        newTexts.Add(Wtf8.CombineSurrogatePairs(text.ToUtf8String()));
         if (newTexts.All(t => t.Length == 0))
         {
             if (newTypes.All(t => (t.Flags & F.String) != 0))
@@ -94,20 +94,20 @@ internal sealed partial class TypeAlgebra
                 return newTypes[0];
         }
         // Length framing is unambiguous for embedded NULs and lone surrogates.
-        var key = (new TypeCacheKey(newTypes.ToArray()), TextSlice.Frame(CollectionsMarshal.AsSpan(newTexts)));
+        var key = (new TypeCacheKey(newTypes.ToArray()), Utf8String.Frame(CollectionsMarshal.AsSpan(newTexts)));
         if (!templates.TryGetValue(key, out var result))
             templates.Add(key, result = context.NewTemplateLiteralType(newTexts.ToArray(), newTypes.ToArray()));
         return result;
     }
 
-    internal static TextSlice TemplateString(Type type) => type is LiteralType literal ? literal.Value switch
+    internal static Utf8String TemplateString(Type type) => type is LiteralType literal ? literal.Value switch
     {
-        TextSlice text => text,
+        Utf8String text => text,
         double number => TokenFacts.NumberText(number),
-        BigInteger integer => TextSlice.Format(integer),
-        bool boolean => boolean ? "true" : "false",
-        _ => ""
-    } : type is IntrinsicType intrinsic && (type.Flags & F.Nullable) != 0 ? intrinsic.IntrinsicName : "";
+        BigInteger integer => Utf8String.Format(integer),
+        bool boolean => boolean ? Utf8Literals.True : Utf8Literals.False,
+        _ => Utf8String.Empty
+    } : type is IntrinsicType intrinsic && (type.Flags & F.Nullable) != 0 ? intrinsic.IntrinsicName : Utf8String.Empty;
 
     internal async ValueTask<Type> StringMappingAsync(Symbol symbol, Type type, CancellationToken cancellation = default)
     {
@@ -121,20 +121,20 @@ internal sealed partial class TypeAlgebra
                 async t => await StringMappingAsync(symbol, t, cancellation).ConfigureAwait(false),
                 cancellation: cancellation).ConfigureAwait(false)
                 ?? throw new InvalidOperationException("String mapping removed all constituents");
-        if (type is LiteralType { Value: TextSlice value })
+        if (type is LiteralType { Value: Utf8String value })
             return context.GetStringLiteralType(ApplyStringMapping(symbol.Name, value));
         if (type is TemplateLiteralType template)
         {
             var texts = template.Texts.ToArray();
             var types = template.Types.ToArray();
-            if (symbol.Name.Span is "Uppercase" or "Lowercase")
+            if (symbol.Name.Span.SequenceEqual("Uppercase"u8) || symbol.Name.Span.SequenceEqual("Lowercase"u8))
             {
                 for (int i = 0; i < texts.Length; i++)
                     texts[i] = ApplyStringMapping(symbol.Name, texts[i]);
                 for (int i = 0; i < types.Length; i++)
                     types[i] = await StringMappingAsync(symbol, types[i], cancellation).ConfigureAwait(false);
             }
-            else if (symbol.Name.Span is "Capitalize" or "Uncapitalize")
+            else if (symbol.Name.Span.SequenceEqual("Capitalize"u8) || symbol.Name.Span.SequenceEqual("Uncapitalize"u8))
             {
                 if (texts[0].Length != 0)
                     texts[0] = ApplyStringMapping(symbol.Name, texts[0]);
@@ -149,7 +149,7 @@ internal sealed partial class TypeAlgebra
             || await host.IsGenericIndexAsync(type, cancellation).ConfigureAwait(false))
             return GenericStringMapping(symbol, type);
         if (IsPatternPlaceholder(type))
-            return GenericStringMapping(symbol, await TemplateAsync(["", ""], [type], cancellation).ConfigureAwait(false));
+            return GenericStringMapping(symbol, await TemplateAsync([Utf8String.Empty, Utf8String.Empty], [type], cancellation).ConfigureAwait(false));
         return type;
     }
 
@@ -160,12 +160,12 @@ internal sealed partial class TypeAlgebra
         return result;
     }
 
-    internal static TextSlice ApplyStringMapping(TextSlice name, TextSlice text) => name.Span switch
+    internal static Utf8String ApplyStringMapping(Utf8String name, Utf8String text) => name.Span switch
     {
-        "Uppercase" => JsCase.Upper(text),
-        "Lowercase" => JsCase.Lower(text),
-        "Capitalize" => TextSlice.Concat(JsCase.Upper(text[..JsCase.FirstScalarLength(text)]), text[JsCase.FirstScalarLength(text)..]),
-        "Uncapitalize" => TextSlice.Concat(JsCase.Lower(text[..JsCase.FirstScalarLength(text)]), text[JsCase.FirstScalarLength(text)..]),
+        _ when name.Span.SequenceEqual("Uppercase"u8) => JsCase.Upper(text),
+        _ when name.Span.SequenceEqual("Lowercase"u8) => JsCase.Lower(text),
+        _ when name.Span.SequenceEqual("Capitalize"u8) => Utf8String.Concat(JsCase.Upper(text[..JsCase.FirstScalarLength(text)]), text[JsCase.FirstScalarLength(text)..]),
+        _ when name.Span.SequenceEqual("Uncapitalize"u8) => Utf8String.Concat(JsCase.Lower(text[..JsCase.FirstScalarLength(text)]), text[JsCase.FirstScalarLength(text)..]),
         _ => text
     };
 }

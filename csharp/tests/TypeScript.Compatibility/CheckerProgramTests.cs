@@ -27,19 +27,19 @@ internal static class CheckerProgramTests
             checks++;
         }
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("allowUnreachableCode", "false");
-        var files = new Dictionary<string, byte[]>
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("allowUnreachableCode"u8, "false"u8);
+        var files = new Dictionary<Utf8String, byte[]>
         {
-            ["/project/main.ts"] = Wtf8.Encode(
+            ["/project/main.ts"u8] = Wtf8.Encode(
                 "interface Object{}interface Function{}abstract class A{a=1}class B{b=1}declare const C:typeof A|typeof B;new C();class Static{public static{}}if(true)type T=string;if(true)interface I{}type Accessor={get value(){return 0}};"),
-            ["/project/unreachable.ts"] = Wtf8.Encode("function f(){return;const first=1;const second=2;}"),
-            ["/project/recovery.ts"] = Wtf8.Encode("const object={'missing'};")
+            ["/project/unreachable.ts"u8] = Wtf8.Encode("function f(){return;const first=1;const second=2;}"),
+            ["/project/recovery.ts"u8] = Wtf8.Encode("const object={'missing'};")
         };
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
-            new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project"u8,
+            new("/project/tsconfig.json"u8, options, files.Keys.ToArray(), [], [], []));
         var checker = await program.CreateCheckerAsync();
-        var main = program.GetFile("/project/main.ts")!.Syntax;
+        var main = program.GetFile("/project/main.ts"u8)!.Syntax;
         var snapshot = main.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
         await checker.CheckProgramAsync();
         var diagnostics = checker.DetailedDiagnosticsForProgramFile(main);
@@ -47,17 +47,17 @@ internal static class CheckerProgramTests
         Check(diagnostics.Count(d => d.Code == DiagnosticCode.ModifiersCannotAppearHere) == 1);
         Check(
             diagnostics.Where(
-                d => d.Code == DiagnosticCode.X0DeclarationsCanOnlyBeDeclaredInsideABlock).SelectMany(d => d.Arguments).Select(a => a.ToString()).Order().SequenceEqual(
+                d => d.Code == DiagnosticCode.X0DeclarationsCanOnlyBeDeclaredInsideABlock).SelectMany(d => d.Arguments).Order().SequenceEqual(
                     [
-                        "interface",
-                        "type"
+                        "interface"u8,
+                        "type"u8
                     ]));
         var accessor = diagnostics.Single(d => d.Code == DiagnosticCode.AnImplementationCannotBeDeclaredInAmbientContexts);
-        Check(main.Source.Text[accessor.Start..(accessor.Start + accessor.Length)] == "{return 0}");
-        var unreachable = program.GetFile("/project/unreachable.ts")!.Syntax;
+        Check(main.Source.Text[accessor.Start..(accessor.Start + accessor.Length)] == "{return 0}"u8);
+        var unreachable = program.GetFile("/project/unreachable.ts"u8)!.Syntax;
         var range = checker.DetailedDiagnosticsForProgramFile(unreachable).Single(d => d.Code == DiagnosticCode.UnreachableCodeDetected);
-        Check(unreachable.Source.Text[range.Start..(range.Start + range.Length)] == "const first=1;const second=2;");
-        var recovery = program.GetFile("/project/recovery.ts")!.Syntax;
+        Check(unreachable.Source.Text[range.Start..(range.Start + range.Length)] == "const first=1;const second=2;"u8);
+        var recovery = program.GetFile("/project/recovery.ts"u8)!.Syntax;
         Check(
             recovery.ParseDiagnostics.Count != 0
                 && checker.DetailedDiagnosticsForProgramFile(recovery).All(
@@ -78,56 +78,56 @@ internal static class CheckerProgramTests
             checks++;
         }
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("module", "\"nodenext\"");
-        options.SetRaw("moduleDetection", "\"legacy\"");
-        options.SetRaw("rewriteRelativeImportExtensions", "true");
-        var files = new Dictionary<string, byte[]>
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("module"u8, "\"nodenext\""u8);
+        options.SetRaw("moduleDetection"u8, "\"legacy\""u8);
+        options.SetRaw("rewriteRelativeImportExtensions"u8, "true"u8);
+        var files = new Dictionary<Utf8String, byte[]>
         {
-            ["/project/main.ts"] = Wtf8.Encode("export {};{import Missing=require('not-found');export=Missing;}"),
-            ["/project/rewrite.ts"] = Wtf8.Encode("import {value} from './folder.ts';value;"),
-            ["/project/folder.ts/index.ts"] = Wtf8.Encode("export const value=1;"),
-            ["/project/paths.ts"] = Wtf8.Encode(
+            ["/project/main.ts"u8] = Wtf8.Encode("export {};{import Missing=require('not-found');export=Missing;}"),
+            ["/project/rewrite.ts"u8] = Wtf8.Encode("import {value} from './folder.ts';value;"),
+            ["/project/folder.ts/index.ts"u8] = Wtf8.Encode("export const value=1;"),
+            ["/project/paths.ts"u8] = Wtf8.Encode(
                 "declare module './relative'{}declare module '.\\\\relative'{}declare module 'q:/absolute'{}"),
-            ["/project/augmentation.ts"] = Wtf8.Encode(
+            ["/project/augmentation.ts"u8] = Wtf8.Encode(
                 "export {};namespace N{export interface I{}}declare module './target'{import I=N.I;interface Item{value:I}}"),
-            ["/project/target.ts"] = Wtf8.Encode("export interface Item{}"),
-            ["/project/indexes.ts"] = Wtf8.Encode("interface A{[key:string|symbol]:number;[key:string|symbol]:number}"),
-            ["/project/recovery.ts"] = Wtf8.Encode("module {unknown;}")
+            ["/project/target.ts"u8] = Wtf8.Encode("export interface Item{}"),
+            ["/project/indexes.ts"u8] = Wtf8.Encode("interface A{[key:string|symbol]:number;[key:string|symbol]:number}"),
+            ["/project/recovery.ts"u8] = Wtf8.Encode("module {unknown;}")
         };
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
-            new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project"u8,
+            new("/project/tsconfig.json"u8, options, files.Keys.ToArray(), [], [], []));
         var checker = await program.CreateCheckerAsync();
         var snapshot = program.SourceFiles.SelectMany(f => f.Syntax.DescendantsAndSelf())
             .Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
         await checker.CheckProgramAsync();
-        IReadOnlyList<Diagnostic> Diagnostics(string name) =>
-            checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/" + name)!.Syntax);
-        var main = Diagnostics("main.ts");
+        IReadOnlyList<Diagnostic> Diagnostics(Utf8String name) =>
+            checker.DetailedDiagnosticsForProgramFile(program.GetFile(Utf8String.Copy("/project/"u8) + name)!.Syntax);
+        var main = Diagnostics("main.ts"u8);
         Check(main.Any(d => d.Code == DiagnosticCode.AnExportAssignmentMustBeAtTheTopLevelOfAFileOrModuleDeclaration && d.Length == 6));
         Check(main.Any(d => d.Code == DiagnosticCode.AnImportDeclarationCanOnlyBeUsedAtTheTopLevelOfANamespaceOrModule && d.Length == 6));
         Check(
             main.Any(
                 d => d.Code == DiagnosticCode.CannotFindModule0OrItsCorrespondingTypeDeclarations
-                    && d.Arguments.SequenceEqual(["not-found"])));
-        Check(Diagnostics("paths.ts").Count(d => d.Code == DiagnosticCode.AmbientModuleDeclarationCannotSpecifyRelativeModuleName) == 3);
+                    && d.Arguments.SequenceEqual([Utf8String.Copy("not-found"u8)])));
+        Check(Diagnostics("paths.ts"u8).Count(d => d.Code == DiagnosticCode.AmbientModuleDeclarationCannotSpecifyRelativeModuleName) == 3);
         Check(
-            Diagnostics("augmentation.ts").All(
+            Diagnostics("augmentation.ts"u8).All(
                 d => d.Code != DiagnosticCode.ImportsAreNotPermittedInModuleAugmentationsConsiderMovingThemToTheEnclosingExternalModule));
         Check(
-            Diagnostics("rewrite.ts").Single(
-                d => d.Code == DiagnosticCode.ThisRelativeImportPathIsUnsafeToRewriteBecauseItLooksLikeAFileNameButActuallyResolvesTo0).Arguments.SequenceEqual(["./folder.ts/index.ts"]));
-        var duplicate = Diagnostics("indexes.ts").Where(d => d.Code == DiagnosticCode.DuplicateIndexSignatureForType0).ToArray();
+            Diagnostics("rewrite.ts"u8).Single(
+                d => d.Code == DiagnosticCode.ThisRelativeImportPathIsUnsafeToRewriteBecauseItLooksLikeAFileNameButActuallyResolvesTo0).Arguments.SequenceEqual([Utf8String.Copy("./folder.ts/index.ts"u8)]));
+        var duplicate = Diagnostics("indexes.ts"u8).Where(d => d.Code == DiagnosticCode.DuplicateIndexSignatureForType0).ToArray();
         Check(duplicate.Length == 4);
-        Check(duplicate.Count(d => d.Arguments.SequenceEqual(["string"])) == 2
-            && duplicate.Count(d => d.Arguments.SequenceEqual(["symbol"])) == 2);
+        Check(duplicate.Count(d => d.Arguments.SequenceEqual([Utf8String.Copy("string"u8)])) == 2
+            && duplicate.Count(d => d.Arguments.SequenceEqual([Utf8String.Copy("symbol"u8)])) == 2);
         Check(
-            Diagnostics("recovery.ts").Any(
+            Diagnostics("recovery.ts"u8).Any(
                 d => d.Code == DiagnosticCode.CannotFindName0DoYouNeedToInstallTypeDefinitionsForNodeTryNpmISaveDevTypesSlashnodeAndThenAddNodeToTheTypesFieldInYourTsconfig)
-                && Diagnostics("recovery.ts").All(
+                && Diagnostics("recovery.ts"u8).All(
                     d => d.Code != DiagnosticCode.ANamespaceDeclarationShouldNotBeDeclaredUsingTheModuleKeywordPleaseUseTheNamespaceKeywordInstead));
         await checker.CheckProgramAsync();
-        Check(Diagnostics("main.ts").SequenceEqual(main, DiagnosticEqualityComparer.Instance));
+        Check(Diagnostics("main.ts"u8).SequenceEqual(main, DiagnosticEqualityComparer.Instance));
         Check(snapshot.All(n => n.Node.Parent == n.Parent && n.Node.Pos == n.Pos && n.Node.End == n.End && n.Node.Flags == n.Flags));
         return checks;
     }
@@ -142,19 +142,19 @@ internal static class CheckerProgramTests
             checks++;
         }
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        var files = new Dictionary<string, byte[]>
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        var files = new Dictionary<Utf8String, byte[]>
         {
-            ["/project/globals.d.ts"] = Wtf8.Encode(
+            ["/project/globals.d.ts"u8] = Wtf8.Encode(
                 "interface Object{}interface Function{readonly length:number}interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}"),
-            ["/project/main.ts"] = Wtf8.Encode(
+            ["/project/main.ts"u8] = Wtf8.Encode(
                 "interface Shape{value:number}let shape:Shape={vaule:1};const part={value:2};const dupe={value:1,...part};const result:()=>number=()=>'';class Base{get value(){return 1}}class Derived extends Base{value=1}interface Merge<T>{}interface Merge<T,U>{}function circ<T extends T>(){}abstract class Mod{static private x:number;abstract static m():void;}"),
-            ["/project/recovery.ts"] = Wtf8.Encode("enum E{#x}")
+            ["/project/recovery.ts"u8] = Wtf8.Encode("enum E{#x}")
         };
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
-            new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
-        var source = program.GetFile("/project/main.ts")!.Syntax;
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project"u8,
+            new("/project/tsconfig.json"u8, options, files.Keys.ToArray(), [], [], []));
+        var source = program.GetFile("/project/main.ts"u8)!.Syntax;
         var before = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
         var checker = await program.CreateCheckerAsync();
         await checker.CheckProgramAsync();
@@ -163,15 +163,15 @@ internal static class CheckerProgramTests
             diagnostics.Single(
                 d => d.Code == DiagnosticCode.ObjectLiteralMayOnlySpecifyKnownPropertiesBut0DoesNotExistInType1DidYouMeanToWrite2).Arguments.SequenceEqual(
                     [
-                        "vaule",
-                        "Shape",
-                        "value"
+                        Utf8String.Copy("vaule"u8),
+                        Utf8String.Copy("Shape"u8),
+                        Utf8String.Copy("value"u8)
                     ]));
         var spread = diagnostics.Single(d => d.Code == DiagnosticCode.X0IsSpecifiedMoreThanOnceSoThisUsageWillBeOverwritten);
-        Check(spread.Arguments.SequenceEqual(["value"]));
+        Check(spread.Arguments.SequenceEqual([Utf8String.Copy("value"u8)]));
         Check(spread.RelatedInformation is [var note] && note.Code == DiagnosticCode.ThisSpreadAlwaysOverwritesThisProperty);
         var arrow = diagnostics.Single(d => d.Code == DiagnosticCode.Type0IsNotAssignableToType1);
-        Check(arrow.Arguments.SequenceEqual(["string", "number"]));
+        Check(arrow.Arguments.SequenceEqual([Utf8String.Copy("string"u8), Utf8String.Copy("number"u8)]));
         Check(
             arrow.RelatedInformation is [var returnNote]
                 && returnNote.Code == DiagnosticCode.TheExpectedTypeComesFromTheReturnTypeOfThisSignature);
@@ -179,22 +179,22 @@ internal static class CheckerProgramTests
             diagnostics.Single(
                 d => d.Code == DiagnosticCode.X0IsDefinedAsAnAccessorInClass1ButIsOverriddenHereIn2AsAnInstanceProperty).Arguments.SequenceEqual(
                     [
-                        "value",
-                        "Base",
-                        "Derived"
+                        Utf8String.Copy("value"u8),
+                        Utf8String.Copy("Base"u8),
+                        Utf8String.Copy("Derived"u8)
                     ]));
         Check(diagnostics.Count(d => d.Code == DiagnosticCode.AllDeclarationsOf0MustHaveIdenticalTypeParameters) == 2);
         Check(
             diagnostics.Where(
-                d => d.Code == DiagnosticCode.AllDeclarationsOf0MustHaveIdenticalTypeParameters).All(d => d.Arguments.SequenceEqual(["Merge"])));
-        Check(diagnostics.Single(d => d.Code == DiagnosticCode.TypeParameter0HasACircularConstraint).Arguments.SequenceEqual(["T"]));
+                d => d.Code == DiagnosticCode.AllDeclarationsOf0MustHaveIdenticalTypeParameters).All(d => d.Arguments.SequenceEqual([Utf8String.Copy("Merge"u8)])));
+        Check(diagnostics.Single(d => d.Code == DiagnosticCode.TypeParameter0HasACircularConstraint).Arguments.SequenceEqual([Utf8String.Copy("T"u8)]));
         Check(
             diagnostics.Single(
-                d => d.Code == DiagnosticCode.X0ModifierMustPrecede1Modifier).Arguments.SequenceEqual(["private", "static"]));
+                d => d.Code == DiagnosticCode.X0ModifierMustPrecede1Modifier).Arguments.SequenceEqual([Utf8String.Copy("private"u8), Utf8String.Copy("static"u8)]));
         Check(
             diagnostics.Single(
-                d => d.Code == DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier).Arguments.SequenceEqual(["static", "abstract"]));
-        var recovery = program.GetFile("/project/recovery.ts")!.Syntax;
+                d => d.Code == DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier).Arguments.SequenceEqual([Utf8String.Copy("static"u8), Utf8String.Copy("abstract"u8)]));
+        var recovery = program.GetFile("/project/recovery.ts"u8)!.Syntax;
         Check(
             checker.DetailedDiagnosticsForProgramFile(recovery).Any(
                 d => d.Code == DiagnosticCode.AnEnumMemberCannotBeNamedWithAPrivateIdentifier));
@@ -214,28 +214,28 @@ internal static class CheckerProgramTests
             checks++;
         }
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("allowJs", "true");
-        options.SetRaw("checkJs", "true");
-        var files = new Dictionary<string, byte[]>
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("allowJs"u8, "true"u8);
+        options.SetRaw("checkJs"u8, "true"u8);
+        var files = new Dictionary<Utf8String, byte[]>
         {
-            ["/project/globals.d.ts"] = Wtf8.Encode(
+            ["/project/globals.d.ts"u8] = Wtf8.Encode(
                 "interface Object{}interface Function{readonly length:number}interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}"),
-            ["/project/main.ts"] = Wtf8.Encode(
+            ["/project/main.ts"u8] = Wtf8.Encode(
                 "interface A extends MissingA extends MissingB{}class C implements MissingI implements MissingJ{}type Private={#value:number;#method():void};declare function* gen():void;declare const tuple:[number,...string[]];declare function takes(first:number,...rest:string[]):void;takes(...tuple);const object={get value(){return 1}};object.value();function overload(x:string):void;function overload(x:number){}"),
-            ["/project/types.ts"] = Wtf8.Encode("export interface Data{}"),
-            ["/project/import.js"] = Wtf8.Encode("import {Data} from './types';export {Data};"),
-            ["/project/recovery.ts"] = Wtf8.Encode(".missing;catch(error){error;}finally{}")
+            ["/project/types.ts"u8] = Wtf8.Encode("export interface Data{}"),
+            ["/project/import.js"u8] = Wtf8.Encode("import {Data} from './types';export {Data};"),
+            ["/project/recovery.ts"u8] = Wtf8.Encode(".missing;catch(error){error;}finally{}")
         };
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
-            new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
-        var source = program.GetFile("/project/main.ts")!.Syntax;
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project"u8,
+            new("/project/tsconfig.json"u8, options, files.Keys.ToArray(), [], [], []));
+        var source = program.GetFile("/project/main.ts"u8)!.Syntax;
         var before = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
         var checker = await program.CreateCheckerAsync();
         await checker.CheckProgramAsync();
         var diagnostics = checker.DetailedDiagnosticsForProgramFile(source);
-        Check(diagnostics.Where(d => d.Code == DiagnosticCode.CannotFindName0).SelectMany(d => d.Arguments).Select(a => a.ToString()).Order()
-            .SequenceEqual(new[] { "MissingA", "MissingI" }));
+        Check(diagnostics.Where(d => d.Code == DiagnosticCode.CannotFindName0).SelectMany(d => d.Arguments).Order()
+            .SequenceEqual(new Utf8String[] { "MissingA"u8, "MissingI"u8 }));
         Check(diagnostics.Count(d => d.Code == DiagnosticCode.PrivateIdentifiersAreNotAllowedOutsideClassBodies) == 2);
         Check(diagnostics.Any(d => d.Code == DiagnosticCode.GeneratorsAreNotAllowedInAnAmbientContext));
         Check(diagnostics.All(d => d.Code != DiagnosticCode.ArgumentOfType0IsNotAssignableToParameterOfType1));
@@ -247,7 +247,7 @@ internal static class CheckerProgramTests
             diagnostics.Single(
                 d => d.Code == DiagnosticCode.ThisOverloadSignatureIsNotCompatibleWithItsImplementationSignature).RelatedInformation is [var implementation]
                 && implementation.Code == DiagnosticCode.TheImplementationSignatureIsDeclaredHere);
-        var js = checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/import.js")!.Syntax);
+        var js = checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/import.js"u8)!.Syntax);
         Check(
             js.Count(d => d.Code == DiagnosticCode.X0IsATypeAndCannotBeImportedInJavaScriptFilesUse1InAJSDocTypeAnnotation) == 1
                 && js.Count(d => d.Code == DiagnosticCode.TypesCannotAppearInExportDeclarationsInJavaScriptFiles) == 1);
@@ -255,10 +255,10 @@ internal static class CheckerProgramTests
             js.Single(
                 d => d.Code == DiagnosticCode.X0IsATypeAndCannotBeImportedInJavaScriptFilesUse1InAJSDocTypeAnnotation).Arguments.SequenceEqual(
                     [
-                        "Data",
-                        "import(\"./types\").Data"
+                        Utf8String.Copy("Data"u8),
+                        Utf8String.Copy("import(\"./types\").Data"u8)
                     ]));
-        var recovery = program.GetFile("/project/recovery.ts")!.Syntax;
+        var recovery = program.GetFile("/project/recovery.ts"u8)!.Syntax;
         Check(recovery.ParseDiagnostics.Count != 0);
         Check(recovery.Statements!.OfType<TryStatementNode>().Single().CatchClause is not null);
         Check(checker.DetailedDiagnosticsForProgramFile(recovery).Count(d => d.Code == DiagnosticCode.CannotFindName0) == 1);
@@ -278,20 +278,20 @@ internal static class CheckerProgramTests
             checks++;
         }
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        options.SetRaw("noUnusedLocals", "true");
-        options.SetRaw("noUnusedParameters", "true");
-        var files = new Dictionary<string, byte[]>
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        options.SetRaw("noUnusedLocals"u8, "true"u8);
+        options.SetRaw("noUnusedParameters"u8, "true"u8);
+        var files = new Dictionary<Utf8String, byte[]>
         {
-            ["/project/globals.d.ts"] = Wtf8.Encode(
+            ["/project/globals.d.ts"u8] = Wtf8.Encode(
                 "interface Object{}interface Function{}interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}"),
-            ["/project/main.ts"] = Wtf8.Encode(
+            ["/project/main.ts"u8] = Wtf8.Encode(
                 "export class Base{p=1}export class Derived extends Base{p=''}export class Needs{value:number}let x:number;x;var duplicate:number;var duplicate:string;type Box<T>={value:T};let missing:Box;class Generic<T>{}let generic:Generic;let maybe:{p:number}|undefined;maybe.p;null.x;let implicit:{p};export function outer(unused:number){const local=1;return 2;}type Recursive=Recursive;")
         };
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
-            new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
-        var source = program.GetFile("/project/main.ts")!.Syntax;
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project"u8,
+            new("/project/tsconfig.json"u8, options, files.Keys.ToArray(), [], [], []));
+        var source = program.GetFile("/project/main.ts"u8)!.Syntax;
         Check(source.ParseDiagnostics.Count == 0);
         var nodes = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
         var checker = await program.CreateCheckerAsync();
@@ -299,32 +299,32 @@ internal static class CheckerProgramTests
         var diagnostics = checker.DetailedDiagnosticsForProgramFile(source);
         Check(
             diagnostics.Single(
-                d => d.Code == DiagnosticCode.Property0HasNoInitializerAndIsNotDefinitelyAssignedInTheConstructor).Arguments.SequenceEqual(["value"]));
-        Check(diagnostics.Single(d => d.Code == DiagnosticCode.Variable0IsUsedBeforeBeingAssigned).Arguments.SequenceEqual(["x"]));
-        Check(diagnostics.Single(d => d.Code == DiagnosticCode.X0IsPossiblyUndefined).Arguments.SequenceEqual(["maybe"]));
-        Check(diagnostics.Single(d => d.Code == DiagnosticCode.TheValue0CannotBeUsedHere).Arguments.SequenceEqual(["null"]));
-        Check(diagnostics.Single(d => d.Code == DiagnosticCode.Member0ImplicitlyHasAn1Type).Arguments.SequenceEqual(["p", "any"]));
+                d => d.Code == DiagnosticCode.Property0HasNoInitializerAndIsNotDefinitelyAssignedInTheConstructor).Arguments.SequenceEqual([Utf8String.Copy("value"u8)]));
+        Check(diagnostics.Single(d => d.Code == DiagnosticCode.Variable0IsUsedBeforeBeingAssigned).Arguments.SequenceEqual([Utf8String.Copy("x"u8)]));
+        Check(diagnostics.Single(d => d.Code == DiagnosticCode.X0IsPossiblyUndefined).Arguments.SequenceEqual([Utf8String.Copy("maybe"u8)]));
+        Check(diagnostics.Single(d => d.Code == DiagnosticCode.TheValue0CannotBeUsedHere).Arguments.SequenceEqual([Utf8String.Copy("null"u8)]));
+        Check(diagnostics.Single(d => d.Code == DiagnosticCode.Member0ImplicitlyHasAn1Type).Arguments.SequenceEqual([Utf8String.Copy("p"u8), Utf8String.Copy("any"u8)]));
         Check(
             diagnostics.Where(
-                d => d.Code == DiagnosticCode.GenericType0Requires1TypeArgumentS).Select(d => string.Join('|', d.Arguments)).Order()
-            .SequenceEqual(new[] { "Box|1|1", "Generic<T>|1|1" }));
+                d => d.Code == DiagnosticCode.GenericType0Requires1TypeArgumentS).Select(d => Utf8String.Join((byte)'|', d.Arguments)).Order()
+            .SequenceEqual(new Utf8String[] { "Box|1|1"u8, "Generic<T>|1|1"u8 }));
         Check(
-            diagnostics.Single(d => d.Code == DiagnosticCode.TypeAlias0CircularlyReferencesItself).Arguments.SequenceEqual(["Recursive"]));
+            diagnostics.Single(d => d.Code == DiagnosticCode.TypeAlias0CircularlyReferencesItself).Arguments.SequenceEqual([Utf8String.Copy("Recursive"u8)]));
         var conflict = diagnostics.Single(
             d => d.Code == DiagnosticCode.SubsequentVariableDeclarationsMustHaveTheSameTypeVariable0MustBeOfType1ButHereHasType2);
-        Check(conflict.Arguments.SequenceEqual(["duplicate", "number", "string"]));
+        Check(conflict.Arguments.SequenceEqual([Utf8String.Copy("duplicate"u8), Utf8String.Copy("number"u8), Utf8String.Copy("string"u8)]));
         Check(
             conflict.RelatedInformation is [var previous]
                 && previous.Code == DiagnosticCode.X0WasAlsoDeclaredHere
-                && previous.Arguments.SequenceEqual(["duplicate"]));
+                && previous.Arguments.SequenceEqual([Utf8String.Copy("duplicate"u8)]));
         var inherited = diagnostics.Single(d => d.Code == DiagnosticCode.Property0InType1IsNotAssignableToTheSamePropertyInBaseType2);
-        Check(inherited.Arguments.SequenceEqual(["p", "Derived", "Base"]));
+        Check(inherited.Arguments.SequenceEqual([Utf8String.Copy("p"u8), Utf8String.Copy("Derived"u8), Utf8String.Copy("Base"u8)]));
         Check(
             inherited.MessageChain is [var reason]
                 && reason.Code == DiagnosticCode.Type0IsNotAssignableToType1
-                && reason.Arguments.SequenceEqual(["string", "number"]));
-        Check(diagnostics.Any(d => d.Code == DiagnosticCode.X0IsDeclaredButItsValueIsNeverRead && d.Arguments.SequenceEqual(["unused"])));
-        Check(diagnostics.Any(d => d.Code == DiagnosticCode.X0IsDeclaredButItsValueIsNeverRead && d.Arguments.SequenceEqual(["local"])));
+                && reason.Arguments.SequenceEqual([Utf8String.Copy("string"u8), Utf8String.Copy("number"u8)]));
+        Check(diagnostics.Any(d => d.Code == DiagnosticCode.X0IsDeclaredButItsValueIsNeverRead && d.Arguments.SequenceEqual([Utf8String.Copy("unused"u8)])));
+        Check(diagnostics.Any(d => d.Code == DiagnosticCode.X0IsDeclaredButItsValueIsNeverRead && d.Arguments.SequenceEqual([Utf8String.Copy("local"u8)])));
         await checker.CheckProgramAsync();
         Check(checker.DetailedDiagnosticsForProgramFile(source).SequenceEqual(diagnostics, DiagnosticEqualityComparer.Instance));
         Check(nodes.All(n => n.Node.Parent == n.Parent && n.Node.Pos == n.Pos && n.Node.End == n.End && n.Node.Flags == n.Flags));
@@ -341,26 +341,26 @@ internal static class CheckerProgramTests
             checks++;
         }
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        options.SetRaw("allowJs", "true");
-        options.SetRaw("checkJs", "true");
-        options.SetRaw("module", "\"commonjs\"");
-        var files = new Dictionary<string, byte[]>
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        options.SetRaw("allowJs"u8, "true"u8);
+        options.SetRaw("checkJs"u8, "true"u8);
+        options.SetRaw("module"u8, "\"commonjs\""u8);
+        var files = new Dictionary<Utf8String, byte[]>
         {
-            ["/project/globals.d.ts"] = Wtf8.Encode(
+            ["/project/globals.d.ts"u8] = Wtf8.Encode(
                 "interface Object{}interface Function{}interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}"),
-            ["/project/main.ts"] = Wtf8.Encode(
+            ["/project/main.ts"u8] = Wtf8.Encode(
                 "class C{static #x=1;test(c:C){return c.#x;}}type Bad=intrinsic;type Nested={p:this};let restricted:{private p:number};const obj={is():this is C{return true;}};class Overload{'a'():void;'b'() {}};declare const key:symbol;class Dynamic{[key]():void;};"),
-            ["/project/ambient.d.ts"] = Wtf8.Encode("namespace A{declare namespace B{}}var first:number;var second:number;"),
-            ["/project/module.js"] = Wtf8.Encode("function run(){}function hidden(){}module.exports=run;module.exports.hidden=hidden;"),
-            ["/project/use.js"] = Wtf8.Encode("const {hidden}=require('./module');hidden();"),
-            ["/project/exports.ts"] = Wtf8.Encode("const local=1;export {local as renamed};"),
-            ["/project/import.ts"] = Wtf8.Encode("import {local} from './exports';")
+            ["/project/ambient.d.ts"u8] = Wtf8.Encode("namespace A{declare namespace B{}}var first:number;var second:number;"),
+            ["/project/module.js"u8] = Wtf8.Encode("function run(){}function hidden(){}module.exports=run;module.exports.hidden=hidden;"),
+            ["/project/use.js"u8] = Wtf8.Encode("const {hidden}=require('./module');hidden();"),
+            ["/project/exports.ts"u8] = Wtf8.Encode("const local=1;export {local as renamed};"),
+            ["/project/import.ts"u8] = Wtf8.Encode("import {local} from './exports';")
         };
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
-            new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
-        var source = program.GetFile("/project/main.ts")!.Syntax;
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project"u8,
+            new("/project/tsconfig.json"u8, options, files.Keys.ToArray(), [], [], []));
+        var source = program.GetFile("/project/main.ts"u8)!.Syntax;
         Check(source.ParseDiagnostics.Count == 0);
         var before = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
         var checker = await program.CreateCheckerAsync();
@@ -376,16 +376,16 @@ internal static class CheckerProgramTests
         })
             Check(diagnostics.Count(d => d.Code == code) == 1);
         Check(diagnostics.All(d => d.Code != DiagnosticCode.FunctionImplementationIsMissingOrNotImmediatelyFollowingTheDeclaration));
-        Check(diagnostics.Single(d => d.Code == DiagnosticCode.FunctionImplementationNameMustBe0).Arguments.SequenceEqual(["'a'"]));
-        var ambient = checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/ambient.d.ts")!.Syntax);
+        Check(diagnostics.Single(d => d.Code == DiagnosticCode.FunctionImplementationNameMustBe0).Arguments.SequenceEqual([Utf8String.Copy("'a'"u8)]));
+        var ambient = checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/ambient.d.ts"u8)!.Syntax);
         Check(ambient.Count(d => d.Code == DiagnosticCode.TopLevelDeclarationsInDTsFilesMustStartWithEitherADeclareOrExportModifier) == 1);
         Check(ambient.Count(d => d.Code == DiagnosticCode.ADeclareModifierCannotBeUsedInAnAlreadyAmbientContext) == 1);
-        var aliases = checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/use.js")!.Syntax);
+        var aliases = checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/use.js"u8)!.Syntax);
         Check(aliases.Count == 1 && aliases[0].Code == DiagnosticCode.Module0HasNoExportedMember1);
-        Check(aliases[0].Arguments.SequenceEqual(["\"./module\"", "hidden"]));
-        var renamed = checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/import.ts")!.Syntax).Single(
+        Check(aliases[0].Arguments.SequenceEqual([Utf8String.Copy("\"./module\""u8), Utf8String.Copy("hidden"u8)]));
+        var renamed = checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/import.ts"u8)!.Syntax).Single(
             d => d.Code == DiagnosticCode.Module0Declares1LocallyButItIsExportedAs2);
-        Check(renamed.Arguments.SequenceEqual(["\"./exports\"", "local", "renamed"]));
+        Check(renamed.Arguments.SequenceEqual([Utf8String.Copy("\"./exports\""u8), Utf8String.Copy("local"u8), Utf8String.Copy("renamed"u8)]));
         Check(renamed.RelatedInformation.Count == 1 && renamed.RelatedInformation[0].Code == DiagnosticCode.X0IsDeclaredHere);
         await checker.CheckProgramAsync();
         Check(checker.DetailedDiagnosticsForProgramFile(source).Count == diagnostics.Count);
@@ -403,19 +403,19 @@ internal static class CheckerProgramTests
             checks++;
         }
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        options.SetRaw("module", "\"commonjs\"");
-        var files = new Dictionary<string, byte[]>
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        options.SetRaw("module"u8, "\"commonjs\""u8);
+        var files = new Dictionary<Utf8String, byte[]>
         {
-            ["/project/globals.d.ts"] = Wtf8.Encode(
+            ["/project/globals.d.ts"u8] = Wtf8.Encode(
                 "declare var globalValue:number;interface Object{constructor:Function}interface Function{readonly length:number}interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}"),
-            ["/project/main.ts"] = Wtf8.Encode(
+            ["/project/main.ts"u8] = Wtf8.Encode(
                 "export {globalValue};export const __esModule=1;type Dup<T,T>=T;interface Defaults<A=string,B>{}type Late<A=B,B=string>=A;type Bad<T>={[P in T]:number};type Rename<T>={[P in keyof T as {}]:T[P]};type Wrong=infer X;type Template<T>=`${T}`;type Extra<T>={[P in keyof T]:T[P];extra():void};class C{private constructor(){}}const blocked=new C();let fn:()=>void=blocked.constructor;interface Init{p:number=1}type InitType={p:number=1};class Param{constructor(public constructor:string){}}")
         };
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
-            new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
-        var source = program.GetFile("/project/main.ts")!.Syntax;
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project"u8,
+            new("/project/tsconfig.json"u8, options, files.Keys.ToArray(), [], [], []));
+        var source = program.GetFile("/project/main.ts"u8)!.Syntax;
         Check(source.ParseDiagnostics.Count == 0);
         var before = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
         var checker = await program.CreateCheckerAsync();
@@ -437,8 +437,8 @@ internal static class CheckerProgramTests
         })
             Check(diagnostics.Any(d => d.Code == code));
         Check(diagnostics.All(d => d.Code != DiagnosticCode.FunctionImplementationIsMissingOrNotImmediatelyFollowingTheDeclaration));
-        var blocked = source.DescendantsAndSelf().OfType<VariableDeclarationNode>().Single(n => n.Name is IdentifierNode { Text: { Span: "blocked" } });
-        Check((await checker.GetTypeAtLocationAsync(blocked.Name!)).Symbol?.Name == "C");
+        var blocked = source.DescendantsAndSelf().OfType<VariableDeclarationNode>().Single(n => (n.Name is IdentifierNode { Text: { Span: var matchedText } } && matchedText.SequenceEqual("blocked"u8)));
+        Check((await checker.GetTypeAtLocationAsync(blocked.Name!)).Symbol?.Name == "C"u8);
         Check(diagnostics.Count(d => d.Code == DiagnosticCode.Type0IsNotAssignableToType1) >= 3);
         await checker.CheckProgramAsync();
         Check(checker.DetailedDiagnosticsForProgramFile(source).Count == diagnostics.Count);
@@ -456,17 +456,17 @@ internal static class CheckerProgramTests
             checks++;
         }
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        options.SetRaw("jsx", "\"preserve\"");
-        var files = new Dictionary<string, byte[]>
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        options.SetRaw("jsx"u8, "\"preserve\""u8);
+        var files = new Dictionary<Utf8String, byte[]>
         {
-            ["/project/a.ts"] = Wtf8.Encode("/// <reference path='./missing.ts' />\nexport const a=1;"),
-            ["/project/b.ts"] = Wtf8.Encode("/// <reference path='./missing.ts' />\nexport const b=1;"),
-            ["/project/ignore.ts"] = Wtf8.Encode("// @ts-ignore\n/// <reference path='./ignored.ts' />\nexport {};"),
-            ["/project/expect.ts"] = Wtf8.Encode("// @ts-expect-error\n/// <reference path='./expected.ts' />\nexport {};"),
-            ["/project/self.ts"] = Wtf8.Encode("/// <reference path='./self.ts' />\nexport {};"),
-            ["/project/slices.ts"] = Wtf8.Encode("""
+            ["/project/a.ts"u8] = Wtf8.Encode("/// <reference path='./missing.ts' />\nexport const a=1;"),
+            ["/project/b.ts"u8] = Wtf8.Encode("/// <reference path='./missing.ts' />\nexport const b=1;"),
+            ["/project/ignore.ts"u8] = Wtf8.Encode("// @ts-ignore\n/// <reference path='./ignored.ts' />\nexport {};"),
+            ["/project/expect.ts"u8] = Wtf8.Encode("// @ts-expect-error\n/// <reference path='./expected.ts' />\nexport {};"),
+            ["/project/self.ts"u8] = Wtf8.Encode("/// <reference path='./self.ts' />\nexport {};"),
+            ["/project/slices.ts"u8] = Wtf8.Encode("""
                 type Prefix = `\uD83D${string}`;
                 type Suffix = `${string}\uDE00`;
                 const badPrefix: Prefix = "\uD83D\uDE00";
@@ -478,47 +478,47 @@ internal static class CheckerProgramTests
                 declare const empty: "";
                 const emptyAnd = empty && 1;
                 """),
-            ["/project/weak.ts"] = Wtf8.Encode(
+            ["/project/weak.ts"u8] = Wtf8.Encode(
                 "interface Options{timeout?:number}const unrelated={other:1};const value:Options=unrelated;const fn:Options=()=>({timeout:1});"),
-            ["/project/main.tsx"] = Wtf8.Encode(
+            ["/project/main.tsx"u8] = Wtf8.Encode(
                 "namespace JSX{export interface Element{}export interface IntrinsicElements{div:{}}export interface ElementChildrenAttribute{children:{}}}declare function View(p:{children:(value:number)=>number}):JSX.Element;const element=<View>{value=>value+1}</View>;declare class Hidden{private method(value);}")
         };
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
-            new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project"u8,
+            new("/project/tsconfig.json"u8, options, files.Keys.ToArray(), [], [], []));
         var checker = await program.CreateCheckerAsync();
-        var source = program.GetFile("/project/main.tsx")!.Syntax;
+        var source = program.GetFile("/project/main.tsx"u8)!.Syntax;
         var snapshot = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
         await checker.CheckProgramAsync();
-        IReadOnlyList<Diagnostic> Errors(string name) =>
-            checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/" + name)!.Syntax);
+        IReadOnlyList<Diagnostic> Errors(Utf8String name) =>
+            checker.DetailedDiagnosticsForProgramFile(program.GetFile(Utf8String.Copy("/project/"u8) + name)!.Syntax);
         Check(
-            Errors("a.ts").Count(d => d.Code == DiagnosticCode.File0NotFound) == 1
-                && Errors("b.ts").Count(d => d.Code == DiagnosticCode.File0NotFound) == 1);
-        Check(Errors("a.ts").Single(d => d.Code == DiagnosticCode.File0NotFound).Arguments.SequenceEqual(["./missing.ts"]));
+            Errors("a.ts"u8).Count(d => d.Code == DiagnosticCode.File0NotFound) == 1
+                && Errors("b.ts"u8).Count(d => d.Code == DiagnosticCode.File0NotFound) == 1);
+        Check(Errors("a.ts"u8).Single(d => d.Code == DiagnosticCode.File0NotFound).Arguments.SequenceEqual([Utf8String.Copy("./missing.ts"u8)]));
         Check(
             program.IncludeDiagnostics.Count(
-                d => d.Code == DiagnosticCode.File0NotFound && d.Arguments.SequenceEqual(["./missing.ts"])) == 2);
-        Check(Errors("ignore.ts").Count == 0);
-        Check(Errors("expect.ts").Select(d => d.Code).SequenceEqual([DiagnosticCode.UnusedTsExpectErrorDirective]));
-        Check(Errors("self.ts").Select(d => d.Code).SequenceEqual([DiagnosticCode.AFileCannotHaveAReferenceToItself]));
-        Check(Errors("slices.ts").Count == 2
-            && Errors("slices.ts").All(d => d.Code == DiagnosticCode.Type0IsNotAssignableToType1));
-        var emptyAnd = program.GetFile("/project/slices.ts")!.Syntax.DescendantsAndSelf().OfType<VariableDeclarationNode>()
-            .Single(node => node.Name is IdentifierNode { Text.Span: "emptyAnd" });
-        Check(await checker.GetTypeAtLocationAsync(emptyAnd.Name!) is LiteralType { Value: TextSlice { IsEmpty: true } });
-        Check(Errors("weak.ts").Any(d => d.Code == DiagnosticCode.Type0HasNoPropertiesInCommonWithType1));
+                d => d.Code == DiagnosticCode.File0NotFound && d.Arguments.SequenceEqual([Utf8String.Copy("./missing.ts"u8)])) == 2);
+        Check(Errors("ignore.ts"u8).Count == 0);
+        Check(Errors("expect.ts"u8).Select(d => d.Code).SequenceEqual([DiagnosticCode.UnusedTsExpectErrorDirective]));
+        Check(Errors("self.ts"u8).Select(d => d.Code).SequenceEqual([DiagnosticCode.AFileCannotHaveAReferenceToItself]));
+        Check(Errors("slices.ts"u8).Count == 2
+            && Errors("slices.ts"u8).All(d => d.Code == DiagnosticCode.Type0IsNotAssignableToType1));
+        var emptyAnd = program.GetFile("/project/slices.ts"u8)!.Syntax.DescendantsAndSelf().OfType<VariableDeclarationNode>()
+            .Single(node => (node.Name is IdentifierNode { Text.Span: var matchedText2 } && matchedText2.SequenceEqual("emptyAnd"u8)));
+        Check(await checker.GetTypeAtLocationAsync(emptyAnd.Name!) is LiteralType { Value: Utf8String { IsEmpty: true } });
+        Check(Errors("weak.ts"u8).Any(d => d.Code == DiagnosticCode.Type0HasNoPropertiesInCommonWithType1));
         Check(
-            Errors("weak.ts").Single(
+            Errors("weak.ts"u8).Single(
                 d => d.Code == DiagnosticCode.ValueOfType0HasNoPropertiesInCommonWithType1DidYouMeanToCallIt).RelatedInformation.Any(
                     d => d.Code == DiagnosticCode.DidYouMeanToCallThisExpression));
-        Check(Errors("main.tsx").All(d => d.Code != DiagnosticCode.Parameter0ImplicitlyHasAn1Type));
+        Check(Errors("main.tsx"u8).All(d => d.Code != DiagnosticCode.Parameter0ImplicitlyHasAn1Type));
         var arrowParameter = source.DescendantsAndSelf().OfType<ArrowFunctionNode>().Single().Parameters![0];
         Check(await checker.GetTypeAtLocationAsync(((ParameterDeclarationNode)arrowParameter).Name!) == checker.Context.NumberType);
         Check(snapshot.All(p => p.Parent == p.Node.Parent && p.Pos == p.Node.Pos && p.End == p.Node.End && p.Flags == p.Node.Flags));
         await checker.CheckProgramAsync();
         Check(
-            Errors("a.ts").Count(d => d.Code == DiagnosticCode.File0NotFound) == 1
-                && Errors("weak.ts").Count(
+            Errors("a.ts"u8).Count(d => d.Code == DiagnosticCode.File0NotFound) == 1
+                && Errors("weak.ts"u8).Count(
                     d => d.Code == DiagnosticCode.ValueOfType0HasNoPropertiesInCommonWithType1DidYouMeanToCallIt) == 1);
         return checks;
     }
@@ -533,25 +533,25 @@ internal static class CheckerProgramTests
             checks++;
         }
         var comparer = DiagnosticEqualityComparer.Instance;
-        Diagnostic Make(string argument = "name") =>
-            new(Messages.Duplicate_identifier_0, 1, 4, [argument]) { FileName = "/project/main.ts" };
+        Diagnostic Make(Utf8String? argument = null) =>
+            new(Messages.Duplicate_identifier_0, 1, 4, [argument ?? Utf8String.Copy("name"u8)]) { FileName = "/project/main.ts"u8 };
         var first = Make();
         var copy = Make();
         Check(comparer.Equals(first, copy) && comparer.GetHashCode(first) == comparer.GetHashCode(copy));
-        Check(!comparer.Equals(first, Make("other")));
+        Check(!comparer.Equals(first, Make("other"u8)));
         Check(!comparer.Equals(first, copy with { Start = 2 }));
-        Check(!comparer.Equals(first, copy with { FileName = "/project/other.ts" }));
-        Check(comparer.Equals(first, copy with { Source = "" }));
-        Check(!comparer.Equals(first, copy with { Source = "other" }));
-        var related = first with { RelatedInformation = [Make("related")] };
-        Check(comparer.Equals(related, copy with { RelatedInformation = [Make("related")] }));
-        Check(!comparer.Equals(related, copy with { RelatedInformation = [Make("different")] }));
-        Check(!comparer.Equals(first with { RelatedInformation = [Make("one"), Make("two")] },
-            copy with { RelatedInformation = [Make("two"), Make("one")] }));
-        var chained = first with { MessageChain = [Make("child")] };
-        Check(comparer.Equals(chained, copy with { MessageChain = [Make("child") with { Start = 8, FileName = null }] }));
-        Check(!comparer.Equals(chained, copy with { MessageChain = [Make("different")] }));
-        Diagnostic deep = Make(), sameDeep = Make(), otherDeep = Make("different");
+        Check(!comparer.Equals(first, copy with { FileName = "/project/other.ts"u8 }));
+        Check(comparer.Equals(first, copy with { Source = ""u8 }));
+        Check(!comparer.Equals(first, copy with { Source = "other"u8 }));
+        var related = first with { RelatedInformation = [Make("related"u8)] };
+        Check(comparer.Equals(related, copy with { RelatedInformation = [Make("related"u8)] }));
+        Check(!comparer.Equals(related, copy with { RelatedInformation = [Make("different"u8)] }));
+        Check(!comparer.Equals(first with { RelatedInformation = [Make("one"u8), Make("two"u8)] },
+            copy with { RelatedInformation = [Make("two"u8), Make("one"u8)] }));
+        var chained = first with { MessageChain = [Make("child"u8)] };
+        Check(comparer.Equals(chained, copy with { MessageChain = [Make("child"u8) with { Start = 8, FileName = null }] }));
+        Check(!comparer.Equals(chained, copy with { MessageChain = [Make("different"u8)] }));
+        Diagnostic deep = Make(), sameDeep = Make(), otherDeep = Make("different"u8);
         for (int i = 0; i < 20_000; i++)
         {
             deep = Make() with { MessageChain = [deep] };
@@ -559,35 +559,35 @@ internal static class CheckerProgramTests
             otherDeep = Make() with { MessageChain = [otherDeep] };
         }
         Check(comparer.Equals(deep, sameDeep) && !comparer.Equals(deep, otherDeep));
-        Check(new[] { first, copy, Make("other"), related }.Distinct(comparer).Count() == 3);
+        Check(new[] { first, copy, Make("other"u8), related }.Distinct(comparer).Count() == 3);
         Check(DiagnosticEqualityComparer.WithoutRelatedInformation.Equals(first, related));
-        var early = Make("early") with { Start = 2 };
-        var late = Make("late") with { Start = 9 };
+        var early = Make("early"u8) with { Start = 2 };
+        var late = Make("late"u8) with { Start = 9 };
         var unsorted = first with { RelatedInformation = [late, early] };
         var duplicates = DiagnosticCollection.SortAndDeduplicate([unsorted, copy with { RelatedInformation = [early] }]);
         Check(duplicates is [var combined] && combined.RelatedInformation.SequenceEqual([early, late], comparer));
         Check(unsorted.RelatedInformation.SequenceEqual([late, early], comparer));
         Check(ReferenceEquals(DiagnosticCollection.SortAndDeduplicate([unsorted])[0], unsorted));
-        Check(DiagnosticCollection.SortAndDeduplicate([first, Make("other"), related]).Length == 2);
+        Check(DiagnosticCollection.SortAndDeduplicate([first, Make("other"u8), related]).Length == 2);
         Check(DiagnosticCollection.SortAndDeduplicate([deep, sameDeep]).Length == 1);
         Check(DiagnosticCollection.Compare(deep, sameDeep) == 0 && DiagnosticCollection.Compare(deep, otherDeep) > 0);
         Check(DiagnosticCollection.Compare(deep, first) < 0);
-        Check(DiagnosticCollection.Compare(Make("\uE000"), Make("\U00010000")) < 0);
-        Check(DiagnosticCollection.Compare(Make("\uD800"), Make("\uFFFD")) < 0);
+        Check(DiagnosticCollection.Compare(Make("\uE000"u8), Make("\U00010000"u8)) < 0);
+        Check(DiagnosticCollection.Compare(Make(Utf8String.Copy([0xED, 0xA0, 0x80])), Make("\uFFFD"u8)) < 0);
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        options.SetRaw("noLib"u8, "true"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
         {
-            ["/project/main.ts"] = Wtf8.Encode(
+            ["/project/main.ts"u8] = Wtf8.Encode(
                 "class B{x!:number;y!:number}interface I extends B{[key:string]:string}class C{p:number;p:string}interface O{m(x:number):void;m?(x:string):void}"),
-            ["/project/recursive.ts"] = Wtf8.Encode("const recursive = () => 42 satisfies typeof recursive;"),
-            ["/project/recovery.ts"] = Wtf8.Encode("const f: () => { return 1; };")
+            ["/project/recursive.ts"u8] = Wtf8.Encode("const recursive = () => 42 satisfies typeof recursive;"),
+            ["/project/recovery.ts"u8] = Wtf8.Encode("const f: () => { return 1; };")
         }),
-            "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts", "/project/recursive.ts", "/project/recovery.ts"], [], [], []));
+            "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8, "/project/recursive.ts"u8, "/project/recovery.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
-        var source = program.GetFile("/project/main.ts")!.Syntax;
-        var recovery = program.GetFile("/project/recovery.ts")!.Syntax;
+        var source = program.GetFile("/project/main.ts"u8)!.Syntax;
+        var recovery = program.GetFile("/project/recovery.ts"u8)!.Syntax;
         Check(
             recovery.ParseDiagnostics.Count != 0
                 && recovery.DescendantsAndSelf().OfType<TypeLiteralNode>().All(n => n.Members?.Count == 0));
@@ -595,16 +595,16 @@ internal static class CheckerProgramTests
         var diagnostics = checker.DetailedDiagnosticsForProgramFile(source);
         Check(diagnostics.Count(d => d.Code == DiagnosticCode.DuplicateIdentifier0) == 2);
         var properties = diagnostics.Where(d => d.Code == DiagnosticCode.Property0OfType1IsNotAssignableTo2IndexType3).ToArray();
-        Check(properties.Length == 2 && properties.Select(d => d.Arguments[0]).Order().SequenceEqual(["x", "y"]));
+        Check(properties.Length == 2 && properties.Select(d => d.Arguments[0]).Order().SequenceEqual([Utf8String.Copy("x"u8), Utf8String.Copy("y"u8)]));
         Check(properties[0].Start == properties[1].Start && properties[0].Length == properties[1].Length);
         Check(diagnostics.Count(d => d.Code == DiagnosticCode.OverloadSignaturesMustAllBeOptionalOrRequired) == 1);
         Check(checker.DetailedDiagnosticsForProgramFile(recovery).All(d => d.Code != DiagnosticCode.Member0ImplicitlyHasAn1Type));
-        Check(checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/recursive.ts")!.Syntax)
+        Check(checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/recursive.ts"u8)!.Syntax)
             .Where(
                 d => d.Code == DiagnosticCode.Type0DoesNotSatisfyTheExpectedType1).Single().Arguments.SequenceEqual(
                     [
-                        "number",
-                        "() => any"
+                        Utf8String.Copy("number"u8),
+                        Utf8String.Copy("() => any"u8)
                     ]));
         await checker.CheckProgramAsync();
         Check(checker.DetailedDiagnosticsForProgramFile(source).Count == diagnostics.Count);
@@ -613,15 +613,15 @@ internal static class CheckerProgramTests
             Check(checker.DetailedDiagnosticsForProgramFile(file.Syntax, grouped[file.Syntax])
                 .SequenceEqual(checker.DetailedDiagnosticsForProgramFile(file.Syntax), comparer));
         int previousCount = grouped[source].Count();
-        checker.TrackDiagnostic(source, Make("late"));
+        checker.TrackDiagnostic(source, Make("late"u8));
         var afterAppend = checker.GroupDiagnosticsByFile();
         Check(afterAppend[source].Count() == previousCount + 1 && grouped[source].Count() == previousCount);
         checker.MissingAwaitHints.Add(source);
         var afterNote = checker.GroupDiagnosticsByFile();
-        Check(afterNote[source].Single(d => d.Arguments.SequenceEqual(["late"])).RelatedInformation.Count == 1);
-        Check(afterAppend[source].Single(d => d.Arguments.SequenceEqual(["late"])).RelatedInformation.Count == 0);
-        checker.TrackDiagnostic(null, Make("global") with { FileName = null });
-        Check(checker.GroupDiagnosticsByFile()[null].Any(d => d.Arguments.SequenceEqual(["global"])));
+        Check(afterNote[source].Single(d => d.Arguments.SequenceEqual([Utf8String.Copy("late"u8)])).RelatedInformation.Count == 1);
+        Check(afterAppend[source].Single(d => d.Arguments.SequenceEqual([Utf8String.Copy("late"u8)])).RelatedInformation.Count == 0);
+        checker.TrackDiagnostic(null, Make("global"u8) with { FileName = null });
+        Check(checker.GroupDiagnosticsByFile()[null].Any(d => d.Arguments.SequenceEqual([Utf8String.Copy("global"u8)])));
         return checks;
     }
 
@@ -635,19 +635,19 @@ internal static class CheckerProgramTests
             checks++;
         }
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("module", "\"commonjs\"");
-        options.SetRaw("importHelpers", "true");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("module"u8, "\"commonjs\""u8);
+        options.SetRaw("importHelpers"u8, "true"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
         {
-            ["/project/main.ts"] = Wtf8.Encode(
+            ["/project/main.ts"u8] = Wtf8.Encode(
                 "import {'quoted' as first,'' as second} from './dep';export {default as chosen} from 'fs';const value=1;const object={value!};let let=1;function scoped(){var shadow=0;{let shadow=1;var shadow=2;}}type Bad=[x?:number,y:string];"),
-            ["/project/dep.ts"] = Wtf8.Encode("const a=1,b=2;export {a as 'quoted',b as ''};"),
-            ["/project/globals.d.ts"] = Wtf8.Encode("declare module 'fs';declare module 'tslib'{export {};}")
+            ["/project/dep.ts"u8] = Wtf8.Encode("const a=1,b=2;export {a as 'quoted',b as ''};"),
+            ["/project/globals.d.ts"u8] = Wtf8.Encode("declare module 'fs';declare module 'tslib'{export {};}")
         }),
-            "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts", "/project/dep.ts", "/project/globals.d.ts"], [], [], []));
-        var source = program.GetFile("/project/main.ts")!.Syntax;
+            "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8, "/project/dep.ts"u8, "/project/globals.d.ts"u8], [], [], []));
+        var source = program.GetFile("/project/main.ts"u8)!.Syntax;
         Check(source.ParseDiagnostics.Count == 0);
         var shorthand = source.DescendantsAndSelf().OfType<ShorthandPropertyAssignmentNode>().Single();
         Check(shorthand.PostfixToken?.Kind == SyntaxKind.ExclamationToken && shorthand.Type is null);
@@ -661,14 +661,14 @@ internal static class CheckerProgramTests
             && diagnostics.Single(
                 d => d.Code == DiagnosticCode.ThisSyntaxRequiresAnImportedHelperNamed1WhichDoesNotExistIn0ConsiderUpgradingYourVersionOf0).Arguments.SequenceEqual(
                     [
-                        "tslib",
-                        "__importDefault"
+                        Utf8String.Copy("tslib"u8),
+                        Utf8String.Copy("__importDefault"u8)
                     ]));
         Check(diagnostics.Any(d => d.Code == DiagnosticCode.XLetIsNotAllowedToBeUsedAsANameInLetOrConstDeclarations));
         Check(
             diagnostics.Any(
                 d => d.Code == DiagnosticCode.CannotInitializeOuterScopedVariable0InTheSameScopeAsBlockScopedDeclaration1
-                    && d.Arguments.SequenceEqual(["shadow", "shadow"])));
+                    && d.Arguments.SequenceEqual([Utf8String.Copy("shadow"u8), Utf8String.Copy("shadow"u8)])));
         Check(diagnostics.Count(d => d.Code == DiagnosticCode.ADefiniteAssignmentAssertionIsNotPermittedInThisContext) == 1);
         Check(diagnostics.Count(d => d.Code == DiagnosticCode.ARequiredElementCannotFollowAnOptionalElement) == 1);
         Check(diagnostics.All(d => d.Code != DiagnosticCode.Module0HasNoExportedMember1));
@@ -691,31 +691,31 @@ internal static class CheckerProgramTests
             checks++;
         }
         static async ValueTask<CompilerProgram> Build(
-            Dictionary<string, string> sources,
+            Dictionary<Utf8String, Utf8String> sources,
             CompilerProgram? previous = null,
             CompilerOptions? configuredOptions = null)
         {
-            var files = sources.ToDictionary(p => p.Key, p => Wtf8.Encode(p.Value));
+            var files = sources.ToDictionary(p => p.Key, p => p.Value.Span.ToArray());
             var options = configuredOptions ?? new CompilerOptions();
-            options.SetRaw("noLib", "true");
-            return await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
-                new("/project/tsconfig.json", options, sources.Keys.ToArray(), [], [], []), previous, concurrency: 4);
+            options.SetRaw("noLib"u8, "true"u8);
+            return await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project"u8,
+                new("/project/tsconfig.json"u8, options, sources.Keys.ToArray(), [], [], []), previous, concurrency: 4);
         }
-        var sources = new Dictionary<string, string>
+        var sources = new Dictionary<Utf8String, Utf8String>
         {
-            ["/project/a.ts"] = "interface I<T> { a: T } namespace N { export interface A {} }",
-            ["/project/b.ts"] = "interface I<T> { b: T; self: this } namespace N { export interface B {} }"
+            ["/project/a.ts"u8] = "interface I<T> { a: T } namespace N { export interface A {} }"u8,
+            ["/project/b.ts"u8] = "interface I<T> { b: T; self: this } namespace N { export interface B {} }"u8
         };
         var program = await Build(sources);
-        var original = program.SourceFiles[0].Binding.Locals["I"];
+        var original = program.SourceFiles[0].Binding.Locals["I"u8];
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
         var host = new CheckerEnvironment(context, links);
         var environment = await CheckerSymbols.CreateAsync(program, links, host);
-        var merged = environment.Globals["I"];
+        var merged = environment.Globals["I"u8];
         Check(merged != original && merged.Declarations.Length == 2 && original.Declarations.Length == 1);
-        Check(merged.Members.ContainsKey("a") && merged.Members.ContainsKey("b") && !original.Members.ContainsKey("b"));
-        Check(ReferenceEquals(environment.Globals["globalThis"].Exports["I"], merged));
+        Check(merged.Members.ContainsKey("a"u8) && merged.Members.ContainsKey("b"u8) && !original.Members.ContainsKey("b"u8));
+        Check(ReferenceEquals(environment.Globals["globalThis"u8].Exports["I"u8], merged));
         var declaration = program.SourceFiles[1].Syntax.DescendantsAndSelf().OfType<InterfaceDeclarationNode>().First();
         Check(environment.Declaration(declaration) == merged);
         var type = await host.Scopes.ClassOrInterfaceAsync(merged);
@@ -728,8 +728,8 @@ internal static class CheckerProgramTests
         var otherLinks = new CheckerLinks();
         var otherHost = new CheckerEnvironment(otherContext, otherLinks);
         var otherEnvironment = await CheckerSymbols.CreateAsync(updated, otherLinks, otherHost);
-        Check(otherEnvironment.Globals["I"] != merged && original.Declarations.Length == 1);
-        Check((await otherHost.Scopes.ClassOrInterfaceAsync(otherEnvironment.Globals["I"])).Context == otherContext);
+        Check(otherEnvironment.Globals["I"u8] != merged && original.Declarations.Length == 1);
+        Check((await otherHost.Scopes.ClassOrInterfaceAsync(otherEnvironment.Globals["I"u8])).Context == otherContext);
         Check(links.Values.Get(environment.UndefinedSymbol).ResolvedType == context.UndefinedWideningType);
         Check(host.Globals.AnyArrayType == context.EmptyObjectType && host.Globals.AutoArrayType != context.EmptyObjectType);
 
@@ -746,14 +746,14 @@ internal static class CheckerProgramTests
         {
             checks++;
         }
-        Check(original.Declarations.Length == 1 && !original.Members.ContainsKey("b"));
+        Check(original.Declarations.Length == 1 && !original.Members.ContainsKey("b"u8));
         var recoveredLinks = new CheckerLinks();
         var recoveredHost = new CheckerEnvironment(new(true, true), recoveredLinks);
         var recovered = await CheckerSymbols.CreateAsync(program, recoveredLinks, recoveredHost);
-        Check(recovered.Globals["I"].Declarations.Length == 2);
+        Check(recovered.Globals["I"u8].Declarations.Length == 2);
 
         var retryProgram = await Build(
-            new() { ["/project/rollback.ts"] = "interface Finished {} interface Stop {} interface Root extends Finished, Stop {}" });
+            new() { ["/project/rollback.ts"u8] = "interface Finished {} interface Stop {} interface Root extends Finished, Stop {}"u8 });
         var retryContext = new TypeContext();
         var retryLinks = new CheckerLinks();
         var retryHost = new CheckerEnvironment(retryContext, retryLinks);
@@ -766,41 +766,41 @@ internal static class CheckerProgramTests
         };
         try
         {
-            await retryHost.Scopes.ClassOrInterfaceAsync(retryEnvironment.Globals["Root"]);
+            await retryHost.Scopes.ClassOrInterfaceAsync(retryEnvironment.Globals["Root"u8]);
             throw new InvalidOperationException("Cancellation ignored");
         }
         catch (OperationCanceledException)
         {
             checks++;
         }
-        Check(retryLinks.DeclaredTypes.Get(retryEnvironment.Globals["Root"]).DeclaredType is null);
-        Check(retryLinks.DeclaredTypes.Get(retryEnvironment.Globals["Finished"]).DeclaredType is null);
+        Check(retryLinks.DeclaredTypes.Get(retryEnvironment.Globals["Root"u8]).DeclaredType is null);
+        Check(retryLinks.DeclaredTypes.Get(retryEnvironment.Globals["Finished"u8]).DeclaredType is null);
         retryHost.BeforeResolveType = null;
-        Check((await retryHost.Scopes.ClassOrInterfaceAsync(retryEnvironment.Globals["Root"])).ThisType is null);
+        Check((await retryHost.Scopes.ClassOrInterfaceAsync(retryEnvironment.Globals["Root"u8])).ThisType is null);
 
-        var contextualProgram = await Build(new() { ["/project/contextual.ts"] = "function outer<T>() { const f = value => value; }" });
+        var contextualProgram = await Build(new() { ["/project/contextual.ts"u8] = "function outer<T>() { const f = value => value; }"u8 });
         var contextualContext = new TypeContext();
         var contextualLinks = new CheckerLinks();
         var contextualHost = new CheckerEnvironment(contextualContext, contextualLinks);
         var contextualEnvironment = await CheckerSymbols.CreateAsync(contextualProgram, contextualLinks, contextualHost);
         var arrow = contextualProgram.SourceFiles[0].Syntax.DescendantsAndSelf().OfType<ArrowFunctionNode>().Single();
-        var parameter = contextualContext.NewTypeParameter(new(SymbolFlags.TypeParameter, "Contextual"));
+        var parameter = contextualContext.NewTypeParameter(new(SymbolFlags.TypeParameter, "Contextual"u8));
         var signature = contextualContext.NewSignature(0, arrow, [parameter], null, [], contextualContext.UnknownType, null, 0);
         contextualHost.ContextualSignatures[arrow] = signature;
         var scope = await contextualHost.Scopes.OuterAsync(arrow.Body!);
-        Check(scope.Count == 2 && scope[1] == parameter && scope[0].Symbol?.Name == "T");
+        Check(scope.Count == 2 && scope[1] == parameter && scope[0].Symbol?.Name == "T"u8);
 
         const int depth = 20_000;
-        var source = new StringBuilder();
+        var source = new Utf8StringBuilder();
         for (int i = 0; i < depth - 1; i++)
-            source.Append("interface I").Append(i).Append(" extends I").Append(i + 1).Append(" {}\n");
-        source.Append("interface I").Append(depth - 1).Append(" { self: this }");
-        var deepProgram = await Build(new() { ["/project/deep.ts"] = source.ToString() });
+            source.Append("interface I"u8).Append(i).Append(" extends I"u8).Append(i + 1).Append(" {}\n"u8);
+        source.Append("interface I"u8).Append(depth - 1).Append(" { self: this }"u8);
+        var deepProgram = await Build(new() { ["/project/deep.ts"u8] = source.ToUtf8String() });
         var deepContext = new TypeContext();
         var deepLinks = new CheckerLinks();
         var deepHost = new CheckerEnvironment(deepContext, deepLinks);
         var deepEnvironment = await CheckerSymbols.CreateAsync(deepProgram, deepLinks, deepHost);
-        Check((await deepHost.Scopes.ClassOrInterfaceAsync(deepEnvironment.Globals["I0"])).ThisType is not null);
+        Check((await deepHost.Scopes.ClassOrInterfaceAsync(deepEnvironment.Globals["I0"u8])).ThisType is not null);
         Check(deepLinks.DeclaredTypes.Count == depth);
         SyntaxNode nested = deepProgram.SourceFiles[0].Syntax;
         for (int i = 0; i < depth; i++)
@@ -818,7 +818,7 @@ internal static class CheckerProgramTests
         {
             checks++;
         }
-        var queryProgram = await Build(new() { ["/project/query.ts"] = "const value = 1;" });
+        var queryProgram = await Build(new() { ["/project/query.ts"u8] = "const value = 1;"u8 });
         var queryNode = queryProgram.SourceFiles[0].Syntax.DescendantsAndSelf().OfType<NumericLiteralNode>().Single();
         var firstChecker = await queryProgram.CreateCheckerAsync();
         var secondChecker = await queryProgram.CreateCheckerAsync();
@@ -840,7 +840,7 @@ internal static class CheckerProgramTests
         }
         try
         {
-            await firstChecker.GetExpressionTypeAsync(new NumericLiteralNode { Text = "1" });
+            await firstChecker.GetExpressionTypeAsync(new NumericLiteralNode { Text = "1"u8 });
             throw new InvalidOperationException("Foreign syntax accepted");
         }
         catch (ArgumentException)
@@ -881,22 +881,22 @@ internal static class CheckerProgramTests
         firstChecker.BeforeExpressionFinish = null;
         Check(await firstChecker.GetExpressionTypeAsync(queryNode) == firstType);
         var libraryOptions = new CompilerOptions();
-        libraryOptions.SetRaw("strict", "true");
-        libraryOptions.SetRaw("lib", "[\"es5\"]");
-        var libraryProgram = await CompilerProgram.CreateAsync(new LibraryFileSystem(new MemoryFileSystem(new Dictionary<string, byte[]>
+        libraryOptions.SetRaw("strict"u8, "true"u8);
+        libraryOptions.SetRaw("lib"u8, "[\"es5\"]"u8);
+        var libraryProgram = await CompilerProgram.CreateAsync(new LibraryFileSystem(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
         {
-            ["/project/library.ts"] = Wtf8.Encode("const values = [1,2,3].map(value => value + 1);")
-        })), "/project", new("/project/tsconfig.json", libraryOptions, ["/project/library.ts"], [], [], []));
+            ["/project/library.ts"u8] = Wtf8.Encode("const values = [1,2,3].map(value => value + 1);")
+        })), "/project"u8, new("/project/tsconfig.json"u8, libraryOptions, ["/project/library.ts"u8], [], [], []));
         Check(libraryProgram.SourceFiles.Any(f => f.Library));
         var libraryChecker = await libraryProgram.CreateCheckerAsync();
-        var mapped = libraryProgram.GetFile("/project/library.ts")!.Syntax.DescendantsAndSelf().OfType<VariableDeclarationNode>().Single().Initializer!;
+        var mapped = libraryProgram.GetFile("/project/library.ts"u8)!.Syntax.DescendantsAndSelf().OfType<VariableDeclarationNode>().Single().Initializer!;
         var mappedType = await libraryChecker.GetExpressionTypeAsync(mapped);
         Check(mappedType is TypeReference reference && reference.Target == libraryChecker.ArrayTarget(false)
             && (await libraryChecker.TypeArgumentsAsync(reference, default)).Single() == libraryChecker.Context.NumberType);
         Check(libraryChecker.Diagnostics.Count == 0 && libraryChecker.Environment.Diagnostics.Count == 0);
         var semanticProgram = await Build(new()
         {
-            ["/project/check.ts"] = "const f=()=>{void absent;return 1;}; let value:number='bad';"
+            ["/project/check.ts"u8] = "const f=()=>{void absent;return 1;}; let value:number='bad';"u8
         });
         var semanticChecker = await semanticProgram.CreateCheckerAsync();
         await semanticChecker.CheckProgramAsync();
@@ -936,7 +936,7 @@ internal static class CheckerProgramTests
         var recoveredChecker = await semanticProgram.CreateCheckerAsync();
         await recoveredChecker.CheckProgramAsync();
         Check(recoveredChecker.CheckedFileCount == 1 && recoveredChecker.Diagnostics.SequenceEqual(semanticChecker.Diagnostics));
-        var deepStatements = await Build(new() { ["/project/statements.ts"] = new string('{', depth) + "1;" + new string('}', depth) });
+        var deepStatements = await Build(new() { ["/project/statements.ts"u8] = Utf8String.Concat(new Utf8String('{', depth), "1;"u8, new Utf8String('}', depth)) });
         var statementChecker = await deepStatements.CreateCheckerAsync();
         await statementChecker.CheckProgramAsync();
         Check(
@@ -945,12 +945,12 @@ internal static class CheckerProgramTests
                 && statementChecker.CurrentSourceNode is null);
         var moduleProgram = await Build(new()
         {
-            ["/project/dep.ts"] = "export const bad=absent; export const value=1;",
-            ["/project/main.ts"] = "import {bad,value} from './dep';bad;const text:string=value;"
+            ["/project/dep.ts"u8] = "export const bad=absent; export const value=1;"u8,
+            ["/project/main.ts"u8] = "import {bad,value} from './dep';bad;const text:string=value;"u8
         });
         var moduleChecker = await moduleProgram.CreateCheckerAsync();
-        var mainFile = moduleProgram.GetFile("/project/main.ts")!.Syntax;
-        var depFile = moduleProgram.GetFile("/project/dep.ts")!.Syntax;
+        var mainFile = moduleProgram.GetFile("/project/main.ts"u8)!.Syntax;
+        var depFile = moduleProgram.GetFile("/project/dep.ts"u8)!.Syntax;
         await moduleChecker.CheckSourceFileAsync(mainFile);
         Check(moduleChecker.DiagnosticCodesForFile(mainFile).SequenceEqual([DiagnosticCode.Type0IsNotAssignableToType1]));
         Check(moduleChecker.DiagnosticCodesForFile(depFile).SequenceEqual([DiagnosticCode.CannotFindName0]));
@@ -965,17 +965,17 @@ internal static class CheckerProgramTests
         Check(independentModuleChecker.DiagnosticCodesForFile(mainFile).SequenceEqual(moduleDiagnostics)
             && independentModuleChecker.DiagnosticCodesForFile(depFile).SequenceEqual([DiagnosticCode.CannotFindName0]));
         var finalOptions = new CompilerOptions();
-        finalOptions.SetRaw("strict", "true");
-        finalOptions.SetRaw("noUnusedLocals", "true");
-        finalOptions.SetRaw("noUnusedParameters", "true");
+        finalOptions.SetRaw("strict"u8, "true"u8);
+        finalOptions.SetRaw("noUnusedLocals"u8, "true"u8);
+        finalOptions.SetRaw("noUnusedParameters"u8, "true"u8);
         var finalProgram = await Build(new()
         {
-            ["/project/dep.ts"] = "export const bad={}.absent;",
-            ["/project/main.ts"] = "import {bad} from './dep';export function f<T>(unused:number){const value={};value.missing;let orphan=1;return bad;}"
+            ["/project/dep.ts"u8] = "export const bad={}.absent;"u8,
+            ["/project/main.ts"u8] = "import {bad} from './dep';export function f<T>(unused:number){const value={};value.missing;let orphan=1;return bad;}"u8
         }, configuredOptions: finalOptions);
         var finalChecker = await finalProgram.CreateCheckerAsync();
-        var finalMain = finalProgram.GetFile("/project/main.ts")!.Syntax;
-        var finalDep = finalProgram.GetFile("/project/dep.ts")!.Syntax;
+        var finalMain = finalProgram.GetFile("/project/main.ts"u8)!.Syntax;
+        var finalDep = finalProgram.GetFile("/project/dep.ts"u8)!.Syntax;
         await finalChecker.CheckSourceFileAsync(finalMain);
         Check(
             finalChecker.DiagnosticCodesForFile(finalMain).SequenceEqual(
@@ -1004,7 +1004,7 @@ internal static class CheckerProgramTests
             && finalIndependent.DiagnosticCodesForFile(finalDep).SequenceEqual([DiagnosticCode.Property0DoesNotExistOnType1]));
         var directiveProgram = await Build(new()
         {
-            ["/project/directives.ts"] = "// 日本語 😀\n// @ts-ignore\nlet first:number='bad';\n// @ts-expect-error\n\n// comment\nlet second:number='bad';\n// @ts-expect-error\nlet unused=1;\n// @ts-ignore\n/* barrier */\nlet barrier:number='bad';"
+            ["/project/directives.ts"u8] = "// 日本語 😀\n// @ts-ignore\nlet first:number='bad';\n// @ts-expect-error\n\n// comment\nlet second:number='bad';\n// @ts-expect-error\nlet unused=1;\n// @ts-ignore\n/* barrier */\nlet barrier:number='bad';"u8
         });
         var directiveChecker = await directiveProgram.CreateCheckerAsync();
         await directiveChecker.CheckProgramAsync();
@@ -1020,21 +1020,21 @@ internal static class CheckerProgramTests
             directiveChecker.DiagnosticCodesForProgramFile(directiveFile).SequenceEqual(
                 [DiagnosticCode.Type0IsNotAssignableToType1, DiagnosticCode.UnusedTsExpectErrorDirective]));
         Check(directiveFile.CommentDirectives.Count(d => d.ExpectError) == 2);
-        var duplicateProgram = await Build(new() { ["/project/duplicate.ts"] = "const duplicate=1;const duplicate=2;" });
+        var duplicateProgram = await Build(new() { ["/project/duplicate.ts"u8] = "const duplicate=1;const duplicate=2;"u8 });
         var duplicateChecker = await duplicateProgram.CreateCheckerAsync();
         await duplicateChecker.CheckProgramAsync();
         Check(
             duplicateChecker.DiagnosticCodesForProgramFile(duplicateProgram.SourceFiles[0].Syntax).SequenceEqual(
                 [DiagnosticCode.CannotRedeclareBlockScopedVariable0, DiagnosticCode.CannotRedeclareBlockScopedVariable0]));
         var noCheckOptions = new CompilerOptions();
-        noCheckOptions.SetRaw("noCheck", "true");
-        var noCheckProgram = await Build(new() { ["/project/unchecked.ts"] = "absent;" }, configuredOptions: noCheckOptions);
+        noCheckOptions.SetRaw("noCheck"u8, "true"u8);
+        var noCheckProgram = await Build(new() { ["/project/unchecked.ts"u8] = "absent;"u8 }, configuredOptions: noCheckOptions);
         var noCheckChecker = await noCheckProgram.CreateCheckerAsync();
         await noCheckChecker.CheckProgramAsync();
         Check(
             noCheckChecker.CheckedFileCount == 0
                 && noCheckChecker.DiagnosticCodesForProgramFile(noCheckProgram.SourceFiles[0].Syntax).Count == 0);
-        var noCheckDirectiveProgram = await Build(new() { ["/project/unchecked.ts"] = "// @ts-nocheck\nabsent;" });
+        var noCheckDirectiveProgram = await Build(new() { ["/project/unchecked.ts"u8] = "// @ts-nocheck\nabsent;"u8 });
         var noCheckDirectiveChecker = await noCheckDirectiveProgram.CreateCheckerAsync();
         await noCheckDirectiveChecker.CheckProgramAsync();
         Check(
@@ -1042,7 +1042,7 @@ internal static class CheckerProgramTests
                 && noCheckDirectiveChecker.DiagnosticCodesForProgramFile(noCheckDirectiveProgram.SourceFiles[0].Syntax).Count == 0);
         var loopProgram = await Build(new()
         {
-            ["/project/loop.ts"] = "type Candidate={mode:'a';output:unknown}|{mode:'b'};export function run():never{let lastCandidate:Candidate|null=null;while(true){const candidate:Candidate={mode:'a',output:lastCandidate} as const;lastCandidate=candidate;}}"
+            ["/project/loop.ts"u8] = "type Candidate={mode:'a';output:unknown}|{mode:'b'};export function run():never{let lastCandidate:Candidate|null=null;while(true){const candidate:Candidate={mode:'a',output:lastCandidate} as const;lastCandidate=candidate;}}"u8
         });
         var loopChecker = await loopProgram.CreateCheckerAsync();
         // Guard the corpus reproduction that previously recursed without terminating.
@@ -1085,7 +1085,7 @@ internal static class CheckerProgramTests
 
     private static async Task<int> DiagnosticDetailsSafety()
     {
-        const string source = """
+        Utf8String source = """
             // 多字节 😀
             const value = absent;
             // @ts-ignore
@@ -1100,56 +1100,56 @@ internal static class CheckerProgramTests
             const empty = () => {};
             const satisfied = value satisfies number;
             switch (value) { case 1: break; default: break; }
-            """;
+            """u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/main.ts"u8] = source.Span.ToArray() }), "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
-        var file = program.GetFile("/project/main.ts")!.Syntax;
+        var file = program.GetFile("/project/main.ts"u8)!.Syntax;
         await checker.CheckProgramAsync();
         var diagnostics = checker.DetailedDiagnosticsForProgramFile(file);
         var missing = diagnostics.Single(d => d.Code == DiagnosticCode.CannotFindName0);
-        if (missing.Arguments is not [{ Span: "absent" }] || missing.FileName != file.FileName
-            || missing.Start != file.Source.ToBytePosition(source.IndexOf("absent", StringComparison.Ordinal))
-            || missing.Length != 6 || missing.Format() != "Cannot find name 'absent'.")
+        if (!(missing.Arguments is [{ Span: var matchedText3 }] && matchedText3.SequenceEqual("absent"u8)) || missing.FileName != file.FileName
+            || missing.Start != source.IndexOf("absent"u8, StringComparison.Ordinal)
+            || missing.Length != 6 || missing.Format() != "Cannot find name 'absent'."u8)
             throw new InvalidOperationException("Complete missing-name diagnostic");
         if (diagnostics.Count != 2
             || diagnostics.Single(
-                d => d.Code == DiagnosticCode.UnusedTsExpectErrorDirective).Format() != "Unused '@ts-expect-error' directive.")
+                d => d.Code == DiagnosticCode.UnusedTsExpectErrorDirective).Format() != "Unused '@ts-expect-error' directive."u8)
             throw new InvalidOperationException("Diagnostic directive filtering");
         var repeat = checker.DetailedDiagnosticsForProgramFile(file);
         if (!repeat.SequenceEqual(diagnostics))
             throw new InvalidOperationException("Detailed diagnostics changed on repeated read");
         var nodes = file.DescendantsAndSelf().ToArray();
-        string Span(SyntaxNode node)
+        Utf8String Span(SyntaxNode node)
         {
             var (start, end) = CheckerDiagnostic.ErrorRange(file, node);
-            return file.Source.Text[file.Source.ToUtf16Position(start)..file.Source.ToUtf16Position(end)].ToString();
+            return Utf8String.Format(file.Source.Text[start..end]);
         }
-        if (Span(nodes.OfType<VariableDeclarationNode>().First()) != "value"
-            || Span(nodes.OfType<ReturnStatementNode>().Single()) != "return"
-            || Span(nodes.OfType<ArrowFunctionNode>().First()) != "(x: number) => {"
-            || Span(nodes.OfType<ConstructorDeclarationNode>().Single()) != "protected constructor"
-            || Span(nodes.OfType<ClassExpressionNode>().Single()) != "class"
-            || Span(nodes.OfType<SatisfiesExpressionNode>().Single()) != "satisfies"
-            || Span(nodes.OfType<CaseOrDefaultClauseNode>().First()) != "case 1:")
+        if (Span(nodes.OfType<VariableDeclarationNode>().First()) != "value"u8
+            || Span(nodes.OfType<ReturnStatementNode>().Single()) != "return"u8
+            || Span(nodes.OfType<ArrowFunctionNode>().First()) != "(x: number) => {"u8
+            || Span(nodes.OfType<ConstructorDeclarationNode>().Single()) != "protected constructor"u8
+            || Span(nodes.OfType<ClassExpressionNode>().Single()) != "class"u8
+            || Span(nodes.OfType<SatisfiesExpressionNode>().Single()) != "satisfies"u8
+            || Span(nodes.OfType<CaseOrDefaultClauseNode>().First()) != "case 1:"u8)
             throw new InvalidOperationException("Checker error ranges");
-        TextSlice[] arguments = ["original"];
+        Utf8String[] arguments = ["original"u8];
         var owned = CheckerDiagnostic.Create(nodes.OfType<VariableDeclarationNode>().First(), Messages.Cannot_find_name_0, arguments);
-        arguments[0] = "changed";
-        if (owned.Arguments is not [{ Span: "original" }])
+        arguments[0] = "changed"u8;
+        if (!(owned.Arguments is [{ Span: var matchedText4 }] && matchedText4.SequenceEqual("original"u8)))
             throw new InvalidOperationException("Diagnostic did not retain its arguments");
         var chain = owned with { MessageChain = [owned with { MessageChain = [owned] }] };
-        if (chain.Format() != "Cannot find name 'original'.\n  Cannot find name 'original'.\n    Cannot find name 'original'.")
+        if (chain.Format() != "Cannot find name 'original'.\n  Cannot find name 'original'.\n    Cannot find name 'original'."u8)
             throw new InvalidOperationException("Diagnostic message-chain formatting");
         return 6;
     }
 
     private static async Task<int> ContextGrammarSafety()
     {
-        const string source = """
+        Utf8String source = """
             import { value } from 'pkg' with { type: 1, active: true };
             import { value as other } from 'pkg' with { type: {} };
             try {} catch ({ message }: any) { const text = message; }
@@ -1165,20 +1165,20 @@ internal static class CheckerProgramTests
             declare const index = E['A'];
             declare const aliasMember = member;
             declare class C { readonly item = E['A']; mutable = 1; readonly bad = aliasMember; }
-            """;
-        const string globals = """
+            """u8;
+        Utf8String globals = """
             interface ImportAttributes { [key: string]: string | number | boolean; }
             declare module 'pkg' { export const value: number; }
-            """;
+            """u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("target", "\"esnext\"");
-        options.SetRaw("module", "\"preserve\"");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/main.ts"] = Wtf8.Encode(source), ["/project/globals.d.ts"] = Wtf8.Encode(globals) }), "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts", "/project/globals.d.ts"], [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("target"u8, "\"esnext\""u8);
+        options.SetRaw("module"u8, "\"preserve\""u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/main.ts"u8] = source.Span.ToArray(), ["/project/globals.d.ts"u8] = globals.Span.ToArray() }), "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8, "/project/globals.d.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
-        var file = program.GetFile("/project/main.ts")!.Syntax;
+        var file = program.GetFile("/project/main.ts"u8)!.Syntax;
         await checker.CheckSourceFileAsync(file);
         var codes = checker.DiagnosticCodesForFile(file);
         if (!codes.SequenceEqual(
@@ -1203,7 +1203,7 @@ internal static class CheckerProgramTests
 
     private static async Task<int> ImportPathSafety()
     {
-        const string source = """
+        Utf8String source = """
             import { value } from './dep';
             import { view } from './view';
             import './absent';
@@ -1214,27 +1214,27 @@ internal static class CheckerProgramTests
             import fs = require('fs');
             import 'fs';
             import untyped from 'untyped';
-            """;
+            """u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("module", "\"node16\"");
-        options.SetRaw("jsx", "\"preserve\"");
-        options.SetRaw("strict", "true");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("module"u8, "\"node16\""u8);
+        options.SetRaw("jsx"u8, "\"preserve\""u8);
+        options.SetRaw("strict"u8, "true"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
         {
-            ["/project/main.mts"] = Wtf8.Encode(source),
-            ["/project/globals.d.ts"] = Wtf8.Encode("declare module '*.asset' {}"),
-            ["/project/dep.ts"] = Wtf8.Encode("export const value = 1;"),
-            ["/project/dep.mts"] = Wtf8.Encode("export const value = 1;"),
-            ["/project/view.tsx"] = Wtf8.Encode("export const view = 1;"),
-            ["/project/script.ts"] = Wtf8.Encode("const value = 1;"),
-            ["/project/node_modules/untyped/index.js"] = Wtf8.Encode("exports.value = 1;"),
-            ["/project/node_modules/untyped/package.json"] = Wtf8.Encode(
+            ["/project/main.mts"u8] = source.Span.ToArray(),
+            ["/project/globals.d.ts"u8] = Wtf8.Encode("declare module '*.asset' {}"),
+            ["/project/dep.ts"u8] = Wtf8.Encode("export const value = 1;"),
+            ["/project/dep.mts"u8] = Wtf8.Encode("export const value = 1;"),
+            ["/project/view.tsx"u8] = Wtf8.Encode("export const view = 1;"),
+            ["/project/script.ts"u8] = Wtf8.Encode("const value = 1;"),
+            ["/project/node_modules/untyped/index.js"u8] = Wtf8.Encode("exports.value = 1;"),
+            ["/project/node_modules/untyped/package.json"u8] = Wtf8.Encode(
                 "{\"name\":\"untyped\",\"version\":\"1.0.0\",\"main\":\"index.js\"}"),
-            ["/project/data.json"] = Wtf8.Encode("{}")
-        }), "/project", new("/project/tsconfig.json", options, ["/project/main.mts", "/project/globals.d.ts"], [], [], []));
+            ["/project/data.json"u8] = Wtf8.Encode("{}")
+        }), "/project"u8, new("/project/tsconfig.json"u8, options, ["/project/main.mts"u8, "/project/globals.d.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
-        var file = program.GetFile("/project/main.mts")!.Syntax;
+        var file = program.GetFile("/project/main.mts"u8)!.Syntax;
         await checker.CheckSourceFileAsync(file);
         var codes = checker.DiagnosticCodesForFile(file);
         if (!codes.SequenceEqual(
@@ -1248,30 +1248,30 @@ internal static class CheckerProgramTests
                     DiagnosticCode.CouldNotFindADeclarationFileForModule01ImplicitlyHasAnAnyType
                 ]))
             throw new InvalidOperationException($"Import path diagnostics: {string.Join(',', codes)}");
-        if (checker.SuggestedImportExtension("/project/dep") != ".mjs")
+        if (checker.SuggestedImportExtension("/project/dep"u8) != ".mjs"u8)
             throw new InvalidOperationException("Import extension priority changed");
-        if (checker.SuggestedImportExtension("/project/view") != ".jsx")
+        if (checker.SuggestedImportExtension("/project/view"u8) != ".jsx"u8)
             throw new InvalidOperationException("Preserved JSX extension changed");
         return 3;
     }
 
     private static async Task<int> DeclarationSafety()
     {
-        static async ValueTask<CompilerProgram> Build(Dictionary<string, string> files, bool noEmit = false)
+        static async ValueTask<CompilerProgram> Build(Dictionary<Utf8String, Utf8String> files, bool noEmit = false)
         {
             var options = new CompilerOptions();
-            options.SetRaw("noLib", "true");
-            options.SetRaw("target", "\"es2015\"");
-            options.SetRaw("module", "\"commonjs\"");
-            options.SetRaw("noEmit", noEmit ? "true" : "false");
-            options.SetRaw("allowJs", "true");
-            return await CompilerProgram.CreateAsync(new MemoryFileSystem(files.ToDictionary(p => p.Key, p => Wtf8.Encode(p.Value))),
-                "/project", new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
+            options.SetRaw("noLib"u8, "true"u8);
+            options.SetRaw("target"u8, "\"es2015\""u8);
+            options.SetRaw("module"u8, "\"commonjs\""u8);
+            options.SetRaw("noEmit"u8, noEmit ? Utf8String.Copy("true"u8) : Utf8String.Copy("false"u8));
+            options.SetRaw("allowJs"u8, "true"u8);
+            return await CompilerProgram.CreateAsync(new MemoryFileSystem(files.ToDictionary(p => p.Key, p => p.Value.Span.ToArray())),
+                "/project"u8, new("/project/tsconfig.json"u8, options, files.Keys.ToArray(), [], [], []));
         }
         var duplicates = await Build(new()
         {
-            ["/project/a.ts"] = "class Duplicate {} let repeated: number; enum Choice {}",
-            ["/project/b.ts"] = "class Duplicate {} let repeated: number; interface Choice {}"
+            ["/project/a.ts"u8] = "class Duplicate {} let repeated: number; enum Choice {}"u8,
+            ["/project/b.ts"u8] = "class Duplicate {} let repeated: number; interface Choice {}"u8
         });
         var duplicateChecker = await duplicates.CreateCheckerAsync();
         foreach (var file in duplicates.SourceFiles)
@@ -1288,14 +1288,14 @@ internal static class CheckerProgramTests
             throw new InvalidOperationException("Merge diagnostics lost related declarations");
         var plainJs = await Build(new()
         {
-            ["/project/a.js"] = "class Duplicate {}",
-            ["/project/b.ts"] = "class Duplicate {}"
+            ["/project/a.js"u8] = "class Duplicate {}"u8,
+            ["/project/b.ts"u8] = "class Duplicate {}"u8
         });
         var jsChecker = await plainJs.CreateCheckerAsync();
-        if (jsChecker.DiagnosticCodesForFile(plainJs.GetFile("/project/a.js")!.Syntax).Count != 0
-            || !jsChecker.DiagnosticCodesForFile(plainJs.GetFile("/project/b.ts")!.Syntax).SequenceEqual([DiagnosticCode.DuplicateIdentifier0]))
+        if (jsChecker.DiagnosticCodesForFile(plainJs.GetFile("/project/a.js"u8)!.Syntax).Count != 0
+            || !jsChecker.DiagnosticCodesForFile(plainJs.GetFile("/project/b.ts"u8)!.Syntax).SequenceEqual([DiagnosticCode.DuplicateIdentifier0]))
             throw new InvalidOperationException("Plain JavaScript merge suppression affected the TypeScript declaration");
-        const string source = """
+        Utf8String source = """
             export {};
             const require = 0;
             const { exports } = { exports: 0 };
@@ -1305,12 +1305,12 @@ internal static class CheckerProgramTests
             class Derived extends Base { static result = super.value(); }
             const WeakMap = 0;
             class Private { #value = 0; }
-            """;
+            """u8;
         foreach (bool noEmit in new[] { false, true })
         {
-            var names = await Build(new() { ["/project/main.ts"] = source }, noEmit);
+            var names = await Build(new() { ["/project/main.ts"u8] = source }, noEmit);
             var checker = await names.CreateCheckerAsync();
-            var file = names.GetFile("/project/main.ts")!.Syntax;
+            var file = names.GetFile("/project/main.ts"u8)!.Syntax;
             await checker.CheckSourceFileAsync(file);
             DiagnosticCode[] expected = noEmit
                 ? []
@@ -1330,7 +1330,7 @@ internal static class CheckerProgramTests
 
     private static async Task<int> ImportSafety()
     {
-        const string globals = """
+        Utf8String globals = """
             interface Array<T> { length: number; [n: number]: T; }
             interface Promise<T> { then(onfulfilled: (value: T) => unknown): unknown; }
             declare const Promise: any;
@@ -1338,8 +1338,8 @@ internal static class CheckerProgramTests
             interface ImportCallOptions { with?: ImportAttributes; }
             declare module '*.asset' { const value: number; export default value; }
             declare module '*.asset' with { type: 'text' } { const value: string; export default value; }
-            """;
-        const string source = """
+            """u8;
+        Utf8String source = """
             import type { Box } from './dep';
             type Typed = import('./dep').Box<number>;
             type Factory = typeof import('./dep').make<string>;
@@ -1357,21 +1357,21 @@ internal static class CheckerProgramTests
             declare let projected: Asset;
             const projectedText: string = projected.default;
             import('./file.asset', { with: { type: 1 } });
-            """;
+            """u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        options.SetRaw("module", "\"preserve\"");
-        options.SetRaw("target", "\"esnext\"");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        options.SetRaw("module"u8, "\"preserve\""u8);
+        options.SetRaw("target"u8, "\"esnext\""u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
         {
-            ["/project/main.ts"] = Wtf8.Encode(source),
-            ["/project/globals.d.ts"] = Wtf8.Encode(globals),
-            ["/project/dep.ts"] = Wtf8.Encode(
+            ["/project/main.ts"u8] = source.Span.ToArray(),
+            ["/project/globals.d.ts"u8] = globals.Span.ToArray(),
+            ["/project/dep.ts"u8] = Wtf8.Encode(
                 "export class Box<T> { constructor(public value: T) {} } export function make<T>(value: T) { return value; }")
-        }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts", "/project/globals.d.ts"], [], [], []));
+        }), "/project"u8, new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8, "/project/globals.d.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
-        var file = program.GetFile("/project/main.ts")!.Syntax;
+        var file = program.GetFile("/project/main.ts"u8)!.Syntax;
         var nodes = file.DescendantsAndSelf().ToArray();
         var parents = nodes.Select(n => n.Parent).ToArray();
         await checker.CheckSourceFileAsync(file);
@@ -1385,19 +1385,19 @@ internal static class CheckerProgramTests
             throw new InvalidOperationException($"Import diagnostics: {string.Join(',', codes)}");
         if (!nodes.Select(n => n.Parent).SequenceEqual(parents))
             throw new InvalidOperationException("Import checking changed source parents");
-        var initializer = nodes.OfType<VariableDeclarationNode>().Single(n => n.Name is IdentifierNode { Text: { Span: "dynamic" } }).Initializer!;
+        var initializer = nodes.OfType<VariableDeclarationNode>().Single(n => (n.Name is IdentifierNode { Text: { Span: var matchedText5 } } && matchedText5.SequenceEqual("dynamic"u8))).Initializer!;
         var type = await checker.GetExpressionTypeAsync(initializer);
-        if (type is not TypeReference reference || reference.Target?.Symbol?.Name != "Promise")
+        if (type is not TypeReference reference || reference.Target?.Symbol?.Name != "Promise"u8)
             throw new InvalidOperationException("Dynamic import did not return Promise");
         var arguments = await checker.TypeArgumentsAsync(reference, default);
-        if (await checker.Properties.PropertyAsync(arguments.Single(), "make") is null)
+        if (await checker.Properties.PropertyAsync(arguments.Single(), "make"u8) is null)
             throw new InvalidOperationException("Dynamic import lost module exports");
         return 4;
     }
 
     private static async Task<int> DisposableSafety()
     {
-        const string library = """
+        Utf8String library = """
             interface Array<T> { length: number; [n: number]: T; }
             interface SymbolConstructor { readonly dispose: unique symbol; readonly asyncDispose: unique symbol; }
             declare const Symbol: SymbolConstructor;
@@ -1406,8 +1406,8 @@ internal static class CheckerProgramTests
             interface PromiseLike<T> { then(onfulfilled: (value: T) => unknown): unknown; }
             interface Promise<T> extends PromiseLike<T> { }
             declare const Promise: any;
-            """;
-        const string source = """
+            """u8;
+        Utf8String source = """
             export {};
             function sync() {
                 using good = { [Symbol.dispose]() {} };
@@ -1421,26 +1421,26 @@ internal static class CheckerProgramTests
             function nonAsync() { await using invalid = null; }
             class C { static { await using invalid = null; } }
             using { x } = { x: null };
-            """;
+            """u8;
         static async ValueTask<(Checker Checker, SourceFileNode File)> Create(
-            string text,
-            string library,
-            string? helpers,
+            Utf8String text,
+            Utf8String library,
+            Utf8String? helpers,
             bool importHelpers)
         {
             var options = new CompilerOptions();
-            options.SetRaw("noLib", "true");
-            options.SetRaw("strict", "true");
-            options.SetRaw("target", "\"es2015\"");
-            options.SetRaw("module", "\"esnext\"");
-            options.SetRaw("importHelpers", importHelpers ? "true" : "false");
-            var files = new Dictionary<string, byte[]>
-            { ["/project/main.ts"] = Wtf8.Encode(text), ["/project/globals.d.ts"] = Wtf8.Encode(library) };
+            options.SetRaw("noLib"u8, "true"u8);
+            options.SetRaw("strict"u8, "true"u8);
+            options.SetRaw("target"u8, "\"es2015\""u8);
+            options.SetRaw("module"u8, "\"esnext\""u8);
+            options.SetRaw("importHelpers"u8, importHelpers ? Utf8String.Copy("true"u8) : Utf8String.Copy("false"u8));
+            var files = new Dictionary<Utf8String, byte[]>
+            { ["/project/main.ts"u8] = text.Span.ToArray(), ["/project/globals.d.ts"u8] = library.Span.ToArray() };
             if (helpers is not null)
-                files.Add("/project/node_modules/tslib/index.d.ts", Wtf8.Encode(helpers));
-            var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
-                new("/project/tsconfig.json", options, ["/project/main.ts", "/project/globals.d.ts"], [], [], []));
-            return (await program.CreateCheckerAsync(), program.GetFile("/project/main.ts")!.Syntax);
+                files.Add("/project/node_modules/tslib/index.d.ts"u8, helpers.Value.Span.ToArray());
+            var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project"u8,
+                new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8, "/project/globals.d.ts"u8], [], [], []));
+            return (await program.CreateCheckerAsync(), program.GetFile("/project/main.ts"u8)!.Syntax);
         }
         var (checker, file) = await Create(source, library, null, false);
         await checker.CheckSourceFileAsync(file);
@@ -1457,18 +1457,18 @@ internal static class CheckerProgramTests
         if (!codes.SequenceEqual(expected))
             throw new InvalidOperationException($"Disposable diagnostics: {string.Join(',', codes)}");
         int checks = 1;
-        foreach (string? helpers in new string?[]
+        foreach (Utf8String? helpers in new Utf8String?[]
         {
             null,
-            "export {};",
-            "export declare const __addDisposableResource: any, __disposeResources: any;"
+            "export {};"u8,
+            "export declare const __addDisposableResource: any, __disposeResources: any;"u8
         })
         {
-            var (helperChecker, helperFile) = await Create("export {}; using first = null; using second = null;", library, helpers, true);
+            var (helperChecker, helperFile) = await Create("export {}; using first = null; using second = null;"u8, library, helpers, true);
             await helperChecker.CheckSourceFileAsync(helperFile);
             DiagnosticCode[] helperExpected = helpers is null
                 ? [DiagnosticCode.ThisSyntaxRequiresAnImportedHelperButModule0CannotBeFound]
-                : helpers == "export {};"
+                : helpers == "export {};"u8
                     ?
                         [
                             DiagnosticCode.ThisSyntaxRequiresAnImportedHelperNamed1WhichDoesNotExistIn0ConsiderUpgradingYourVersionOf0,
@@ -1497,46 +1497,46 @@ internal static class CheckerProgramTests
 
     private static async Task Process(JsonElement input, Utf8JsonWriter writer)
     {
-        var files = input.GetProperty("files").EnumerateObject().ToDictionary(
-            p => p.Name,
-            p => Convert.FromBase64String(p.Value.GetString()!));
+        var files = input.GetProperty("files"u8).EnumerateObject().ToDictionary(
+            p => JsonStrings.GetName(p),
+            p => p.Value.GetBytesFromBase64());
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        if (input.TryGetProperty("options", out var supplied))
+        options.SetRaw("noLib"u8, "true"u8);
+        if (input.TryGetProperty("options"u8, out var supplied))
             foreach (var property in supplied.EnumerateObject())
-                options.Set(property.Name, property.Value);
-        var roots = input.GetProperty("roots").EnumerateArray().Select(p => p.GetString()!).ToArray();
-        int concurrency = input.GetProperty("concurrency").GetInt32();
-        var config = new ParsedConfig("/project/tsconfig.json", options, roots, [], [], []);
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project", config, concurrency: concurrency);
-        Checker? typeHost = input.TryGetProperty("typeNodes", out var typeOption) && typeOption.GetBoolean()
+                options.Set(JsonStrings.GetName(property), property.Value);
+        var roots = input.GetProperty("roots"u8).EnumerateArray().Select(p => JsonStrings.GetString(p)!).ToArray();
+        int concurrency = input.GetProperty("concurrency"u8).GetInt32();
+        var config = new ParsedConfig("/project/tsconfig.json"u8, options, roots, [], [], []);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project"u8, config, concurrency: concurrency);
+        Checker? typeHost = input.TryGetProperty("typeNodes"u8, out var typeOption) && typeOption.GetBoolean()
             ? await program.CreateCheckerAsync() : null;
-        var context = typeHost?.Context ?? new TypeContext(options.StrictOption("strictNullChecks"),
-            options.Boolean("exactOptionalPropertyTypes") ?? false);
+        var context = typeHost?.Context ?? new TypeContext(options.StrictOption("strictNullChecks"u8),
+            options.Boolean("exactOptionalPropertyTypes"u8) ?? false);
         var links = typeHost?.Links ?? new CheckerLinks();
         var host = typeHost?.Environment ?? new CheckerEnvironment(context, links);
         var environment = typeHost?.Symbols ?? await CheckerSymbols.CreateAsync(program, links, host);
-        if (input.TryGetProperty("nodeBuilderTracking", out var trackingOption) && trackingOption.GetBoolean())
+        if (input.TryGetProperty("nodeBuilderTracking"u8, out var trackingOption) && trackingOption.GetBoolean())
         {
-            await CheckerNodeBuilderTests.WriteAsync(typeHost!, program.GetFile("/project/main.ts")!.Syntax,
-                input.GetProperty("typeSyntaxFlags").EnumerateArray().Select(v => (NodeBuilderFlags)v.GetUInt32()).ToArray(), writer,
-                input.TryGetProperty("nodeBuilderInternalFlags", out var internalFlags)
+            await CheckerNodeBuilderTests.WriteAsync(typeHost!, program.GetFile("/project/main.ts"u8)!.Syntax,
+                input.GetProperty("typeSyntaxFlags"u8).EnumerateArray().Select(v => (NodeBuilderFlags)v.GetUInt32()).ToArray(), writer,
+                input.TryGetProperty("nodeBuilderInternalFlags"u8, out var internalFlags)
                     ? internalFlags.EnumerateArray().Select(v => (NodeBuilderInternalFlags)v.GetUInt32()).ToArray() : null);
             return;
         }
-        if (input.TryGetProperty("displayFormats", out var formatOption) && formatOption.GetBoolean())
+        if (input.TryGetProperty("displayFormats"u8, out var formatOption) && formatOption.GetBoolean())
         {
-            await CheckerDisplayTests.FormatsAsync(typeHost!, program.GetFile("/project/main.ts")!.Syntax,
-                input.GetProperty("typeFormatFlags").EnumerateArray().Select(v => (TypeFormatFlags)v.GetUInt32()).ToArray(), writer);
+            await CheckerDisplayTests.FormatsAsync(typeHost!, program.GetFile("/project/main.ts"u8)!.Syntax,
+                input.GetProperty("typeFormatFlags"u8).EnumerateArray().Select(v => (TypeFormatFlags)v.GetUInt32()).ToArray(), writer);
             return;
         }
-        if (input.TryGetProperty("typeDisplays", out var displayOption) && displayOption.GetBoolean())
+        if (input.TryGetProperty("typeDisplays"u8, out var displayOption) && displayOption.GetBoolean())
         {
             writer.WriteStartObject();
-            writer.WriteStartArray("typeDisplays");
-            foreach (var declaration in program.GetFile("/project/main.ts")!.Syntax.DescendantsAndSelf().OfType<VariableDeclarationNode>())
+            writer.WriteStartArray("typeDisplays"u8);
+            foreach (var declaration in program.GetFile("/project/main.ts"u8)!.Syntax.DescendantsAndSelf().OfType<VariableDeclarationNode>())
                 if (declaration.Name is IdentifierNode name
-                    && name.Text.Span.StartsWith("show", StringComparison.Ordinal)
+                    && name.Text.Span.StartsWith("show"u8, StringComparison.Ordinal)
                     && declaration.Type is not null)
                 {
                     writer.WriteStartArray();
@@ -1549,20 +1549,20 @@ internal static class CheckerProgramTests
             writer.WriteEndObject();
             return;
         }
-        if (input.TryGetProperty("semantic", out var semanticOption) && semanticOption.GetBoolean())
+        if (input.TryGetProperty("semantic"u8, out var semanticOption) && semanticOption.GetBoolean())
         {
-            await typeHost!.CheckSourceFileAsync(program.GetFile("/project/main.ts")!.Syntax);
+            await typeHost!.CheckSourceFileAsync(program.GetFile("/project/main.ts"u8)!.Syntax);
             writer.WriteStartObject();
-            writer.WriteStartArray("semanticDiagnostics");
-            foreach (int code in typeHost!.DiagnosticCodesForFile(program.GetFile("/project/main.ts")!.Syntax))
+            writer.WriteStartArray("semanticDiagnostics"u8);
+            foreach (int code in typeHost!.DiagnosticCodesForFile(program.GetFile("/project/main.ts"u8)!.Syntax))
                 writer.WriteNumberValue(code);
             writer.WriteEndArray();
-            if (input.TryGetProperty("semanticDetails", out var detailsOption) && detailsOption.GetBoolean())
+            if (input.TryGetProperty("semanticDetails"u8, out var detailsOption) && detailsOption.GetBoolean())
             {
-                writer.WritePropertyName("semanticDiagnosticDetails");
+                writer.WritePropertyName("semanticDiagnosticDetails"u8);
                 CheckerCorpusTests.WriteDiagnostics(
                     writer,
-                    typeHost.DetailedDiagnosticsForFile(program.GetFile("/project/main.ts")!.Syntax));
+                    typeHost.DetailedDiagnosticsForFile(program.GetFile("/project/main.ts"u8)!.Syntax));
             }
             writer.WriteEndObject();
             return;
@@ -1596,27 +1596,27 @@ internal static class CheckerProgramTests
             }
             return id;
         }
-        var privateOwners = new Dictionary<TextSlice, int>();
+        var privateOwners = new Dictionary<Utf8String, int>();
         foreach (var node in nodes.Where(SemanticSyntax.ClassLike))
             if (environment.Binding(node)?.Get(node)?.Symbol is { } owner)
-                foreach (TextSlice key in owner.Members.Keys.Concat(owner.Exports.Keys))
-                    if (key.Span.StartsWith(Symbol.InternalPrefix + "#", StringComparison.Ordinal) && key.Span.IndexOf('@') is > 0 and var end)
+                foreach (Utf8String key in owner.Members.Keys.Concat(owner.Exports.Keys))
+                    if (key.Span.StartsWith(Symbol.InternalPrefix + "#"u8, StringComparison.Ordinal) && key.Span.IndexOf((byte)'@') is > 0 and var end)
                         privateOwners[key[..end]] = Node(node);
-        TextSlice CanonicalName(TextSlice name)
+        Utf8String CanonicalName(Utf8String name)
         {
-            if (name.Span.StartsWith(Symbol.InternalPrefix + "@", StringComparison.Ordinal))
+            if (name.Span.StartsWith(Symbol.InternalPrefix + "@"u8, StringComparison.Ordinal))
                 foreach (var unique in context.UniqueSymbols)
                     if (unique.Name == name && unique.Symbol?.Declarations.FirstOrDefault() is { } declaration)
-                        return Symbol.InternalPrefix + "@" + unique.Symbol.Name + "@node" + Node(declaration).ToString(CultureInfo.InvariantCulture);
-            int end = name.Span.IndexOf('@');
+                        return Utf8String.Concat(Utf8String.Concat(Symbol.InternalPrefix, Utf8String.Copy("@"u8), unique.Symbol.Name), "@node"u8, Utf8String.Format(Node(declaration)));
+            int end = name.Span.IndexOf((byte)'@');
             return end > 0 && privateOwners.TryGetValue(name[..end], out int owner)
-                ? Symbol.InternalPrefix + "#node" + owner.ToString(CultureInfo.InvariantCulture) + name[end..] : name;
+                ? Utf8String.Concat(Symbol.InternalPrefix, "#node"u8, Utf8String.Format(owner)) + name[end..] : name;
         }
-        void Name(TextSlice text) => writer.WriteBase64StringValue(Wtf8.Encode(Symbol.EscapeName(CanonicalName(text))));
-        void Table(IReadOnlyDictionary<TextSlice, Symbol> table)
+        void Name(Utf8String text) => writer.WriteBase64StringValue(Symbol.EscapeName(CanonicalName(text)).Span.ToArray());
+        void Table(IReadOnlyDictionary<Utf8String, Symbol> table)
         {
             writer.WriteStartArray();
-            foreach (var (name, symbol) in table.OrderBy(p => CanonicalName(p.Key), Comparer<TextSlice>.Create(TypeOrder.CompareSymbolNames)))
+            foreach (var (name, symbol) in table.OrderBy(p => CanonicalName(p.Key), Comparer<Utf8String>.Create(TypeOrder.CompareSymbolNames)))
             {
                 writer.WriteStartArray();
                 Name(name);
@@ -1666,7 +1666,7 @@ internal static class CheckerProgramTests
             return result;
         }
         writer.WriteStartObject();
-        writer.WriteStartArray("files");
+        writer.WriteStartArray("files"u8);
         foreach (var file in program.SourceFiles)
         {
             writer.WriteStartArray();
@@ -1675,9 +1675,9 @@ internal static class CheckerProgramTests
             writer.WriteEndArray();
         }
         writer.WriteEndArray();
-        writer.WritePropertyName("globals");
+        writer.WritePropertyName("globals"u8);
         Table(environment.Globals);
-        writer.WriteStartArray("patterns");
+        writer.WriteStartArray("patterns"u8);
         foreach (var pattern in environment.PatternModules)
         {
             writer.WriteStartArray();
@@ -1686,12 +1686,12 @@ internal static class CheckerProgramTests
             writer.WriteEndArray();
         }
         writer.WriteEndArray();
-        writer.WritePropertyName("augmentations");
+        writer.WritePropertyName("augmentations"u8);
         Table(environment.PatternAugmentations);
-        writer.WritePropertyName("augmentationTargets");
+        writer.WritePropertyName("augmentationTargets"u8);
         Table(environment.PatternTargets);
-        writer.WriteStartArray("globalTypes");
-        foreach (var (name, type) in host.Globals.Types.OrderBy(p => p.Key, TextSliceComparer.Ordinal))
+        writer.WriteStartArray("globalTypes"u8);
+        foreach (var (name, type) in host.Globals.Types.OrderBy(p => p.Key, Utf8StringComparer.Ordinal))
         {
             writer.WriteStartArray();
             writer.WriteStringValue(name.Span);
@@ -1699,7 +1699,7 @@ internal static class CheckerProgramTests
             writer.WriteEndArray();
         }
         writer.WriteEndArray();
-        writer.WriteStartArray("specialTypes");
+        writer.WriteStartArray("specialTypes"u8);
         foreach (var symbol in new[]
         {
             environment.UndefinedSymbol,
@@ -1712,7 +1712,7 @@ internal static class CheckerProgramTests
         writer.WriteNumberValue(TypeId(host.Globals.AutoArrayType));
         writer.WriteNumberValue(TypeId(host.Globals.AnyReadonlyArrayType));
         writer.WriteEndArray();
-        writer.WriteStartArray("declarations");
+        writer.WriteStartArray("declarations"u8);
         foreach (var node in nodes)
             if (environment.Binding(node)?.Get(node)?.Symbol is not null)
             {
@@ -1720,12 +1720,12 @@ internal static class CheckerProgramTests
                 writer.WriteNumberValue(Node(node));
                 writer.WriteNumberValue(
                     SymbolId(
-                    input.TryGetProperty("references", out var referenceDeclarations) && referenceDeclarations.GetBoolean()
+                    input.TryGetProperty("references"u8, out var referenceDeclarations) && referenceDeclarations.GetBoolean()
                     ? environment.Merger.GetMergedSymbol(environment.Binding(node)!.Get(node)!.Value.Symbol) : environment.Declaration(node)));
                 writer.WriteEndArray();
             }
         writer.WriteEndArray();
-        writer.WriteStartArray("classes");
+        writer.WriteStartArray("classes"u8);
         foreach (var node in nodes.Where(
             n => n.Kind is SyntaxKind.ClassDeclaration or SyntaxKind.ClassExpression or SyntaxKind.InterfaceDeclaration))
         {
@@ -1735,7 +1735,7 @@ internal static class CheckerProgramTests
             writer.WriteEndArray();
         }
         writer.WriteEndArray();
-        writer.WriteStartArray("scopes");
+        writer.WriteStartArray("scopes"u8);
         foreach (var node in nodes.Where(n => n.Kind is SyntaxKind.TypeReference or SyntaxKind.ThisType or SyntaxKind.TypeParameter))
         {
             writer.WriteStartArray();
@@ -1744,9 +1744,9 @@ internal static class CheckerProgramTests
             writer.WriteEndArray();
         }
         writer.WriteEndArray();
-        if (input.TryGetProperty("aliases", out var aliasOption) && aliasOption.GetBoolean())
+        if (input.TryGetProperty("aliases"u8, out var aliasOption) && aliasOption.GetBoolean())
         {
-            writer.WriteStartArray("aliases");
+            writer.WriteStartArray("aliases"u8);
             var seenAliases = new HashSet<Symbol>(ReferenceEqualityComparer.Instance);
             foreach (var node in nodes)
             {
@@ -1766,60 +1766,60 @@ internal static class CheckerProgramTests
             }
             writer.WriteEndArray();
         }
-        if (input.TryGetProperty("symbolDisplay", out var symbolDisplayOption) && symbolDisplayOption.GetBoolean())
+        if (input.TryGetProperty("symbolDisplay"u8, out var symbolDisplayOption) && symbolDisplayOption.GetBoolean())
             await CheckerSymbolDisplayTests.WriteAsync(writer, nodes, typeHost!, SymbolId, Node);
-        if (input.TryGetProperty("typeSyntax", out var typeSyntaxOption) && typeSyntaxOption.GetBoolean())
+        if (input.TryGetProperty("typeSyntax"u8, out var typeSyntaxOption) && typeSyntaxOption.GetBoolean())
             await CheckerTypeSyntaxTests.WriteAsync(writer, nodes, typeHost!, Node,
-                input.TryGetProperty("typeSyntaxFlags", out var syntaxFlags)
+                input.TryGetProperty("typeSyntaxFlags"u8, out var syntaxFlags)
                     ? syntaxFlags.EnumerateArray().Select(v => (NodeBuilderFlags)v.GetUInt32()).ToArray() : null);
-        if (input.TryGetProperty("signatureSyntax", out var signatureSyntaxOption) && signatureSyntaxOption.GetBoolean())
+        if (input.TryGetProperty("signatureSyntax"u8, out var signatureSyntaxOption) && signatureSyntaxOption.GetBoolean())
             await CheckerTypeSyntaxTests.WriteSignaturesAsync(writer, nodes, typeHost!, Node);
-        if (input.TryGetProperty("emitQueries", out var emitQueriesOption) && emitQueriesOption.GetBoolean())
+        if (input.TryGetProperty("emitQueries"u8, out var emitQueriesOption) && emitQueriesOption.GetBoolean())
             await CheckerEmitQueryTests.WriteAsync(writer, nodes, typeHost!, Node);
-        if (input.TryGetProperty("emitReferences", out var emitReferencesOption) && emitReferencesOption.GetBoolean())
+        if (input.TryGetProperty("emitReferences"u8, out var emitReferencesOption) && emitReferencesOption.GetBoolean())
             await CheckerEmitQueryTests.WriteReferencesAsync(writer, nodes, typeHost!, Node, SymbolId);
-        if (input.TryGetProperty("emitSerialization", out var emitSerializationOption) && emitSerializationOption.GetBoolean())
+        if (input.TryGetProperty("emitSerialization"u8, out var emitSerializationOption) && emitSerializationOption.GetBoolean())
             await CheckerEmitQueryTests.WriteSerializationAsync(writer, nodes, typeHost!, Node);
-        if (input.TryGetProperty("emitLinks", out var emitLinksOption) && emitLinksOption.GetBoolean())
+        if (input.TryGetProperty("emitLinks"u8, out var emitLinksOption) && emitLinksOption.GetBoolean())
             await CheckerEmitQueryTests.WriteLinksAsync(writer, nodes, typeHost!, Node);
-        if (input.TryGetProperty("emitJsx", out var emitJsxOption) && emitJsxOption.GetBoolean())
+        if (input.TryGetProperty("emitJsx"u8, out var emitJsxOption) && emitJsxOption.GetBoolean())
             await CheckerEmitQueryTests.WriteJsxAsync(writer, nodes, typeHost!, Node);
-        if (input.TryGetProperty("emitServices", out var emitServicesOption) && emitServicesOption.GetBoolean())
+        if (input.TryGetProperty("emitServices"u8, out var emitServicesOption) && emitServicesOption.GetBoolean())
             await CheckerEmitQueryTests.WriteServicesAsync(writer, nodes, typeHost!, Node);
-        if (input.TryGetProperty("emitSyntax", out var emitSyntaxOption) && emitSyntaxOption.GetBoolean())
+        if (input.TryGetProperty("emitSyntax"u8, out var emitSyntaxOption) && emitSyntaxOption.GetBoolean())
             await CheckerEmitSyntaxTests.WriteAsync(writer, nodes, typeHost!, Node);
-        if (input.TryGetProperty("emitRecovery", out var emitRecoveryOption) && emitRecoveryOption.GetBoolean())
+        if (input.TryGetProperty("emitRecovery"u8, out var emitRecoveryOption) && emitRecoveryOption.GetBoolean())
             await CheckerEmitSyntaxTests.WriteRecoveryAsync(writer, nodes, typeHost!, Node);
-        if (input.TryGetProperty("symbolTypeNodes", out var symbolTypeNodesOption) && symbolTypeNodesOption.GetBoolean())
+        if (input.TryGetProperty("symbolTypeNodes"u8, out var symbolTypeNodesOption) && symbolTypeNodesOption.GetBoolean())
             await CheckerSymbolDisplayTests.WriteAsync(writer, nodes, typeHost!, SymbolId, Node, typeNodes: true);
-        if (input.TryGetProperty("symbolFormats", out var symbolFormatsOption) && symbolFormatsOption.GetBoolean())
+        if (input.TryGetProperty("symbolFormats"u8, out var symbolFormatsOption) && symbolFormatsOption.GetBoolean())
             await CheckerSymbolDisplayTests.WriteAsync(writer, nodes, typeHost!, SymbolId, Node, formats: true,
-                formatFlags: input.TryGetProperty("symbolFormatFlags", out var formatFlags)
+                formatFlags: input.TryGetProperty("symbolFormatFlags"u8, out var formatFlags)
                     ? formatFlags.EnumerateArray().Select(v => v.GetInt32()).ToArray()
                     : null);
-        if (input.TryGetProperty("accessibility", out var accessibilityOption) && accessibilityOption.GetBoolean())
+        if (input.TryGetProperty("accessibility"u8, out var accessibilityOption) && accessibilityOption.GetBoolean())
             await CheckerAccessibilityTests.WriteAsync(writer, nodes, typeHost!, SymbolId, Node);
-        if (input.TryGetProperty("symbolChains", out var symbolChainOption) && symbolChainOption.GetBoolean())
+        if (input.TryGetProperty("symbolChains"u8, out var symbolChainOption) && symbolChainOption.GetBoolean())
             await CheckerSymbolChainTests.WriteAsync(writer, nodes, typeHost!, SymbolId, Node);
-        if (input.TryGetProperty("declarationVisibility", out var visibilityOption) && visibilityOption.GetBoolean())
+        if (input.TryGetProperty("declarationVisibility"u8, out var visibilityOption) && visibilityOption.GetBoolean())
             await CheckerVisibilityTests.WriteAsync(writer, nodes, typeHost!, SymbolId, Node);
-        if (input.TryGetProperty("contextQueries", out var contextQueryOption) && contextQueryOption.GetBoolean())
+        if (input.TryGetProperty("contextQueries"u8, out var contextQueryOption) && contextQueryOption.GetBoolean())
             await CheckerContextQueryTests.WriteAsync(writer, nodes, typeHost!, TypeId, SymbolId, Node);
-        if (input.TryGetProperty("scopeServices", out var servicesOption) && servicesOption.GetBoolean())
+        if (input.TryGetProperty("scopeServices"u8, out var servicesOption) && servicesOption.GetBoolean())
         {
-            writer.WriteStartArray("serviceQueries");
+            writer.WriteStartArray("serviceQueries"u8);
             var seenModules = new HashSet<Symbol>();
             var seenAliases = new HashSet<Symbol>();
             void OrderedSymbols(IReadOnlyList<Symbol> source)
             {
                 writer.WriteStartArray();
-                foreach (var symbol in source.OrderBy(s => CanonicalName(s.Name), Comparer<TextSlice>.Create(TypeOrder.CompareSymbolNames)))
+                foreach (var symbol in source.OrderBy(s => CanonicalName(s.Name), Comparer<Utf8String>.Create(TypeOrder.CompareSymbolNames)))
                     writer.WriteNumberValue(SymbolId(symbol));
                 writer.WriteEndArray();
             }
             foreach (var node in nodes)
             {
-                if (SemanticSyntax.Source(node)?.FileName.StartsWith("/project/main.", StringComparison.Ordinal) != true)
+                if (SemanticSyntax.Source(node)?.FileName.StartsWith("/project/main."u8, StringComparison.Ordinal) != true)
                     continue;
                 foreach (var meaning in new[]
                 {
@@ -1878,7 +1878,7 @@ internal static class CheckerProgramTests
                 }
                 if (DeclarationOrder.ParameterProperty(node) && node is ParameterDeclarationNode { Name: IdentifierNode name } parameter)
                 {
-                    var pair = await typeHost.GetSymbolsOfParameterPropertyDeclarationAsync(parameter, name.Text);
+                    var pair = await typeHost!.GetSymbolsOfParameterPropertyDeclarationAsync(parameter, name.Text);
                     writer.WriteStartArray();
                     writer.WriteNumberValue(6);
                     writer.WriteNumberValue(Node(node));
@@ -1889,11 +1889,11 @@ internal static class CheckerProgramTests
             }
             writer.WriteEndArray();
         }
-        if (input.TryGetProperty("symbolLocations", out var symbolLocationsOption) && symbolLocationsOption.GetBoolean())
+        if (input.TryGetProperty("symbolLocations"u8, out var symbolLocationsOption) && symbolLocationsOption.GetBoolean())
         {
-            writer.WriteStartArray("symbolLocationQueries");
+            writer.WriteStartArray("symbolLocationQueries"u8);
             foreach (var node in nodes)
-                if (SemanticSyntax.Source(node)?.FileName.StartsWith("/project/main.", StringComparison.Ordinal) == true)
+                if (SemanticSyntax.Source(node)?.FileName.StartsWith("/project/main."u8, StringComparison.Ordinal) == true)
                 {
                     writer.WriteStartArray();
                     writer.WriteNumberValue(Node(node));
@@ -1902,11 +1902,11 @@ internal static class CheckerProgramTests
                 }
             writer.WriteEndArray();
         }
-        if (input.TryGetProperty("documentationSymbols", out var documentationSymbolsOption) && documentationSymbolsOption.GetBoolean())
+        if (input.TryGetProperty("documentationSymbols"u8, out var documentationSymbolsOption) && documentationSymbolsOption.GetBoolean())
         {
-            writer.WriteStartArray("documentationSymbolQueries");
+            writer.WriteStartArray("documentationSymbolQueries"u8);
             foreach (var owner in nodes)
-                if (SemanticSyntax.Source(owner) is { } file && file.FileName.StartsWith("/project/main.", StringComparison.Ordinal))
+                if (SemanticSyntax.Source(owner) is { } file && file.FileName.StartsWith("/project/main."u8, StringComparison.Ordinal))
                     foreach (var comment in await file.GetDocumentationAsync(owner))
                         foreach (var node in comment.DescendantsAndSelf())
                         {
@@ -1920,11 +1920,11 @@ internal static class CheckerProgramTests
                         }
             writer.WriteEndArray();
         }
-        if (input.TryGetProperty("locations", out var locationsOption) && locationsOption.GetBoolean())
+        if (input.TryGetProperty("locations"u8, out var locationsOption) && locationsOption.GetBoolean())
         {
-            writer.WriteStartArray("locationQueries");
+            writer.WriteStartArray("locationQueries"u8);
             foreach (var node in nodes)
-                if (SemanticSyntax.Source(node)?.FileName.StartsWith("/project/main.", StringComparison.Ordinal) == true)
+                if (SemanticSyntax.Source(node)?.FileName.StartsWith("/project/main."u8, StringComparison.Ordinal) == true)
                 {
                     writer.WriteStartArray();
                     writer.WriteNumberValue(Node(node));
@@ -1935,7 +1935,7 @@ internal static class CheckerProgramTests
         }
         if (typeHost is not null)
         {
-            writer.WriteStartArray("typeQueries");
+            writer.WriteStartArray("typeQueries"u8);
             foreach (var node in nodes)
             {
                 Type? result = null;
@@ -1955,11 +1955,11 @@ internal static class CheckerProgramTests
             }
             writer.WriteEndArray();
         }
-        if (input.TryGetProperty("access", out var accessOption) && accessOption.GetBoolean())
+        if (input.TryGetProperty("access"u8, out var accessOption) && accessOption.GetBoolean())
         {
-            writer.WriteStartArray("accessQueries");
+            writer.WriteStartArray("accessQueries"u8);
             foreach (var call in nodes.OfType<CallExpressionNode>())
-                if (call.Expression is IdentifierNode { Text: { Span: "__access" } })
+                if (call.Expression is IdentifierNode { Text: { Span: var matchedText6 } } && matchedText6.SequenceEqual("__access"u8))
                     foreach (var argument in call.Arguments!)
                     {
                         writer.WriteStartArray();
@@ -1968,7 +1968,7 @@ internal static class CheckerProgramTests
                         writer.WriteEndArray();
                     }
             writer.WriteEndArray();
-            writer.WriteStartArray("accessSymbols");
+            writer.WriteStartArray("accessSymbols"u8);
             foreach (var node in nodes.Where(n => n is PropertyAccessExpressionNode or ElementAccessExpressionNode or QualifiedNameNode))
             {
                 writer.WriteStartArray();
@@ -1977,17 +1977,17 @@ internal static class CheckerProgramTests
                 writer.WriteEndArray();
             }
             writer.WriteEndArray();
-            writer.WriteStartArray("accessSuggestions");
+            writer.WriteStartArray("accessSuggestions"u8);
             foreach (int code in host.ValueSuggestions.Concat(typeHost!.Suggestions).Order())
                 writer.WriteNumberValue(code);
             writer.WriteEndArray();
-            writer.WriteNumber("deferredAccessDiagnostics", typeHost.DeferredMissingProperties.Count);
+            writer.WriteNumber("deferredAccessDiagnostics"u8, typeHost.DeferredMissingProperties.Count);
         }
-        if (input.TryGetProperty("identifiers", out var identifierOption) && identifierOption.GetBoolean())
+        if (input.TryGetProperty("identifiers"u8, out var identifierOption) && identifierOption.GetBoolean())
         {
-            writer.WriteStartArray("identifierQueries");
+            writer.WriteStartArray("identifierQueries"u8);
             foreach (var call in nodes.OfType<CallExpressionNode>())
-                if (call.Expression is IdentifierNode { Text: { Span: "__expr" } })
+                if (call.Expression is IdentifierNode { Text: { Span: var matchedText7 } } && matchedText7.SequenceEqual("__expr"u8))
                     foreach (var argument in call.Arguments!)
                     {
                         writer.WriteStartArray();
@@ -1996,7 +1996,7 @@ internal static class CheckerProgramTests
                         writer.WriteEndArray();
                     }
             writer.WriteEndArray();
-            writer.WriteStartArray("identifierAliasReferences");
+            writer.WriteStartArray("identifierAliasReferences"u8);
             var seen = new HashSet<Symbol>();
             foreach (var node in nodes)
                 if (environment.Declaration(node) is { } symbol && (symbol.Flags & SymbolFlags.Alias) != 0 && seen.Add(symbol))
@@ -2008,11 +2008,11 @@ internal static class CheckerProgramTests
                 }
             writer.WriteEndArray();
         }
-        if (input.TryGetProperty("flow", out var flowOption) && flowOption.GetBoolean())
+        if (input.TryGetProperty("flow"u8, out var flowOption) && flowOption.GetBoolean())
         {
-            writer.WriteStartArray("flowQueries");
+            writer.WriteStartArray("flowQueries"u8);
             foreach (var call in nodes.OfType<CallExpressionNode>())
-                if (call.Expression is IdentifierNode { Text: { Span: "__flow" } })
+                if (call.Expression is IdentifierNode { Text: { Span: var matchedText8 } } && matchedText8.SequenceEqual("__flow"u8))
                     foreach (var argument in call.Arguments!.OfType<IdentifierNode>())
                     {
                         var declared = await typeHost!.Values.GetAsync(host.ReferenceSymbols.Resolve(argument));
@@ -2025,7 +2025,7 @@ internal static class CheckerProgramTests
                         writer.WriteEndArray();
                     }
             writer.WriteEndArray();
-            writer.WriteStartArray("assignmentMarks");
+            writer.WriteStartArray("assignmentMarks"u8);
             foreach (var declaration in nodes.Where(n => n is VariableDeclarationNode or ParameterDeclarationNode))
                 if (environment.Declaration(declaration) is { } symbol && typeHost!.Assignments.ParameterOrMutableLocal(symbol))
                 {
@@ -2037,7 +2037,7 @@ internal static class CheckerProgramTests
                     writer.WriteEndArray();
                 }
             writer.WriteEndArray();
-            writer.WriteStartArray("flowState");
+            writer.WriteStartArray("flowState"u8);
             writer.WriteNumberValue(typeHost!.FlowTypes.LoopCacheCount);
             writer.WriteNumberValue(typeHost.FlowTypes.ActiveLoopCount);
             writer.WriteNumberValue(typeHost.FlowTypes.SharedCount);
@@ -2045,11 +2045,11 @@ internal static class CheckerProgramTests
             writer.WriteNumberValue(typeHost.FlowTypes.Reachability.ReachableCacheCount);
             writer.WriteEndArray();
         }
-        if (input.TryGetProperty("references", out var referenceOption) && referenceOption.GetBoolean())
+        if (input.TryGetProperty("references"u8, out var referenceOption) && referenceOption.GetBoolean())
         {
-            writer.WriteStartArray("declarationOrder");
+            writer.WriteStartArray("declarationOrder"u8);
             foreach (var call in nodes.OfType<CallExpressionNode>())
-                if (call.Expression is IdentifierNode { Text: { Span: "__order" } })
+                if (call.Expression is IdentifierNode { Text: { Span: var matchedText9 } } && matchedText9.SequenceEqual("__order"u8))
                     foreach (var access in call.Arguments!.OfType<PropertyAccessExpressionNode>())
                     {
                         var owner = DeclarationOrder.ContainingClass(access)!;
@@ -2063,7 +2063,7 @@ internal static class CheckerProgramTests
                         writer.WriteEndArray();
                     }
             writer.WriteEndArray();
-            writer.WriteStartArray("referenceSyntax");
+            writer.WriteStartArray("referenceSyntax"u8);
             foreach (var node in nodes)
             {
                 writer.WriteStartArray();
@@ -2076,9 +2076,9 @@ internal static class CheckerProgramTests
                 writer.WriteEndArray();
             }
             writer.WriteEndArray();
-            writer.WriteStartArray("referenceQueries");
+            writer.WriteStartArray("referenceQueries"u8);
             foreach (var call in nodes.OfType<CallExpressionNode>())
-                if (call.Expression is IdentifierNode { Text: { Span: "__use" } })
+                if (call.Expression is IdentifierNode { Text: { Span: var matchedText10 } } && matchedText10.SequenceEqual("__use"u8))
                     foreach (var argument in call.Arguments!.OfType<IdentifierNode>())
                     {
                         var symbol = host.ReferenceSymbols.Resolve(argument);
@@ -2088,17 +2088,17 @@ internal static class CheckerProgramTests
                         writer.WriteEndArray();
                     }
             writer.WriteEndArray();
-            writer.WriteStartArray("referenceSuggestions");
+            writer.WriteStartArray("referenceSuggestions"u8);
             foreach (int code in host.ValueSuggestions.Order())
                 writer.WriteNumberValue(code);
             writer.WriteEndArray();
         }
-        if (input.TryGetProperty("awaited", out var awaitedOption) && awaitedOption.GetBoolean())
+        if (input.TryGetProperty("awaited"u8, out var awaitedOption) && awaitedOption.GetBoolean())
         {
-            writer.WriteStartArray("awaitedQueries");
+            writer.WriteStartArray("awaitedQueries"u8);
             foreach (var node in nodes)
                 if (node is TypeAliasDeclarationNode or InterfaceDeclarationNode && node is INamedNode { Name: IdentifierNode name }
-                    && name.Text.Length > 1 && name.Text[0] == 'A' && char.IsAsciiDigit(name.Text[1]))
+                    && name.Text.Length > 1 && name.Text[0] == 'A' && Utf8Ascii.IsDigit(name.Text[1]))
                 {
                     var type = await typeHost!.Declared.GetAsync(environment.Declaration(node)!);
                     writer.WriteStartArray();
@@ -2113,9 +2113,9 @@ internal static class CheckerProgramTests
                 }
             writer.WriteEndArray();
         }
-        if (input.TryGetProperty("expressions", out var expressionOption) && expressionOption.GetBoolean())
+        if (input.TryGetProperty("expressions"u8, out var expressionOption) && expressionOption.GetBoolean())
         {
-            writer.WriteStartArray("expressionQueries");
+            writer.WriteStartArray("expressionQueries"u8);
             foreach (var declaration in nodes.OfType<VariableDeclarationNode>())
                 if (declaration.Initializer is { } expression)
                 {
@@ -2125,14 +2125,14 @@ internal static class CheckerProgramTests
                     writer.WriteEndArray();
                 }
             writer.WriteEndArray();
-            writer.WriteStartArray("suggestions");
+            writer.WriteStartArray("suggestions"u8);
             foreach (int code in typeHost!.Suggestions.Order())
                 writer.WriteNumberValue(code);
             writer.WriteEndArray();
         }
-        if (input.TryGetProperty("constants", out var constantOption) && constantOption.GetBoolean())
+        if (input.TryGetProperty("constants"u8, out var constantOption) && constantOption.GetBoolean())
         {
-            writer.WriteStartArray("constantQueries");
+            writer.WriteStartArray("constantQueries"u8);
             foreach (var member in nodes.OfType<EnumMemberNode>())
             {
                 var result = await typeHost!.EnumValues.GetAsync(member);
@@ -2143,9 +2143,9 @@ internal static class CheckerProgramTests
                 else
                 {
                     writer.WriteStartArray();
-                    writer.WriteStringValue(result.Value is TextSlice ? "string" : "number");
-                    if (result.Value is TextSlice text)
-                        writer.WriteBase64StringValue(Wtf8.Encode(text));
+                    writer.WriteStringValue(result.Value is Utf8String ? Utf8String.Copy("string"u8) : Utf8String.Copy("number"u8));
+                    if (result.Value is Utf8String text)
+                        writer.WriteBase64StringValue(text.Span.ToArray());
                     else
                         writer.WriteStringValue(
                             BitConverter.DoubleToUInt64Bits((double)result.Value).ToString("x16", CultureInfo.InvariantCulture));
@@ -2158,26 +2158,26 @@ internal static class CheckerProgramTests
             }
             writer.WriteEndArray();
         }
-        if (input.TryGetProperty("indexing", out var indexingOption) && indexingOption.GetBoolean())
+        if (input.TryGetProperty("indexing"u8, out var indexingOption) && indexingOption.GetBoolean())
             await CheckerIndexTests.WriteAsync(writer, nodes, typeHost!, TypeId, Node);
-        if (input.TryGetProperty("members", out var memberOption) && memberOption.GetBoolean())
+        if (input.TryGetProperty("members"u8, out var memberOption) && memberOption.GetBoolean())
             await CheckerMemberTests.WriteAsync(writer, nodes, environment, typeHost!, TypeId, SymbolId, Node,
-                input.TryGetProperty("values", out var valueOption) && valueOption.GetBoolean(),
-                input.TryGetProperty("signatures", out var signatureOption) && signatureOption.GetBoolean(),
-                input.TryGetProperty("calls", out var callOption) && callOption.GetBoolean());
-        if (input.TryGetProperty("properties", out var propertyOption) && propertyOption.GetBoolean())
+                input.TryGetProperty("values"u8, out var valueOption) && valueOption.GetBoolean(),
+                input.TryGetProperty("signatures"u8, out var signatureOption) && signatureOption.GetBoolean(),
+                input.TryGetProperty("calls"u8, out var callOption) && callOption.GetBoolean());
+        if (input.TryGetProperty("properties"u8, out var propertyOption) && propertyOption.GetBoolean())
             await CheckerPropertyTests.WriteAsync(writer, nodes, environment, typeHost!, TypeId, SymbolId, Node);
-        if (input.TryGetProperty("identity", out var identityOption) && identityOption.GetBoolean())
+        if (input.TryGetProperty("identity"u8, out var identityOption) && identityOption.GetBoolean())
             await CheckerRelationTests.WriteAsync(writer, nodes, environment, typeHost!, TypeId, Node,
-                input.TryGetProperty("assignability", out var assignabilityOption) && assignabilityOption.GetBoolean());
-        if (input.TryGetProperty("assertions", out var assertionOption) && assertionOption.GetBoolean())
+                input.TryGetProperty("assignability"u8, out var assignabilityOption) && assignabilityOption.GetBoolean());
+        if (input.TryGetProperty("assertions"u8, out var assertionOption) && assertionOption.GetBoolean())
             foreach (var assertion in typeHost!.Assertions.CheckedNodes.OrderBy(Node).ToArray())
                 await typeHost.Assertions.DeferredAsync(assertion);
         var variableQueries = typeHost is not null
-            && input.TryGetProperty("awaited", out var classifyVariables)
+            && input.TryGetProperty("awaited"u8, out var classifyVariables)
             && classifyVariables.GetBoolean()
             ? new TypeVariables(typeHost.References.TypeArgumentsAsync) : null;
-        writer.WriteStartArray("types");
+        writer.WriteStartArray("types"u8);
         for (int i = 0; i < types.Count; i++)
         {
             var type = types[i];
@@ -2197,31 +2197,31 @@ internal static class CheckerProgramTests
             writer.WriteNumberValue(TypeId(intf?.ThisType));
             writer.WriteBooleanValue(parameter?.IsThisType ?? false);
             writer.WriteNumberValue(TypeId(parameter?.Constraint));
-            writer.WriteStringValue((type is IntrinsicType intrinsic ? intrinsic.IntrinsicName : (TextSlice)"").Span);
+            writer.WriteStringValue((type is IntrinsicType intrinsic ? intrinsic.IntrinsicName : Utf8String.Empty).Span);
             if (typeHost is not null)
             {
                 writer.WriteStartObject();
                 if (variableQueries is not null)
-                    writer.WriteBoolean("couldContainTypeVariables", containsVariables);
+                    writer.WriteBoolean("couldContainTypeVariables"u8, containsVariables);
                 if (type.Alias is { } typeAlias)
                 {
-                    writer.WriteStartArray("alias");
+                    writer.WriteStartArray("alias"u8);
                     writer.WriteNumberValue(SymbolId(typeAlias.Symbol));
                     TypeIds(typeAlias.TypeArguments);
                     writer.WriteEndArray();
                 }
                 if (type is ConstrainedType constrained)
-                    writer.WriteNumber("baseConstraint", TypeId(constrained.ResolvedBaseConstraint));
+                    writer.WriteNumber("baseConstraint"u8, TypeId(constrained.ResolvedBaseConstraint));
                 switch (type)
                 {
                     case LiteralType literal:
-                        writer.WriteNumber("fresh", TypeId(literal.FreshType));
-                        writer.WriteNumber("regular", TypeId(literal.RegularType));
-                        writer.WritePropertyName("value");
+                        writer.WriteNumber("fresh"u8, TypeId(literal.FreshType));
+                        writer.WriteNumber("regular"u8, TypeId(literal.RegularType));
+                        writer.WritePropertyName("value"u8);
                         switch (literal.Value)
                         {
-                            case TextSlice value:
-                                writer.WriteBase64StringValue(Wtf8.Encode(value));
+                            case Utf8String value:
+                                writer.WriteBase64StringValue(value.Span.ToArray());
                                 break;
                             case double value:
                                 writer.WriteStringValue(
@@ -2239,42 +2239,42 @@ internal static class CheckerProgramTests
                         }
                         break;
                     case UnionOrIntersectionType composite:
-                        writer.WritePropertyName("parts");
+                        writer.WritePropertyName("parts"u8);
                         TypeIds(composite.Types);
                         if (type is UnionType union)
-                            writer.WriteNumber("origin", TypeId(union.Origin));
+                            writer.WriteNumber("origin"u8, TypeId(union.Origin));
                         break;
                     case TypeParameter:
-                        writer.WriteBoolean("distributed", parameter!.IsDistributed);
-                        writer.WriteNumber("default", TypeId(parameter.ResolvedDefaultType));
-                        writer.WriteNumber("distributedType", TypeId(parameter.DistributedType));
+                        writer.WriteBoolean("distributed"u8, parameter!.IsDistributed);
+                        writer.WriteNumber("default"u8, TypeId(parameter.ResolvedDefaultType));
+                        writer.WriteNumber("distributedType"u8, TypeId(parameter.DistributedType));
                         break;
                     case IndexType index:
-                        writer.WriteNumber("target", TypeId(index.Target));
-                        writer.WriteNumber("indexFlags", (uint)index.IndexFlags);
+                        writer.WriteNumber("target"u8, TypeId(index.Target));
+                        writer.WriteNumber("indexFlags"u8, (uint)index.IndexFlags);
                         break;
                     case IndexedAccessType indexed:
-                        writer.WriteNumber("object", TypeId(indexed.ObjectType));
-                        writer.WriteNumber("index", TypeId(indexed.IndexType));
-                        writer.WriteNumber("accessFlags", (uint)indexed.AccessFlags);
+                        writer.WriteNumber("object"u8, TypeId(indexed.ObjectType));
+                        writer.WriteNumber("index"u8, TypeId(indexed.IndexType));
+                        writer.WriteNumber("accessFlags"u8, (uint)indexed.AccessFlags);
                         break;
                     case TemplateLiteralType template:
-                        writer.WriteStartArray("texts");
-                        foreach (TextSlice text in template.Texts)
-                            writer.WriteBase64StringValue(Wtf8.Encode(text));
+                        writer.WriteStartArray("texts"u8);
+                        foreach (Utf8String text in template.Texts)
+                            writer.WriteBase64StringValue(text.Span.ToArray());
                         writer.WriteEndArray();
-                        writer.WritePropertyName("parts");
+                        writer.WritePropertyName("parts"u8);
                         TypeIds(template.Types);
                         break;
                     case StringMappingType mapping:
-                        writer.WriteNumber("target", TypeId(mapping.Target));
+                        writer.WriteNumber("target"u8, TypeId(mapping.Target));
                         break;
                     case SubstitutionType substitution:
-                        writer.WriteNumber("base", TypeId(substitution.BaseType));
-                        writer.WriteNumber("constraint", TypeId(substitution.Constraint));
+                        writer.WriteNumber("base"u8, TypeId(substitution.BaseType));
+                        writer.WriteNumber("constraint"u8, TypeId(substitution.Constraint));
                         break;
                     case ConditionalType conditional:
-                        writer.WriteStartArray("root");
+                        writer.WriteStartArray("root"u8);
                         writer.WriteNumberValue(Node(conditional.Root.Node));
                         writer.WriteNumberValue(TypeId(conditional.Root.CheckType));
                         writer.WriteNumberValue(TypeId(conditional.Root.ExtendsType));
@@ -2282,22 +2282,22 @@ internal static class CheckerProgramTests
                         TypeIds(OrderedInferences(conditional.Root.OuterTypeParameters));
                         TypeIds(OrderedInferences(conditional.Root.InferTypeParameters));
                         writer.WriteEndArray();
-                        writer.WriteNumber("check", TypeId(conditional.CheckType));
-                        writer.WriteNumber("extends", TypeId(conditional.ExtendsType));
-                        writer.WriteNumber("true", TypeId(conditional.ResolvedTrueType));
-                        writer.WriteNumber("false", TypeId(conditional.ResolvedFalseType));
-                        writer.WriteNumber("inferredTrue", TypeId(conditional.ResolvedInferredTrueType));
-                        writer.WriteNumber("defaultConstraint", TypeId(conditional.ResolvedDefaultConstraint));
-                        writer.WriteNumber("distributiveConstraint", TypeId(conditional.ResolvedConstraintOfDistributive));
+                        writer.WriteNumber("check"u8, TypeId(conditional.CheckType));
+                        writer.WriteNumber("extends"u8, TypeId(conditional.ExtendsType));
+                        writer.WriteNumber("true"u8, TypeId(conditional.ResolvedTrueType));
+                        writer.WriteNumber("false"u8, TypeId(conditional.ResolvedFalseType));
+                        writer.WriteNumber("inferredTrue"u8, TypeId(conditional.ResolvedInferredTrueType));
+                        writer.WriteNumber("defaultConstraint"u8, TypeId(conditional.ResolvedDefaultConstraint));
+                        writer.WriteNumber("distributiveConstraint"u8, TypeId(conditional.ResolvedConstraintOfDistributive));
                         break;
                 }
                 if (type is TypeReference referenceType)
-                    writer.WriteNumber("node", Node(referenceType.Node));
+                    writer.WriteNumber("node"u8, Node(referenceType.Node));
                 if (type is InstantiationExpressionType instantiatedExpression)
-                    writer.WriteNumber("node", Node(instantiatedExpression.Node));
+                    writer.WriteNumber("node"u8, Node(instantiatedExpression.Node));
                 if (type is TupleType tuple)
                 {
-                    writer.WriteStartArray("tuple");
+                    writer.WriteStartArray("tuple"u8);
                     writer.WriteStartArray();
                     foreach (var info in tuple.ElementInfos)
                     {
@@ -2315,14 +2315,14 @@ internal static class CheckerProgramTests
                 }
                 if (type is MappedType mapped)
                 {
-                    writer.WriteNumber("parameter", TypeId(mapped.TypeParameter));
-                    writer.WriteNumber("constraint", TypeId(mapped.ConstraintType));
-                    writer.WriteNumber("template", TypeId(mapped.TemplateType));
-                    writer.WriteNumber("name", TypeId(mapped.NameType));
+                    writer.WriteNumber("parameter"u8, TypeId(mapped.TypeParameter));
+                    writer.WriteNumber("constraint"u8, TypeId(mapped.ConstraintType));
+                    writer.WriteNumber("template"u8, TypeId(mapped.TemplateType));
+                    writer.WriteNumber("name"u8, TypeId(mapped.NameType));
                 }
                 if (type is ReverseMappedType reverse)
                 {
-                    writer.WriteStartArray("reverse");
+                    writer.WriteStartArray("reverse"u8);
                     writer.WriteNumberValue(TypeId(reverse.Source));
                     writer.WriteNumberValue(TypeId(reverse.MappedType));
                     writer.WriteNumberValue(TypeId(reverse.ConstraintType));
@@ -2333,9 +2333,9 @@ internal static class CheckerProgramTests
             writer.WriteEndArray();
         }
         writer.WriteEndArray();
-        if (input.TryGetProperty("access", out var accessState) && accessState.GetBoolean())
+        if (input.TryGetProperty("access"u8, out var accessState) && accessState.GetBoolean())
         {
-            writer.WriteStartArray("privateReferences");
+            writer.WriteStartArray("privateReferences"u8);
             for (int i = 0; i < symbols.Count; i++)
             {
                 var symbol = symbols[i];
@@ -2350,7 +2350,7 @@ internal static class CheckerProgramTests
             }
             writer.WriteEndArray();
         }
-        writer.WriteStartArray("symbols");
+        writer.WriteStartArray("symbols"u8);
         for (int i = 0; i < symbols.Count; i++)
         {
             var symbol = symbols[i];
@@ -2369,7 +2369,7 @@ internal static class CheckerProgramTests
             writer.WriteEndArray();
         }
         writer.WriteEndArray();
-        writer.WriteStartArray("diagnostics");
+        writer.WriteStartArray("diagnostics"u8);
         IEnumerable<DiagnosticCode> diagnostics = host.Diagnostics;
         if (typeHost is not null)
             diagnostics = diagnostics.Concat(typeHost.Diagnostics).Concat(typeHost.Instantiation.Diagnostics)
@@ -2379,31 +2379,31 @@ internal static class CheckerProgramTests
         writer.WriteEndArray();
         if (identifierOption.ValueKind == JsonValueKind.True)
         {
-            writer.WriteStartArray("assignmentHints");
+            writer.WriteStartArray("assignmentHints"u8);
             foreach (DiagnosticCode code in typeHost!.AssignmentHints.Select(
                 h => h.Construct
                     ? DiagnosticCode.DidYouMeanToUseNewWithThisExpression
                     : DiagnosticCode.DidYouMeanToCallThisExpression).Order())
                 writer.WriteNumberValue((int)code);
             writer.WriteEndArray();
-            writer.WriteStartArray("identifierSuggestions");
+            writer.WriteStartArray("identifierSuggestions"u8);
             foreach (int code in host.ValueSuggestions.Concat(typeHost!.Suggestions).Order())
                 writer.WriteNumberValue(code);
             writer.WriteEndArray();
         }
-        if (input.TryGetProperty("identifiers", out var instantiationOption) && instantiationOption.GetBoolean())
+        if (input.TryGetProperty("identifiers"u8, out var instantiationOption) && instantiationOption.GetBoolean())
         {
-            writer.WriteStartArray("instantiationErrors");
+            writer.WriteStartArray("instantiationErrors"u8);
             foreach (var error in typeHost!.InstantiationErrors.OrderBy(p => Node(p.Key)))
                 writer.WriteStringValue(error.Value.Span);
             writer.WriteEndArray();
         }
-        if (input.TryGetProperty("numberStrings", out var numberStrings))
+        if (input.TryGetProperty("numberStrings"u8, out var numberStrings))
         {
-            writer.WriteStartArray("numberStrings");
+            writer.WriteStartArray("numberStrings"u8);
             foreach (var item in numberStrings.EnumerateArray())
             {
-                double number = TypeScript.Compiler.Semantics.JsNumber.FromString(Wtf8.DecodeString(item.GetBytesFromBase64()));
+                double number = TypeScript.Compiler.Semantics.JsNumber.FromString(item.GetBytesFromBase64());
                 writer.WriteStringValue(
                     double.IsNaN(number) ? "nan" : BitConverter.DoubleToUInt64Bits(number).ToString("x16", CultureInfo.InvariantCulture));
             }

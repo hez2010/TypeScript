@@ -11,18 +11,18 @@ internal interface IModuleExportHost
 {
     ValueTask<Symbol?> ExportStarModuleAsync(ExportDeclarationNode declaration, CancellationToken cancellation);
 
-    void AmbiguousExport(ExportDeclarationNode declaration, TextSlice earlierSpecifierText, TextSlice name);
+    void AmbiguousExport(ExportDeclarationNode declaration, Utf8String earlierSpecifierText, Utf8String name);
 }
 
 internal sealed class ModuleExports(CheckerLinks links, AliasResolver aliases, AliasTargets targets, IModuleExportHost host)
 {
-    private sealed class Collision(TextSlice specifier)
+    private sealed class Collision(Utf8String specifier)
     {
-        internal TextSlice Specifier { get; } = specifier;
+        internal Utf8String Specifier { get; } = specifier;
         internal List<ExportDeclarationNode> Duplicates { get; } = [];
     }
 
-    internal async ValueTask<IReadOnlyDictionary<TextSlice, Symbol>> ResolveAsync(Symbol module, CancellationToken cancellation = default)
+    internal async ValueTask<IReadOnlyDictionary<Utf8String, Symbol>> ResolveAsync(Symbol module, CancellationToken cancellation = default)
     {
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
             ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
@@ -31,45 +31,45 @@ internal sealed class ModuleExports(CheckerLinks links, AliasResolver aliases, A
         if (data.ResolvedExports is { } cached)
             return cached;
         var visited = new HashSet<Symbol>(ReferenceEqualityComparer.Instance);
-        var nonTypeOnlyNames = new HashSet<TextSlice>();
-        var typeOnly = new Dictionary<TextSlice, SyntaxNode>(TextSliceComparer.Ordinal);
+        var nonTypeOnlyNames = new HashSet<Utf8String>();
+        var typeOnly = new Dictionary<Utf8String, SyntaxNode>(Utf8StringComparer.Ordinal);
         Symbol? original = null;
         if (await aliases.SymbolAsync(
-            module.Exports.GetValueOrDefault("export="),
+            module.Exports.GetValueOrDefault(Utf8Literals.ExportEquals),
             cancellation: cancellation).ConfigureAwait(false) is not null)
             original = module;
         var resolved = await targets.ExternalModuleAsync(module, false, cancellation).ConfigureAwait(false);
-        var exports = await VisitAsync(resolved, null, false).ConfigureAwait(false) ?? new(TextSliceComparer.Ordinal);
+        var exports = await VisitAsync(resolved, null, false).ConfigureAwait(false) ?? new(Utf8StringComparer.Ordinal);
         if (original is { Exports.Count: > 1 })
             foreach (var symbol in original.Exports.Values)
             {
-                if (symbol.Name.Span is "export=" || symbol.Name == Symbol.InternalPrefix + "export")
+                if (symbol.Name.Span.SequenceEqual("export="u8) || symbol.Name == Symbol.InternalExport)
                     continue;
                 var flags = await aliases.FlagsAsync(symbol, cancellation: cancellation).ConfigureAwait(false);
                 if ((flags & (S.Type | S.Namespace)) != 0 && (flags & S.Value) == 0)
                     exports.TryAdd(symbol.Name, symbol);
             }
-        foreach (TextSlice name in nonTypeOnlyNames)
+        foreach (Utf8String name in nonTypeOnlyNames)
             typeOnly.Remove(name);
         cancellation.ThrowIfCancellationRequested();
         data.TypeOnlyExportStars = typeOnly.AsReadOnly();
         return data.ResolvedExports = exports.AsReadOnly();
 
-        async ValueTask<Dictionary<TextSlice, Symbol>?> VisitAsync(Symbol? symbol, ExportDeclarationNode? exportStar, bool isTypeOnly)
+        async ValueTask<Dictionary<Utf8String, Symbol>?> VisitAsync(Symbol? symbol, ExportDeclarationNode? exportStar, bool isTypeOnly)
         {
             await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
                 ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
             cancellation.ThrowIfCancellationRequested();
             if (!isTypeOnly && symbol is not null)
-                foreach (TextSlice name in symbol.Exports.Keys)
+                foreach (Utf8String name in symbol.Exports.Keys)
                     nonTypeOnlyNames.Add(name);
             if (symbol is null || !visited.Add(symbol))
                 return null;
-            var result = new Dictionary<TextSlice, Symbol>(symbol.Exports, TextSliceComparer.Ordinal);
-            if (symbol.Exports.TryGetValue(Symbol.InternalPrefix + "export", out var stars))
+            var result = new Dictionary<Utf8String, Symbol>(symbol.Exports, Utf8StringComparer.Ordinal);
+            if (symbol.Exports.TryGetValue(Symbol.InternalExport, out var stars))
             {
-                var nested = new Dictionary<TextSlice, Symbol>();
-                var collisions = new Dictionary<TextSlice, Collision>(TextSliceComparer.Ordinal);
+                var nested = new Dictionary<Utf8String, Symbol>();
+                var collisions = new Dictionary<Utf8String, Collision>(Utf8StringComparer.Ordinal);
                 foreach (var declaration in stars.Declarations.Cast<ExportDeclarationNode>())
                 {
                     var imported = await host.ExportStarModuleAsync(declaration, cancellation).ConfigureAwait(false);
@@ -77,26 +77,26 @@ internal sealed class ModuleExports(CheckerLinks links, AliasResolver aliases, A
                     await ExtendAsync(nested, members, collisions, declaration).ConfigureAwait(false);
                 }
                 foreach (var (name, collision) in collisions)
-                    if (name != "export=" && !result.ContainsKey(name))
+                    if (name != Utf8Literals.ExportEquals && !result.ContainsKey(name))
                         foreach (var declaration in collision.Duplicates)
                             host.AmbiguousExport(declaration, collision.Specifier, name);
                 await ExtendAsync(result, nested, null, null).ConfigureAwait(false);
             }
             if (exportStar is { IsTypeOnly: true })
-                foreach (TextSlice name in result.Keys)
+                foreach (Utf8String name in result.Keys)
                     typeOnly[name] = exportStar;
             return result;
         }
 
-        async ValueTask ExtendAsync(Dictionary<TextSlice, Symbol> target, Dictionary<TextSlice, Symbol>? source,
-            Dictionary<TextSlice, Collision>? collisions, ExportDeclarationNode? declaration)
+        async ValueTask ExtendAsync(Dictionary<Utf8String, Symbol> target, Dictionary<Utf8String, Symbol>? source,
+            Dictionary<Utf8String, Collision>? collisions, ExportDeclarationNode? declaration)
         {
             if (source is null)
                 return;
             foreach (var (name, sourceSymbol) in source)
             {
                 cancellation.ThrowIfCancellationRequested();
-                if (name == "default")
+                if (name == Utf8Literals.Default)
                     continue;
                 if (!target.TryGetValue(name, out var existing))
                 {
@@ -112,31 +112,30 @@ internal sealed class ModuleExports(CheckerLinks links, AliasResolver aliases, A
         }
     }
 
-    internal SyntaxNode? TypeOnlyStar(Symbol module, TextSlice name) => links.Modules.Get(module).TypeOnlyExportStars?.GetValueOrDefault(name);
+    internal SyntaxNode? TypeOnlyStar(Symbol module, Utf8String name) => links.Modules.Get(module).TypeOnlyExportStars?.GetValueOrDefault(name);
 
-    internal async ValueTask<Symbol?> ExportAsync(Symbol module, TextSlice name, SyntaxNode? declaration,
+    internal async ValueTask<Symbol?> ExportAsync(Symbol module, Utf8String name, SyntaxNode? declaration,
         bool dontResolveAlias = false, CancellationToken cancellation = default)
     {
         if ((module.Flags & S.Module) == 0)
             return null;
-        TextSlice key = name.Span.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal) ? TextSlice.Concat(Symbol.InternalPrefix, name) : name;
         var exports = await ResolveAsync(module, cancellation).ConfigureAwait(false);
-        var result = await aliases.SymbolAsync(exports.GetValueOrDefault(key), dontResolveAlias, cancellation).ConfigureAwait(false);
-        aliases.MarkTypeOnly(declaration, TypeOnlyStar(module, key));
+        var result = await aliases.SymbolAsync(exports.GetValueOrDefault(name), dontResolveAlias, cancellation).ConfigureAwait(false);
+        aliases.MarkTypeOnly(declaration, TypeOnlyStar(module, name));
         return result;
     }
 
-    private static TextSlice SpecifierText(SyntaxNode node)
+    private static Utf8String SpecifierText(SyntaxNode node)
     {
         var file = SemanticSyntax.Source(node) ?? throw new InvalidOperationException("Export specifier has no source file");
         // Skip trivia while retaining the original quote style and escape text.
-        int start = file.Source.ToUtf16Position(node.Pos);
+        int start = node.Pos;
         var scanner = new Scanner(file.Source);
-        scanner.Rewind(new(start, start, start, SyntaxKind.Unknown, "", 0, 0, 0, 0));
+        scanner.Rewind(new(start, start, start, SyntaxKind.Unknown, Utf8String.Empty, 0, 0, 0, 0));
         scanner.Scan();
-        var text = file.Source.Text[scanner.TokenStart..file.Source.ToUtf16Position(node.End)];
+        var text = file.Source.Text[scanner.TokenStart..node.End];
         if ((node.Flags & NodeFlags.ReparserTransformedLiteral) != 0 && node is StringLiteralNode literal)
-            return (literal.TokenFlags & TokenFlags.SingleQuote) != 0 ? TextSlice.Concat("'", text, "'") : TextSlice.Concat("\"", text, "\"");
+            return (literal.TokenFlags & TokenFlags.SingleQuote) != 0 ? Utf8String.Concat("'"u8, text, "'"u8) : Utf8String.Concat("\""u8, text, "\""u8);
         return text;
     }
 }

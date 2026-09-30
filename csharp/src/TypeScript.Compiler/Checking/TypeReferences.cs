@@ -34,7 +34,7 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
     DeclaredTypes declared, EntityNames names, AliasResolver aliases, TypeAlgebra algebra, TypeConstraints constraints,
     TypeInstantiation instantiation, ObjectInstantiation objects, TypeResolutionStack resolutions, ITypeReferenceHost host)
 {
-    private readonly Dictionary<TextSlice, Symbol> unresolved = new();
+    private readonly Dictionary<Utf8String, Symbol> unresolved = new();
     private readonly Dictionary<TypeCacheKey, Type> errors = [];
 
     internal async ValueTask<Type> FromNodeAsync(SyntaxNode node, CancellationToken cancellation = default)
@@ -42,7 +42,7 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
         cancellation.ThrowIfCancellationRequested();
         if (node is ImportTypeNode import)
             return await host.ImportTypeAsync(import, cancellation).ConfigureAwait(false);
-        if (node is TypeReferenceNode { TypeName: IdentifierNode { Text.Span: "const" }, TypeArguments: null or { Count: 0 } }
+        if (node is TypeReferenceNode { TypeName: IdentifierNode { Text.Span: var matchedText }, TypeArguments: null or { Count: 0 } } && matchedText.SequenceEqual("const"u8)
             && node.Parent is AsExpressionNode or TypeAssertionNode)
         {
             var expression = node.Parent is AsExpressionNode assertion ? assertion.Expression : ((TypeAssertionNode)node.Parent).Expression;
@@ -86,7 +86,7 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
 
     internal Symbol Unresolved(SyntaxNode name)
     {
-        var segments = new Stack<TextSlice>();
+        var segments = new Stack<Utf8String>();
         while (true)
         {
             if (name is QualifiedNameNode qualified)
@@ -106,8 +106,8 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
             }
         }
         Symbol? parent = null;
-        TextSlice path = "";
-        while (segments.TryPop(out TextSlice text))
+        Utf8String path = default;
+        while (segments.TryPop(out Utf8String text))
         {
             if (text.Length == 0)
             {
@@ -115,7 +115,7 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
                 path = parent.Name;
                 continue;
             }
-            path = parent is null ? text : TextSlice.Concat(path, ".", text);
+            path = parent is null ? text : Utf8String.Concat(path, "."u8, text);
             if (!unresolved.TryGetValue(path, out var symbol))
             {
                 symbol = new(S.TypeAlias | S.Transient, text) { Parent = parent, CheckFlags = CheckFlags.Unresolved };
@@ -177,7 +177,7 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
             var alias = context.CreateAlias(symbol, await NodeArgumentsAsync(node, cancellation).ConfigureAwait(false));
             var key = TypeCacheKey.Instantiation([], alias, false);
             if (!errors.TryGetValue(key, out var error))
-                errors.Add(key, error = new IntrinsicType(context, TypeFlags.Any, "error") { Alias = alias });
+                errors.Add(key, error = new IntrinsicType(context, TypeFlags.Any, Utf8Literals.Error) { Alias = alias });
             return error;
         }
         var type = await declared.GetAsync(symbol, cancellation).ConfigureAwait(false);
@@ -218,9 +218,9 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
         var type = await declared.GetAsync(symbol, cancellation).ConfigureAwait(false);
         if (type == context.IntrinsicMarkerType && arguments.Count == 1)
         {
-            if (symbol.Name == "NoInfer")
+            if (symbol.Name == Utf8Literals.NoInfer)
                 return await instantiation.NoInferAsync(arguments[0], cancellation).ConfigureAwait(false);
-            if (symbol.Name.Span is "Uppercase" or "Lowercase" or "Capitalize" or "Uncapitalize")
+            if (symbol.Name.Span.SequenceEqual("Uppercase"u8) || symbol.Name.Span.SequenceEqual("Lowercase"u8) || symbol.Name.Span.SequenceEqual("Capitalize"u8) || symbol.Name.Span.SequenceEqual("Uncapitalize"u8))
                 return await algebra.StringMappingAsync(symbol, arguments[0], cancellation).ConfigureAwait(false);
         }
         var data = links.TypeAliases.Get(symbol);

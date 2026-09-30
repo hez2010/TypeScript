@@ -12,7 +12,7 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
-    internal async ValueTask<TextSlice> GetTypeDisplayAsync(Type type, SyntaxNode? enclosing = null,
+    internal async ValueTask<Utf8String> GetTypeDisplayAsync(Type type, SyntaxNode? enclosing = null,
         TypeFormatFlags flags = TypeFormatFlags.AllowUniqueESSymbolType | TypeFormatFlags.UseAliasDefinedOutsideCurrentScope,
         CancellationToken cancellation = default)
     {
@@ -21,14 +21,14 @@ internal sealed partial class Checker
         return await TypeDisplay.GetAsync(type, enclosing, flags, cancellation);
     }
 
-    internal async ValueTask<TextSlice> GetSignatureDisplayAsync(Signature signature, SyntaxNode? enclosing = null,
+    internal async ValueTask<Utf8String> GetSignatureDisplayAsync(Signature signature, SyntaxNode? enclosing = null,
         TypeFormatFlags flags = TypeFormatFlags.None, CancellationToken cancellation = default)
     {
         using var query = await EnterQueryAsync(enclosing, cancellation);
         return await TypeDisplay.GetSignatureAsync(signature, enclosing, flags, cancellation);
     }
 
-    internal async ValueTask<TextSlice> GetPredicateDisplayAsync(TypePredicate predicate, SyntaxNode? enclosing = null,
+    internal async ValueTask<Utf8String> GetPredicateDisplayAsync(TypePredicate predicate, SyntaxNode? enclosing = null,
         TypeFormatFlags flags = TypeFormatFlags.UseAliasDefinedOutsideCurrentScope, CancellationToken cancellation = default)
     {
         using var query = await EnterQueryAsync(enclosing, cancellation);
@@ -37,7 +37,7 @@ internal sealed partial class Checker
         return await TypeDisplay.GetPredicateAsync(predicate, enclosing, flags, cancellation);
     }
 
-    private ValueTask<TextSlice> DiagnosticTypeSyntaxAsync(
+    private ValueTask<Utf8String> DiagnosticTypeSyntaxAsync(
         Type type,
         SyntaxNode? enclosing,
         NodeBuilderFlags flags,
@@ -45,7 +45,7 @@ internal sealed partial class Checker
         => DiagnosticSyntaxAsync(enclosing, flags, false,
             state => TypeSyntaxAsync(type, state, cancellation, (flags & NodeBuilderFlags.InTypeAlias) != 0), cancellation);
 
-    private ValueTask<TextSlice> DiagnosticSignatureSyntaxAsync(Signature signature, SyntaxNode? enclosing, TypeFormatFlags flags,
+    private ValueTask<Utf8String> DiagnosticSignatureSyntaxAsync(Signature signature, SyntaxNode? enclosing, TypeFormatFlags flags,
         CancellationToken cancellation)
     {
         bool construct = (signature.Flags & SignatureFlags.Construct) != 0 && (flags & TypeFormatFlags.WriteCallStyleSignature) == 0;
@@ -56,14 +56,14 @@ internal sealed partial class Checker
             state => SignatureSyntaxAsync(signature, kind, state, cancellation), cancellation);
     }
 
-    private ValueTask<TextSlice> DiagnosticPredicateSyntaxAsync(TypePredicate predicate, SyntaxNode? enclosing, TypeFormatFlags flags,
+    private ValueTask<Utf8String> DiagnosticPredicateSyntaxAsync(TypePredicate predicate, SyntaxNode? enclosing, TypeFormatFlags flags,
         CancellationToken cancellation)
         => DiagnosticSyntaxAsync(
             enclosing,
             (NodeBuilderFlags)(flags & TypeFormatFlags.NodeBuilderFlagsMask) | NodeBuilderFlags.WriteTypeParametersInQualifiedName,
             false, state => PredicateTypeSyntaxAsync(predicate, state, cancellation), cancellation);
 
-    private ValueTask<TextSlice> DiagnosticSyntaxAsync(SyntaxNode? enclosing, NodeBuilderFlags flags, bool neverAsciiEscape,
+    private ValueTask<Utf8String> DiagnosticSyntaxAsync(SyntaxNode? enclosing, NodeBuilderFlags flags, bool neverAsciiEscape,
         Func<TypeSyntaxContext, ValueTask<SyntaxNode>> build, CancellationToken cancellation)
         => VisibilityOperationAsync(() => ChainOperationAsync(() => ContainerOperationAsync(async () =>
         {
@@ -135,13 +135,13 @@ internal sealed partial class Checker
         internal IReadOnlyList<TypeParameter>? InferParameters { get; set; }
     }
 
-    internal ValueTask<TextSlice> SerializeTypeSyntaxAsync(Type type, SyntaxNode? enclosing = null, bool expandAlias = false,
+    internal ValueTask<Utf8String> SerializeTypeSyntaxAsync(Type type, SyntaxNode? enclosing = null, bool expandAlias = false,
         bool aliasesOutsideScope = false, CancellationToken cancellation = default) =>
         SerializeTypeSyntaxAsync(type, enclosing, NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation
             | (expandAlias ? NodeBuilderFlags.InTypeAlias : 0)
             | (aliasesOutsideScope ? NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope : 0), cancellation);
 
-    internal ValueTask<TextSlice> SerializeTypeSyntaxAsync(Type type, SyntaxNode? enclosing, NodeBuilderFlags flags,
+    internal ValueTask<Utf8String> SerializeTypeSyntaxAsync(Type type, SyntaxNode? enclosing, NodeBuilderFlags flags,
         CancellationToken cancellation = default, INodeBuilderSymbolTracker? tracker = null,
         NodeBuilderInternalFlags internalFlags = NodeBuilderInternalFlags.None)
     {
@@ -165,7 +165,7 @@ internal sealed partial class Checker
                 (flags & NodeBuilderFlags.UseOnlyExternalAliasing) != 0, flags, tracker, internalFlags);
             var node = await TypeSyntaxAsync(type, state, cancellation, (flags & NodeBuilderFlags.InTypeAlias) != 0);
             if (!FinishTypeSyntax(state))
-                return "";
+                return Utf8String.Empty;
             return PrintDiagnosticNode(
                 node,
                 enclosing is SourceFileNode,
@@ -244,13 +244,13 @@ internal sealed partial class Checker
         {
             SyntaxNode value = literal.Value switch
             {
-                TextSlice text => f.NewStringLiteral(text, (state.Flags & NodeBuilderFlags.UseSingleQuotesForStringLiteralType) != 0
+                Utf8String text => f.NewStringLiteral(text, (state.Flags & NodeBuilderFlags.UseSingleQuotesForStringLiteralType) != 0
                     ? TokenFlags.SingleQuote : TokenFlags.None),
                 double number when number < 0 => f.NewPrefixUnaryExpression(
                     K.MinusToken,
                     f.NewNumericLiteral(TokenFacts.NumberText(number)[1..], TokenFlags.None)),
                 double number => f.NewNumericLiteral(TokenFacts.NumberText(number), TokenFlags.None),
-                BigInteger integer => f.NewBigIntLiteral(TextSlice.Concat(TextSlice.Format(integer), "n"), TokenFlags.None),
+                BigInteger integer => f.NewBigIntLiteral(Utf8String.Concat(Utf8String.Format(integer), "n"u8), TokenFlags.None),
                 bool boolean => f.NewKeywordExpression(boolean ? K.TrueKeyword : K.FalseKeyword),
                 _ => throw new InvalidOperationException("Unexpected literal type")
             };
@@ -357,7 +357,7 @@ internal sealed partial class Checker
             }
             if (type is TypeParameter inferredParameter && state.InferParameters?.Contains(inferredParameter) == true)
             {
-                state.Length.Add(inferredParameter.Symbol?.Name ?? "", 6);
+                state.Length.Add(inferredParameter.Symbol?.Name ?? Utf8String.Empty, 6);
                 SyntaxNode? constraintNode = null;
                 if (await Instantiation.Constraints.ConstraintAsync(inferredParameter, cancellation) is { } constraint)
                 {
@@ -376,7 +376,7 @@ internal sealed partial class Checker
             {
                 if (type is TypeParameter parameter && state.ParameterNames is not null)
                 {
-                    TextSlice name = TypeSyntaxParameterName(parameter, state, cancellation);
+                    Utf8String name = TypeSyntaxParameterName(parameter, state, cancellation);
                     state.Length.Add(name);
                     return f.NewTypeReferenceNode(f.NewIdentifier(name), null);
                 }
@@ -390,7 +390,7 @@ internal sealed partial class Checker
                     : f.NewTypeReferenceNode(f.NewIdentifier(
                         (type == context.VarianceCheckSub || type == context.VarianceCheckSuper)
                             && VarianceTypeParameter?.Symbol is { } variance
-                            ? TextSlice.Concat((type == context.VarianceCheckSub ? "sub-" : "super-"), Symbol.EscapeName(variance.Name)) : "?"), null);
+                            ? Utf8String.Concat(type == context.VarianceCheckSub ? "sub-"u8 : "super-"u8, Symbol.EscapeName(variance.Name)) : Utf8Literals.QuestionMark), null);
             }
             if (type is UnionType { Origin: { } origin })
                 type = origin;
@@ -425,14 +425,14 @@ internal sealed partial class Checker
             }
             if (type is TemplateLiteralType template)
             {
-                var head = f.NewTemplateHead(template.Texts[0], "", TokenFlags.None);
+                var head = f.NewTemplateHead(template.Texts[0], Utf8String.Empty, TokenFlags.None);
                 state.NoAsciiEscape.Add(head);
                 var spans = new List<SyntaxNode>();
                 for (int i = 0; i < template.Types.Count; i++)
                 {
                     SyntaxNode text = i == template.Types.Count - 1
-                        ? f.NewTemplateTail(template.Texts[i + 1], "", TokenFlags.None)
-                        : f.NewTemplateMiddle(template.Texts[i + 1], "", TokenFlags.None);
+                        ? f.NewTemplateTail(template.Texts[i + 1], Utf8String.Empty, TokenFlags.None)
+                        : f.NewTemplateMiddle(template.Texts[i + 1], Utf8String.Empty, TokenFlags.None);
                     state.NoAsciiEscape.Add(text);
                     spans.Add(f.NewTemplateLiteralTypeSpan(await TypeSyntaxAsync(template.Types[i], state, cancellation), text));
                 }
@@ -450,7 +450,7 @@ internal sealed partial class Checker
             if (type is SubstitutionType substitution)
             {
                 var node = await TypeSyntaxAsync(substitution.BaseType, state, cancellation);
-                return substitution.Constraint == context.UnknownType && program.Symbols.Globals.GetValueOrDefault("NoInfer") is { } noInfer
+                return substitution.Constraint == context.UnknownType && program.Symbols.Globals.GetValueOrDefault(Utf8Literals.NoInfer) is { } noInfer
                     ? await SymbolTypeNodeAsync(noInfer, SymbolFlags.Type, new([node]), state.Symbols, false, cancellation) : node;
             }
             if (type is ConditionalType conditional)
@@ -540,7 +540,7 @@ internal sealed partial class Checker
                     ElidedTypeSyntax(state, types.Count - 2, false), await TypeSyntaxAsync(types[^1], state, cancellation)]);
         }
         var nodes = new List<SyntaxNode>();
-        Dictionary<TextSlice, List<(Type Type, int Index)>>? names = state.Symbols.FullyQualified ? null : new(TextSliceComparer.Ordinal);
+        Dictionary<Utf8String, List<(Type Type, int Index)>>? names = state.Symbols.FullyQualified ? null : new(Utf8StringComparer.Ordinal);
         for (int i = 0; i < types.Count; i++)
         {
             if (state.Length.Truncated() && i + 3 < types.Count - 1)
@@ -602,7 +602,7 @@ internal sealed partial class Checker
         {
             if (preserveHomomorphic)
             {
-                var variable = context.NewTypeParameter(new Symbol(SymbolFlags.TypeParameter, "T"));
+                var variable = context.NewTypeParameter(new Symbol(SymbolFlags.TypeParameter, Utf8Literals.T));
                 newVariable = f.NewTypeReferenceNode(f.NewIdentifier(TypeSyntaxParameterName(variable, state, cancellation)), null);
                 var targetMap = (MappedType)type.Target!;
                 var mapper = TypeMapper.Create([await Instantiation.Mapped.ParameterAsync(targetMap, cancellation),
@@ -618,7 +618,7 @@ internal sealed partial class Checker
         }
         else if (preserveModifiers)
         {
-            var variable = context.NewTypeParameter(new Symbol(SymbolFlags.TypeParameter, "T"));
+            var variable = context.NewTypeParameter(new Symbol(SymbolFlags.TypeParameter, Utf8Literals.T));
             constraint = newVariable = f.NewTypeReferenceNode(
                 f.NewIdentifier(TypeSyntaxParameterName(variable, state, cancellation)),
                 null);
@@ -680,8 +680,8 @@ internal sealed partial class Checker
         TypeSyntaxContext state, CancellationToken cancellation)
     {
         var f = state.Factory;
-        var parameter = context.NewTypeParameter(new Symbol(SymbolFlags.TypeParameter, "T"));
-        TextSlice name = TypeSyntaxParameterName(parameter, state, cancellation);
+        var parameter = context.NewTypeParameter(new Symbol(SymbolFlags.TypeParameter, Utf8Literals.T));
+        Utf8String name = TypeSyntaxParameterName(parameter, state, cancellation);
         state.Length.Add(37);
         var mapper = TypeMapper.Prepend(type.Root.CheckType, parameter, type.Mapper);
         var previous = state.InferParameters;
@@ -729,7 +729,7 @@ internal sealed partial class Checker
             foreach (var kind in new[] { K.ConstKeyword, K.InKeyword, K.OutKeyword })
                 if (parameter.Symbol?.Declarations.Any(d => SemanticSyntax.HasModifier(d, kind)) == true)
                     modifiers.Add(f.NewToken(kind));
-            TextSlice name = TypeSyntaxParameterName(parameter, state, cancellation);
+            Utf8String name = TypeSyntaxParameterName(parameter, state, cancellation);
             var defaultType = await Instantiation.Constraints.DefaultAsync(parameter, cancellation);
             return f.NewTypeParameterDeclaration(
                 modifiers.Count == 0 ? null : new(modifiers.ToArray()),
@@ -755,7 +755,7 @@ internal sealed partial class Checker
             && state.Length.Truncated())
         {
             members.Add(state.Length.NoTruncation ? f.NewNotEmittedTypeElement()
-                : f.NewPropertySignatureDeclaration(null, f.NewIdentifier("..."), null, null, null));
+                : f.NewPropertySignatureDeclaration(null, f.NewIdentifier(Utf8Literals.Ellipsis), null, null, null));
             return Finish();
         }
         foreach (var signature in type.CallSignatures)
@@ -774,7 +774,7 @@ internal sealed partial class Checker
                 if (!state.Length.NoTruncation)
                     members.Add(f.NewPropertySignatureDeclaration(null,
                         f.NewIdentifier(
-                            TextSlice.Concat("... ", TextSlice.Format((properties.Count - propertyIndex - 1)), " more ...")),
+                            Utf8String.Concat("... "u8, Utf8String.Format(properties.Count - propertyIndex - 1), " more ..."u8)),
                         null, null, null));
                 propertyIndex = properties.Count - 1;
             }
@@ -847,8 +847,8 @@ internal sealed partial class Checker
                         cancellation) is TypeQueryNode query)
                     computedName = f.NewComputedPropertyName(query.ExprName);
             }
-            TextSlice name = property.Name;
-            if (nameType is LiteralType { Value: TextSlice text })
+            Utf8String name = property.Name;
+            if (nameType is LiteralType { Value: Utf8String text })
                 name = text;
             else if (nameType is LiteralType { Value: double number })
                 name = TokenFacts.NumberText(number);
@@ -873,7 +873,7 @@ internal sealed partial class Checker
                 propertyName = f.NewIdentifier(name);
             else if (!stringNamed && TokenFacts.NumberText(JsNumber.FromString(name)) == name && JsNumber.FromString(name) >= 0)
                 propertyName = f.NewNumericLiteral(name, TokenFlags.None);
-            else if (nameType is LiteralType && name.Span.StartsWith('-') && TokenFacts.NumberText(JsNumber.FromString(name)) == name)
+            else if (nameType is LiteralType && name.Span.StartsWith((byte)'-') && TokenFacts.NumberText(JsNumber.FromString(name)) == name)
                 propertyName = f.NewComputedPropertyName(
                     f.NewPrefixUnaryExpression(K.MinusToken, f.NewNumericLiteral(name[1..], TokenFlags.None)));
             else
@@ -995,9 +995,9 @@ internal sealed partial class Checker
         var arguments = await References.TypeArgumentsAsync(reference, cancellation);
         if (IsArray(reference) && arguments.Count != 0)
         {
-            bool readOnly = reference.Target != program.Globals.Types["Array"];
+            bool readOnly = reference.Target != program.Globals.Types[Utf8Literals.Array];
             if ((state.Flags & NodeBuilderFlags.WriteArrayAsGenericType) != 0)
-                return f.NewTypeReferenceNode(f.NewIdentifier(readOnly ? "ReadonlyArray" : "Array"),
+                return f.NewTypeReferenceNode(f.NewIdentifier(readOnly ? Utf8Literals.ReadonlyArray : Utf8Literals.Array),
                     new([await TypeSyntaxAsync(arguments[0], state, cancellation)]));
             var array = f.NewArrayTypeNode(ParenthesizeType(await TypeSyntaxAsync(arguments[0], state, cancellation), f, postfix: true));
             return readOnly ? f.NewTypeOperatorNode(K.ReadonlyKeyword, array) : array;
@@ -1034,7 +1034,7 @@ internal sealed partial class Checker
         if (reference.Target is not InterfaceType target || reference.Symbol is null)
             throw new InvalidOperationException("Unnamed type reference");
         int count = target.AllTypeParameters.Count - (target.ThisType is null ? 0 : 1);
-        if (target.Symbol is { Name.Span: "Iterable" or "IterableIterator" or "AsyncIterable" or "AsyncIterableIterator" } iterable
+        if (target.Symbol is { Name.Span: var matchedText } iterable && (matchedText.SequenceEqual("Iterable"u8) || matchedText.SequenceEqual("IterableIterator"u8) || matchedText.SequenceEqual("AsyncIterable"u8) || matchedText.SequenceEqual("AsyncIterableIterator"u8))
             && program.Symbols.Lookup(program.Symbols.Globals, iterable.Name, SymbolFlags.Type) == iterable
             && (reference.Node is not TypeReferenceNode { TypeArguments: { } supplied } || supplied.Count < count))
             while (count > target.OuterTypeParameterCount

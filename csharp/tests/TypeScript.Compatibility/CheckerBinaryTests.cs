@@ -21,20 +21,20 @@ internal static class CheckerBinaryTests
                 throw new InvalidOperationException($"Binary assertion {checks + 1}");
             checks++;
         }
-        const string source = "interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}interface Promise<T>{then(cb:(value:T)=>unknown):unknown}interface Late{then(cb:(value:number)=>void):void}interface Loop{then(cb:(value:Loop)=>void):void}interface Bad{then():void}interface Receiver{then(this:string,cb:(value:number)=>void):void}type Nested=Promise<Late>;";
+        Utf8String source = "interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}interface Promise<T>{then(cb:(value:T)=>unknown):unknown}interface Late{then(cb:(value:number)=>void):void}interface Loop{then(cb:(value:Loop)=>void):void}interface Bad{then():void}interface Receiver{then(this:string,cb:(value:number)=>void):void}type Nested=Promise<Late>;"u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/main.ts"] = Wtf8.Encode(source) }),
-            "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/main.ts"u8] = source.Span.ToArray() }),
+            "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
         var scope = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
         var host = new Checker(context, links, scope);
-        var nested = await host.Declared.GetAsync(symbols.Globals["Nested"]);
+        var nested = await host.Declared.GetAsync(symbols.Globals["Nested"u8]);
         host.BeforeNode = _ => throw new OperationCanceledException();
         try
         {
@@ -49,21 +49,21 @@ internal static class CheckerBinaryTests
         host.BeforeNode = null;
         Check(await host.Awaited.NoAliasAsync(nested) == context.NumberType);
         Check(await host.Awaited.NoAliasAsync(nested) == context.NumberType);
-        var loop = await host.Declared.GetAsync(symbols.Globals["Loop"]);
-        var location = symbols.Globals["Loop"].Declarations[0];
+        var loop = await host.Declared.GetAsync(symbols.Globals["Loop"u8]);
+        var location = symbols.Globals["Loop"u8].Declarations[0];
         Check(
             await host.Awaited.NoAliasAsync(loop, location) is null
                 && host.Diagnostics.Contains(
                     DiagnosticCode.TypeIsReferencedDirectlyOrIndirectlyInTheFulfillmentCallbackOfItsOwnThenMethod));
         Check(host.Awaited.StackDepth == 0);
-        var bad = await host.Declared.GetAsync(symbols.Globals["Bad"]);
+        var bad = await host.Declared.GetAsync(symbols.Globals["Bad"u8]);
         Check(await host.Awaited.ThenableAsync(bad));
         Check(
-            await host.Awaited.GetAsync(bad, errorNode: symbols.Globals["Bad"].Declarations[0]) is null
+            await host.Awaited.GetAsync(bad, errorNode: symbols.Globals["Bad"u8].Declarations[0]) is null
                 && host.Diagnostics.Contains(
                     DiagnosticCode.TypeOfAwaitOperandMustEitherBeAValidPromiseOrMustNotContainACallableThenMember));
-        var receiver = await host.Declared.GetAsync(symbols.Globals["Receiver"]);
-        var promised = await host.Awaited.PromisedAsync(receiver, symbols.Globals["Receiver"].Declarations[0]);
+        var receiver = await host.Declared.GetAsync(symbols.Globals["Receiver"u8]);
+        var promised = await host.Awaited.PromisedAsync(receiver, symbols.Globals["Receiver"u8].Declarations[0]);
         Check(
             promised.Type is null
                 && promised.ThisError == context.StringType
@@ -89,36 +89,36 @@ internal static class CheckerBinaryTests
             result.SetParents();
             return result;
         }
-        NumericLiteralNode Number(string text) => new() { Text = text };
-        Check(await host.Expressions.CheckAsync(Binary(Number("1"), SyntaxKind.PlusToken, Number("2"))) == context.NumberType);
+        NumericLiteralNode Number(Utf8String text) => new() { Text = text };
+        Check(await host.Expressions.CheckAsync(Binary(Number("1"u8), SyntaxKind.PlusToken, Number("2"u8))) == context.NumberType);
         Check(
             await host.Expressions.CheckAsync(
-                Binary(new StringLiteralNode { Text = "a" }, SyntaxKind.PlusToken, Number("2"))) == context.StringType);
+                Binary(new StringLiteralNode { Text = "a"u8 }, SyntaxKind.PlusToken, Number("2"u8))) == context.StringType);
         Check(
             await host.Expressions.CheckAsync(
                 Binary(
-                    new BigIntLiteralNode { Text = "1n" },
+                    new BigIntLiteralNode { Text = "1n"u8 },
                     SyntaxKind.AsteriskToken,
-                    new BigIntLiteralNode { Text = "2n" })) == context.BigIntType);
-        var equality = Binary(Number("1"), SyntaxKind.EqualsEqualsEqualsToken, Number("2"));
+                    new BigIntLiteralNode { Text = "2n"u8 })) == context.BigIntType);
+        var equality = Binary(Number("1"u8), SyntaxKind.EqualsEqualsEqualsToken, Number("2"u8));
         int before = host.Diagnostics.Count;
         Check(await host.Expressions.CheckAsync(equality, CheckMode.TypeOnly) == context.BooleanType && host.Diagnostics.Count == before);
         Check(
             await host.Expressions.CheckAsync(equality) == context.BooleanType
                 && host.Diagnostics.Contains(DiagnosticCode.ThisComparisonAppearsToBeUnintentionalBecauseTheTypes0And1HaveNoOverlap));
         Check(
-            await host.Expressions.CheckAsync(Binary(Number("1"), SyntaxKind.EqualsToken, Number("2"))) is LiteralType { Value: 2d }
+            await host.Expressions.CheckAsync(Binary(Number("1"u8), SyntaxKind.EqualsToken, Number("2"u8))) is LiteralType { Value: 2d }
                 && host.Diagnostics.Contains(DiagnosticCode.TheLeftHandSideOfAnAssignmentExpressionMustBeAVariableOrAPropertyAccess));
-        var coalesce = Binary(new TokenNode(SyntaxKind.NullKeyword), SyntaxKind.QuestionQuestionToken, Number("3"));
+        var coalesce = Binary(new TokenNode(SyntaxKind.NullKeyword), SyntaxKind.QuestionQuestionToken, Number("3"u8));
         Check(
             await host.Expressions.CheckAsync(coalesce) is LiteralType { Value: 3d }
                 && host.Diagnostics.Contains(DiagnosticCode.ThisExpressionIsAlwaysNullish));
         Check(await host.ExpressionChecks.NullishnessAsync(coalesce) == 2);
-        Check(BinaryExpressions.SideEffectFree(Binary(Number("1"), SyntaxKind.PlusToken, Number("2"))));
-        Check(!BinaryExpressions.SideEffectFree(Binary(Number("1"), SyntaxKind.EqualsToken, Number("2"))));
-        SyntaxNode deep = Number("1");
+        Check(BinaryExpressions.SideEffectFree(Binary(Number("1"u8), SyntaxKind.PlusToken, Number("2"u8))));
+        Check(!BinaryExpressions.SideEffectFree(Binary(Number("1"u8), SyntaxKind.EqualsToken, Number("2"u8))));
+        SyntaxNode deep = Number("1"u8);
         for (int i = 0; i < 20_000; i++)
-            deep = new BinaryExpressionNode { Left = deep, OperatorToken = new TokenNode(SyntaxKind.PlusToken), Right = Number("1") };
+            deep = new BinaryExpressionNode { Left = deep, OperatorToken = new TokenNode(SyntaxKind.PlusToken), Right = Number("1"u8) };
         Check(await host.Expressions.CheckAsync(deep) == context.NumberType);
         Check(host.Expressions.CurrentNode is null);
         Check(BinaryExpressions.SideEffectFree(deep));
@@ -129,7 +129,7 @@ internal static class CheckerBinaryTests
 
     private static async Task<int> DestructuringSafety()
     {
-        const string source = """
+        Utf8String source = """
             interface Array<T> { length: number; [n: number]: T; }
             interface ReadonlyArray<T> { readonly length: number; readonly [n: number]: T; }
             function values(input: { n?: number; label: string }, tuple: [number, string]) {
@@ -151,15 +151,15 @@ internal static class CheckerBinaryTests
             let [...tail, last] = [1];
             const [...trailing,] = [1];
             [n] = ['wrong'];
-            """;
+            """u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        options.SetRaw("noUncheckedIndexedAccess", "true");
-        options.SetRaw("target", "\"es5\"");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        options.SetRaw("noUncheckedIndexedAccess"u8, "true"u8);
+        options.SetRaw("target"u8, "\"es5\""u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/main.ts"u8] = source.Span.ToArray() }), "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
         var file = program.SourceFiles[0].Syntax;
         var nodes = file.DescendantsAndSelf().ToArray();

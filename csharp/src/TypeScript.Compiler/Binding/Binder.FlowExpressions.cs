@@ -229,7 +229,7 @@ public sealed partial class Binder
             if (node.Expression?.Kind == K.SuperKeyword)
                 currentFlow = Mutation(F.Call, node);
         }
-        if (node.Expression is PropertyAccessExpressionNode { Name: IdentifierNode { Text.Span: "push" or "unshift" } } access
+        if (node.Expression is PropertyAccessExpressionNode { Name: IdentifierNode { Text.Span: var matchedText } } access && (matchedText.SequenceEqual("push"u8) || matchedText.SequenceEqual("unshift"u8))
             && NarrowableOperand(access.Expression))
             currentFlow = Mutation(F.ArrayMutation, node);
     }

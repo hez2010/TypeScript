@@ -24,12 +24,12 @@ internal static class ResolutionTests
 
     private static void Process(JsonElement input, Utf8JsonWriter writer)
     {
-        string Text(string key, string fallback = "") => input.TryGetProperty(key, out var item) ? JsonStrings.GetString(item) : fallback;
-        string operation = Text("operation"), path = Text("path"), other = Text("other");
-        if (operation is "version" or "range")
+        Utf8String Text(Utf8String key, Utf8String fallback = default) => input.TryGetProperty(key, out var item) ? JsonStrings.GetString(item) : fallback;
+        Utf8String operation = Text("operation"u8), path = Text("path"u8), other = Text("other"u8);
+        if (operation == "version"u8 || operation == "range"u8)
         {
             writer.WriteStartArray();
-            if (operation == "version")
+            if (operation == "version"u8)
             {
                 var version = SemanticVersion.Parse(path);
                 writer.WriteBooleanValue(version is not null);
@@ -58,30 +58,30 @@ internal static class ResolutionTests
             writer.WriteEndArray();
             return;
         }
-        var files = new Dictionary<string, byte[]>();
-        if (input.TryGetProperty("files", out var fileMap))
+        var files = new Dictionary<Utf8String, byte[]>();
+        if (input.TryGetProperty("files"u8, out var fileMap))
             foreach (var file in fileMap.EnumerateObject())
-                files[JsonStrings.GetName(file)] = Wtf8.Encode(JsonStrings.GetString(file.Value));
-        var links = new Dictionary<string, string>();
-        if (input.TryGetProperty("symlinks", out var symlinks))
+                files[JsonStrings.GetName(file)] = JsonStrings.GetString(file.Value).Span.ToArray();
+        var links = new Dictionary<Utf8String, Utf8String>();
+        if (input.TryGetProperty("symlinks"u8, out var symlinks))
             foreach (var link in symlinks.EnumerateObject())
-                links[link.Name] = JsonStrings.GetString(link.Value);
-        string directory = Text("directory", "/project"), containing = Text("containingFile", directory + "/main.ts");
-        string config = directory + "/tsconfig.json";
+                links[JsonStrings.GetName(link)] = JsonStrings.GetString(link.Value);
+        Utf8String directory = Text("directory"u8, "/project"u8), containing = Text("containingFile"u8, directory + "/main.ts"u8);
+        Utf8String config = Utf8String.Concat(directory, "/tsconfig.json"u8);
         using (var configStream = new MemoryStream())
         {
             using (var configWriter = new Utf8JsonWriter(configStream))
             {
                 configWriter.WriteStartObject();
-                configWriter.WritePropertyName("compilerOptions");
-                if (input.TryGetProperty("options", out var opts))
+                configWriter.WritePropertyName("compilerOptions"u8);
+                if (input.TryGetProperty("options"u8, out var opts))
                     opts.WriteTo(configWriter);
                 else
                 {
                     configWriter.WriteStartObject();
                     configWriter.WriteEndObject();
                 }
-                configWriter.WriteStartArray("files");
+                configWriter.WriteStartArray("files"u8);
                 configWriter.WriteStringValue(containing);
                 configWriter.WriteEndArray();
                 configWriter.WriteEndObject();
@@ -90,39 +90,39 @@ internal static class ResolutionTests
         }
         var fs = new MemoryFileSystem(
             files,
-            !input.TryGetProperty("sensitive", out var sensitive) || sensitive.GetBoolean(),
+            !input.TryGetProperty("sensitive"u8, out var sensitive) || sensitive.GetBoolean(),
             directory,
             links);
         var options = new ConfigParser(fs, directory).Parse(config).Options;
         var resolver = new ModuleResolver(fs, options, directory, config,
-            extraExtensions: input.TryGetProperty("extraExtensions", out var extra)
+            extraExtensions: input.TryGetProperty("extraExtensions"u8, out var extra)
                 ? extra.EnumerateArray().Select(JsonStrings.GetString)
                 : null);
-        if (operation == "automatic")
+        if (operation == "automatic"u8)
         {
             writer.WriteStartArray();
-            foreach (string type in resolver.AutomaticTypeDirectives())
+            foreach (Utf8String type in resolver.AutomaticTypeDirectives())
                 writer.WriteStringValue(type);
             writer.WriteEndArray();
             return;
         }
-        var result = operation == "config" ? ModuleResolver.ResolveConfig(
+        var result = operation == "config"u8 ? ModuleResolver.ResolveConfig(
             fs,
             directory,
             path,
             containing) : resolver.Resolve(
             path,
             containing,
-            input.TryGetProperty("mode", out var mode) ? (ReferenceResolutionMode)mode.GetInt32() : default, operation == "types");
-        if (operation == "resolveTrace")
+            input.TryGetProperty("mode"u8, out var mode) ? (ReferenceResolutionMode)mode.GetInt32() : default, operation == "types"u8);
+        if (operation == "resolveTrace"u8)
             writer.WriteStartArray();
         writer.WriteStartArray();
         writer.WriteStringValue(result.FileName);
-        if (operation != "types")
+        if (operation != "types"u8)
             writer.WriteStringValue(result.Extension);
         writer.WriteStringValue(result.OriginalPath);
         writer.WriteBooleanValue(result.External);
-        if (operation == "types")
+        if (operation == "types"u8)
             writer.WriteBooleanValue(result.Primary);
         else
         {
@@ -130,19 +130,19 @@ internal static class ResolutionTests
             writer.WriteBooleanValue(result.UsingExtraExtension);
         }
         writer.WriteStartObject();
-        writer.WriteString("Name", result.PackageId?.Name ?? "");
-        writer.WriteString("SubModuleName", result.PackageId?.SubModuleName ?? "");
-        writer.WriteString("Version", result.PackageId?.Version ?? "");
-        writer.WriteString("PeerDependencies", result.PackageId?.PeerDependencies ?? "");
+        writer.WriteString("Name"u8, result.PackageId?.Name ?? ""u8);
+        writer.WriteString("SubModuleName"u8, result.PackageId?.SubModuleName ?? ""u8);
+        writer.WriteString("Version"u8, result.PackageId?.Version ?? ""u8);
+        writer.WriteString("PeerDependencies"u8, result.PackageId?.PeerDependencies ?? ""u8);
         writer.WriteEndObject();
-        if (operation != "types")
+        if (operation != "types"u8)
             writer.WriteStringValue(result.AlternateResult);
         writer.WriteStartArray();
         foreach (var diagnostic in result.Diagnostics)
             writer.WriteNumberValue((int)diagnostic.Code);
         writer.WriteEndArray();
         writer.WriteEndArray();
-        if (operation == "resolveTrace")
+        if (operation == "resolveTrace"u8)
         {
             writer.WriteStartArray();
             foreach (var trace in result.Trace)

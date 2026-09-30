@@ -49,10 +49,10 @@ internal sealed partial class Checker
         using var query = await EnterQueryAsync(node, cancellation);
         return access.Expression switch
         {
-            IdentifierNode { Text.Span: "Symbol" } identifier => ResolveReference(identifier, cancellation)
-                == program.Symbols.Lookup(program.Symbols.Globals, "Symbol", SymbolFlags.Value | SymbolFlags.ExportValue),
-            PropertyAccessExpressionNode { Expression: IdentifierNode { Text.Span: "globalThis" } global, Name: IdentifierNode { Text.Span: "Symbol" } }
-                => ResolveReference(global, cancellation) == program.Symbols.GlobalThisSymbol,
+            IdentifierNode { Text.Span: var matchedText } identifier when matchedText.SequenceEqual("Symbol"u8) => ResolveReference(identifier, cancellation)
+                == program.Symbols.Lookup(program.Symbols.Globals, Utf8Literals.Symbol, SymbolFlags.Value | SymbolFlags.ExportValue),
+            PropertyAccessExpressionNode { Expression: IdentifierNode { Text.Span: var matchedText2 } global, Name: IdentifierNode { Text.Span: var matchedText3 } }
+ when matchedText2.SequenceEqual("globalThis"u8) && matchedText3.SequenceEqual("Symbol"u8) => ResolveReference(global, cancellation) == program.Symbols.GlobalThisSymbol,
             _ => false
         };
     }
@@ -237,7 +237,7 @@ internal sealed partial class Checker
             && await AliasValueForEmitAsync(program.Symbols.Declaration(node), false, cancellation);
     }
 
-    internal async ValueTask<bool> IsNameResolvableForEmitAsync(SyntaxNode location, TextSlice name, CancellationToken cancellation = default)
+    internal async ValueTask<bool> IsNameResolvableForEmitAsync(SyntaxNode location, Utf8String name, CancellationToken cancellation = default)
     {
         using var query = await EnterQueryAsync(location, cancellation);
         return program.Symbols.NameResolver(cancellation).Resolve(location, name,

@@ -21,17 +21,17 @@ internal static class CheckerIdentifierTests
                 throw new InvalidOperationException($"Identifier assertion {checks + 1}");
             checks++;
         }
-        static async ValueTask<CompilerProgram> Build(string source)
+        static async ValueTask<CompilerProgram> Build(Utf8String source)
         {
             var options = new CompilerOptions();
-            options.SetRaw("noLib", "true");
-            options.SetRaw("strict", "true");
-            return await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-            { ["/project/main.ts"] = Wtf8.Encode(source) }),
-                "/project",
-                new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+            options.SetRaw("noLib"u8, "true"u8);
+            options.SetRaw("strict"u8, "true"u8);
+            return await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+            { ["/project/main.ts"u8] = source.Span.ToArray() }),
+                "/project"u8,
+                new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         }
-        const string source = "declare function __expr(value: unknown): void; function defaults(x:string|undefined='a'){__expr(x);} function unassigned(){let x:number;__expr(x);} function captured(x:string|number){x=1;const f=()=>{__expr(x);};} const fixed=1;__expr(fixed=2);";
+        Utf8String source = "declare function __expr(value: unknown): void; function defaults(x:string|undefined='a'){__expr(x);} function unassigned(){let x:number;__expr(x);} function captured(x:string|number){x=1;const f=()=>{__expr(x);};} const fixed=1;__expr(fixed=2);"u8;
         var program = await Build(source);
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
@@ -40,7 +40,7 @@ internal static class CheckerIdentifierTests
         var host = new Checker(context, links, scope);
         var nodes = program.SourceFiles[0].Syntax.DescendantsAndSelf().ToArray();
         var queries = nodes.OfType<CallExpressionNode>().Where(
-            n => n.Expression is IdentifierNode { Text: { Span: "__expr" } }).Select(n => n.Arguments![0]).ToArray();
+            n => (n.Expression is IdentifierNode { Text: { Span: var matchedText } } && matchedText.SequenceEqual("__expr"u8))).Select(n => n.Arguments![0]).ToArray();
         var parameter = nodes.OfType<ParameterDeclarationNode>().Single(n => n.Initializer is not null);
         var type = await host.Values.GetAsync(symbols.Declaration(parameter)!);
         using (var cancellation = new CancellationTokenSource())
@@ -105,11 +105,11 @@ internal static class CheckerIdentifierTests
         {
             checks++;
         }
-        var reference = new IdentifierNode { Text = "value" };
+        var reference = new IdentifierNode { Text = "value"u8 };
         SyntaxNode nested = reference;
         for (int i = 0; i < 20_000; i++)
             nested = new ParenthesizedExpressionNode { Expression = nested };
-        var property = new PropertyDeclarationNode { Name = new IdentifierNode { Text = "property" }, Initializer = nested };
+        var property = new PropertyDeclarationNode { Name = new IdentifierNode { Text = "property"u8 }, Initializer = nested };
         property.SetParents();
         Check(IdentifierTypes.PropertyInitializerOrStaticBlock(reference, true));
         Check(MissingNamePrefixes.ThisContainer(reference, false, false) == property);
@@ -120,14 +120,14 @@ internal static class CheckerIdentifierTests
                 DiagnosticCode.TheLeftHandSideOfAnAssignmentExpressionMayNotBeAnOptionalPropertyAccess));
         Check(
             !host.AssignmentChecks.Reference(
-                new NumericLiteralNode { Text = "1" },
+                new NumericLiteralNode { Text = "1"u8 },
                 DiagnosticCode.TheTargetOfAnObjectRestAssignmentMustBeAVariableOrAPropertyAccess,
                 DiagnosticCode.TheTargetOfAnObjectRestAssignmentMayNotBeAnOptionalPropertyAccess)
                 && host.Diagnostics.Contains(DiagnosticCode.TheTargetOfAnObjectRestAssignmentMustBeAVariableOrAPropertyAccess));
         var optional = new PropertyAccessExpressionNode
         {
-            Expression = new IdentifierNode { Text = "x" },
-            Name = new IdentifierNode { Text = "p" },
+            Expression = new IdentifierNode { Text = "x"u8 },
+            Name = new IdentifierNode { Text = "p"u8 },
             Flags = NodeFlags.OptionalChain
         };
         Check(
@@ -137,7 +137,7 @@ internal static class CheckerIdentifierTests
                 DiagnosticCode.TheOperandOfAnIncrementOrDecrementOperatorMayNotBeAnOptionalPropertyAccess)
                 && host.Diagnostics.Contains(DiagnosticCode.TheOperandOfAnIncrementOrDecrementOperatorMayNotBeAnOptionalPropertyAccess));
 
-        var aliasProgram = await Build("namespace N { export class C {} } import A = N; import B = A.C; B;");
+        var aliasProgram = await Build("namespace N { export class C {} } import A = N; import B = A.C; B;"u8);
         var aliasContext = new TypeContext(true, true);
         var aliasLinks = new CheckerLinks();
         var aliasScope = new CheckerEnvironment(aliasContext, aliasLinks);
@@ -146,7 +146,7 @@ internal static class CheckerIdentifierTests
         var aliases = aliasProgram.SourceFiles[0].Syntax.DescendantsAndSelf().OfType<ImportEqualsDeclarationNode>().ToArray();
         var a = aliasSymbols.Declaration(aliases[0])!;
         var b = aliasSymbols.Declaration(aliases[1])!;
-        var use = aliasProgram.SourceFiles[0].Syntax.DescendantsAndSelf().OfType<IdentifierNode>().Last(n => n.Text == "B");
+        var use = aliasProgram.SourceFiles[0].Syntax.DescendantsAndSelf().OfType<IdentifierNode>().Last(n => n.Text == "B"u8);
         using (var cancellation = new CancellationTokenSource())
         {
             aliasScope.BeforeValueResolution = () =>
@@ -171,15 +171,15 @@ internal static class CheckerIdentifierTests
         await references.IdentifierAsync(use);
         Check(aliasScope.AliasResolutions.Count == 0);
 
-        var deprecatedProgram = await Build("/** @deprecated */ const old = 1; const current = 2; old; current;");
+        var deprecatedProgram = await Build("/** @deprecated */ const old = 1; const current = 2; old; current;"u8);
         var deprecatedLinks = new CheckerLinks();
         var deprecatedScope = new CheckerEnvironment(new(true, true), deprecatedLinks);
         var deprecatedSymbols = await CheckerSymbols.CreateAsync(deprecatedProgram, deprecatedLinks, deprecatedScope);
-        Check(deprecatedScope.Deprecations.Symbol(deprecatedSymbols.Globals["old"]));
-        Check(!deprecatedScope.Deprecations.Symbol(deprecatedSymbols.Globals["current"]));
+        Check(deprecatedScope.Deprecations.Symbol(deprecatedSymbols.Globals["old"u8]));
+        Check(!deprecatedScope.Deprecations.Symbol(deprecatedSymbols.Globals["current"u8]));
 
         var bindingProgram = await Build(
-            "declare const source:{readonly value:number; text?:string}; const {value,text='fallback',...rest}=source; __expr(text);");
+            "declare const source:{readonly value:number; text?:string}; const {value,text='fallback',...rest}=source; __expr(text);"u8);
         var bindingContext = new TypeContext(true, true);
         var bindingLinks = new CheckerLinks();
         var bindingScope = new CheckerEnvironment(bindingContext, bindingLinks);
@@ -206,8 +206,8 @@ internal static class CheckerIdentifierTests
         Check(await bindingHost.Values.GetAsync(textSymbol) == bindingContext.StringType);
         var parent = (await bindingHost.Bindings.ParentAsync(elements[0].Parent!.Parent!))!;
         var spread = await bindingHost.Bindings.RestAsync(parent, [], null);
-        var original = (await bindingHost.Properties.PropertyAsync(parent, "value"))!;
-        var copied = (await bindingHost.Properties.PropertyAsync(spread, "value"))!;
+        var original = (await bindingHost.Properties.PropertyAsync(parent, "value"u8))!;
+        var copied = (await bindingHost.Properties.PropertyAsync(spread, "value"u8))!;
         Check(original != copied && bindingHost.IsReadonly(original) && !bindingHost.IsReadonly(copied));
         Check(bindingLinks.MappedSymbols.Get(copied).SyntheticOrigin == original);
         Check(await bindingHost.Values.GetAsync(copied) == bindingContext.NumberType);
@@ -237,7 +237,7 @@ internal static class CheckerIdentifierTests
 
     private static async Task<int> MissingNameSafety()
     {
-        const string source = """
+        Utf8String source = """
             interface Shape { size: number; }
             const value = 1;
             type Value = value;
@@ -253,16 +253,16 @@ internal static class CheckerIdentifierTests
             type Misspelled = OnlyTypez.Item;
             export { number };
             class Numeric extends number {}
-            """;
+            """u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        options.SetRaw("noLib"u8, "true"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
         {
-            ["/project/main.ts"] = Wtf8.Encode(source),
-            ["/project/globals.d.ts"] = Wtf8.Encode("interface String {}")
-        }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts", "/project/globals.d.ts"], [], [], []));
+            ["/project/main.ts"u8] = source.Span.ToArray(),
+            ["/project/globals.d.ts"u8] = Wtf8.Encode("interface String {}")
+        }), "/project"u8, new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8, "/project/globals.d.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
-        var file = program.GetFile("/project/main.ts")!.Syntax;
+        var file = program.GetFile("/project/main.ts"u8)!.Syntax;
         await checker.CheckSourceFileAsync(file);
         var codes = checker.DiagnosticCodesForFile(file);
         if (!codes.SequenceEqual(
@@ -280,8 +280,8 @@ internal static class CheckerIdentifierTests
                     DiagnosticCode.AClassCannotExtendAPrimitiveTypeLike0ClassesCanOnlyExtendConstructableValues
                 ]))
             throw new InvalidOperationException($"Missing name diagnostics: {string.Join(',', codes)}");
-        var spelling = file.DescendantsAndSelf().OfType<IdentifierNode>().Single(n => n.Text == "countr");
-        if (checker.SuggestedNameDeclarations.GetValueOrDefault(spelling)?.Name != "counter")
+        var spelling = file.DescendantsAndSelf().OfType<IdentifierNode>().Single(n => n.Text == "countr"u8);
+        if (checker.SuggestedNameDeclarations.GetValueOrDefault(spelling)?.Name != "counter"u8)
             throw new InvalidOperationException("Name suggestion lost its declaration");
         return 2;
     }

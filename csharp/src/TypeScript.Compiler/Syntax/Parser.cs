@@ -19,7 +19,7 @@ public enum ScriptKind
 }
 
 public readonly record struct ParseOptions(
-    string FileName,
+    Utf8String FileName,
     ScriptKind ScriptKind = ScriptKind.Unknown,
     int TargetYear = int.MaxValue,
     bool ForceExternalModule = false,
@@ -65,10 +65,10 @@ public sealed partial class Parser
         if (kind == ScriptKind.Unknown)
             kind = CompilerPath.Extension(options.FileName).ToLowerInvariant() switch
             {
-                ".js" or ".mjs" or ".cjs" => ScriptKind.JS,
-                ".jsx" => ScriptKind.JSX,
-                ".tsx" => ScriptKind.TSX,
-                ".json" => ScriptKind.JSON,
+                var matchedText when matchedText == ".js"u8 || matchedText == ".mjs"u8 || matchedText == ".cjs"u8 => ScriptKind.JS,
+                var matchedText2 when matchedText2 == ".jsx"u8 => ScriptKind.JSX,
+                var matchedText3 when matchedText3 == ".tsx"u8 => ScriptKind.TSX,
+                var matchedText4 when matchedText4 == ".json"u8 => ScriptKind.JSON,
                 _ => ScriptKind.TS
             };
         this.options = options with
@@ -100,9 +100,9 @@ public sealed partial class Parser
     public static SourceFileNode ParseSourceFile(ParseOptions options, SourceText source, CancellationToken cancellation = default) =>
         RunParse(ParseSourceFileAsync(options, source, cancellation));
 
-    internal static SyntaxNode? ParseIsolatedEntityName(TextSlice text)
+    internal static SyntaxNode? ParseIsolatedEntityName(Utf8String text)
     {
-        var parser = new Parser(new("", ScriptKind.JS), new SourceText(text), default);
+        var parser = new Parser(new(Utf8String.Empty, ScriptKind.JS), new SourceText(text), default);
         var name = parser.EntityName();
         return parser.Token == K.EndOfFile && parser.diagnostics.Count == 0 ? name : null;
     }
@@ -169,7 +169,7 @@ public sealed partial class Parser
                 if (!StartsStatement())
                 {
                     if (Token == K.DefaultKeyword)
-                        Error(Messages.X_0_expected, "export");
+                        Error(Messages.X_0_expected, Utf8Literals.Export);
                     else
                         Error(Messages.Declaration_or_statement_expected);
                     Next();
@@ -183,7 +183,7 @@ public sealed partial class Parser
                     context |= NodeFlags.AwaitContext;
                 possibleTopLevelAwait = false;
                 reparsingTopLevelAwait = reparseAwait;
-                SyntaxNode statement = (await ParseStatementCore().ConfigureAwait(false));
+                SyntaxNode statement = await ParseStatementCore().ConfigureAwait(false);
                 reparsingTopLevelAwait = false;
                 context = statementContext;
                 if (topLevelAwaitSpans is null && possibleTopLevelAwait && (statement.Flags & NodeFlags.AwaitContext) == 0)
@@ -220,7 +220,7 @@ public sealed partial class Parser
 
         int end = Pos;
         TokenFlags endTrivia = scanner.Flags;
-        var eof = (await WithJSDocCore(ParseToken(), endTrivia).ConfigureAwait(false));
+        var eof = await WithJSDocCore(ParseToken(), endTrivia).ConfigureAwait(false);
         statements.AddRange(reparsedStatements);
         reparsedStatements.Clear();
         SourceFileNode file = Finish(factory.NewSourceFile(new(statements.ToArray(), start, end), eof), start);
@@ -231,24 +231,12 @@ public sealed partial class Parser
         file.IsDeclarationFile = CompilerPath.IsDeclarationFile(options.FileName);
         ProcessSourceMetadata(file);
         file.NodeCount = factory.NodeCount;
-        // Source positions remain bytes at the public AST boundary; scanning uses UTF-16.
-        if (!source.IsAsciiOnly)
-        {
-            var pending = new Stack<SyntaxNode>();
-            file.ConvertTreePositions(source, pending);
-            foreach (JSDocNode comment in documentation.Values.SelectMany(nodes => nodes).Distinct())
-                comment.ConvertTreePositions(source, pending);
-        }
         file.SetDocumentation(documentation);
         file.JSDocDiagnostics = documentationDiagnostics.Select(
             d => d with
             {
-                Start = source.ToBytePosition(d.Start),
-                Length = source.ToBytePosition(d.Start + d.Length) - source.ToBytePosition(d.Start),
                 RelatedInformation = d.RelatedInformation.Select(r => r with
                 {
-                    Start = source.ToBytePosition(r.Start),
-                    Length = source.ToBytePosition(r.Start + r.Length) - source.ToBytePosition(r.Start),
                     FileName = options.FileName
                 }).ToArray(),
                 FileName = options.FileName
@@ -257,12 +245,9 @@ public sealed partial class Parser
         file.ParseDiagnostics = diagnostics.Select(
             d => d with
             {
-                Start = source.ToBytePosition(d.Start),
-                Length = source.ToBytePosition(d.Start + d.Length) - source.ToBytePosition(d.Start),
                 FileName = options.FileName
             }).ToArray();
-        file.CommentDirectives = scanner.CommentDirectives.Select(
-            d => d with { Start = source.ToBytePosition(d.Start), End = source.ToBytePosition(d.End) }).ToArray();
+        file.CommentDirectives = scanner.CommentDirectives.ToArray();
         CheckJavaScriptSyntax(file);
         return file;
     }
@@ -284,10 +269,10 @@ public sealed partial class Parser
         return Token;
     }
 
-    private void Error(DiagnosticMessage message, params TextSlice[] args) =>
+    private void Error(DiagnosticMessage message, params Utf8String[] args) =>
         ErrorAt(message, scanner.TokenStart, scanner.Position - scanner.TokenStart, args);
 
-    private void ErrorAt(DiagnosticMessage message, int start, int length, params TextSlice[] args)
+    private void ErrorAt(DiagnosticMessage message, int start, int length, params Utf8String[] args)
     {
         if (diagnostics.Count == 0 || diagnostics[^1].Start != start)
             diagnostics.Add(new(message, start, length, args));
@@ -381,7 +366,7 @@ public sealed partial class Parser
             Error(Messages.Identifier_expected_0_is_a_reserved_word_that_cannot_be_used_here, TokenFacts.Text(Token));
         else
             Error(Messages.Identifier_expected);
-        return Finish(factory.NewIdentifier(""), start, start);
+        return Finish(factory.NewIdentifier(Utf8String.Empty), start, start);
     }
 
     private bool Peek(Func<bool> action) => Peek(action, static callback => callback());
@@ -423,13 +408,13 @@ public sealed partial class Parser
     private void Semicolon()
     {
         if (!Take(K.SemicolonToken) && Token is not (K.EndOfFile or K.CloseBraceToken) && !LineBreak)
-            Error(Messages.X_0_expected, ";");
+            Error(Messages.X_0_expected, Utf8Literals.Semicolon);
     }
 
     private SyntaxNode Literal()
     {
         int start = Pos;
-        TextSlice value = scanner.Value;
+        Utf8String value = scanner.Value;
         TokenFlags flags = scanner.Flags;
         SyntaxNode node = Token switch
         {
@@ -459,7 +444,7 @@ public sealed partial class Parser
 
         if (Take(K.OpenBracketToken))
         {
-            var expression = (await ExpressionCore().ConfigureAwait(false));
+            var expression = await ExpressionCore().ConfigureAwait(false);
             Expected(K.CloseBracketToken);
             return Finish(factory.NewComputedPropertyName(expression), start);
         }
@@ -491,7 +476,7 @@ public sealed partial class Parser
         }))
         {
             ErrorAt(Messages.Identifier_expected, Pos, 0);
-            return Finish(factory.NewIdentifier(""), Pos, Pos);
+            return Finish(factory.NewIdentifier(Utf8String.Empty), Pos, Pos);
         }
         if (Token == K.PrivateIdentifier)
         {
@@ -501,7 +486,7 @@ public sealed partial class Parser
             if (allowPrivate)
                 return Finish(name, at);
             ErrorAt(Messages.Identifier_expected, Pos, 0);
-            return Finish(factory.NewIdentifier(""), Pos, Pos);
+            return Finish(factory.NewIdentifier(Utf8String.Empty), Pos, Pos);
         }
         if (!allowUnicodeEscape && (scanner.Flags & (TokenFlags.UnicodeEscape | TokenFlags.ExtendedUnicodeEscape)) != 0)
             Error(Messages.Unicode_escape_sequence_cannot_appear_here);
@@ -541,7 +526,7 @@ public sealed partial class Parser
                 if ((context & NodeFlags.AwaitContext) != 0 && Token == K.AwaitKeyword)
                 {
                     Error(Messages.Expression_expected);
-                    var missing = Finish(factory.NewIdentifier(""), Pos, Pos);
+                    var missing = Finish(factory.NewIdentifier(Utf8String.Empty), Pos, Pos);
                     Next();
                     expression = await MemberExpressionCore(missing, true).ConfigureAwait(false);
                 }

@@ -19,19 +19,19 @@ internal static class CheckerConditionalTests
                 throw new InvalidOperationException($"Conditional assertion {checks + 1}");
             checks++;
         }
-        const string source = "interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}type A<T>=T extends string?{value:T}:number;type B<T extends string>=T extends 'a'?1:2;type Loop<T>=T extends string?Loop<T>:number;";
+        Utf8String source = "interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}type A<T>=T extends string?{value:T}:number;type B<T extends string>=T extends 'a'?1:2;type Loop<T>=T extends string?Loop<T>:number;"u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/main.ts"u8] = source.Span.ToArray() }), "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
         var scope = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
         var host = new Checker(context, links, scope);
-        var a = (ConditionalType)await host.Declared.GetAsync(symbols.Globals["A"]);
+        var a = (ConditionalType)await host.Declared.GetAsync(symbols.Globals["A"u8]);
         var parameter = a.Root.OuterTypeParameters![0];
         var mapper = TypeMapper.Create([parameter], [context.StringType]);
         int before = a.Root.Instantiations!.Count;
@@ -77,12 +77,12 @@ internal static class CheckerConditionalTests
             checks++;
         }
         Check(await host.Conditionals.InstantiateAsync(a, mapper) == value);
-        var b = (ConditionalType)await host.Declared.GetAsync(symbols.Globals["B"]);
+        var b = (ConditionalType)await host.Declared.GetAsync(symbols.Globals["B"u8]);
         var restrictive = await host.Instantiation.Engine.RestrictiveAsync(b);
         Check(host.Instantiation.Engine.IsRestrictive(restrictive));
         Check(b.Root.OuterTypeParameters![0].Constraint != context.NoConstraintType);
         Check(await host.Instantiation.Engine.PermissiveAsync(b) == context.WildcardType);
-        var loop = (ConditionalType)await host.Declared.GetAsync(symbols.Globals["Loop"]);
+        var loop = (ConditionalType)await host.Declared.GetAsync(symbols.Globals["Loop"u8]);
         int tailIterations = 0;
         host.BeforeNode = node =>
         {

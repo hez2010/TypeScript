@@ -60,7 +60,7 @@ internal sealed class IndexedAccessValidation(TypeContext context, TypeKeys keys
         if (((await mapped.GenericFlagsAsync(objectType, cancellation).ConfigureAwait(false)) & ObjectFlags.IsGenericObjectType) != 0
             && (indexType.Flags & TypeFlags.StringOrNumberLiteralOrUnique) != 0)
         {
-            TextSlice name = MappedMembers.PropertyName(indexType);
+            Utf8String name = MappedMembers.PropertyName(indexType);
             var apparent = await views.ApparentAsync(objectType, cancellation).ConfigureAwait(false);
             foreach (var part in apparent is UnionOrIntersectionType composite ? composite.Types : (IReadOnlyList<Type>)[apparent])
                 if (await properties.PropertyAsync(part, name, cancellation: cancellation).ConfigureAwait(false) is { } property)

@@ -109,7 +109,7 @@ internal static class QuerySyntax
                     or K.JsxFragment or K.YieldExpression or K.AwaitExpression:
                     return true;
                 case K.MetaProperty:
-                    return node.Parent is not CallExpressionNode { Expression: MetaPropertyNode { KeywordToken: K.ImportKeyword, Name.Text.Span: "defer" } };
+                    return !(node.Parent is CallExpressionNode { Expression: MetaPropertyNode { KeywordToken: K.ImportKeyword, Name.Text.Span: var matchedText } } && matchedText.SequenceEqual("defer"u8));
                 case K.ExpressionWithTypeArguments:
                     return node.Parent is not HeritageClauseNode;
                 case K.QualifiedName:

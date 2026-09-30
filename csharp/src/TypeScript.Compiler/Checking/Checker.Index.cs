@@ -26,7 +26,7 @@ internal sealed partial class Checker : ITypeKeyHost, IIndexedTypeHost
         CancellationToken cancellation)
             => Indexed.GetAsync(objectType, indexType, flags, alias: alias, cancellation: cancellation);
 
-    public ValueTask<Type?> ContextualPropertyAsync(Type type, TextSlice name, CancellationToken cancellation)
+    public ValueTask<Type?> ContextualPropertyAsync(Type type, Utf8String name, CancellationToken cancellation)
             => ContextualProperties.GetAsync(type, name, cancellation: cancellation);
 
     public ValueTask DeprecatedPropertyAsync(Symbol property, SyntaxNode node, CancellationToken cancellation)
@@ -40,7 +40,7 @@ internal sealed partial class Checker : ITypeKeyHost, IIndexedTypeHost
         DiagnosticCode code,
         CancellationToken cancellation,
         Type? fullIndex = null,
-        TextSlice? suggestion = null)
+        Utf8String? suggestion = null)
     {
         var key = (node, code == DiagnosticCode.ATupleTypeCannotBeIndexedWithANegativeValue
             ? null
@@ -49,17 +49,17 @@ internal sealed partial class Checker : ITypeKeyHost, IIndexedTypeHost
             return;
         try
         {
-            TextSlice receiver = code is DiagnosticCode.ATupleTypeCannotBeIndexedWithANegativeValue
+            Utf8String receiver = code is DiagnosticCode.ATupleTypeCannotBeIndexedWithANegativeValue
                 or DiagnosticCode.Type0CannotBeUsedAsAnIndexType
                 or DiagnosticCode.ElementImplicitlyHasAnAnyTypeBecauseIndexExpressionIsNotOfTypeNumber
-                ? ""
+                ? Utf8String.Empty
                 : await TypeDisplay.GetAsync(objectType, cancellation);
-            TextSlice index = code is DiagnosticCode.TupleType0OfLength1HasNoElementAtIndex2 or DiagnosticCode.Property0DoesNotExistOnType1
+            Utf8String index = code is DiagnosticCode.TupleType0OfLength1HasNoElementAtIndex2 or DiagnosticCode.Property0DoesNotExistOnType1
                 or DiagnosticCode.Property0DoesNotExistOnType1DidYouMean2
                 or DiagnosticCode.Property0DoesNotExistOnType1DidYouMeanToAccessTheStaticMember2Instead
                 ? MappedMembers.PropertyName(indexType)
-                : "";
-            TextSlice[] arguments = code switch
+                : Utf8String.Empty;
+            Utf8String[] arguments = code switch
             {
                 DiagnosticCode.ATupleTypeCannotBeIndexedWithANegativeValue
                     or DiagnosticCode.ElementImplicitlyHasAnAnyTypeBecauseIndexExpressionIsNotOfTypeNumber => [],
@@ -73,14 +73,14 @@ internal sealed partial class Checker : ITypeKeyHost, IIndexedTypeHost
                 DiagnosticCode.Type0CannotBeUsedToIndexType1 => [await TypeDisplay.GetAsync(indexType, cancellation), receiver],
                 DiagnosticCode.Type0HasNoMatchingIndexSignatureForType1 => [receiver, await TypeDisplay.GetAsync(indexType, cancellation)],
                 DiagnosticCode.Type0CannotBeUsedAsAnIndexType => [node is BigIntLiteralNode
-                    ? "bigint"
+                    ? Utf8Literals.Bigint
                     : await TypeDisplay.GetAsync(indexType, cancellation)],
                 DiagnosticCode.Property0DoesNotExistOnType1DidYouMean2 => [index, receiver, suggestion!.Value],
                 DiagnosticCode.Property0DoesNotExistOnType1DidYouMeanToAccessTheStaticMember2Instead =>
                     [
                         index,
                         receiver,
-TextSlice.ConcatMany(receiver, "[", CheckerDiagnostic.DeclarationName(((ElementAccessExpressionNode)node).ArgumentExpression!), "]")
+Utf8String.ConcatMany(receiver, Utf8Literals.OpenBracket, CheckerDiagnostic.DeclarationName(((ElementAccessExpressionNode)node).ArgumentExpression!), Utf8Literals.CloseBracket)
                     ],
                 DiagnosticCode.Type0IsGenericAndCanOnlyBeIndexedForReading => [receiver],
                 DiagnosticCode.ElementImplicitlyHasAnAnyTypeBecauseType0HasNoIndexSignatureDidYouMeanToCall1 => [receiver, suggestion!.Value],
@@ -99,11 +99,11 @@ TextSlice.ConcatMany(receiver, "[", CheckerDiagnostic.DeclarationName(((ElementA
                 {
                     var name = await TypeDisplay.GetAsync(indexType, cancellation);
                     reason = CheckerDiagnostic.Create(node, Messages.Property_0_does_not_exist_on_type_1,
-                        TextSlice.Concat("[", name, "]"), receiver);
+                        Utf8String.Concat("["u8, name, "]"u8), receiver);
                 }
                 else if (indexType is UniqueSymbolType unique)
                     reason = CheckerDiagnostic.Create(node, Messages.Property_0_does_not_exist_on_type_1,
-                        TextSlice.Concat("[", TypeDisplay.SymbolName(unique.Symbol!), "]"), receiver);
+                        Utf8String.Concat("["u8, TypeDisplay.SymbolName(unique.Symbol!), "]"u8), receiver);
                 else if ((indexType.Flags & TypeFlags.StringOrNumberLiteral) != 0)
                     reason = CheckerDiagnostic.Create(node, Messages.Property_0_does_not_exist_on_type_1,
                         MappedMembers.PropertyName(indexType), receiver);

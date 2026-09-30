@@ -47,7 +47,7 @@ internal interface IInstantiationFixtureSource
 
     ValueTask<IReadOnlyList<IndexInfo>> IndexesAsync(Type type, CancellationToken cancellation);
 
-    ValueTask<Symbol?> PropertyAsync(Type type, TextSlice name, CancellationToken cancellation);
+    ValueTask<Symbol?> PropertyAsync(Type type, Utf8String name, CancellationToken cancellation);
 
     ValueTask<Type> PropertyNameTypeAsync(Symbol symbol, CancellationToken cancellation);
 
@@ -88,7 +88,7 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
     internal List<DiagnosticCode> Diagnostics { get; } = [];
     internal Action<Type>? OnIndex { get; set; }
     internal Action<TypeReference>? OnTypeArguments { get; set; }
-    internal Action<string>? BeforeProperty { get; set; }
+    internal Action<Utf8String>? BeforeProperty { get; set; }
 
     internal InstantiationFixtureHost(TypeContext context, TypeAlgebra algebra, CheckerLinks links, AlgebraFixtureHost relations,
         IInstantiationFixtureSource? source = null)
@@ -98,8 +98,8 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
         this.relations = relations;
         this.links = links;
         this.source = source;
-        array = source?.ArrayTarget(false) ?? ArrayTargetType("Array");
-        readonlyArray = source?.ArrayTarget(true) ?? ArrayTargetType("ReadonlyArray");
+        array = source?.ArrayTarget(false) ?? ArrayTargetType("Array"u8);
+        readonlyArray = source?.ArrayTarget(true) ?? ArrayTargetType("ReadonlyArray"u8);
         Tuples = new(context, algebra, links, this);
         Engine = new(context, algebra, links, this);
         Objects = new(context, links, Engine, new(TypeArgumentsAsync), this);
@@ -120,11 +120,11 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
         TypeNodeFlow = new(context, algebra, Mapped, this);
     }
 
-    private InterfaceType ArrayTargetType(string name)
+    private InterfaceType ArrayTargetType(Utf8String name)
     {
         var symbol = new Symbol(SymbolFlags.Interface | SymbolFlags.Transient, name);
         var target = (InterfaceType)context.NewObjectType(O.Interface | O.Reference, symbol);
-        var parameter = context.NewTypeParameter(new(SymbolFlags.TypeParameter | SymbolFlags.Transient, "T"));
+        var parameter = context.NewTypeParameter(new(SymbolFlags.TypeParameter | SymbolFlags.Transient, "T"u8));
         var thisType = context.NewTypeParameter();
         thisType.IsThisType = true;
         thisType.Constraint = target;
@@ -135,9 +135,9 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
         target.Instantiations = new() { [new TypeCacheKey([parameter])] = target };
         target.DeclaredMembersResolved = true;
         target.BaseTypesResolved = true;
-        var length = new Symbol(SymbolFlags.Property | SymbolFlags.Transient, "length");
+        var length = new Symbol(SymbolFlags.Property | SymbolFlags.Transient, "length"u8);
         links.Values.Get(length).ResolvedType = context.NumberType;
-        target.DeclaredMembers = new Dictionary<TextSlice, Symbol> { ["length"] = length }.AsReadOnly();
+        target.DeclaredMembers = new Dictionary<Utf8String, Symbol> { ["length"u8] = length }.AsReadOnly();
         return target;
     }
 
@@ -222,9 +222,9 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
         return type is StructuredType structured ? structured.IndexInfos : [];
     }
 
-    public async ValueTask<Symbol?> PropertyAsync(Type type, TextSlice name, CancellationToken cancellation)
+    public async ValueTask<Symbol?> PropertyAsync(Type type, Utf8String name, CancellationToken cancellation)
     {
-        BeforeProperty?.Invoke(name.ToString());
+        BeforeProperty?.Invoke(name);
         if (source is not null)
             return await source.PropertyAsync(type, name, cancellation).ConfigureAwait(false);
         await PropertiesAsync(type, cancellation).ConfigureAwait(false);
@@ -371,7 +371,7 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
         {
             await ArrayElement((TypeReference)target, cancellation).ConfigureAwait(false);
             return await algebra.UnionAsync(
-                [context.NumberType, context.GetStringLiteralType("length")],
+                [context.NumberType, context.GetStringLiteralType("length"u8)],
                 cancellation: cancellation).ConfigureAwait(false);
         }
         if (target == context.WildcardType)
@@ -459,7 +459,7 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
         }
         if ((indexType.Flags & F.Number) != 0 && (objectType.Flags & F.Primitive) != 0)
             return context.UnknownType;
-        if (indexType is LiteralType { Value: TextSlice name })
+        if (indexType is LiteralType { Value: Utf8String name })
         {
             if (objectType is TypeReference { Target: TupleType target } fixedTuple
                 && int.TryParse(
@@ -467,7 +467,7 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
                     System.Globalization.NumberStyles.None,
                     System.Globalization.CultureInfo.InvariantCulture,
                     out int position)
-                && position < target.FixedLength && name == position.ToString(System.Globalization.CultureInfo.InvariantCulture))
+                && position < target.FixedLength && name == Utf8String.Format(position))
             {
                 await IndexedAccessAsync(objectType, context.NumberType, cancellation).ConfigureAwait(false);
                 return fixedTuple.ResolvedTypeArguments![position];

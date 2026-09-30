@@ -27,19 +27,19 @@ public sealed partial class Parser
             var args = pragma.Arguments;
             switch (pragma.Name)
             {
-                case "reference":
-                    bool preserve = args.TryGetValue("preserve", out var p) && p.Value == "true";
-                    if (args.TryGetValue("no-default-lib", out var noLib) && noLib.Value == "true")
+                case var _ when pragma.Name == "reference"u8:
+                    bool preserve = args.TryGetValue(Utf8Literals.PreserveOption, out var p) && p.Value == Utf8Literals.True;
+                    if (args.TryGetValue(Utf8Literals.NoDefaultLib, out var noLib) && noLib.Value == Utf8Literals.True)
                         file.HasNoDefaultLib = true;
-                    else if (args.TryGetValue("types", out var type))
+                    else if (args.TryGetValue(Utf8Literals.Types, out var type))
                     {
                         ReferenceResolutionMode mode = ReferenceResolutionMode.Unspecified;
-                        if (args.TryGetValue("resolution-mode", out var resolution))
+                        if (args.TryGetValue(Utf8Literals.ResolutionMode, out var resolution))
                         {
                             mode = resolution.Value switch
                             {
-                                "import" => ReferenceResolutionMode.Import,
-                                "require" => ReferenceResolutionMode.Require,
+                                _ when resolution.Value == "import"u8 => ReferenceResolutionMode.Import,
+                                _ when resolution.Value == "require"u8 => ReferenceResolutionMode.Require,
                                 _ => ReferenceResolutionMode.Unspecified
                             };
                             if (mode == ReferenceResolutionMode.Unspecified)
@@ -50,24 +50,24 @@ public sealed partial class Parser
                         }
                         types.Add(new(type.Value, type.Pos, type.End, mode, preserve));
                     }
-                    else if (args.TryGetValue("lib", out var lib))
+                    else if (args.TryGetValue(Utf8Literals.Lib, out var lib))
                         libs.Add(new(lib.Value, lib.Pos, lib.End, Preserve: preserve));
-                    else if (args.TryGetValue("path", out var path))
+                    else if (args.TryGetValue(Utf8Literals.Path, out var path))
                         paths.Add(new(path.Value, path.Pos, path.End, Preserve: preserve));
                     else
                         MetadataError(Messages.Invalid_reference_directive_syntax, pragma.Range.Pos, pragma.Range.End);
                     break;
-                case "ts-check" or "ts-nocheck":
-                    file.CheckJsDirective = new(pragma.Name == "ts-check", pragma.Range);
+                case var _ when pragma.Name == "ts-check"u8 || pragma.Name == "ts-nocheck"u8:
+                    file.CheckJsDirective = new(pragma.Name == Utf8Literals.TsCheck, pragma.Range);
                     break;
-                case "amd-dependency":
+                case var _ when pragma.Name == "amd-dependency"u8:
                     dependencies.Add(
-                        new(args["path"].Value, args.TryGetValue("name", out var dependencyName) ? dependencyName.Value : null));
+                        new(args[Utf8Literals.Path].Value, args.TryGetValue(Utf8Literals.Name, out var dependencyName) ? dependencyName.Value : (Utf8String?)null));
                     break;
-                case "amd-module":
-                    if (!string.IsNullOrEmpty(file.ModuleName))
+                case var _ when pragma.Name == "amd-module"u8:
+                    if (!Utf8String.IsNullOrEmpty(file.ModuleName))
                         MetadataError(Messages.An_AMD_module_cannot_have_multiple_name_assignments, pragma.Range.Pos, pragma.Range.End);
-                    file.ModuleName = args["name"].Value;
+                    file.ModuleName = args[Utf8Literals.Name].Value;
                     break;
             }
         }
@@ -83,7 +83,7 @@ public sealed partial class Parser
     {
         var imports = new List<SyntaxNode>();
         var augmentations = new List<SyntaxNode>();
-        var ambient = new List<string>();
+        var ambient = new List<Utf8String>();
         var pending = new Stack<(SyntaxNode Node, bool Ambient)>();
         if (file.Statements is { } statements)
             for (int i = statements.Count - 1; i >= 0; i--)
@@ -106,12 +106,12 @@ public sealed partial class Parser
                 continue;
             if (!item.Ambient && !file.IsDeclarationFile && module.Modifiers?.Any(m => m.Kind == K.DeclareKeyword) != true)
                 continue;
-            TextSlice name = module.Name switch { StringLiteralNode text => text.Text, IdentifierNode identifier => identifier.Text, _ => "" };
+            Utf8String name = module.Name switch { StringLiteralNode text => text.Text, IdentifierNode identifier => identifier.Text, _ => Utf8String.Empty };
             if (file.ExternalModuleIndicator is not null || item.Ambient && !RelativeModuleName(name))
                 augmentations.Add(module.Name);
             else if (!item.Ambient)
             {
-                ambient.Add(name.ToString());
+                ambient.Add(name);
                 if (module.Body is ModuleBlockNode { Statements: { } body })
                     for (int i = body.Count - 1; i >= 0; i--)
                         pending.Push((body[i], true));
@@ -137,10 +137,10 @@ public sealed partial class Parser
                 else if (node is CallExpressionNode { Arguments: { Count: > 0 } args } call
                     && args[0].Kind is K.StringLiteral or K.NoSubstitutionTemplateLiteral &&
                     (call.Expression?.Kind == K.ImportKeyword
-                        || call.Expression is MetaPropertyNode { KeywordToken: K.ImportKeyword, Name.Text.Span: "defer" }
+                        || call.Expression is MetaPropertyNode { KeywordToken: K.ImportKeyword, Name.Text.Span: var matchedText } && matchedText.SequenceEqual("defer"u8)
                         || javascript
                             && args.Count == 1
-                            && call.Expression is IdentifierNode { Text.Span: "require" }) && seen.Add((args[0].Pos, args[0].End)))
+                            && call.Expression is IdentifierNode { Text.Span: var matchedText2 } && matchedText2.SequenceEqual("require"u8)) && seen.Add((args[0].Pos, args[0].End)))
                     imports.Add(args[0]);
             }
         }
@@ -149,17 +149,17 @@ public sealed partial class Parser
         file.AmbientModuleNames = ambient.AsReadOnly();
     }
 
-    private static bool RelativeModuleName(ReadOnlySpan<char> name) => name is "." or ".."
-        || name.StartsWith("./", StringComparison.Ordinal)
-        || name.StartsWith("../", StringComparison.Ordinal) ||
+    private static bool RelativeModuleName(ReadOnlySpan<byte> name) => name.SequenceEqual("."u8) || name.SequenceEqual(".."u8)
+        || name.StartsWith("./"u8, StringComparison.Ordinal)
+        || name.StartsWith("../"u8, StringComparison.Ordinal) ||
             name.StartsWith(
-                ".\\",
-                StringComparison.Ordinal) || name.StartsWith("..\\", StringComparison.Ordinal) || CompilerPath.EncodedRootLength(name) > 0;
+                ".\\"u8,
+                StringComparison.Ordinal) || name.StartsWith("..\\"u8, StringComparison.Ordinal) || CompilerPath.EncodedRootLength(name) > 0;
 
     private void MetadataError(DiagnosticMessage message, int pos, int end)
     {
-        int start = source.ToUtf16Position(pos);
-        ErrorAt(message, start, source.ToUtf16Position(end) - start);
+        int start = pos;
+        ErrorAt(message, start, end - start);
     }
 
     private static SyntaxNode? FindExternalModuleIndicator(SourceFileNode file, bool force, bool jsx)
@@ -174,7 +174,7 @@ public sealed partial class Parser
                     return statement;
         if ((file.Flags & NodeFlags.PossiblyContainsImportMeta) != 0)
             foreach (SyntaxNode node in file.DescendantsAndSelf())
-                if (node is MetaPropertyNode { KeywordToken: K.ImportKeyword, Name.Text.Span: "meta" })
+                if (node is MetaPropertyNode { KeywordToken: K.ImportKeyword, Name.Text.Span: var matchedText3 } && matchedText3.SequenceEqual("meta"u8))
                     return node;
         if (file.IsDeclarationFile)
             return null;
@@ -185,43 +185,42 @@ public sealed partial class Parser
         return force ? file : null;
     }
 
-    // Metadata ranges are published in the same byte coordinate space as AST
-    // nodes. The local comment/attribute scan uses the SourceText UTF-16 view.
+    // Metadata and AST ranges share the source's UTF-8 byte coordinates.
     private List<SourceCommentRange> LeadingPragmaComments()
     {
-        TextSlice text = source.Text;
+        Utf8String text = source.Text;
         var ranges = new List<SourceCommentRange>();
         int at = 0;
-        if (text.Span.StartsWith("#!", StringComparison.Ordinal))
-            while (at < text.Length && !TokenFacts.IsLineBreak(text[at]))
-                at++;
+        if (text.Span.StartsWith("#!"u8, StringComparison.Ordinal))
+            while (at < text.Length && !TokenFacts.IsLineBreak(Wtf8.Decode(text.Span[at..], out int width)))
+                at += width;
         while (at < text.Length)
         {
             cancellation.ThrowIfCancellationRequested();
-            char ch = text[at];
+            int ch = Wtf8.Decode(text.Span[at..], out int width);
             if (TokenFacts.IsLineBreak(ch))
             {
                 if (ranges.Count != 0)
                     ranges[^1] = ranges[^1] with { HasTrailingNewLine = true };
-                at++;
+                at += width;
                 continue;
             }
             if (TokenFacts.IsWhiteSpace(ch))
             {
-                at++;
+                at += width;
                 continue;
             }
-            if (ch != '/' || at + 1 >= text.Length || text[at + 1] is not ('/' or '*'))
+            if (ch != '/' || at + 1 >= text.Length || text[at + 1] is not ((byte)'/' or (byte)'*'))
                 break;
             int start = at;
             bool single = text[at + 1] == '/';
             at += 2;
             if (single)
-                while (at < text.Length && !TokenFacts.IsLineBreak(text[at]))
-                    at++;
+                while (at < text.Length && !TokenFacts.IsLineBreak(Wtf8.Decode(text.Span[at..], out width)))
+                    at += width;
             else
             {
-                int close = text.Span[at..].IndexOf("*/", StringComparison.Ordinal);
+                int close = text.Span[at..].IndexOf("*/"u8, StringComparison.Ordinal);
                 if (close >= 0)
                     close += at;
                 at = close < 0 ? text.Length : close + 2;
@@ -231,12 +230,11 @@ public sealed partial class Parser
         return ranges;
     }
 
-    private void ExtractPragmas(SourceCommentRange utf16Range, List<SourcePragma> pragmas)
+    private void ExtractPragmas(SourceCommentRange range, List<SourcePragma> pragmas)
     {
-        ReadOnlySpan<char> text = source.Text.Span.Slice(utf16Range.Pos, utf16Range.End - utf16Range.Pos);
-        var range = utf16Range with { Pos = source.ToBytePosition(utf16Range.Pos), End = source.ToBytePosition(utf16Range.End) };
+        ReadOnlySpan<byte> text = source.Text.Span.Slice(range.Pos, range.End - range.Pos);
         int at = 2;
-        if (utf16Range.Kind == K.SingleLineCommentTrivia)
+        if (range.Kind == K.SingleLineCommentTrivia)
         {
             bool triple = at < text.Length && text[at] == '/';
             if (triple)
@@ -245,108 +243,113 @@ public sealed partial class Parser
             if (triple && at < text.Length && text[at] == '<')
             {
                 at++;
-                string tag = PragmaName(text, ref at);
-                if (tag is not ("reference" or "amd-dependency" or "amd-module"))
+                Utf8String tag = PragmaName(text, ref at);
+                if (!(tag == "reference"u8 || tag == "amd-dependency"u8 || tag == "amd-module"u8))
                     return;
-                if (at < text.Length && !PragmaWhitespace(text[at]) && text[at] is not ('/' or '>'))
+                if (at < text.Length && !PragmaWhitespace(Wtf8.Decode(text[at..], out _)) && text[at] is not ((byte)'/' or (byte)'>'))
                     return;
-                var arguments = new Dictionary<string, PragmaArgument>(StringComparer.Ordinal);
+                var arguments = new Dictionary<Utf8String, PragmaArgument>(Utf8StringComparer.Ordinal);
                 while (at < text.Length)
                 {
                     SkipPragmaBlanks(text, ref at);
-                    if (text[at..].StartsWith("/>", StringComparison.Ordinal))
+                    if (text[at..].StartsWith("/>"u8, StringComparison.Ordinal))
                         break;
-                    string name = PragmaName(text, ref at);
+                    Utf8String name = PragmaName(text, ref at);
                     if (name.Length == 0)
                         break;
                     SkipPragmaBlanks(text, ref at);
                     if (at == text.Length || text[at++] != '=')
                         break;
                     SkipPragmaBlanks(text, ref at);
-                    if (at == text.Length || text[at] is not ('\'' or '"'))
+                    if (at == text.Length || text[at] is not ((byte)'\'' or (byte)'"'))
                         break;
-                    char quote = text[at++];
-                    int valueStart = at, close = text[at..].IndexOf(quote);
+                    int quote = text[at++];
+                    int valueStart = at, close = text[at..].IndexOf((byte)quote);
                     if (close < 0)
                         break;
                     at += close;
                     arguments[name] = new(
                         name,
-                        text[valueStart..at].ToString(),
-                        source.ToBytePosition(utf16Range.Pos + valueStart),
-                        source.ToBytePosition(utf16Range.Pos + at));
+                        Utf8String.Copy(text[valueStart..at]),
+                        range.Pos + valueStart,
+                        range.Pos + at);
                     at++;
                 }
-                if (tag == "amd-dependency" && !arguments.ContainsKey("path") || tag == "amd-module" && !arguments.ContainsKey("name"))
+                if (tag == Utf8Literals.AmdDependency && !arguments.ContainsKey(Utf8Literals.Path) || tag == Utf8Literals.AmdModule && !arguments.ContainsKey(Utf8Literals.Name))
                     return;
-                pragmas.Add(new(tag, range, new ReadOnlyDictionary<string, PragmaArgument>(arguments)));
+                pragmas.Add(new(tag, range, new ReadOnlyDictionary<Utf8String, PragmaArgument>(arguments)));
             }
             else if (at < text.Length && text[at] == '@')
             {
                 at++;
-                string name = PragmaName(text, ref at);
-                if (at < text.Length && !PragmaWhitespace(text[at]) && text[at] != ':')
+                Utf8String name = PragmaName(text, ref at);
+                if (at < text.Length && !PragmaWhitespace(Wtf8.Decode(text[at..], out _)) && text[at] != ':')
                     return;
-                if (name is "ts-check" or "ts-nocheck")
-                    pragmas.Add(new(name, range, ReadOnlyDictionary<string, PragmaArgument>.Empty));
+                if (name == "ts-check"u8 || name == "ts-nocheck"u8)
+                    pragmas.Add(new(name, range, ReadOnlyDictionary<Utf8String, PragmaArgument>.Empty));
             }
             return;
         }
-        if (text.EndsWith("*/", StringComparison.Ordinal))
+        if (text.EndsWith("*/"u8, StringComparison.Ordinal))
             text = text[..^2];
         while (at < text.Length)
         {
-            int next = text[at..].IndexOf('@');
+            int next = text[at..].IndexOf((byte)'@');
             if (next < 0)
                 break;
             at += next + 1;
             int nameStart = at;
-            while (at < text.Length && !PragmaWhitespace(text[at]))
+            while (at < text.Length && !PragmaWhitespace(Wtf8.Decode(text[at..], out _)))
                 at++;
             if (at == nameStart)
                 continue;
-            string name = text[nameStart..at].ToString().ToLowerInvariant();
+            Utf8String name = Utf8String.Copy(text[nameStart..at]).ToLowerInvariant();
             int lineEnd = at;
-            while (lineEnd < text.Length && !TokenFacts.IsLineBreak(text[lineEnd]))
+            while (lineEnd < text.Length && !TokenFacts.IsLineBreak(Wtf8.Decode(text[lineEnd..], out _)))
                 lineEnd++;
-            if (name is "jsx" or "jsxfrag" or "jsximportsource" or "jsxruntime")
+            if (name == "jsx"u8 || name == "jsxfrag"u8 || name == "jsximportsource"u8 || name == "jsxruntime"u8)
             {
                 SkipPragmaBlanks(text, ref at);
                 int valueStart = at;
-                while (at < text.Length && !PragmaWhitespace(text[at]))
+                while (at < text.Length && !PragmaWhitespace(Wtf8.Decode(text[at..], out _)))
                     at++;
                 if (at != valueStart)
                 {
                     var argument = new PragmaArgument(
-                        "factory",
-                        text[valueStart..at].ToString(),
-                        source.ToBytePosition(utf16Range.Pos + valueStart),
-                        source.ToBytePosition(utf16Range.Pos + at));
+                        Utf8Literals.Factory,
+                        Utf8String.Copy(text[valueStart..at]),
+                        range.Pos + valueStart,
+                        range.Pos + at);
                     pragmas.Add(
                         new(
                             name,
                             range,
-                            new ReadOnlyDictionary<string, PragmaArgument>(
-                                new Dictionary<string, PragmaArgument>(StringComparer.Ordinal) { ["factory"] = argument })));
+                            new ReadOnlyDictionary<Utf8String, PragmaArgument>(
+                                new Dictionary<Utf8String, PragmaArgument>(Utf8StringComparer.Ordinal) { [Utf8Literals.Factory] = argument })));
                 }
             }
             at = lineEnd;
         }
     }
 
-    private static void SkipPragmaBlanks(ReadOnlySpan<char> text, ref int at)
+    private static void SkipPragmaBlanks(ReadOnlySpan<byte> text, ref int at)
     {
-        while (at < text.Length && PragmaWhitespace(text[at]) && !TokenFacts.IsLineBreak(text[at]))
-            at++;
+        while (at < text.Length)
+        {
+            int point = Wtf8.Decode(text[at..], out int width);
+            if (!PragmaWhitespace(point) || TokenFacts.IsLineBreak(point))
+                break;
+            at += width;
+        }
     }
 
-    private static bool PragmaWhitespace(char ch) => ch == '\uFEFF' || char.IsWhiteSpace(ch) && ch != '\u0085';
+    private static bool PragmaWhitespace(int ch) => ch == '\uFEFF' || System.Text.Rune.IsValid(ch) && System.Text.Rune.IsWhiteSpace(new System.Text.Rune(ch)) && ch != '\u0085';
 
-    private static string PragmaName(ReadOnlySpan<char> text, ref int at)
+    private static Utf8String PragmaName(ReadOnlySpan<byte> text, ref int at)
     {
         int start = at;
-        while (at < text.Length && text[at] is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or '-')
+        while (at < text.Length && text[at] is >= (byte)'a' and <= (byte)'z' or >= (byte)'A' and <= (byte)'Z' or (byte)'-')
             at++;
-        return text[start..at].ToString().ToLowerInvariant();
+        return Utf8String.Copy(text[start..at]).ToLowerInvariant();
     }
 }

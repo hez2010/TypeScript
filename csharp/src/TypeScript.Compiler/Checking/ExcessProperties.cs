@@ -10,7 +10,7 @@ internal interface IExcessPropertyHost
     bool NoImplicitAny { get; }
     Type GlobalObject { get; }
 
-    ValueTask<IndexInfo?> ApplicableIndexAsync(Type type, TextSlice name, CancellationToken cancellation);
+    ValueTask<IndexInfo?> ApplicableIndexAsync(Type type, Utf8String name, CancellationToken cancellation);
 
     ValueTask<IReadOnlyList<IndexInfo>> IndexesAsync(Type type, CancellationToken cancellation);
 }
@@ -41,7 +41,7 @@ internal sealed class ExcessProperties(TypeContext context, TypeAlgebra algebra,
         foreach (var property in await properties.GetAsync(source, cancellation).ConfigureAwait(false))
         {
             if (property.ValueDeclaration is null || source.Symbol?.ValueDeclaration is null
-                || property.ValueDeclaration.Parent != source.Symbol.ValueDeclaration || jsx && property.Name.Span.Contains('-'))
+                || property.ValueDeclaration.Parent != source.Symbol.ValueDeclaration || jsx && property.Name.Span.Contains((byte)'-'))
                 continue;
             if (!await KnownAsync(reduced, property.Name, jsx, cancellation).ConfigureAwait(false))
             {
@@ -124,7 +124,7 @@ internal sealed class ExcessProperties(TypeContext context, TypeAlgebra algebra,
         foreach (var property in await properties.GetAsync(source, cancellation).ConfigureAwait(false))
         {
             if (property.ValueDeclaration is not null && source.Symbol?.ValueDeclaration is not null
-                && property.ValueDeclaration.Parent == source.Symbol.ValueDeclaration && !(jsx && property.Name.Span.Contains('-')))
+                && property.ValueDeclaration.Parent == source.Symbol.ValueDeclaration && !(jsx && property.Name.Span.Contains((byte)'-')))
             {
                 if (!await KnownAsync(target, property.Name, jsx, cancellation).ConfigureAwait(false))
                     return (property, await algebra.FilterAsync(target, part => ValueTask.FromResult(Target(part)),
@@ -153,16 +153,16 @@ internal sealed class ExcessProperties(TypeContext context, TypeAlgebra algebra,
         return null;
     }
 
-    private async ValueTask<bool> KnownAsync(Type type, TextSlice name, bool jsx, CancellationToken cancellation)
+    private async ValueTask<bool> KnownAsync(Type type, Utf8String name, bool jsx, CancellationToken cancellation)
     {
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
             ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
         if ((type.Flags & TypeFlags.Object) != 0
             && (await properties.ObjectPropertyAsync(type, name, cancellation).ConfigureAwait(false) is not null
                 || await host.ApplicableIndexAsync(type, name, cancellation).ConfigureAwait(false) is not null
-                || name.Span.StartsWith(Symbol.InternalPrefix + "@", StringComparison.Ordinal)
+                || name.Span.StartsWith(Symbol.InternalUnique, StringComparison.Ordinal)
                     && (await host.IndexesAsync(type, cancellation).ConfigureAwait(false)).Any(i => i.KeyType == context.StringType)
-                || jsx && name.Span.Contains('-')))
+                || jsx && name.Span.Contains((byte)'-')))
             return true;
         if (type is SubstitutionType substitution)
             return await KnownAsync(substitution.BaseType, name, jsx, cancellation).ConfigureAwait(false);

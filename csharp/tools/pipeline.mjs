@@ -83,7 +83,9 @@ const actual = JSON.parse(await readFile(actualPath, "utf8"));
 // The package's own imports map chooses source enum modules under this condition.
 const { decodeNode } = await import(pathToFileURL(path.join(root, "packages/typescript/src/api/node/node.ts")));
 function tree(packet) {
-    const rootNode = decodeNode(Buffer.from(packet, "base64"));
+    const bytes = Buffer.from(packet, "base64");
+    assert.equal(bytes.readUInt32LE(0) >>> 24, 9, "C# experiment packets use UTF-8 byte positions");
+    const rootNode = decodeNode(bytes);
     const stack = [[rootNode, -1]];
     const records = [];
     while (stack.length) {

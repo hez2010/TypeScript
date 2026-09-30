@@ -299,7 +299,7 @@ public sealed partial class Parser
         if (Token != K.Identifier && Token is not (>= K.FirstKeyword and <= K.LastKeyword))
         {
             Error(Messages.Type_expected);
-            SyntaxNode missing = Finish(factory.NewIdentifier(""), Pos, Pos);
+            SyntaxNode missing = Finish(factory.NewIdentifier(Utf8String.Empty), Pos, Pos);
             while (Take(K.DotToken))
             {
                 if (Token == K.LessThanToken)
@@ -469,7 +469,7 @@ public sealed partial class Parser
     {
         await ParseStack;
         NodeFlags saved = context;
-        context = (context & ~(NodeFlags.YieldContext | NodeFlags.AwaitContext)) | signatureFlags;
+        context = context & ~(NodeFlags.YieldContext | NodeFlags.AwaitContext) | signatureFlags;
         try
         {
             if (!Expected(K.OpenParenToken))
@@ -507,7 +507,7 @@ public sealed partial class Parser
         int start = Pos;
         TokenFlags trivia = scanner.Flags;
         NodeFlags saved = context;
-        context = (context & ~NodeFlags.AwaitContext) | outerAwait;
+        context = context & ~NodeFlags.AwaitContext | outerAwait;
         var modifiers = await ModifiersCore().ConfigureAwait(false);
         context = saved;
         if (Token == K.ThisKeyword)
@@ -675,7 +675,7 @@ public sealed partial class Parser
             if (token is K.WithKeyword or K.AssertKeyword)
                 Next();
             else
-                Error(Messages.X_0_expected, "with");
+                Error(Messages.X_0_expected, Utf8Literals.With);
             Expected(K.ColonToken);
             attributes = await ImportAttributesCore(token).ConfigureAwait(false);
             Take(K.CommaToken);

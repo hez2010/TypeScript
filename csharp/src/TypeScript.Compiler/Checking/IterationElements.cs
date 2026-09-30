@@ -9,7 +9,7 @@ internal interface IIterationElementHost
 {
     bool NoUncheckedIndexedAccess { get; }
 
-    ValueTask<Type> IterationGlobalAsync(TextSlice name, int arity, bool report, CancellationToken cancellation);
+    ValueTask<Type> IterationGlobalAsync(Utf8String name, int arity, bool report, CancellationToken cancellation);
 
     ValueTask<bool> ArrayLikeAsync(Type type, CancellationToken cancellation);
 
@@ -61,7 +61,7 @@ internal sealed class IterationElements(TypeContext context, TypeAlgebra algebra
             return null;
         }
         bool iterable = await host.IterationGlobalAsync(
-            "Iterable",
+            Utf8Literals.Iterable,
             3,
             false,
             cancellation).ConfigureAwait(false) != context.EmptyGenericType;
@@ -108,8 +108,7 @@ internal sealed class IterationElements(TypeContext context, TypeAlgebra algebra
             if (node is not null)
             {
                 var types = await protocols.IterableAsync(input, use, cancellation: cancellation).ConfigureAwait(false);
-                bool named = input.Symbol is { } namedSymbol && namedSymbol.Name.Span is "Float32Array" or "Float64Array" or "Int16Array" or "Int32Array" or "Int8Array"
-                    or "NodeList" or "Uint16Array" or "Uint32Array" or "Uint8Array" or "Uint8ClampedArray";
+                bool named = input.Symbol is { } namedSymbol && (namedSymbol.Name.Span.SequenceEqual("Float32Array"u8) || namedSymbol.Name.Span.SequenceEqual("Float64Array"u8) || namedSymbol.Name.Span.SequenceEqual("Int16Array"u8) || namedSymbol.Name.Span.SequenceEqual("Int32Array"u8) || namedSymbol.Name.Span.SequenceEqual("Int8Array"u8) || namedSymbol.Name.Span.SequenceEqual("NodeList"u8) || namedSymbol.Name.Span.SequenceEqual("Uint16Array"u8) || namedSymbol.Name.Span.SequenceEqual("Uint32Array"u8) || namedSymbol.Name.Span.SequenceEqual("Uint8Array"u8) || namedSymbol.Name.Span.SequenceEqual("Uint8ClampedArray"u8));
                 DiagnosticCode code = types.Yield is not null || named
                     ? DiagnosticCode.Type0CanOnlyBeIteratedThroughWhenUsingTheDownlevelIterationFlagOrWithATargetOfEs2015OrHigher
                     : (use & IterationUse.AllowsStringInputFlag) != 0 && !hasString
@@ -145,7 +144,7 @@ internal sealed class IterationElements(TypeContext context, TypeAlgebra algebra
         bool hint = await awaited.OfPromiseAsync(type, cancellation: cancellation).ConfigureAwait(false) is not null;
         if (!hint && !async && node.Parent is ForInOrOfStatementNode { Kind: SyntaxKind.ForOfStatement } loop && loop.Expression == node)
         {
-            var target = await host.IterationGlobalAsync("AsyncIterable", 3, false, cancellation).ConfigureAwait(false);
+            var target = await host.IterationGlobalAsync(Utf8Literals.AsyncIterable, 3, false, cancellation).ConfigureAwait(false);
             if (target != context.EmptyGenericType)
                 hint = await relations.RelatedAsync(
                     type,

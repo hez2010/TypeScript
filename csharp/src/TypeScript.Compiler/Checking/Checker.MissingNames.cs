@@ -10,7 +10,7 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
-    private readonly Dictionary<TextSlice, Symbol> primitiveSuggestions = new();
+    private readonly Dictionary<Utf8String, Symbol> primitiveSuggestions = new();
     internal Dictionary<SyntaxNode, Symbol> SuggestedNameDeclarations { get; } = [];
 
     internal async ValueTask MissingQualifiedAsync(
@@ -20,8 +20,8 @@ internal sealed partial class Checker
         S meaning,
         CancellationToken cancellation)
     {
-        TextSlice namespaceName = await FullyQualifiedNameAsync(parent, null, cancellation);
-        TextSlice memberName = CheckerDiagnostic.DeclarationName(right);
+        Utf8String namespaceName = await FullyQualifiedNameAsync(parent, null, cancellation);
+        Utf8String memberName = CheckerDiagnostic.DeclarationName(right);
         var exports = await ExportsAsync(parent, cancellation);
         if (await SymbolSuggestions.FindAsync(memberName, exports.Values, S.ModuleMember, cancellation) is { } suggestion)
         {
@@ -38,7 +38,7 @@ internal sealed partial class Checker
             var containing = name;
             while (containing.Parent is QualifiedNameNode outer)
                 containing = outer;
-            if (program.Globals.Types.ContainsKey("Object")
+            if (program.Globals.Types.ContainsKey(Utf8Literals.ObjectType)
                 && (meaning & S.Type) != 0
                 && containing.Parent?.Kind != SyntaxKind.TypeOfExpression
                 && await QualifiedNameValueAsync(containing, cancellation) is not null)
@@ -79,11 +79,11 @@ internal sealed partial class Checker
         return symbol;
     }
 
-    internal async ValueTask FailedNameAsync(SyntaxNode? location, TextSlice name, S meaning, DiagnosticMessage message)
+    internal async ValueTask FailedNameAsync(SyntaxNode? location, Utf8String name, S meaning, DiagnosticMessage message)
     {
         if (location is not null)
         {
-            if (name == "const"
+            if (name == Utf8Literals.Const
                 && location.Parent is TypeReferenceNode { Parent: { } assertion }
                 && SemanticSyntax.ConstAssertion(assertion)
                 || location.Parent?.Kind == SyntaxKind.JSDocLink)
@@ -118,7 +118,7 @@ internal sealed partial class Checker
             ? CheckerDiagnostic.DeclarationName(location) : name);
     }
 
-    private async ValueTask<bool> WrongNameMeaningAsync(SyntaxNode location, TextSlice name, S meaning)
+    private async ValueTask<bool> WrongNameMeaningAsync(SyntaxNode location, Utf8String name, S meaning)
     {
         async ValueTask<Symbol?> Find(S flags) => await program.Aliases.SymbolAsync(
             program.Symbols.NameResolver().Resolve(location, name, flags)).ConfigureAwait(false);
@@ -137,7 +137,7 @@ internal sealed partial class Checker
                 Error(location, DiagnosticCode.X0OnlyRefersToATypeButIsBeingUsedAsANamespaceHere, name);
             return true;
         }
-        bool primitive = name.Span is "any" or "string" or "number" or "boolean" or "never" or "unknown";
+        bool primitive = name.Span.SequenceEqual("any"u8) || name.Span.SequenceEqual("string"u8) || name.Span.SequenceEqual("number"u8) || name.Span.SequenceEqual("boolean"u8) || name.Span.SequenceEqual("never"u8) || name.Span.SequenceEqual("unknown"u8);
         if (primitive && location.Parent is ExportSpecifierNode)
         {
             Error(location, DiagnosticCode.CannotExport0OnlyLocalDeclarationsCanBeExportedFromAModule, name);
@@ -186,7 +186,7 @@ internal sealed partial class Checker
                 if (ExportAssignmentName(location))
                     return true;
                 DiagnosticCode code = DiagnosticCode.X0OnlyRefersToATypeButIsBeingUsedAsAValueHere;
-                if (name.Span is "Promise" or "Symbol" or "Map" or "WeakMap" or "Set" or "WeakSet")
+                if (name.Span.SequenceEqual("Promise"u8) || name.Span.SequenceEqual("Symbol"u8) || name.Span.SequenceEqual("Map"u8) || name.Span.SequenceEqual("WeakMap"u8) || name.Span.SequenceEqual("Set"u8) || name.Span.SequenceEqual("WeakSet"u8))
                     code = DiagnosticCode.X0OnlyRefersToATypeButIsBeingUsedAsAValueHereDoYouNeedToChangeYourTargetLibraryTryChangingTheLibCompilerOptionToEs2015OrLater;
                 else
                 {
@@ -211,7 +211,7 @@ internal sealed partial class Checker
                     location,
                     code,
                     code == DiagnosticCode.X0OnlyRefersToATypeButIsBeingUsedAsAValueHereDidYouMeanToUse1In0
-                        ? [name, name == "K" ? "P" : "K"]
+                        ? [name, name == Utf8Literals.K ? Utf8Literals.P : Utf8Literals.K]
                         : [name]);
                 return true;
             }
@@ -225,7 +225,7 @@ internal sealed partial class Checker
         return false;
     }
 
-    private Symbol? SuggestionLookup(IReadOnlyDictionary<TextSlice, Symbol>? table, TextSlice name, S meaning)
+    private Symbol? SuggestionLookup(IReadOnlyDictionary<Utf8String, Symbol>? table, Utf8String name, S meaning)
     {
         if (program.Symbols.Lookup(table, name, meaning) is { } exact)
             return exact;
@@ -235,7 +235,7 @@ internal sealed partial class Checker
         if ((meaning & S.GlobalLookup) != 0)
         {
             var extras = new List<Symbol>();
-            foreach (TextSlice builtin in new[] { "String", "Number", "Boolean", "Object", "BigInt", "Symbol" })
+            foreach (Utf8String builtin in new Utf8String[] { Utf8Literals.String, Utf8Literals.Number, Utf8Literals.Boolean, Utf8Literals.ObjectType, Utf8Literals.BigInt, Utf8Literals.Symbol })
                 if (table.ContainsKey(builtin))
                 {
                     if (!primitiveSuggestions.TryGetValue(builtin, out var symbol))

@@ -17,11 +17,11 @@ internal interface IFlowNarrowingHost
 
     ValueTask<TypePredicate?> PredicateAsync(Signature signature, CancellationToken cancellation);
 
-    ValueTask<TextSlice?> AccessNameAsync(SyntaxNode node, CancellationToken cancellation);
+    ValueTask<Utf8String?> AccessNameAsync(SyntaxNode node, CancellationToken cancellation);
 
     Symbol ResolveReference(SyntaxNode node, CancellationToken cancellation);
 
-    ValueTask<Type?> FlowPropertyTypeAsync(Type type, TextSlice name, bool includeIndex, CancellationToken cancellation);
+    ValueTask<Type?> FlowPropertyTypeAsync(Type type, Utf8String name, bool includeIndex, CancellationToken cancellation);
 
     ValueTask<Type> ConstructorNarrowAsync(Type type, SyntaxKind op, SyntaxNode expression, bool assumeTrue, CancellationToken cancellation);
 
@@ -212,7 +212,7 @@ internal sealed partial class FlowNarrowing(TypeContext context, TypeAlgebra alg
     }
 
     private async ValueTask<Type> TypeofAsync(FlowState state, Type type, TypeOfExpressionNode expression, SyntaxKind op,
-        TextSlice literal, bool assumeTrue, CancellationToken cancellation)
+        Utf8String literal, bool assumeTrue, CancellationToken cancellation)
     {
         if (op is SyntaxKind.ExclamationEqualsToken or SyntaxKind.ExclamationEqualsEqualsToken)
             assumeTrue = !assumeTrue;
@@ -220,7 +220,7 @@ internal sealed partial class FlowNarrowing(TypeContext context, TypeAlgebra alg
         if (await references.MatchesAsync(state.Reference, target, cancellation).ConfigureAwait(false))
             return await TypeNameAsync(type, literal, assumeTrue, cancellation).ConfigureAwait(false);
         if (context.StrictNullChecks && await references.ContainsAsync(target, state.Reference, true, cancellation).ConfigureAwait(false)
-            && assumeTrue == (literal != "undefined"))
+            && assumeTrue == (literal != Utf8Literals.Undefined))
             type = await facts.AdjustAsync(type, TypeFacts.NEUndefinedOrNull, cancellation).ConfigureAwait(false);
         return await DiscriminantAsync(
             state,
@@ -230,37 +230,37 @@ internal sealed partial class FlowNarrowing(TypeContext context, TypeAlgebra alg
             cancellation).ConfigureAwait(false);
     }
 
-    internal async ValueTask<Type> TypeNameAsync(Type type, TextSlice name, bool assumeTrue, CancellationToken cancellation = default)
+    internal async ValueTask<Type> TypeNameAsync(Type type, Utf8String name, bool assumeTrue, CancellationToken cancellation = default)
     {
         if (!assumeTrue)
             return await facts.AdjustAsync(type, name.Span switch
             {
-                "string" => TypeFacts.TypeofNEString,
-                "number" => TypeFacts.TypeofNENumber,
-                "bigint" => TypeFacts.TypeofNEBigInt,
-                "boolean" => TypeFacts.TypeofNEBoolean,
-                "symbol" => TypeFacts.TypeofNESymbol,
-                "undefined" => TypeFacts.NEUndefined,
-                "object" => TypeFacts.TypeofNEObject,
-                "function" => TypeFacts.TypeofNEFunction,
+                _ when name.Span.SequenceEqual("string"u8) => TypeFacts.TypeofNEString,
+                _ when name.Span.SequenceEqual("number"u8) => TypeFacts.TypeofNENumber,
+                _ when name.Span.SequenceEqual("bigint"u8) => TypeFacts.TypeofNEBigInt,
+                _ when name.Span.SequenceEqual("boolean"u8) => TypeFacts.TypeofNEBoolean,
+                _ when name.Span.SequenceEqual("symbol"u8) => TypeFacts.TypeofNESymbol,
+                _ when name.Span.SequenceEqual("undefined"u8) => TypeFacts.NEUndefined,
+                _ when name.Span.SequenceEqual("object"u8) => TypeFacts.TypeofNEObject,
+                _ when name.Span.SequenceEqual("function"u8) => TypeFacts.TypeofNEFunction,
                 _ => TypeFacts.TypeofNEHostObject
             }, cancellation).ConfigureAwait(false);
-        if (name.Span is "object" or "function" && (type.Flags & TypeFlags.Any) != 0)
+        if ((name.Span.SequenceEqual("object"u8) || name.Span.SequenceEqual("function"u8)) && (type.Flags & TypeFlags.Any) != 0)
             return type;
-        if (name == "object")
+        if (name == Utf8Literals.Object)
             return await algebra.UnionAsync(
                 [await TypeFactsAsync(type, context.NonPrimitiveType, TypeFacts.TypeofEQObject, cancellation).ConfigureAwait(false),
                 await TypeFactsAsync(type, context.NullType, TypeFacts.EQNull, cancellation).ConfigureAwait(false)],
                 cancellation: cancellation).ConfigureAwait(false);
         var (implied, include) = name.Span switch
         {
-            "string" => (context.StringType, TypeFacts.TypeofEQString),
-            "number" => (context.NumberType, TypeFacts.TypeofEQNumber),
-            "bigint" => (context.BigIntType, TypeFacts.TypeofEQBigInt),
-            "boolean" => (context.BooleanType, TypeFacts.TypeofEQBoolean),
-            "symbol" => (context.ESSymbolType, TypeFacts.TypeofEQSymbol),
-            "undefined" => (context.UndefinedType, TypeFacts.EQUndefined),
-            "function" => (host.GlobalFunction, TypeFacts.TypeofEQFunction),
+            _ when name.Span.SequenceEqual("string"u8) => (context.StringType, TypeFacts.TypeofEQString),
+            _ when name.Span.SequenceEqual("number"u8) => (context.NumberType, TypeFacts.TypeofEQNumber),
+            _ when name.Span.SequenceEqual("bigint"u8) => (context.BigIntType, TypeFacts.TypeofEQBigInt),
+            _ when name.Span.SequenceEqual("boolean"u8) => (context.BooleanType, TypeFacts.TypeofEQBoolean),
+            _ when name.Span.SequenceEqual("symbol"u8) => (context.ESSymbolType, TypeFacts.TypeofEQSymbol),
+            _ when name.Span.SequenceEqual("undefined"u8) => (context.UndefinedType, TypeFacts.EQUndefined),
+            _ when name.Span.SequenceEqual("function"u8) => (host.GlobalFunction, TypeFacts.TypeofEQFunction),
             _ => (context.NonPrimitiveType, TypeFacts.TypeofEQHostObject)
         };
         return await TypeFactsAsync(type, implied, include, cancellation).ConfigureAwait(false);
@@ -277,8 +277,8 @@ internal sealed partial class FlowNarrowing(TypeContext context, TypeAlgebra alg
                 ? await algebra.IntersectionAsync([part, implied], cancellation: cancellation).ConfigureAwait(false) : context.NeverType;
         }, cancellation: cancellation).ConfigureAwait(false) ?? context.NeverType;
 
-    private static TextSlice? StringLike(SyntaxNode node) => node switch
-    { StringLiteralNode literal => literal.Text, NoSubstitutionTemplateLiteralNode literal => literal.Text, _ => (TextSlice?)null };
+    private static Utf8String? StringLike(SyntaxNode node) => node switch
+    { StringLiteralNode literal => literal.Text, NoSubstitutionTemplateLiteralNode literal => literal.Text, _ => (Utf8String?)null };
 
     private static bool OptionalRoot(SyntaxNode node) => node.Parent switch
     {

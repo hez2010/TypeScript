@@ -97,22 +97,22 @@ internal sealed class GenericExpressions(TypeContext context, StructuredMembers 
 
     private IReadOnlyList<Type> Unique(InferenceContext outer, IReadOnlyList<TypeParameter> parameters)
     {
-        var used = new HashSet<TextSlice>((outer.InferredTypeParameters ?? []).Select(t => t.Symbol!.Name), TextSliceComparer.Ordinal);
+        var used = new HashSet<Utf8String>((outer.InferredTypeParameters ?? []).Select(t => t.Symbol!.Name), Utf8StringComparer.Ordinal);
         var result = new List<Type>();
         var oldTypes = new List<Type>();
         var newTypes = new List<TypeParameter>();
         foreach (var parameter in parameters)
         {
-            TextSlice name = parameter.Symbol!.Name;
+            Utf8String name = parameter.Symbol!.Name;
             if (used.Add(name))
                 result.Add(parameter);
             else
             {
-                TextSlice stem = name;
-                while (stem.Length > 1 && stem[^1] is >= '0' and <= '9')
+                Utf8String stem = name;
+                while (stem.Length > 1 && stem[^1] is >= (byte)'0' and <= (byte)'9')
                     stem = stem[..^1];
                 int index = 1;
-                while (!used.Add(name = TextSlice.Concat(stem, TextSlice.Format(index))))
+                while (!used.Add(name = Utf8String.Concat(stem, Utf8String.Format(index))))
                     index++;
                 var replacement = context.NewTypeParameter(new Symbol(SymbolFlags.TypeParameter | SymbolFlags.Transient, name));
                 replacement.Target = parameter;

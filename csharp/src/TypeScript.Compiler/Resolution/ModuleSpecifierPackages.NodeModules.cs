@@ -7,14 +7,14 @@ namespace TypeScript.Compiler.Resolution;
 
 internal sealed partial class ModuleSpecifierPackages
 {
-    internal string FromNodeModules(string target, SourceFileNode source, ReferenceResolutionMode defaultMode,
-        ReferenceResolutionMode overrideMode = 0, string preference = "", bool packageNameOnly = false,
-        bool isRedirect = false, string globalTypingsCache = "", CancellationToken cancellation = default)
+    internal Utf8String FromNodeModules(Utf8String target, SourceFileNode source, ReferenceResolutionMode defaultMode,
+        ReferenceResolutionMode overrideMode = 0, Utf8String preference = default, bool packageNameOnly = false,
+        bool isRedirect = false, Utf8String globalTypingsCache = default, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
         if (NodeModuleParts(target) is not { } parts)
-            return "";
-        string specifier = target;
+            return Utf8String.Empty;
+        Utf8String specifier = target;
         bool packageRoot = false;
         if (!packageNameOnly)
         {
@@ -26,7 +26,7 @@ internal sealed partial class ModuleSpecifierPackages
                 cancellation: cancellation);
             var attempt = DirectoryWithPackageJson(target, parts, overrideMode == 0 ? defaultMode : overrideMode, endings, cancellation);
             if (attempt.Blocked)
-                return "";
+                return Utf8String.Empty;
             if (attempt.Exported)
                 return attempt.FileName;
             packageRoot = attempt.Root.Length != 0;
@@ -36,27 +36,27 @@ internal sealed partial class ModuleSpecifierPackages
                 : ModuleSpecifierPaths.ProcessEnding(attempt.FileName, endings, options, fileSystem, currentDirectory, cancellation);
         }
         if (isRedirect && !packageRoot)
-            return "";
-        string topLevel = specifier[..parts.NodeModules];
+            return Utf8String.Empty;
+        Utf8String topLevel = specifier[..parts.NodeModules];
         if (!CompilerPath.DirectoryName(source.FileName).StartsWith(topLevel, Comparison)
             || globalTypingsCache.Length != 0 && globalTypingsCache.StartsWith(topLevel, Comparison))
-            return "";
+            return Utf8String.Empty;
         return PackageNameFromTypes(specifier[(parts.PackageName + 1)..]);
     }
 
     private readonly record struct NodeModulePathParts(int NodeModules, int PackageName, int PackageRoot);
 
-    private static NodeModulePathParts? NodeModuleParts(string path)
+    private static NodeModulePathParts? NodeModuleParts(Utf8String path)
     {
         int nodeModules = 0, packageName = 0, packageRoot = 0, state = 0, end = 0;
         while (end >= 0)
         {
             int start = end;
-            end = start < path.Length ? path.IndexOf('/', start + 1) : -1;
+            end = start < path.Length ? path.IndexOf((byte)'/', start + 1) : -1;
             switch (state)
             {
                 case 0:
-                    if (path.AsSpan(start).StartsWith("/node_modules/", StringComparison.Ordinal))
+                    if (path.AsSpan(start).StartsWith("/node_modules/"u8, StringComparison.Ordinal))
                     {
                         nodeModules = start;
                         packageName = end;
@@ -74,7 +74,7 @@ internal sealed partial class ModuleSpecifierPackages
                     }
                     break;
                 case 3:
-                    if (path.AsSpan(start).StartsWith("/node_modules/", StringComparison.Ordinal))
+                    if (path.AsSpan(start).StartsWith("/node_modules/"u8, StringComparison.Ordinal))
                         state = 1;
                     break;
             }
@@ -82,35 +82,35 @@ internal sealed partial class ModuleSpecifierPackages
         return state > 1 ? new(nodeModules, packageName, packageRoot) : null;
     }
 
-    private static string PackageNameFromTypes(string name)
+    private static Utf8String PackageNameFromTypes(Utf8String name)
     {
-        if (!name.StartsWith("@types/", StringComparison.Ordinal))
+        if (!name.StartsWith("@types/"u8, StringComparison.Ordinal))
             return name;
         name = name[7..];
-        int separator = name.IndexOf("__", StringComparison.Ordinal);
-        return separator < 0 ? name : "@" + name[..separator] + "/" + name[(separator + 2)..];
+        int separator = name.IndexOf("__"u8, StringComparison.Ordinal);
+        return separator < 0 ? name : Utf8Literals.At + name[..separator] + Utf8Literals.Slash + name[(separator + 2)..];
     }
 
-    private readonly record struct PackageDirectoryAttempt(string FileName, string Root = "", bool Blocked = false, bool Exported = false);
+    private readonly record struct PackageDirectoryAttempt(Utf8String FileName, Utf8String Root = default, bool Blocked = false, bool Exported = false);
 
-    private PackageDirectoryAttempt DirectoryWithPackageJson(string target, NodeModulePathParts parts,
+    private PackageDirectoryAttempt DirectoryWithPackageJson(Utf8String target, NodeModulePathParts parts,
         ReferenceResolutionMode mode, IReadOnlyList<ModuleSpecifierEnding> endings, CancellationToken cancellation)
     {
-        string root = parts.PackageRoot < 0 ? target : target[..parts.PackageRoot];
+        Utf8String root = parts.PackageRoot < 0 ? target : target[..parts.PackageRoot];
         var package = packages.Get(root).Contents;
         if (package is null)
-            return new(target, target[(parts.PackageRoot + 1)..] is "index.d.ts" or "index.js" or "index.ts" or "index.tsx" ? root : "");
+            return new(target, (target[(parts.PackageRoot + 1)..] is var matchedText && (matchedText == "index.d.ts"u8 || matchedText == "index.js"u8 || matchedText == "index.ts"u8 || matchedText == "index.tsx"u8)) ? root : Utf8String.Empty);
 
         if (options.ResolvePackageJsonExports != false
-            && package.Get("exports") is { ValueKind: not JsonValueKind.Undefined } exports)
+            && package.Get(Utf8Literals.Exports) is { ValueKind: not JsonValueKind.Undefined } exports)
         {
             mode = ModuleSpecifierPaths.Extension(target) switch
             {
-                ".cjs" or ".cts" or ".d.cts" => ReferenceResolutionMode.Require,
-                ".mjs" or ".mts" or ".d.mts" => ReferenceResolutionMode.Import,
+                var matchedText2 when matchedText2 == ".cjs"u8 || matchedText2 == ".cts"u8 || matchedText2 == ".d.cts"u8 => ReferenceResolutionMode.Require,
+                var matchedText3 when matchedText3 == ".mjs"u8 || matchedText3 == ".mts"u8 || matchedText3 == ".d.mts"u8 => ReferenceResolutionMode.Import,
                 _ => mode
             };
-            string named = FromExports(
+            Utf8String named = FromExports(
                 target,
                 root,
                 PackageNameFromTypes(root[(parts.PackageName + 1)..]),
@@ -120,35 +120,35 @@ internal sealed partial class ModuleSpecifierPackages
             return named.Length == 0 ? new(target, Blocked: true) : new(named, Exported: true);
         }
 
-        string moduleFile = target;
+        Utf8String moduleFile = target;
         bool blockedByVersions = false;
         using var versionPaths = NamingVersionPaths(package);
         if (versionPaths is not null)
         {
-            string mapped = ModuleSpecifierPaths.FromPaths(target[(root.Length + 1)..],
+            Utf8String mapped = ModuleSpecifierPaths.FromPaths(target[(root.Length + 1)..],
                 CompilerOptions.ParsePaths(versionPaths.RootElement) ?? [], endings, root,
                 options, fileSystem, currentDirectory, cancellation);
             blockedByVersions = mapped.Length == 0;
             if (!blockedByVersions)
                 moduleFile = CompilerPath.Combine(root, mapped);
         }
-        string main = package.String("typings") ?? package.String("types") ?? package.String("main") ?? "index.js";
+        Utf8String main = package.String(Utf8Literals.Typings) ?? package.String(Utf8Literals.Types) ?? package.String(Utf8Literals.Main) ?? Utf8Literals.IndexJs;
         if (main.Length != 0 && !(blockedByVersions && MatchesVersionPath(versionPaths!.RootElement, main)))
         {
-            string mainFile = CompilerPath.Resolve(root, main);
+            Utf8String mainFile = CompilerPath.Resolve(root, main);
             if (SamePath(ModuleSpecifierPaths.WithoutExtension(mainFile), ModuleSpecifierPaths.WithoutExtension(moduleFile)))
                 return new(moduleFile, root);
-            if (package.Type != "module"
-                && ModuleSpecifierPaths.Extension(moduleFile) is not (".mts" or ".d.mts" or ".mjs" or ".cts" or ".d.cts" or ".cjs")
+            if (package.Type != Utf8Literals.Module
+                && !(ModuleSpecifierPaths.Extension(moduleFile) == ".mts"u8 || ModuleSpecifierPaths.Extension(moduleFile) == ".d.mts"u8 || ModuleSpecifierPaths.Extension(moduleFile) == ".mjs"u8 || ModuleSpecifierPaths.Extension(moduleFile) == ".cts"u8 || ModuleSpecifierPaths.Extension(moduleFile) == ".d.cts"u8 || ModuleSpecifierPaths.Extension(moduleFile) == ".cjs"u8)
                 && moduleFile.StartsWith(mainFile, Comparison)
                 && SamePath(CompilerPath.DirectoryName(moduleFile), CompilerPath.RemoveTrailingSeparator(mainFile))
-                && ModuleSpecifierPaths.WithoutExtension(CompilerPath.BaseName(moduleFile)) == "index")
+                && ModuleSpecifierPaths.WithoutExtension(CompilerPath.BaseName(moduleFile)) == Utf8Literals.Index)
                 return new(moduleFile, root);
         }
         return new(moduleFile);
     }
 
-    private bool SamePath(string left, string right) => CompilerPath.Relative(
+    private bool SamePath(Utf8String left, Utf8String right) => CompilerPath.Relative(
         CompilerPath.Resolve(currentDirectory, left), CompilerPath.Resolve(currentDirectory, right), fileSystem.CaseSensitive).Length == 0;
 
     private JsonDocument? NamingVersionPaths(PackageJson package)
@@ -166,7 +166,7 @@ internal sealed partial class ModuleSpecifierPackages
                     continue;
                 writer.WriteStartArray(entry.Name);
                 foreach (var item in entry.Value.EnumerateArray())
-                    writer.WriteStringValue(item.ValueKind == JsonValueKind.String ? JsonStrings.GetString(item) : "");
+                    writer.WriteStringValue(item.ValueKind == JsonValueKind.String ? JsonStrings.GetString(item) : Utf8String.Empty);
                 writer.WriteEndArray();
             }
             writer.WriteEndObject();
@@ -174,14 +174,14 @@ internal sealed partial class ModuleSpecifierPackages
         return JsonDocument.Parse(stream.ToArray());
     }
 
-    private static bool MatchesVersionPath(JsonElement paths, string candidate)
+    private static bool MatchesVersionPath(JsonElement paths, Utf8String candidate)
     {
         foreach (var entry in PackageJson.Properties(paths))
         {
-            string key = entry.Name;
-            int star = key.IndexOf('*');
+            Utf8String key = JsonStrings.GetName(entry);
+            int star = key.IndexOf((byte)'*');
             if (star < 0 ? key == candidate
-                : key.IndexOf('*', star + 1) < 0 && candidate.Length >= key.Length - 1
+                : key.IndexOf((byte)'*', star + 1) < 0 && candidate.Length >= key.Length - 1
                     && candidate.StartsWith(key[..star], StringComparison.Ordinal)
                     && candidate.EndsWith(key[(star + 1)..], StringComparison.Ordinal))
                 return true;

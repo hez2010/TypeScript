@@ -17,7 +17,7 @@ internal sealed partial class Checker
 
         internal void Add(long count) => Value += count;
 
-        internal void Add(TextSlice text, int extra = 0) => Add(Encoding.UTF8.GetByteCount(text) + extra);
+        internal void Add(Utf8String text, int extra = 0) => Add(text.Length + extra);
 
         internal bool Truncated() => WasTruncated |= Value > (NoTruncation
             ? TypeDisplay.NoTruncationMaximumTruncationLength : TypeDisplay.DefaultMaximumTruncationLength);
@@ -34,9 +34,9 @@ internal sealed partial class Checker
         if (type is LiteralType literal && (type.Flags & TypeFlags.EnumLike) == 0)
             return literal.Value switch
             {
-                TextSlice value => Encoding.UTF8.GetByteCount(value) + 2,
+                Utf8String value => value.Length + 2,
                 double value => TokenFacts.NumberText(value).Length,
-                System.Numerics.BigInteger value => TextSlice.Format(value).Length + 1,
+                System.Numerics.BigInteger value => Utf8String.Format(value).Length + 1,
                 bool value => value ? 4 : 5,
                 _ => 0
             };
@@ -53,7 +53,7 @@ internal sealed partial class Checker
             state.Length.Add(3);
         return state.Length.NoTruncation ? state.Factory.NewKeywordTypeNode(K.AnyKeyword)
             : state.Factory.NewTypeReferenceNode(state.Factory.NewIdentifier(count is { } n
-                ? "... " + TextSlice.Format(n) + " more ..." : "..."), null);
+                ? Utf8Literals.EllipsisSpace + Utf8String.Format(n) + Utf8Literals.More : Utf8Literals.Ellipsis), null);
     }
 
     private static void AddReusedSyntaxLength(SyntaxNode node, TypeSyntaxContext state)
@@ -62,13 +62,13 @@ internal sealed partial class Checker
             state.Length.Add((long)node.End - node.Pos);
     }
 
-    private static void AddExpressionNameLength(TypeSyntaxLength length, TextSlice name, bool first, bool enumMember)
+    private static void AddExpressionNameLength(TypeSyntaxLength length, Utf8String name, bool first, bool enumMember)
     {
-        if (first || IdentifierName(name.Span.StartsWith('#') ? name[1..] : name))
+        if (first || IdentifierName(name.Span.StartsWith((byte)'#') ? name[1..] : name))
             length.Add(name, 1);
         else
         {
-            if (name.Span.StartsWith('['))
+            if (name.Span.StartsWith((byte)'['))
                 name = name[1..^1];
             bool quoted = Quoted(name) && !enumMember;
             length.Add(quoted ? UnquoteSymbolText(name) : name, quoted ? 4 : 2);

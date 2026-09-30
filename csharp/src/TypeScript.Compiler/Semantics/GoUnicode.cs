@@ -26,22 +26,19 @@ internal static partial class GoUnicode
     }
 
     // Go's []rune uses strict UTF-8 and consumes one byte per invalid encoding.
-    internal static int[] Runes(ReadOnlySpan<char> text)
+    internal static int[] Runes(ReadOnlySpan<byte> text)
     {
-        ReadOnlySpan<char> remaining = text;
+        ReadOnlySpan<byte> remaining = text;
         List<int> result = [];
         while (!remaining.IsEmpty)
         {
-            if (Rune.DecodeFromUtf16(remaining, out var rune, out int consumed) == OperationStatus.Done)
+            if (Rune.DecodeFromUtf8(remaining, out var rune, out int consumed) == OperationStatus.Done)
             {
                 result.Add(rune.Value);
                 remaining = remaining[consumed..];
             }
             else
             {
-                // A lone surrogate occupies three invalid bytes in Go's WTF-8 string.
-                result.Add(0xfffd);
-                result.Add(0xfffd);
                 result.Add(0xfffd);
                 remaining = remaining[1..];
             }

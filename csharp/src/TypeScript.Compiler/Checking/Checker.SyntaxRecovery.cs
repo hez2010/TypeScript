@@ -9,14 +9,14 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
-    internal ValueTask<TextSlice> SerializeJsTypeForEmitAsync(SyntaxNode annotation, SyntaxNode? enclosing,
+    internal ValueTask<Utf8String> SerializeJsTypeForEmitAsync(SyntaxNode annotation, SyntaxNode? enclosing,
         NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default,
         INodeBuilderSymbolTracker? tracker = null,
         NodeBuilderInternalFlags internalFlags = NodeBuilderInternalFlags.None) =>
         EmitSyntaxQueryAsync(annotation, enclosing, flags, async state =>
         {
             return PrintEmitSyntax(await RecoverAnnotationSyntaxAsync(annotation, state, cancellation), enclosing, state, cancellation);
-        }, "", cancellation, tracker, internalFlags);
+        }, Utf8String.Empty, cancellation, tracker, internalFlags);
 
     private async ValueTask<SyntaxNode> RecoverAnnotationSyntaxAsync(
         SyntaxNode annotation,
@@ -171,7 +171,7 @@ internal sealed partial class Checker
     private async ValueTask<SyntaxNode> RecoverTypeReferenceSyntaxAsync(TypeReferenceNode reference, TypeSyntaxContext state,
         CancellationToken cancellation)
     {
-        if (reference.TypeName is IdentifierNode { Text.Span: "" })
+        if (reference.TypeName is IdentifierNode { Text.Span: var matchedText } && matchedText.SequenceEqual(""u8))
             return state.Factory.NewKeywordTypeNode(K.AnyKeyword);
         var type = await Nodes.FromNodeAsync(reference, cancellation);
         if (await DocumentationTypeReferenceAsync(reference, cancellation) is not null)

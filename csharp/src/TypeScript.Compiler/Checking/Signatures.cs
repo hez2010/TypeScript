@@ -46,7 +46,7 @@ internal sealed class Signatures(TypeContext context, CheckerLinks links, Checke
         return await ReturnAsync(signature, cancellation).ConfigureAwait(false);
     }
 
-    private readonly TypePredicate noPredicate = new(TypePredicateKind.Identifier, 0, "<<unresolved>>", context.AnyType);
+    private readonly TypePredicate noPredicate = new(TypePredicateKind.Identifier, 0, Utf8Literals.Unresolved, context.AnyType);
 
     internal async ValueTask<IReadOnlyList<Signature>> OfSymbolAsync(Symbol? symbol, CancellationToken cancellation = default)
     {
@@ -101,7 +101,7 @@ internal sealed class Signatures(TypeContext context, CheckerLinks links, Checke
             if ((symbol.Flags & SymbolFlags.Property) != 0 && parameter.Name?.Kind is not (K.ObjectBindingPattern or K.ArrayBindingPattern))
                 symbol = symbols.NameResolver(cancellation).Resolve(parameter, symbol.Name, SymbolFlags.Value)
                     ?? throw new InvalidOperationException("Parameter property has no parameter symbol");
-            if (i == 0 && symbol.Name == "this")
+            if (i == 0 && symbol.Name == Utf8Literals.This)
             {
                 hasThis = true;
                 thisParameter = symbols.Binding(parameter)!.Get(parameter)!.Value.Symbol;
@@ -123,7 +123,7 @@ internal sealed class Signatures(TypeContext context, CheckerLinks links, Checke
             var otherParameters = other is null ? null : Parameters(other);
             int count = otherKind == K.GetAccessor ? 1 : 2;
             if (otherParameters?.Count == count
-                && otherParameters[0] is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: "this" } } otherThis)
+                && otherParameters[0] is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: var matchedText } } otherThis && matchedText.SequenceEqual("this"u8))
                 thisParameter = symbols.Binding(otherThis)?.Get(otherThis)?.Symbol;
         }
         IReadOnlyList<TypeParameter> typeParameters;
@@ -277,10 +277,10 @@ internal sealed class Signatures(TypeContext context, CheckerLinks links, Checke
                                 : await host.TypeFromNodeAsync(predicate.Type, cancellation).ConfigureAwait(false);
                             bool assertion = predicate.AssertsModifier is not null;
                             if (predicate.ParameterName?.Kind == K.ThisType)
-                                result = new(assertion ? TypePredicateKind.AssertsThis : TypePredicateKind.This, 0, "", type);
+                                result = new(assertion ? TypePredicateKind.AssertsThis : TypePredicateKind.This, 0, Utf8String.Empty, type);
                             else
                             {
-                                TextSlice name = ((IdentifierNode)predicate.ParameterName!).Text;
+                                Utf8String name = ((IdentifierNode)predicate.ParameterName!).Text;
                                 int index = Array.FindIndex(signature.Parameters.ToArray(), p => p.Name == name);
                                 result = new(
                                     assertion ? TypePredicateKind.AssertsIdentifier : TypePredicateKind.Identifier,

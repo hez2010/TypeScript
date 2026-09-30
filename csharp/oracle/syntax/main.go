@@ -87,8 +87,7 @@ func main() {
 			}
 			continue
 		}
-		positions := ast.ComputePositionMap(text)
-		position := positions.UTF8ToUTF16
+		position := func(offset int) int { return offset }
 		s := scanner.NewScanner()
 		s.SetText(text)
 		s.SetSkipTrivia(!request.Trivia)

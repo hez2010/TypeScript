@@ -61,9 +61,9 @@ internal sealed class IndexSignatures(
         => await host.AssignableAsync(source, target, cancellation).ConfigureAwait(false)
             || target == context.StringType && await host.AssignableAsync(source, context.NumberType, cancellation).ConfigureAwait(false)
             || target == context.NumberType
-                && (source == context.NumericStringType || source is LiteralType { Value: TextSlice text } && NumericName(text));
+                && (source == context.NumericStringType || source is LiteralType { Value: Utf8String text } && NumericName(text));
 
-    internal static bool NumericName(TextSlice text) => TokenFacts.NumberText(JsNumber.FromString(text)) == text;
+    internal static bool NumericName(Utf8String text) => TokenFacts.NumberText(JsNumber.FromString(text)) == text;
 
     internal async ValueTask<IReadOnlyList<IndexInfo>> ResolveAsync(
         Symbol index,

@@ -23,21 +23,21 @@ internal static class CheckerMappedMemberTests
         var relations = new AlgebraFixtureHost(context);
         var algebra = new TypeAlgebra(context, new([]), relations);
         var host = new InstantiationFixtureHost(context, algebra, links, relations);
-        var a = context.GetStringLiteralType("a");
-        var b = context.GetStringLiteralType("b");
+        var a = context.GetStringLiteralType("a"u8);
+        var b = context.GetStringLiteralType("b"u8);
         var keys = await algebra.UnionAsync([a, b]);
         MappedType NewMapped(bool indexTemplate = false, bool optional = false)
         {
             var node = new MappedTypeNode
             {
-                TypeParameter = new TypeParameterDeclarationNode { Name = new IdentifierNode { Text = "P" } },
+                TypeParameter = new TypeParameterDeclarationNode { Name = new IdentifierNode { Text = "P"u8 } },
                 Type = new TokenNode(SyntaxKind.UnknownKeyword),
                 QuestionToken = optional ? new TokenNode(SyntaxKind.QuestionToken) : null
             };
             node.SetParents();
-            var symbol = new Symbol(SymbolFlags.TypeLiteral, "Mapped");
+            var symbol = new Symbol(SymbolFlags.TypeLiteral, "Mapped"u8);
             symbol.DeclarationList = symbol.DeclarationList.Add(node);
-            var parameter = context.NewTypeParameter(new(SymbolFlags.TypeParameter, "P"));
+            var parameter = context.NewTypeParameter(new(SymbolFlags.TypeParameter, "P"u8));
             parameter.Symbol!.DeclarationList = parameter.Symbol!.DeclarationList.Add(node.TypeParameter);
             parameter.Constraint = keys;
             var result = (MappedType)context.NewObjectType(ObjectFlags.Mapped, symbol);
@@ -59,7 +59,7 @@ internal static class CheckerMappedMemberTests
                     && cancelled.Members is null
                     && cancelled.Properties!.Count == 0);
             host.Members.ResolveAsync(cancelled).GetAwaiter().GetResult();
-            if (name == "b")
+            if (name == "b"u8)
                 throw new OperationCanceledException();
         };
         try
@@ -75,8 +75,8 @@ internal static class CheckerMappedMemberTests
         Check(links.Values.Count == valuesBefore && links.MappedSymbols.Count == mappingsBefore);
         host.BeforeProperty = null;
         await host.Members.ResolveAsync(cancelled);
-        Check(cancelled.Properties!.Select(p => p.Name).SequenceEqual(["a", "b"]));
-        var property = cancelled.Members!["a"];
+        Check(cancelled.Properties!.Select(p => p.Name).SequenceEqual([Utf8String.Copy("a"u8), Utf8String.Copy("b"u8)]));
+        var property = cancelled.Members!["a"u8];
         Check(links.Values.Get(property).ResolvedType is null);
         Check(links.MappedSymbols.Get(property).KeyType == a && links.Values.Get(property).ContainingType == cancelled);
         Check(await host.Members.SymbolTypeAsync(property) == a);
@@ -86,14 +86,14 @@ internal static class CheckerMappedMemberTests
 
         var optional = NewMapped(optional: true);
         await host.Members.ResolveAsync(optional);
-        var optionalProperty = optional.Members!["a"];
+        var optionalProperty = optional.Members!["a"u8];
         var optionalType = await host.Members.SymbolTypeAsync(optionalProperty);
         Check((optionalProperty.Flags & SymbolFlags.Optional) != 0 && optionalType is UnionType union
             && union.Types.Contains(a) && union.Types.Contains(context.MissingType));
 
         var cycle = NewMapped(indexTemplate: true);
         await host.Members.ResolveAsync(cycle);
-        var recursive = cycle.Members!["a"];
+        var recursive = cycle.Members!["a"u8];
         host.OnIndex = _ => Check(host.Members.SymbolTypeAsync(recursive).GetAwaiter().GetResult() == context.ErrorType);
         Check(await host.Members.SymbolTypeAsync(recursive) == context.ErrorType);
         Check(
@@ -105,7 +105,7 @@ internal static class CheckerMappedMemberTests
 
         var retry = NewMapped(indexTemplate: true);
         await host.Members.ResolveAsync(retry);
-        var retryProperty = retry.Members!["a"];
+        var retryProperty = retry.Members!["a"u8];
         host.OnIndex = _ => throw new OperationCanceledException();
         try
         {
@@ -127,10 +127,10 @@ internal static class CheckerMappedMemberTests
         Check(!indexes[0].IsReadonly && indexes[0].ValueType == context.StringType);
         Check(
             MappedMembers.PropertyName(
-                context.GetStringLiteralType(Symbol.InternalPrefix + "source")) == Symbol.InternalPrefix + Symbol.InternalPrefix + "source");
-        var unique = context.GetUniqueSymbolType(new(SymbolFlags.BlockScopedVariable, "unique"));
+                context.GetStringLiteralType(Symbol.InternalPrefix + "source"u8)) == Symbol.InternalPrefix + "source"u8);
+        var unique = context.GetUniqueSymbolType(new(SymbolFlags.BlockScopedVariable, "unique"u8));
         Check(MappedMembers.PropertyName(unique) == unique.Name);
-        Check(MappedMembers.PropertyName(context.GetNumberLiteralType(-0.0)) == "0");
+        Check(MappedMembers.PropertyName(context.GetNumberLiteralType(-0.0)) == "0"u8);
 
         Type deep = context.StringType;
         for (int i = 0; i < 20_000; i++)

@@ -7,16 +7,16 @@ internal static partial class RegularExpressionUnicodeProperties
 {
     // Weighted edit distance used by TypeScript's diagnostic spelling suggestions.
     // Rune enumeration avoids splitting supplementary characters in group names.
-    internal static TextSlice? Suggest(ReadOnlySpan<char> name, IEnumerable<TextSlice> candidates)
+    internal static Utf8String? Suggest(ReadOnlySpan<byte> name, IEnumerable<Utf8String> candidates)
     {
         ReadOnlySpan<Rune> input = Runes(name);
         int maximumLengthDifference = Math.Max(2, (int)(input.Length * 0.34));
         double bestDistance = Math.Floor(input.Length * 0.4) + 0.9;
-        TextSlice? best = null;
+        Utf8String? best = null;
         double[] previous = [], current = [];
-        foreach (TextSlice candidate in candidates)
+        foreach (Utf8String candidate in candidates)
         {
-            if (candidate.Span.SequenceEqual(name) || Math.Abs(Encoding.UTF8.GetByteCount(candidate.Span) - input.Length) > maximumLengthDifference)
+            if (candidate.Span.SequenceEqual(name) || Math.Abs(candidate.Span.Length - input.Length) > maximumLengthDifference)
                 continue;
             if (candidate.Length < 3 && !candidate.Span.Equals(name, StringComparison.OrdinalIgnoreCase))
                 continue;
@@ -33,7 +33,7 @@ internal static partial class RegularExpressionUnicodeProperties
         return best;
     }
 
-    private static ReadOnlySpan<Rune> Runes(ReadOnlySpan<char> text)
+    private static ReadOnlySpan<Rune> Runes(ReadOnlySpan<byte> text)
     {
         Rune[] buffer = new Rune[text.Length];
         int count = 0;

@@ -4,9 +4,9 @@ namespace TypeScript.Compatibility;
 
 internal static class NumberOperations
 {
-    public static bool ApproximatePower(double actual, string bits)
+    public static bool ApproximatePower(double actual, Utf8String bits)
     {
-        if (bits == "nan")
+        if (bits == "nan"u8)
             return double.IsNaN(actual);
         ulong expectedBits = ulong.Parse(
             bits,

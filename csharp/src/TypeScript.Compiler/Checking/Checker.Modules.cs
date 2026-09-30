@@ -67,11 +67,11 @@ internal sealed partial class Checker
     private bool ModuleAugmentation(SyntaxNode node) => node is ModuleDeclarationNode && AmbientModule(node)
         && SemanticSyntax.Source(node)?.ModuleAugmentations.Contains(SemanticSyntax.Name(node)!) == true;
 
-    private static bool RelativeModulePath(TextSlice name) => name.Span is "." or ".."
-        || name.Span.StartsWith("./", StringComparison.Ordinal) || name.Span.StartsWith("../", StringComparison.Ordinal)
-        || name.Span.StartsWith(".\\", StringComparison.Ordinal) || name.Span.StartsWith("..\\", StringComparison.Ordinal);
+    private static bool RelativeModulePath(Utf8String name) => name.Span.SequenceEqual("."u8) || name.Span.SequenceEqual(".."u8)
+        || name.Span.StartsWith("./"u8, StringComparison.Ordinal) || name.Span.StartsWith("../"u8, StringComparison.Ordinal)
+        || name.Span.StartsWith(".\\"u8, StringComparison.Ordinal) || name.Span.StartsWith("..\\"u8, StringComparison.Ordinal);
 
-    private static bool RelativeModuleName(TextSlice name) => RelativeModulePath(name) || CompilerPath.EncodedRootLength(name) > 0;
+    private static bool RelativeModuleName(Utf8String name) => RelativeModulePath(name) || CompilerPath.EncodedRootLength(name) > 0;
 
     private async ValueTask CheckMisplacedModuleNameAsync(SyntaxNode node, CancellationToken cancellation)
     {
@@ -285,7 +285,7 @@ internal sealed partial class Checker
                 {
                     await CheckAliasSourceAsync(ns, cancellation).ConfigureAwait(false);
                     if (EmitModuleKind(node) == 1)
-                        await ExternalHelpersAsync(node, ["__importStar"], cancellation);
+                        await ExternalHelpersAsync(node, [Utf8Literals.ImportStar], cancellation);
                 }
                 else if (clause.NamedBindings is NamedImportsNode imports
                     && await program.ExternalModuleAsync(
@@ -296,29 +296,29 @@ internal sealed partial class Checker
                 {
                     if (DefaultOnlyModule(module, node.ModuleSpecifier!)
                         && imports.Elements?.Any(
-                            e => (e as ImportSpecifierNode)?.PropertyName is not IdentifierNode { Text.Span: "default" }) == true)
+                            e => (!((e as ImportSpecifierNode)?.PropertyName is IdentifierNode { Text.Span: var matchedText } && matchedText.SequenceEqual("default"u8)))) == true)
                         ListError(
                             imports,
                             imports.Elements!,
                             DiagnosticCode.NamedImportsFromAJSONFileIntoAnECMAScriptModuleAreNotAllowedWhenModuleIsSetTo0,
-                            ModuleKind switch { 100 => "Node16", 101 => "Node18", 102 => "Node20", _ => "NodeNext" });
+                            ModuleKind switch { 100 => Utf8Literals.Node16, 101 => Utf8Literals.Node18, 102 => Utf8Literals.Node20, _ => Utf8Literals.NodeNext });
                     foreach (var binding in imports.Elements!)
                         await CheckAliasSourceAsync(binding, cancellation).ConfigureAwait(false);
                 }
                 if (clause.Name is not null && clause.NamedBindings is not NamespaceImportNode && EmitModuleKind(node) == 1)
-                    await ExternalHelpersAsync(node, ["__importDefault"], cancellation);
+                    await ExternalHelpersAsync(node, [Utf8Literals.ImportDefault], cancellation);
             }
             if (!SemanticSyntax.TypeOnly(clause) && ModuleKind is >= 101 and <= 199
                 && await ResolveImportModuleAsync(node, node.ModuleSpecifier,
                     node.Attributes is null ? null : await ImportAttributesExpressionAsync(node.Attributes, cancellation),
                     cancellation) is { } resolved
                 && DefaultOnlyModule(resolved, node.ModuleSpecifier!)
-                && node.Attributes?.Attributes?.OfType<ImportAttributeNode>().Any(a => ImportAttributeName(a.Name!) == "type"
-                    && a.Value is StringLiteralNode { Text.Span: "json" }) != true)
+                && node.Attributes?.Attributes?.OfType<ImportAttributeNode>().Any(a => ImportAttributeName(a.Name!) == Utf8Literals.Type
+                    && a.Value is StringLiteralNode { Text.Span: var matchedText2 } && matchedText2.SequenceEqual("json"u8)) != true)
                 Error(
                     node.ModuleSpecifier!,
                     DiagnosticCode.ImportingAJSONFileIntoAnECMAScriptModuleRequiresATypeColonJsonImportAttributeWhenModuleIsSetTo0,
-                    ModuleKind switch { 101 => "Node18", 102 => "Node20", _ => "NodeNext" });
+                    ModuleKind switch { 101 => Utf8Literals.Node18, 102 => Utf8Literals.Node20, _ => Utf8Literals.NodeNext });
         }
         else if (program.Symbols.Program.Configuration.Options.NoUncheckedSideEffectImports != false)
         {
@@ -398,8 +398,8 @@ internal sealed partial class Checker
                     n => n is ImportDeclarationNode or ImportEqualsDeclarationNode or VariableDeclarationNode);
                 var specifier = declaration is VariableDeclarationNode { Initializer: CallExpressionNode { Arguments: { Count: > 0 } arguments } }
                     ? arguments[0] : declaration is null ? null : AliasTargets.Specifier(declaration);
-                TextSlice text = name is IdentifierNode identifier ? identifier.Text : symbol.Name;
-                TextSlice importText = TextSlice.ConcatMany("import(\"", (AliasTargets.Text(specifier) ?? "..."), "\")", (node is ImportSpecifierNode ? TextSlice.Concat(".", text) : ""));
+                Utf8String text = name is IdentifierNode identifier ? identifier.Text : symbol.Name;
+                Utf8String importText = Utf8String.ConcatMany(Utf8Literals.Import, AliasTargets.Text(specifier) ?? Utf8Literals.Ellipsis, Utf8Literals.QuoteCloseParen, node is ImportSpecifierNode ? Utf8String.Concat("."u8, text) : Utf8String.Empty);
                 Error(name, DiagnosticCode.X0IsATypeAndCannotBeImportedInJavaScriptFilesUse1InAJSDocTypeAnnotation, text, importText);
             }
             return;
@@ -435,7 +435,7 @@ internal sealed partial class Checker
                 {
                     if (verbatim)
                     {
-                        TextSlice name = AliasTargets.Text(
+                        Utf8String name = AliasTargets.Text(
                             (node as ImportSpecifierNode)?.PropertyName ?? SemanticSyntax.Name(node)) ?? symbol.Name;
                         DiagnosticCode code = node is ImportEqualsDeclarationNode { ModuleReference: not ExternalModuleReferenceNode }
                             ? DiagnosticCode.AnImportAliasCannotResolveToATypeOrTypeOnlyDeclarationWhenVerbatimModuleSyntaxIsEnabled : type
@@ -449,7 +449,7 @@ internal sealed partial class Checker
                 else if (node is ExportSpecifierNode export && (verbatim
                     || SemanticSyntax.Source(typeOnlyDeclaration) != SemanticSyntax.Source(node)))
                 {
-                    TextSlice name = AliasTargets.Text(export.PropertyName ?? export.Name) ?? symbol.Name;
+                    Utf8String name = AliasTargets.Text(export.PropertyName ?? export.Name) ?? symbol.Name;
                     TypeOnlyAliasError(
                         node,
                         type
@@ -480,8 +480,8 @@ internal sealed partial class Checker
         if (node is ImportSpecifierNode import)
         {
             CheckModuleExportName(import.PropertyName, true);
-            if (AliasTargets.Text(import.PropertyName ?? import.Name) == "default" && EmitModuleKind(import) == 1)
-                await ExternalHelpersAsync(import, ["__importDefault"], cancellation);
+            if (AliasTargets.Text(import.PropertyName ?? import.Name) == Utf8Literals.Default && EmitModuleKind(import) == 1)
+                await ExternalHelpersAsync(import, [Utf8Literals.ImportDefault], cancellation);
             var deprecated = await program.Aliases.WithDeprecationAsync(symbol, node, cancellation).ConfigureAwait(false);
             if (program.Deprecations.Symbol(deprecated))
                 program.Suggestion(node, DiagnosticCode.X0IsDeprecated, deprecated.Name);
@@ -489,21 +489,21 @@ internal sealed partial class Checker
     }
 
     private DiagnosticCode VerbatimModuleCode(SyntaxNode node) => SemanticSyntax.Source(node)!.FileName.EndsWith(
-        ".cts",
+        ".cts"u8,
         StringComparison.OrdinalIgnoreCase)
         || SemanticSyntax.Source(node)!.FileName.EndsWith(
-            ".cjs",
+            ".cjs"u8,
             StringComparison.OrdinalIgnoreCase) ? DiagnosticCode.ECMAScriptImportsAndExportsCannotBeWrittenInACommonJSFileUnderVerbatimModuleSyntax : DiagnosticCode.ECMAScriptImportsAndExportsCannotBeWrittenInACommonJSFileUnderVerbatimModuleSyntaxAdjustTheTypeFieldInTheNearestPackageJsonToMakeThisFileAnECMAScriptModuleOrAdjustYourVerbatimModuleSyntaxModuleAndModuleResolutionSettingsInTypeScript;
 
-    private TextSlice IsolatedModuleOptionName => program.Symbols.Program.Configuration.Options.VerbatimModuleSyntax == true
-        ? "verbatimModuleSyntax" : "isolatedModules";
+    private Utf8String IsolatedModuleOptionName => program.Symbols.Program.Configuration.Options.VerbatimModuleSyntax == true
+        ? Utf8Literals.VerbatimModuleSyntax : Utf8Literals.IsolatedModules;
 
     private void TypeOnlyAliasError(
         SyntaxNode node,
         DiagnosticCode code,
         SyntaxNode? typeOnlyDeclaration,
-        TextSlice name,
-        params TextSlice[] arguments)
+        Utf8String name,
+        params Utf8String[] arguments)
     {
         var diagnostic = CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments);
         if (typeOnlyDeclaration is not null)
@@ -553,9 +553,9 @@ internal sealed partial class Checker
                 await CheckAliasSourceAsync(binding, cancellation).ConfigureAwait(false);
                 CheckModuleExportName(binding.PropertyName, node.ModuleSpecifier is not null);
                 CheckModuleExportName(binding.Name, true);
-                if (node.ModuleSpecifier is not null && AliasTargets.Text(binding.PropertyName ?? binding.Name) == "default"
+                if (node.ModuleSpecifier is not null && AliasTargets.Text(binding.PropertyName ?? binding.Name) == Utf8Literals.Default
                     && EmitModuleKind(node) == 1)
-                    await ExternalHelpersAsync(binding, ["__importDefault"], cancellation);
+                    await ExternalHelpersAsync(binding, [Utf8Literals.ImportDefault], cancellation);
                 if (node.ModuleSpecifier is null && (binding.PropertyName ?? binding.Name) is IdentifierNode name)
                 {
                     var symbol = program.Symbols.NameResolver(cancellation).Resolve(
@@ -583,7 +583,7 @@ internal sealed partial class Checker
             node.Attributes,
             cancellation).ConfigureAwait(false) is { } module)
         {
-            if (module.Exports.ContainsKey("export="))
+            if (module.Exports.ContainsKey(Utf8Literals.ExportEquals))
                 Error(
                     node.ModuleSpecifier!,
                     DiagnosticCode.Module0UsesExportAndCannotBeUsedWithExportAsterisk,
@@ -594,7 +594,7 @@ internal sealed partial class Checker
                 CheckModuleExportName(ns.Name, true);
             }
             if (EmitModuleKind(node) == 1)
-                await ExternalHelpersAsync(node, node.ExportClause is null ? ["__exportStar"] : ["__importStar"], cancellation);
+                await ExternalHelpersAsync(node, node.ExportClause is null ? [Utf8Literals.ExportStar] : [Utf8Literals.ImportStar], cancellation);
         }
     }
 
@@ -726,11 +726,11 @@ internal sealed partial class Checker
         var symbol = program.Symbols.Declaration(node)!;
         if (checkedModuleExports.Contains(symbol))
             return;
-        if (symbol.Exports.TryGetValue("export=", out var assignment))
+        if (symbol.Exports.TryGetValue(Utf8Literals.ExportEquals, out var assignment))
         {
             bool value = false;
             foreach (var (name, exported) in symbol.Exports)
-                if (name != "export="
+                if (name != Utf8Literals.ExportEquals
                     && (await program.Aliases.FlagsAsync(
                         exported,
                         cancellation: cancellation).ConfigureAwait(false) & SymbolFlags.Value) != 0)
@@ -744,7 +744,7 @@ internal sealed partial class Checker
                 var target = await program.Aliases.ResolveAsync(assignment, cancellation);
                 if ((target.Flags & SymbolFlags.Namespace) != 0)
                     foreach (var exported in target.Exports.Values)
-                        if (exported.Name != "export=" && (await program.Aliases.FlagsAsync(exported, cancellation: cancellation)
+                        if (exported.Name != Utf8Literals.ExportEquals && (await program.Aliases.FlagsAsync(exported, cancellation: cancellation)
                             & (SymbolFlags.Type | SymbolFlags.Namespace)) != 0)
                         {
                             value = true;
@@ -757,7 +757,7 @@ internal sealed partial class Checker
         }
         foreach (var (name, exported) in await program.ModuleExports.ResolveAsync(symbol, cancellation).ConfigureAwait(false))
         {
-            if (name == Symbol.InternalPrefix + "export" || (exported.Flags & (SymbolFlags.Namespace | SymbolFlags.Enum)) != 0)
+            if (name == Symbol.InternalExport || (exported.Flags & (SymbolFlags.Namespace | SymbolFlags.Enum)) != 0)
                 continue;
             bool NotOverload(SyntaxNode n) =>
                 n is not FunctionDeclarationNode and not MethodDeclarationNode || SemanticSyntax.Body(n) is not null;

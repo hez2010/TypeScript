@@ -60,7 +60,7 @@ internal sealed class BindingPatterns(TypeContext context, CheckerLinks links, T
         bool reportErrors,
         CancellationToken cancellation)
     {
-        var members = new Dictionary<TextSlice, Symbol>();
+        var members = new Dictionary<Utf8String, Symbol>();
         IndexInfo? stringIndex = null;
         var flags = ObjectFlags.ObjectLiteral | ObjectFlags.ContainsObjectOrArrayLiteral;
         foreach (BindingElementNode element in pattern.Elements!)
@@ -161,7 +161,7 @@ internal sealed class BindingPatterns(TypeContext context, CheckerLinks links, T
         context.RequireOwned(type);
         if (pattern.Kind == SyntaxKind.ObjectBindingPattern && (type.ObjectFlags & ObjectFlags.ObjectLiteral) != 0)
         {
-            var missing = new List<(BindingElementNode Element, TextSlice Name)>();
+            var missing = new List<(BindingElementNode Element, Utf8String Name)>();
             foreach (BindingElementNode element in pattern.Elements!)
                 if (element.Initializer is not null)
                 {
@@ -177,7 +177,7 @@ internal sealed class BindingPatterns(TypeContext context, CheckerLinks links, T
                 return type;
             var members = (await properties.GetAsync(
                 type,
-                cancellation).ConfigureAwait(false)).ToDictionary(p => p.Name, TextSliceComparer.Ordinal);
+                cancellation).ConfigureAwait(false)).ToDictionary(p => p.Name, Utf8StringComparer.Ordinal);
             foreach (var (element, name) in missing)
             {
                 var symbol = new Symbol(SymbolFlags.Property | SymbolFlags.Optional | SymbolFlags.Transient, name);

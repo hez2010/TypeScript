@@ -265,7 +265,7 @@ internal sealed class MappedTypes(TypeContext context, TypeAlgebra algebra, Type
         {
             var flags = infos[i].Flags;
             if (i < target.FixedLength)
-                results[i] = await InstantiateTemplateAsync(type, context.GetStringLiteralType(TextSlice.Format(i)),
+                results[i] = await InstantiateTemplateAsync(type, context.GetStringLiteralType(Utf8String.Format(i)),
                     (flags & ElementFlags.Optional) != 0, fixedMapper, cancellation).ConfigureAwait(false);
             else if ((flags & ElementFlags.Variadic) != 0)
                 results[i] = await RequiredAsync(

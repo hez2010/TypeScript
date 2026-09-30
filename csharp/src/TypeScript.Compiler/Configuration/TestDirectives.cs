@@ -1,46 +1,67 @@
 using System.Collections.Frozen;
 using System.Buffers;
 using System.Text;
-using System.Text.RegularExpressions;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Syntax;
 using TypeScript.Compiler.Text;
 
 namespace TypeScript.Compiler.Configuration;
 
-public sealed record TestUnit(string Name, SourceText Source, IReadOnlyDictionary<string, string> Options)
+public sealed record TestUnit(Utf8String Name, SourceText Source, IReadOnlyDictionary<Utf8String, Utf8String> Options)
 {
-    public TextSlice Content => Source.Text;
+    public Utf8String Content => Source.Text;
 }
 public sealed record TestSource(
     TestUnit[] Units,
-    IReadOnlyDictionary<string, string> Symlinks,
-    string CurrentDirectory,
-    IReadOnlyDictionary<string, string> Options);
+    IReadOnlyDictionary<Utf8String, Utf8String> Symlinks,
+    Utf8String CurrentDirectory,
+    IReadOnlyDictionary<Utf8String, Utf8String> Options);
 
 public static partial class TestDirectives
 {
-    [GeneratedRegex(@"^//[\t\n\f\r ]*@([A-Za-z0-9_]+)[\t\n\f\r ]*:[\t\n\f\r ]*([^\r\n]*)", RegexOptions.CultureInvariant)]
-    private static partial Regex Directive();
+    public static TestSource Parse(Utf8String code, Utf8String fileName, bool allowImplicitFirstFile = false)
+        => Parse(code.Span, fileName, allowImplicitFirstFile);
 
-    [GeneratedRegex(@"^//\s*@link\s*:\s*([^\r\n]*)\s*->\s*([^\r\n]*)", RegexOptions.CultureInvariant)]
-    private static partial Regex Link();
+    private static bool Directive(ReadOnlySpan<byte> line, out Utf8String key, out Utf8String value)
+    {
+        key = value = default;
+        if (!line.StartsWith("//"u8))
+            return false;
+        int at = 2;
+        static bool Space(byte b) => (int)b is ' ' or '\t' or '\n' or '\f' or '\r';
+        while (at < line.Length && Space(line[at]))
+            at++;
+        if (at == line.Length || line[at++] != '@')
+            return false;
+        int start = at;
+        while (at < line.Length && (Utf8Ascii.IsLetterOrDigit(line[at]) || line[at] == '_'))
+            at++;
+        if (at == start)
+            return false;
+        var name = line[start..at];
+        while (at < line.Length && Space(line[at]))
+            at++;
+        if (at == line.Length || line[at++] != ':')
+            return false;
+        while (at < line.Length && Space(line[at]))
+            at++;
+        key = Utf8String.Copy(name);
+        value = Utf8String.Copy(line[at..]);
+        return true;
+    }
 
-    public static TestSource Parse(string code, string fileName, bool allowImplicitFirstFile = false)
-        => Parse(Wtf8.Encode(code), fileName, allowImplicitFirstFile);
-
-    public static TestSource Parse(ReadOnlySpan<byte> code, string fileName, bool allowImplicitFirstFile = false)
+    public static TestSource Parse(ReadOnlySpan<byte> code, Utf8String fileName, bool allowImplicitFirstFile = false)
     {
         var units = new List<TestUnit>();
-        var links = new Dictionary<string, string>(StringComparer.Ordinal);
-        var options = new Dictionary<string, string>(StringComparer.Ordinal);
-        var local = new Dictionary<string, string>(StringComparer.Ordinal);
-        string name = allowImplicitFirstFile ? fileName : "", directory = "";
+        var links = new Dictionary<Utf8String, Utf8String>(Utf8StringComparer.Ordinal);
+        var options = new Dictionary<Utf8String, Utf8String>(Utf8StringComparer.Ordinal);
+        var local = new Dictionary<Utf8String, Utf8String>(Utf8StringComparer.Ordinal);
+        Utf8String name = allowImplicitFirstFile ? fileName : Utf8String.Empty, directory = Utf8String.Empty;
         var content = new ArrayBufferWriter<byte>();
         bool seenLine = false, seenFile = false;
         void Save()
         {
-            units.Add(new(name, new SourceText(content.WrittenSpan), local.ToFrozenDictionary(StringComparer.Ordinal)));
+            units.Add(new(name, new SourceText(content.WrittenSpan), local.ToFrozenDictionary(Utf8StringComparer.Ordinal)));
             seenFile = true;
         }
         foreach (Range range in code.Split((byte)'\n'))
@@ -48,15 +69,14 @@ public static partial class TestDirectives
             ReadOnlySpan<byte> line = code[range];
             if (range.End.GetOffset(code.Length) != code.Length && line.EndsWith("\r"u8))
                 line = line[..^1];
-            string? directiveText = line.StartsWith("//"u8) ? Wtf8.DecodeString(line) : null;
-            Match link = directiveText is null ? Match.Empty : Link().Match(directiveText);
-            if (link.Success)
+            bool directive = Directive(line, out Utf8String rawKey, out Utf8String rawValue);
+            int arrow = rawKey == "link"u8 ? rawValue.LastIndexOf("->"u8) : -1;
+            if (arrow >= 0)
             {
-                links[link.Groups[2].Value.Trim()] = link.Groups[1].Value.Trim();
+                links[rawValue[(arrow + 2)..].Trim()] = rawValue[..arrow].Trim();
                 continue;
             }
-            Match directive = directiveText is null ? Match.Empty : Directive().Match(directiveText);
-            if (!directive.Success)
+            if (!directive)
             {
                 if (allowImplicitFirstFile ? seenLine : content.WrittenCount != 0)
                     content.Write("\n"u8);
@@ -64,15 +84,15 @@ public static partial class TestDirectives
                 seenLine = true;
                 continue;
             }
-            string key = directive.Groups[1].Value.ToLowerInvariant(), value = directive.Groups[2].Value.Trim();
-            if (key == "currentdirectory")
+            Utf8String key = rawKey.ToLowerInvariant(), value = rawValue.Trim();
+            if (key == Utf8Literals.Currentdirectory)
                 directory = value;
-            if (key != "filename")
+            if (key != Utf8Literals.Filename)
             {
-                if (key == "symlink" && name.Length != 0)
-                    foreach (string target in value.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+                if (key == Utf8Literals.Symlink && name.Length != 0)
+                    foreach (Utf8String target in value.Split((byte)',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
                         links[target] = name;
-                else if (key is "emitthisfile" or "noopen")
+                else if (key == "emitthisfile"u8 || key == "noopen"u8)
                     local[key] = value;
                 else
                     options[key] = value;
@@ -88,64 +108,64 @@ public static partial class TestDirectives
             content.Clear();
             seenLine = false;
             name = value;
-            local = new(StringComparer.Ordinal);
+            local = new(Utf8StringComparer.Ordinal);
         }
         if (units.Count == 0 && name.Length == 0)
             name = CompilerPath.BaseName(fileName);
         Save();
         return new(
             units.ToArray(),
-            links.ToFrozenDictionary(StringComparer.Ordinal),
+            links.ToFrozenDictionary(Utf8StringComparer.Ordinal),
             directory,
-            options.ToFrozenDictionary(StringComparer.Ordinal));
+            options.ToFrozenDictionary(Utf8StringComparer.Ordinal));
     }
 
-    public static IReadOnlyList<IReadOnlyDictionary<string, string>> Expand(
-        IReadOnlyDictionary<string, string> settings,
-        IReadOnlySet<string> varyBy)
+    public static IReadOnlyList<IReadOnlyDictionary<Utf8String, Utf8String>> Expand(
+        IReadOnlyDictionary<Utf8String, Utf8String> settings,
+        IReadOnlySet<Utf8String> varyBy)
     {
         if (settings.Count == 0)
             return [];
-        var configurations = new List<Dictionary<string, string>> { new(StringComparer.Ordinal) };
-        foreach (var setting in settings.OrderBy(p => p.Key, StringComparer.Ordinal))
+        var configurations = new List<Dictionary<Utf8String, Utf8String>> { new(Utf8StringComparer.Ordinal) };
+        foreach (var setting in settings.OrderBy(p => p.Key, Utf8StringComparer.Ordinal))
         {
-            string[] choices = varyBy.Contains(setting.Key) ? Variations(setting.Key, setting.Value.TrimEnd(';')) : [setting.Value];
+            Utf8String[] choices = varyBy.Contains(setting.Key) ? Variations(setting.Key, setting.Value.TrimEnd((byte)';')) : [setting.Value];
             if (choices.Length == 0)
                 continue;
             if (checked(configurations.Count * choices.Length) > 25)
                 throw new InvalidDataException("Provided test options exceeded the maximum number of variations");
-            var next = new List<Dictionary<string, string>>();
+            var next = new List<Dictionary<Utf8String, Utf8String>>();
             foreach (var current in configurations)
-                foreach (string choice in choices)
+                foreach (Utf8String choice in choices)
                 {
-                    var copy = new Dictionary<string, string>(current, StringComparer.Ordinal) { [setting.Key] = choice };
+                    var copy = new Dictionary<Utf8String, Utf8String>(current, Utf8StringComparer.Ordinal) { [setting.Key] = choice };
                     next.Add(copy);
                 }
             configurations = next;
         }
-        return configurations.Select(c => (IReadOnlyDictionary<string, string>)c.ToFrozenDictionary(StringComparer.Ordinal)).ToArray();
+        return configurations.Select(c => (IReadOnlyDictionary<Utf8String, Utf8String>)c.ToFrozenDictionary(Utf8StringComparer.Ordinal)).ToArray();
     }
 
-    private static string[] Variations(string option, string text)
+    private static Utf8String[] Variations(Utf8String option, Utf8String text)
     {
-        string[] items = text.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        Utf8String[] items = text.Split((byte)',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         if (items.Length == 0)
             return [];
         OptionDefinition definition = OptionDefinitions.Find(option) ?? throw new InvalidDataException($"Unknown test option '{option}'");
-        var values = new Dictionary<string, string>(StringComparer.Ordinal);
-        void Include(string item)
+        var values = new Dictionary<Utf8String, Utf8String>(Utf8StringComparer.Ordinal);
+        void Include(Utf8String item)
         {
-            string key = definition.ValueIdentity(item) ?? throw new InvalidDataException($"Unknown value '{item}' for option '{option}'");
+            Utf8String key = definition.ValueIdentity(item) ?? throw new InvalidDataException($"Unknown value '{item}' for option '{option}'");
             values.TryAdd(key, item);
         }
-        foreach (string item in items)
-            if (item != "*" && item[0] is not ('-' or '!'))
+        foreach (Utf8String item in items)
+            if (item != Utf8Literals.Asterisk && item[0] is not ((byte)'-' or (byte)'!'))
                 Include(item);
-        if (items.Contains("*"))
-            foreach (string item in definition.Kind == OptionKind.Boolean ? ["true", "false"] : definition.Values)
+        if (items.Contains(Utf8Literals.Asterisk))
+            foreach (Utf8String item in definition.Kind == OptionKind.Boolean ? [Utf8Literals.True, Utf8Literals.False] : definition.Values)
                 Include(item);
-        foreach (string item in items)
-            if (item[0] is '-' or '!' && definition.ValueIdentity(item[1..]) is { } key)
+        foreach (Utf8String item in items)
+            if (item[0] is (byte)'-' or (byte)'!' && definition.ValueIdentity(item[1..]) is { } key)
                 values.Remove(key);
         if (values.Count == 0)
             throw new InvalidDataException($"Variations in test option '@{option}' resulted in an empty set");

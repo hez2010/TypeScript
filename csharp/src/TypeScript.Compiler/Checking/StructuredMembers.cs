@@ -10,9 +10,9 @@ namespace TypeScript.Compiler.Checking;
 
 internal interface IStructuredMemberHost
 {
-    ValueTask<IReadOnlyDictionary<TextSlice, Symbol>> MembersAsync(Symbol symbol, CancellationToken cancellation);
+    ValueTask<IReadOnlyDictionary<Utf8String, Symbol>> MembersAsync(Symbol symbol, CancellationToken cancellation);
 
-    ValueTask<IReadOnlyDictionary<TextSlice, Symbol>> ExportsAsync(Symbol symbol, CancellationToken cancellation);
+    ValueTask<IReadOnlyDictionary<Utf8String, Symbol>> ExportsAsync(Symbol symbol, CancellationToken cancellation);
 
     ValueTask<IReadOnlyList<IndexInfo>> IndexInfosAsync(Symbol indexSymbol, IReadOnlyList<Symbol> siblings, CancellationToken cancellation);
 
@@ -129,12 +129,12 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
         try
         {
             type.DeclaredCallSignatures = await signatures.OfSymbolAsync(
-                members.GetValueOrDefault(Symbol.InternalPrefix + "call"),
+                members.GetValueOrDefault(Symbol.InternalCall),
                 cancellation).ConfigureAwait(false);
             type.DeclaredConstructSignatures = await signatures.OfSymbolAsync(
-                members.GetValueOrDefault(Symbol.InternalPrefix + "new"),
+                members.GetValueOrDefault(Symbol.InternalNew),
                 cancellation).ConfigureAwait(false);
-            type.DeclaredIndexInfos = members.TryGetValue(Symbol.InternalPrefix + "index", out var index)
+            type.DeclaredIndexInfos = members.TryGetValue(Symbol.InternalIndex, out var index)
                 ? await host.IndexInfosAsync(index, members.Values.ToArray(), cancellation).ConfigureAwait(false) : [];
             cancellation.ThrowIfCancellationRequested();
         }
@@ -155,7 +155,7 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
         await ResolveDeclaredAsync(source, cancellation).ConfigureAwait(false);
         bool instantiated = !parameters.SequenceEqual(arguments);
         TypeMapper? mapper = instantiated ? TypeMapper.Create(parameters.ToArray(), arguments.ToArray()) : null;
-        IReadOnlyDictionary<TextSlice, Symbol>? members = source.DeclaredMembers;
+        IReadOnlyDictionary<Utf8String, Symbol>? members = source.DeclaredMembers;
         IReadOnlyList<Signature> calls = source.DeclaredCallSignatures ?? [], constructors = source.DeclaredConstructSignatures ?? [];
         IReadOnlyList<IndexInfo> indexes = source.DeclaredIndexInfos ?? [];
         if (mapper is not null)
@@ -169,8 +169,8 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
         if (bases.Count != 0)
         {
             var ownedMembers = members is null
-                ? new Dictionary<TextSlice, Symbol>()
-                : new(members, TextSliceComparer.Ordinal);
+                ? new Dictionary<Utf8String, Symbol>()
+                : new(members, Utf8StringComparer.Ordinal);
             members = ownedMembers.AsReadOnly();
             await SetAsync(type, members, calls, constructors, indexes, cancellation).ConfigureAwait(false);
             type.ObjectFlags |= O.UnresolvedMembers;
@@ -206,7 +206,7 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
         if (type.Target is { } target)
         {
             await SetAsync(type, null, [], [], [], cancellation).ConfigureAwait(false);
-            var members = new Dictionary<TextSlice, Symbol>();
+            var members = new Dictionary<Utf8String, Symbol>();
             foreach (var property in await host.PropertiesAsync(target, cancellation).ConfigureAwait(false))
                 members[property.Name] = (await instantiation.SymbolAsync(property, type.Mapper!, cancellation).ConfigureAwait(false))!;
             await SetAsync(type, members.AsReadOnly(),
@@ -232,24 +232,24 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
             var members = await host.MembersAsync(symbol, cancellation).ConfigureAwait(false);
             await SetAsync(type, members,
                 await signatures.OfSymbolAsync(
-                    members.GetValueOrDefault(Symbol.InternalPrefix + "call"),
+                    members.GetValueOrDefault(Symbol.InternalCall),
                     cancellation).ConfigureAwait(false),
                 await signatures.OfSymbolAsync(
-                    members.GetValueOrDefault(Symbol.InternalPrefix + "new"),
+                    members.GetValueOrDefault(Symbol.InternalNew),
                     cancellation).ConfigureAwait(false),
-                members.TryGetValue(Symbol.InternalPrefix + "index", out var index)
+                members.TryGetValue(Symbol.InternalIndex, out var index)
                     ? await host.IndexInfosAsync(index, members.Values.ToArray(), cancellation).ConfigureAwait(false) : [],
                 cancellation).ConfigureAwait(false);
             return;
         }
-        IReadOnlyDictionary<TextSlice, Symbol> exports = await host.ExportsAsync(symbol, cancellation).ConfigureAwait(false);
+        IReadOnlyDictionary<Utf8String, Symbol> exports = await host.ExportsAsync(symbol, cancellation).ConfigureAwait(false);
         if (symbol == symbols.GlobalThisSymbol)
             exports = exports.Where(p => (p.Value.Flags & S.BlockScoped) == 0
                 && !((p.Value.Flags & S.ValueModule) != 0 && p.Value.Declarations.Length != 0
                     && p.Value.Declarations.All(
                         d => d is ModuleDeclarationNode { Name: StringLiteralNode }
                             or ModuleDeclarationNode { Keyword: SyntaxKind.GlobalKeyword })))
-                .ToDictionary(p => p.Key, p => p.Value, TextSliceComparer.Ordinal).AsReadOnly();
+                .ToDictionary(p => p.Key, p => p.Value, Utf8StringComparer.Ordinal).AsReadOnly();
         await SetAsync(type, exports, [], [], [], cancellation).ConfigureAwait(false);
         bool anyBase = false;
         InterfaceType? classType = null;
@@ -259,7 +259,7 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
             var baseConstructor = await host.BaseConstructorAsync(classType, cancellation).ConfigureAwait(false);
             if ((baseConstructor.Flags & (TypeFlags.Object | TypeFlags.Intersection | TypeFlags.TypeVariable)) != 0)
             {
-                var inherited = new Dictionary<TextSlice, Symbol>(exports, TextSliceComparer.Ordinal);
+                var inherited = new Dictionary<Utf8String, Symbol>(exports, Utf8StringComparer.Ordinal);
                 Inherit(inherited, await host.PropertiesAsync(baseConstructor, cancellation).ConfigureAwait(false));
                 exports = inherited.AsReadOnly();
                 await SetAsync(type, exports, [], [], [], cancellation).ConfigureAwait(false);
@@ -268,7 +268,7 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
                 anyBase = baseConstructor == context.AnyType;
         }
         var indexInfos = new List<IndexInfo>();
-        if (exports.TryGetValue(Symbol.InternalPrefix + "index", out var indexSymbol))
+        if (exports.TryGetValue(Symbol.InternalIndex, out var indexSymbol))
             indexInfos.AddRange(await host.IndexInfosAsync(indexSymbol, exports.Values.ToArray(), cancellation).ConfigureAwait(false));
         else
         {
@@ -294,7 +294,7 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
         if (classType is not null)
         {
             var constructors = await signatures.OfSymbolAsync(
-                symbol.Members.GetValueOrDefault(Symbol.InternalPrefix + "constructor"),
+                symbol.Members.GetValueOrDefault(Symbol.InternalConstructor),
                 cancellation).ConfigureAwait(false);
             type.ConstructSignatures = constructors.Count != 0
                 ? constructors
@@ -302,7 +302,7 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
         }
     }
 
-    internal async ValueTask SetAsync(StructuredType type, IReadOnlyDictionary<TextSlice, Symbol>? members, IReadOnlyList<Signature> calls,
+    internal async ValueTask SetAsync(StructuredType type, IReadOnlyDictionary<Utf8String, Symbol>? members, IReadOnlyList<Signature> calls,
         IReadOnlyList<Signature> constructors, IReadOnlyList<IndexInfo> indexes, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
@@ -333,14 +333,14 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
         type.IndexInfos = indexes;
     }
 
-    private async ValueTask<IReadOnlyDictionary<TextSlice, Symbol>?> InstantiateTableAsync(
-        IReadOnlyDictionary<TextSlice, Symbol>? table,
+    private async ValueTask<IReadOnlyDictionary<Utf8String, Symbol>?> InstantiateTableAsync(
+        IReadOnlyDictionary<Utf8String, Symbol>? table,
         TypeMapper mapper,
         CancellationToken cancellation)
     {
         if (table is null)
             return null;
-        var result = new Dictionary<TextSlice, Symbol>();
+        var result = new Dictionary<Utf8String, Symbol>();
         foreach (var (name, symbol) in table)
             if (await NamedAsync(name, symbol, cancellation).ConfigureAwait(false))
                 result[name] = (await instantiation.SymbolAsync(symbol, mapper, cancellation).ConfigureAwait(false))!;
@@ -373,17 +373,16 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
         return Array.AsReadOnly(result);
     }
 
-    internal async ValueTask<bool> NamedAsync(TextSlice name, Symbol symbol, CancellationToken cancellation)
+    internal async ValueTask<bool> NamedAsync(Utf8String name, Symbol symbol, CancellationToken cancellation)
     {
         if (name.Span.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal)
-            && !name.Span.StartsWith(Symbol.InternalPrefix + Symbol.InternalPrefix, StringComparison.Ordinal)
-            && name.Length >= 2 && name[1] is not ('@' or '#'))
+            && name.Length >= 2 && name[1] is not ((byte)'@' or (byte)'#'))
             return false;
         return (symbol.Flags & S.Value) != 0 || (symbol.Flags & S.Alias) != 0
             && (await aliases.FlagsAsync(symbol, excludeTypeOnly: true, cancellation: cancellation).ConfigureAwait(false) & S.Value) != 0;
     }
 
-    private static void Inherit(Dictionary<TextSlice, Symbol> members, IReadOnlyList<Symbol> source)
+    private static void Inherit(Dictionary<Utf8String, Symbol> members, IReadOnlyList<Symbol> source)
     {
         foreach (var symbol in source)
             if (!(symbol.ValueDeclaration is { } declaration

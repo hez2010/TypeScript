@@ -41,7 +41,7 @@ internal sealed class TemplateMatching(TypeContext context, TypeAlgebra algebra,
         cancellation.ThrowIfCancellationRequested();
         context.RequireOwned(source);
         context.RequireOwned(target);
-        if (source is LiteralType { Value: TextSlice literal })
+        if (source is LiteralType { Value: Utf8String literal })
             return await PartsAsync([literal], [], target, cancellation).ConfigureAwait(false);
         if (source is not TemplateLiteralType template)
             return null;
@@ -56,35 +56,34 @@ internal sealed class TemplateMatching(TypeContext context, TypeAlgebra algebra,
                 cancellation).ConfigureAwait(false) != Ternary.False ? s
                 : (s.Flags & (TypeFlags.Any | TypeFlags.StringLike)) != 0
                     ? s
-                    : await algebra.TemplateAsync(["", ""], [s], cancellation).ConfigureAwait(false);
+                    : await algebra.TemplateAsync([Utf8String.Empty, Utf8String.Empty], [s], cancellation).ConfigureAwait(false);
         }
         return Array.AsReadOnly(result);
     }
 
     private async ValueTask<IReadOnlyList<Type>?> PartsAsync(
-        IReadOnlyList<TextSlice> texts,
+        IReadOnlyList<Utf8String> texts,
         IReadOnlyList<Type> types,
         TemplateLiteralType target,
         CancellationToken cancellation)
     {
         int last = texts.Count - 1, lastTarget = target.Texts.Count - 1;
-        TextSlice start = target.Texts[0], end = target.Texts[lastTarget];
+        Utf8String start = target.Texts[0], end = target.Texts[lastTarget];
         if (last == 0 && texts[0].Length < start.Length + end.Length
-            || !texts[0].Span.StartsWith(start.Span) || !ScalarBoundary(texts[0].Span, start.Length)
-            || !texts[last].Span.EndsWith(end.Span) || !ScalarBoundary(texts[last].Span, texts[last].Length - end.Length))
+            || !texts[0].Span.StartsWith(start.Span) || !texts[last].Span.EndsWith(end.Span))
             return null;
-        TextSlice remainder = texts[last][..^end.Length];
+        Utf8String remainder = texts[last][..^end.Length];
         int segment = 0, position = start.Length;
         var result = new List<Type>();
-        TextSlice Text(int index) => index < last ? texts[index] : remainder;
+        Utf8String Text(int index) => index < last ? texts[index] : remainder;
         async ValueTask Add(int s, int p)
         {
             Type type;
             if (s == segment)
-                type = context.GetStringLiteralType(Text(s)[position..p]);
+                type = context.GetStringLiteralType(Wtf8.CombineSurrogatePairs(Text(s)[position..p]));
             else
             {
-                var parts = new TextSlice[s - segment + 1];
+                var parts = new Utf8String[s - segment + 1];
                 parts[0] = texts[segment][position..];
                 for (int i = segment + 1; i < s; i++)
                     parts[i - segment] = texts[i];
@@ -101,13 +100,13 @@ internal sealed class TemplateMatching(TypeContext context, TypeAlgebra algebra,
         for (int i = 1; i < lastTarget; i++)
         {
             cancellation.ThrowIfCancellationRequested();
-            TextSlice delimiter = target.Texts[i];
+            Utf8String delimiter = target.Texts[i];
             if (delimiter.Length != 0)
             {
                 int s = segment, p = position;
                 while (true)
                 {
-                    int found = IndexOfScalarText(Text(s).Span[p..], delimiter.Span);
+                    int found = Text(s).Span[p..].IndexOf(delimiter.Span);
                     if (found >= 0)
                     {
                         p += found;
@@ -122,8 +121,8 @@ internal sealed class TemplateMatching(TypeContext context, TypeAlgebra algebra,
             }
             else if (position < Text(segment).Length)
             {
-                ReadOnlySpan<char> rest = Text(segment).Span[position..];
-                int size = rest.Length >= 2 && char.IsSurrogatePair(rest[0], rest[1]) ? 2 : 1;
+                ReadOnlySpan<byte> rest = Text(segment).Span[position..];
+                _ = Wtf8.Decode(rest, out int size);
                 await Add(segment, position + size).ConfigureAwait(false);
             }
             else if (segment < last)
@@ -133,27 +132,6 @@ internal sealed class TemplateMatching(TypeContext context, TypeAlgebra algebra,
         }
         await Add(last, Text(last).Length).ConfigureAwait(false);
         return result.AsReadOnly();
-    }
-
-    // WTF-8 substring matches cannot begin or end inside a paired scalar. A lone
-    // surrogate remains a character, but must not match half of a supplementary rune.
-    private static bool ScalarBoundary(ReadOnlySpan<char> text, int position) => position == 0 || position == text.Length
-        || !char.IsSurrogatePair(text[position - 1], text[position]);
-
-    private static int IndexOfScalarText(ReadOnlySpan<char> text, ReadOnlySpan<char> value)
-    {
-        int offset = 0;
-        while (offset <= text.Length)
-        {
-            int found = text[offset..].IndexOf(value);
-            if (found < 0)
-                return -1;
-            found += offset;
-            if (ScalarBoundary(text, found) && ScalarBoundary(text, found + value.Length))
-                return found;
-            offset = found + 1;
-        }
-        return -1;
     }
 
     private async ValueTask<bool> PlaceholderAsync(
@@ -175,7 +153,7 @@ internal sealed class TemplateMatching(TypeContext context, TypeAlgebra algebra,
         if ((target.Flags & TypeFlags.String) != 0
             || await compare(source, target, cancellation).ConfigureAwait(false) != Ternary.False)
             return true;
-        if (source is LiteralType { Value: TextSlice value })
+        if (source is LiteralType { Value: Utf8String value })
         {
             if ((target.Flags & TypeFlags.Number) != 0 && value.Length != 0 && double.IsFinite(JsNumber.FromString(value)))
                 return true;
@@ -183,9 +161,9 @@ internal sealed class TemplateMatching(TypeContext context, TypeAlgebra algebra,
                 return true;
             if ((target.Flags & (TypeFlags.BooleanLiteral | TypeFlags.Nullable)) != 0)
             {
-                TextSlice? text = target is IntrinsicType intrinsic
+                Utf8String? text = target is IntrinsicType intrinsic
                     ? intrinsic.IntrinsicName
-                    : target is LiteralType { Value: bool boolean } ? (TextSlice)(boolean ? "true" : "false") : (TextSlice?)null;
+                    : target is LiteralType { Value: bool boolean } ? (boolean ? Utf8Literals.True : Utf8Literals.False) : (Utf8String?)null;
                 if (value == text)
                     return true;
             }
@@ -224,20 +202,20 @@ internal sealed class TemplateMatching(TypeContext context, TypeAlgebra algebra,
 
     internal static bool Unrelated(TemplateLiteralType source, TemplateLiteralType target)
     {
-        var sourceStart = Wtf8.Encode(source.Texts[0]);
-        var targetStart = Wtf8.Encode(target.Texts[0]);
-        var sourceEnd = Wtf8.Encode(source.Texts[^1]);
-        var targetEnd = Wtf8.Encode(target.Texts[^1]);
+        var sourceStart = source.Texts[0];
+        var targetStart = target.Texts[0];
+        var sourceEnd = source.Texts[^1];
+        var targetEnd = target.Texts[^1];
         int start = Math.Min(sourceStart.Length, targetStart.Length), end = Math.Min(sourceEnd.Length, targetEnd.Length);
         return !sourceStart.AsSpan(0, start).SequenceEqual(targetStart.AsSpan(0, start))
             || !sourceEnd.AsSpan(sourceEnd.Length - end).SequenceEqual(targetEnd.AsSpan(targetEnd.Length - end));
     }
 
-    internal static bool BigInt(TextSlice value)
+    internal static bool BigInt(Utf8String value)
     {
         if (value.Length == 0)
             return false;
-        var scanner = new Scanner(new SourceText(TextSlice.Concat(value, "n")), false);
+        var scanner = new Scanner(new SourceText(Utf8String.Concat(value, "n"u8)), false);
         var token = scanner.Scan();
         if (token == SyntaxKind.MinusToken)
             token = scanner.Scan();

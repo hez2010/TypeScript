@@ -359,7 +359,7 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
     public async ValueTask<MappedType> MappedNodeAsync(MappedTypeNode node, CancellationToken cancellation) =>
         (MappedType)await Nodes.WorkerAsync(node, cancellation);
 
-    public Type ArrayTarget(bool isReadonly) => program.Globals.Types[isReadonly ? "ReadonlyArray" : "Array"];
+    public Type ArrayTarget(bool isReadonly) => program.Globals.Types[isReadonly ? Utf8Literals.ReadonlyArray : Utf8Literals.Array];
 
     public ValueTask<bool> IdenticalAsync(Type first, Type second, CancellationToken cancellation)
             => Relations.RelatedAsync(first, second, RelationKind.Identity, cancellation);
@@ -374,7 +374,7 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
         CancellationToken cancellation)
             => Indexed.GetAsync(objectType, indexType, node: node, alias: alias, cancellation: cancellation);
 
-    public ValueTask<IReadOnlyDictionary<TextSlice, Symbol>> MembersAsync(Symbol symbol, CancellationToken cancellation)
+    public ValueTask<IReadOnlyDictionary<Utf8String, Symbol>> MembersAsync(Symbol symbol, CancellationToken cancellation)
     {
         BeforeMemberTable?.Invoke(symbol);
         return LateMembers.TableAsync(symbol, cancellation: cancellation);
@@ -422,7 +422,7 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
     public async ValueTask TypeArgumentCountAsync(SyntaxNode node, Symbol symbol, Type type, int minimum, int maximum, bool missingAugments,
         CancellationToken cancellation)
     {
-        TextSlice name = (symbol.Flags & SymbolFlags.TypeAlias) != 0 ? TypeDisplay.SymbolName(symbol)
+        Utf8String name = (symbol.Flags & SymbolFlags.TypeAlias) != 0 ? TypeDisplay.SymbolName(symbol)
             : await TypeDisplay.GetAsync(type, NodeBuilderFlags.WriteArrayAsGenericType, cancellation);
         Error(
             node,
@@ -434,8 +434,8 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
                     ? DiagnosticCode.GenericType0Requires1TypeArgumentS
                     : DiagnosticCode.GenericType0RequiresBetween1And2TypeArguments,
             name,
-            TextSlice.Format(minimum),
-            TextSlice.Format(maximum));
+            Utf8String.Format(minimum),
+            Utf8String.Format(maximum));
     }
 
     public void NotGeneric(SyntaxNode node, Symbol symbol) => Error(node, DiagnosticCode.Type0IsNotGeneric, TypeDisplay.SymbolName(symbol));
@@ -447,12 +447,12 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
             : DiagnosticCode.TypeArgumentsFor0CircularlyReferenceThemselves,
         target.Symbol is null ? [] : [TypeDisplay.SymbolName(target.Symbol)]);
 
-    private void Error(SyntaxNode node, DiagnosticCode code, params TextSlice[] arguments)
+    private void Error(SyntaxNode node, DiagnosticCode code, params Utf8String[] arguments)
     {
         if (reported.Add((node, code)))
         {
             if (code == DiagnosticCode.DuplicateIdentifier0 && arguments.Length == 0)
-                arguments = [node.Pos == node.End ? "(Missing)" : node is StringLiteralNode or ComputedPropertyNameNode
+                arguments = [node.Pos == node.End ? Utf8Literals.MissingDisplay : node is StringLiteralNode or ComputedPropertyNameNode
                     ? CheckerDiagnostic.DeclarationName(node) : AliasTargets.Text(node) ?? CheckerDiagnostic.DeclarationName(node)];
             Diagnostics.Add(code);
             TrackDiagnostic(node, code, arguments);

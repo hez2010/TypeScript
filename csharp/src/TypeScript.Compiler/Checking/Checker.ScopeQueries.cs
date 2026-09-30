@@ -13,7 +13,7 @@ internal sealed partial class Checker
         using var query = await EnterQueryAsync(location, cancellation).ConfigureAwait(false);
         if ((location.Flags & NodeFlags.InWithStatement) != 0)
             return [];
-        var symbols = new Dictionary<TextSlice, Symbol>();
+        var symbols = new Dictionary<Utf8String, Symbol>();
         bool isStatic = false;
         SyntaxNode? previous = null;
         for (SyntaxNode? current = location; current is not null; previous = current, current = current.Parent)
@@ -51,7 +51,7 @@ internal sealed partial class Checker
             isStatic = SemanticSyntax.IsStatic(current);
         }
         Copy(program.Symbols.Globals, meaning);
-        symbols.Remove("this");
+        symbols.Remove(Utf8Literals.This);
         return VisibleSymbols(symbols);
 
         void Add(Symbol symbol, SymbolFlags flags)
@@ -59,14 +59,14 @@ internal sealed partial class Checker
             if (((symbol.Flags | (symbol.ExportSymbol?.Flags ?? 0)) & flags) != 0)
                 symbols.TryAdd(symbol.Name, symbol);
         }
-        void Copy(IReadOnlyDictionary<TextSlice, Symbol> source, SymbolFlags flags, bool localExports = false)
+        void Copy(IReadOnlyDictionary<Utf8String, Symbol> source, SymbolFlags flags, bool localExports = false)
         {
             if (flags == 0)
                 return;
             foreach (var symbol in source.Values)
             {
                 cancellation.ThrowIfCancellationRequested();
-                if (!localExports || symbol.Name != "default"
+                if (!localExports || symbol.Name != Utf8Literals.Default
                     && !symbol.Declarations.Any(d => d is ExportSpecifierNode or NamespaceExportNode))
                     Add(symbol, flags);
             }
@@ -80,10 +80,10 @@ internal sealed partial class Checker
         return VisibleSymbols(await program.ModuleExports.ResolveAsync(symbol, cancellation));
     }
 
-    private static Symbol[] VisibleSymbols(IReadOnlyDictionary<TextSlice, Symbol> table) => table
+    private static Symbol[] VisibleSymbols(IReadOnlyDictionary<Utf8String, Symbol> table) => table
         .Where(p => !ReservedMemberName(p.Key)).Select(p => p.Value).ToArray();
 
-    private static bool ReservedMemberName(TextSlice name) => name.Length >= 2
+    private static bool ReservedMemberName(Utf8String name) => name.Length >= 2
         && name.Span.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal)
-        && name[1] is not '@' and not '#';
+        && name[1] is not (byte)'@' and not (byte)'#';
 }

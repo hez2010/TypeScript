@@ -24,7 +24,7 @@ internal sealed partial class Checker : ITypeAlgebraHost
     ValueTask<Type> ITypeAlgebraHost.GetTypeOfSymbolAsync(Symbol symbol, CancellationToken cancellation) =>
         Values.GetAsync(symbol, cancellation);
 
-    async ValueTask<Type?> ITypeAlgebraHost.GetPropertyTypeAsync(Type type, TextSlice name, CancellationToken cancellation) =>
+    async ValueTask<Type?> ITypeAlgebraHost.GetPropertyTypeAsync(Type type, Utf8String name, CancellationToken cancellation) =>
         await Properties.PropertyAsync(type, name, cancellation: cancellation).ConfigureAwait(false) is { } property
             ? await Values.GetAsync(property, cancellation).ConfigureAwait(false)
             : null;
@@ -48,7 +48,7 @@ internal sealed partial class Checker : ITypeAlgebraHost
                 cancellation)
             : Templates.MemberAsync(literal, pattern, cancellation);
 
-    void ITypeAlgebraHost.ReportComplexity(TextSlice operation, long size)
+    void ITypeAlgebraHost.ReportComplexity(Utf8String operation, long size)
     {
         AlgebraDiagnostics.Add(DiagnosticCode.ExpressionProducesAUnionTypeThatIsTooComplexToRepresent);
         TrackDiagnostic(DiagnosticNode, DiagnosticCode.ExpressionProducesAUnionTypeThatIsTooComplexToRepresent);
@@ -98,7 +98,7 @@ internal sealed partial class Checker : ITypeAlgebraHost
                 return false;
             var resolved = await Members.ResolveAsync(objectType, cancellation).ConfigureAwait(false);
             return resolved.CallSignatures.Count != 0 || resolved.ConstructSignatures.Count != 0
-                || resolved.Members?.ContainsKey("bind") == true
+                || resolved.Members?.ContainsKey(Utf8Literals.Bind) == true
                     && await Relations.RelatedAsync(source, GlobalFunction, RelationKind.Subtype, cancellation).ConfigureAwait(false);
         }
         return await Bases.HasBaseAsync(

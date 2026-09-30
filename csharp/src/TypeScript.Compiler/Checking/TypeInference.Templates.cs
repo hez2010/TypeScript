@@ -17,7 +17,7 @@ internal sealed partial class TypeInference
         {
             var candidate = matches is { Count: > 0 } ? matches[i] : context.NeverType;
             var variable = target.Types[i];
-            if (candidate is LiteralType { Value: TextSlice text } && (variable.Flags & TypeFlags.TypeVariable) != 0
+            if (candidate is LiteralType { Value: Utf8String text } && (variable.Flags & TypeFlags.TypeVariable) != 0
                 && Info(state, variable) is { } info
                 && await constraints.BaseConstraintAsync(info.Parameter, cancellation).ConfigureAwait(false) is { } constraint
                 && (constraint.Flags & TypeFlags.Any) == 0)
@@ -31,7 +31,7 @@ internal sealed partial class TypeInference
                         flags &= ~TypeFlags.NumberLike;
                     bool bigint = TemplateMatching.BigInt(text)
                         && BigInteger.TryParse(text, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var integer)
-                        && TextSlice.Format(integer) == text;
+                        && Utf8String.Format(integer) == text;
                     if ((flags & TypeFlags.BigIntLike) != 0 && !bigint)
                         flags &= ~TypeFlags.BigIntLike;
                     Type selected = context.NeverType;
@@ -60,7 +60,7 @@ internal sealed partial class TypeInference
                             return candidate;
                         if ((left.Flags & TypeFlags.StringLiteral) != 0)
                             return left;
-                        if (right is LiteralType { Value: TextSlice value } && value == text)
+                        if (right is LiteralType { Value: Utf8String value } && value == text)
                             return right;
                         if ((left.Flags & TypeFlags.Number) != 0)
                             return left;
@@ -80,15 +80,15 @@ internal sealed partial class TypeInference
                             return context.GetBigIntLiteralType(BigInteger.Parse(text, CultureInfo.InvariantCulture));
                         if ((left.Flags & TypeFlags.BigIntLiteral) != 0)
                             return left;
-                        if (right is LiteralType { Value: BigInteger big } && TextSlice.Format(big) == text)
+                        if (right is LiteralType { Value: BigInteger big } && Utf8String.Format(big) == text)
                             return right;
                         if ((left.Flags & TypeFlags.Boolean) != 0)
                             return left;
                         if ((right.Flags & TypeFlags.Boolean) != 0)
-                            return text == "true" ? context.TrueType : text == "false" ? context.FalseType : context.BooleanType;
+                            return text == Utf8Literals.True ? context.TrueType : text == Utf8Literals.False ? context.FalseType : context.BooleanType;
                         if ((left.Flags & TypeFlags.BooleanLiteral) != 0)
                             return left;
-                        if (right is LiteralType { Value: bool boolean } && (boolean ? "true" : "false") == text)
+                        if (right is LiteralType { Value: bool boolean } && (boolean ? Utf8Literals.True : Utf8Literals.False) == text)
                             return right;
                         if ((left.Flags & TypeFlags.Undefined) != 0)
                             return left;

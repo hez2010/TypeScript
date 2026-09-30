@@ -260,7 +260,7 @@ const actual = await probe(candidate, args, cases);
 assert.equal(expected.length, cases.length);
 assert.equal(actual.length, cases.length);
 for (let i = 0; i < cases.length; i++) {
-    const length = Buffer.from(cases[i].text, "base64").toString().length;
+    const length = Buffer.from(cases[i].text, "base64").length;
     assert.ok(actual[i][1] >= 0 && actual[i][1] <= length, cases[i].name);
     for (const [, start, size] of actual[i][4]) assert.ok(start >= 0 && size >= 0 && start + size <= length, cases[i].name);
 }
@@ -269,16 +269,20 @@ const permitted = [], failures = [];
 for (const difference of rawDifferences) {
     const literal = Buffer.from(difference.text, "base64").toString();
     const fixture = semanticDifferences.find(f => f.literal === literal && f.target === difference.target);
+    const byteDiagnostics = diagnostics => diagnostics.map(([code, start, length, ...rest]) => {
+        const byteStart = Buffer.byteLength(literal.slice(0, start));
+        return [code, byteStart, Buffer.byteLength(literal.slice(start, start + length)), ...rest];
+    });
     if (
         fixture && JSON.stringify(difference.expected.slice(0, 4)) === JSON.stringify(difference.actual.slice(0, 4)) &&
-        JSON.stringify(fixture.goDiagnostics) === JSON.stringify(difference.expected[4]) && JSON.stringify(fixture.diagnostics) === JSON.stringify(difference.actual[4])
+        JSON.stringify(byteDiagnostics(fixture.goDiagnostics)) === JSON.stringify(difference.expected[4]) && JSON.stringify(byteDiagnostics(fixture.diagnostics)) === JSON.stringify(difference.actual[4])
     ) permitted.push({ ...difference, caseId: fixture.id, inputSha256: fixture.inputSha256, reason: fixture.reason, reproduction: fixture.reproduction });
     else failures.push(difference);
 }
 const nodeDifferences = [], nodeFailures = [];
 for (let i = 0; i < cases.length; i++) {
     const literal = Buffer.from(cases[i].text, "base64").toString();
-    if (actual[i][0] !== 13 || actual[i][1] !== literal.length || actual[i][4].length) continue;
+    if (actual[i][0] !== 13 || actual[i][1] !== Buffer.byteLength(literal) || actual[i][4].length) continue;
     const slash = literal.lastIndexOf("/");
     try {
         new RegExp(literal.slice(1, slash), literal.slice(slash + 1));

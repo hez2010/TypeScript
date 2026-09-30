@@ -441,7 +441,7 @@ internal sealed class SignatureAssignability(TypeContext context, SignatureParam
         return targetPrivate || targetProtected && !sourcePrivate || !targetProtected && !sourcePrivate && !sourceProtected;
     }
 
-    private static TextSlice Visibility(Signature signature) => signature.Declaration is not { } declaration ? "public"
-        : SemanticSyntax.HasModifier(declaration, SyntaxKind.PrivateKeyword) ? "private"
-        : SemanticSyntax.HasModifier(declaration, SyntaxKind.ProtectedKeyword) ? "protected" : "public";
+    private static Utf8String Visibility(Signature signature) => signature.Declaration is not { } declaration ? Utf8Literals.Public
+        : SemanticSyntax.HasModifier(declaration, SyntaxKind.PrivateKeyword) ? Utf8Literals.Private
+        : SemanticSyntax.HasModifier(declaration, SyntaxKind.ProtectedKeyword) ? Utf8Literals.Protected : Utf8Literals.Public;
 }

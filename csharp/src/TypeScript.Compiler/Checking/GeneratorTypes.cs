@@ -8,7 +8,7 @@ namespace TypeScript.Compiler.Checking;
 
 internal interface IGeneratorTypeHost
 {
-    ValueTask<Type> IterationGlobalAsync(TextSlice name, int arity, bool report, CancellationToken cancellation);
+    ValueTask<Type> IterationGlobalAsync(Utf8String name, int arity, bool report, CancellationToken cancellation);
 
     ValueTask<Type> CheckGeneratorOperandAsync(SyntaxNode node, CheckMode mode, CancellationToken cancellation);
 
@@ -78,8 +78,8 @@ internal sealed class GeneratorTypes(TypeContext context, TypeAlgebra algebra, I
 
     internal async ValueTask<Type> CreateAsync(Type yield, Type result, Type? next, bool async, CancellationToken cancellation = default)
     {
-        TextSlice prefix = async ? "Async" : "";
-        var target = await host.IterationGlobalAsync(TextSlice.Concat(prefix, "Generator"), 3, false, cancellation).ConfigureAwait(false);
+        Utf8String prefix = async ? Utf8Literals.AsyncSuffix : Utf8String.Empty;
+        var target = await host.IterationGlobalAsync(Utf8String.Concat(prefix, "Generator"u8), 3, false, cancellation).ConfigureAwait(false);
         if (async)
         {
             yield = await awaited.GetAsync(yield, cancellation: cancellation).ConfigureAwait(false) ?? context.UnknownType;
@@ -87,10 +87,10 @@ internal sealed class GeneratorTypes(TypeContext context, TypeAlgebra algebra, I
         }
         if (target == context.EmptyGenericType)
         {
-            target = await host.IterationGlobalAsync(TextSlice.Concat(prefix, "IterableIterator"), 3, false, cancellation).ConfigureAwait(false);
+            target = await host.IterationGlobalAsync(Utf8String.Concat(prefix, "IterableIterator"u8), 3, false, cancellation).ConfigureAwait(false);
             if (target == context.EmptyGenericType)
             {
-                await host.IterationGlobalAsync(TextSlice.Concat(prefix, "IterableIterator"), 3, true, cancellation).ConfigureAwait(false);
+                await host.IterationGlobalAsync(Utf8String.Concat(prefix, "IterableIterator"u8), 3, true, cancellation).ConfigureAwait(false);
                 return context.EmptyObjectType;
             }
         }

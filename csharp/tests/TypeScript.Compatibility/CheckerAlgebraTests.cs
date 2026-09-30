@@ -40,14 +40,14 @@ internal static class CheckerAlgebraTests
         Type template = context.StringType;
         const int depth = 20_000;
         for (int i = 0; i < depth; i++)
-            template = context.NewTemplateLiteralType(["", ""], [template]);
+            template = context.NewTemplateLiteralType([""u8, ""u8], [template]);
         Check(TypeAlgebra.IsPatternLiteral(template));
-        Check(algebra.TemplateAsync(["", ""], [template]).GetAwaiter().GetResult() == context.StringType);
-        var uppercase = new Symbol(SymbolFlags.TypeAlias, "Uppercase");
+        Check(algebra.TemplateAsync([""u8, ""u8], [template]).GetAwaiter().GetResult() == context.StringType);
+        var uppercase = new Symbol(SymbolFlags.TypeAlias, "Uppercase"u8);
         var mapped = algebra.StringMappingAsync(uppercase, template).GetAwaiter().GetResult();
         Check(mapped is StringMappingType { Target: { } target } && target == context.StringType);
 
-        var parameter = context.NewTypeParameter(new(SymbolFlags.TypeParameter, "T"));
+        var parameter = context.NewTypeParameter(new(SymbolFlags.TypeParameter, "T"u8));
         Type intersection = parameter;
         for (int i = 0; i < depth; i++)
             intersection = context.NewIntersectionType([intersection, context.StringType]);
@@ -57,7 +57,7 @@ internal static class CheckerAlgebraTests
                 && result.Types[0] == parameter
                 && result.Types[1] == context.StringType);
 
-        var aliasSymbol = new Symbol(SymbolFlags.TypeAlias, "Alias");
+        var aliasSymbol = new Symbol(SymbolFlags.TypeAlias, "Alias"u8);
         Type union = algebra.UnionAsync(
             [context.StringType, context.NumberType],
             alias: context.CreateAlias(aliasSymbol, [])).GetAwaiter().GetResult();
@@ -71,7 +71,7 @@ internal static class CheckerAlgebraTests
         Check(TypeAlgebra.CrossProductSize(Enumerable.Repeat(context.BooleanType, 63).ToArray()) == long.MaxValue);
         Check(TypeAlgebra.CrossProductSize([context.NeverType, .. Enumerable.Repeat(context.BooleanType, 64)]) == 0);
         Check(TypeAlgebra.CrossProductSize([.. Enumerable.Repeat(context.BooleanType, 64), context.NeverType]) == long.MaxValue);
-        var letters = Enumerable.Range(0, 2_000).Select(i => context.GetStringLiteralType("v" + i)).ToArray();
+        var letters = Enumerable.Range(0, 2_000).Select(i => context.GetStringLiteralType(Utf8String.Copy("v"u8) + i)).ToArray();
         var duplicates = letters.SelectMany(t => new Type[] { t, t, t }).ToArray();
         Check(algebra.UnionAsync(duplicates).GetAwaiter().GetResult() is UnionType { Types.Count: 2_000 });
 
@@ -79,7 +79,7 @@ internal static class CheckerAlgebraTests
         host.BeforeGenericIndex = cancellation.Cancel;
         try
         {
-            algebra.TemplateAsync(["x", "y"], [parameter], cancellation.Token).GetAwaiter().GetResult();
+            algebra.TemplateAsync(["x"u8, "y"u8], [parameter], cancellation.Token).GetAwaiter().GetResult();
             throw new InvalidOperationException("Cancellation ignored");
         }
         catch (OperationCanceledException)
@@ -87,11 +87,11 @@ internal static class CheckerAlgebraTests
             assertions++;
         }
         host.BeforeGenericIndex = null;
-        var recovered = algebra.TemplateAsync(["x", "y"], [parameter]).GetAwaiter().GetResult();
-        Check(recovered is TemplateLiteralType { Texts: [{ Span: "x" }, { Span: "y" }] });
-        Check(recovered == algebra.TemplateAsync(["x", "y"], [parameter]).GetAwaiter().GetResult());
+        var recovered = algebra.TemplateAsync(["x"u8, "y"u8], [parameter]).GetAwaiter().GetResult();
+        Check(recovered is TemplateLiteralType { Texts: var matchedText } && matchedText is [{ Span: var matchedText2 }, { Span: var matchedText3 }] && matchedText2.SequenceEqual("x"u8) && matchedText3.SequenceEqual("y"u8));
+        Check(recovered == algebra.TemplateAsync(["x"u8, "y"u8], [parameter]).GetAwaiter().GetResult());
         Check(
-            context.StringType == algebra.UnionAsync([context.StringType, context.GetStringLiteralType("text")]).GetAwaiter().GetResult());
+            context.StringType == algebra.UnionAsync([context.StringType, context.GetStringLiteralType("text"u8)]).GetAwaiter().GetResult());
         Console.WriteLine($"{assertions} algebra ownership/limit/cancellation assertions; template, intersection and origin depth {depth}");
     }
 }

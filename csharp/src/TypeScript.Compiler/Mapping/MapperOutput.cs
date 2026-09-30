@@ -8,26 +8,26 @@ using TypeScript.Compiler.Text;
 namespace TypeScript.Compiler.Mapping;
 
 public sealed record MappedDiagnosticDirective(int OriginalStart, int OriginalEnd, int VirtualStart, int VirtualEnd,
-    bool Expect, string Source, DiagnosticCode UnusedCode = DiagnosticCode.None, string UnusedMessage = "");
-public sealed record MapperOutput(SourceText Text, string Extension, SpanMap Mappings, IReadOnlyList<MappedDiagnosticDirective> Directives);
+    bool Expect, Utf8String Source, DiagnosticCode UnusedCode = DiagnosticCode.None, Utf8String UnusedMessage = default);
+public sealed record MapperOutput(SourceText Text, Utf8String Extension, SpanMap Mappings, IReadOnlyList<MappedDiagnosticDirective> Directives);
 public sealed record MapperResult(MapperOutput Canonical, IReadOnlyList<MapperOutput> Supplemental, IReadOnlyList<Diagnostic> Diagnostics);
-public sealed record MappedSourceFile(SourceFileNode Syntax, SourceText Original, SpanMap Map, string VirtualFileName,
-    string MapperIdentity, string TransformIdentity, IReadOnlyList<MappedDiagnosticDirective> Directives)
+public sealed record MappedSourceFile(SourceFileNode Syntax, SourceText Original, SpanMap Map, Utf8String VirtualFileName,
+    Utf8String MapperIdentity, Utf8String TransformIdentity, IReadOnlyList<MappedDiagnosticDirective> Directives)
 {
-    public DiagnosticPresentation Present(Diagnostic diagnostic, string? locale = null)
+    public DiagnosticPresentation Present(Diagnostic diagnostic, Utf8String? locale = null)
     {
         int start = diagnostic.Start, end = checked(start + diagnostic.Length);
         if (diagnostic.Source is not null)
             return new(Original, start, end - start, false, diagnostic.Format(locale));
         var span = Map.VirtualToOriginalSpan(start, end);
-        TextSlice[] arguments = diagnostic.Arguments;
+        Utf8String[] arguments = diagnostic.Arguments;
         if (Map.AliasForVirtualSpan(start, end) is { } alias)
         {
-            string virtualName = Wtf8.DecodeString(Syntax.Source.Bytes.Span[alias.VirtualStart..alias.VirtualEnd]);
-            string originalName = Wtf8.DecodeString(Original.Bytes.Span[alias.OriginalStart..alias.OriginalEnd]);
+            Utf8String virtualName = new(Syntax.Source.Bytes[alias.VirtualStart..alias.VirtualEnd]);
+            Utf8String originalName = new(Original.Bytes[alias.OriginalStart..alias.OriginalEnd]);
             arguments = arguments.Select(arg => arg == virtualName ? originalName : arg).ToArray();
         }
-        string message = diagnostic.Message.Format(locale, arguments);
+        Utf8String message = diagnostic.Message.Format(locale, arguments);
         return span.Fidelity == MappingFidelity.None ? new(Syntax.Source, start, end - start, true, message)
             : new(Original, span.Start, span.End - span.Start, false, message);
     }
@@ -55,39 +55,39 @@ public sealed record MappedSourceFile(SourceFileNode Syntax, SourceText Original
             if (!used[i] && directive.Expect)
                 result.Add(
                     new(
-                    new(directive.UnusedCode, DiagnosticCategory.Error, "", directive.UnusedMessage),
+                    new(directive.UnusedCode, DiagnosticCategory.Error, Utf8String.Empty, directive.UnusedMessage),
                     directive.OriginalStart, directive.OriginalEnd - directive.OriginalStart, [])
                     { FileName = Syntax.FileName, Source = directive.Source });
         }
         return result;
     }
 }
-public readonly record struct DiagnosticPresentation(SourceText Text, int Start, int Length, bool Synthesized, string Message);
+public readonly record struct DiagnosticPresentation(SourceText Text, int Start, int Length, bool Synthesized, Utf8String Message);
 public sealed record MappedSourceFiles(MappedSourceFile Canonical, IReadOnlyList<MappedSourceFile> Supplemental);
 
 internal static class MapperOutputDecoder
 {
-    internal static bool SupportedExtension(string extension) =>
-        extension is ".ts" or ".tsx" or ".mts" or ".cts" or ".js" or ".jsx" or ".mjs" or ".cjs" or ".json";
+    internal static bool SupportedExtension(Utf8String extension) =>
+        extension == ".ts"u8 || extension == ".tsx"u8 || extension == ".mts"u8 || extension == ".cts"u8 || extension == ".js"u8 || extension == ".jsx"u8 || extension == ".mjs"u8 || extension == ".cjs"u8 || extension == ".json"u8;
 
-    internal static MapperResult Decode(JsonElement result, SourceText original, string encoding, string source)
+    internal static MapperResult Decode(JsonElement result, SourceText original, Utf8String source)
     {
-        var canonical = DecodeOutput(result, original, encoding, source);
+        var canonical = DecodeOutput(result, original, source);
         var supplemental = new List<MapperOutput>();
-        if (result.TryGetProperty("supplemental", out var outputs))
+        if (result.TryGetProperty("supplemental"u8, out var outputs))
             foreach (var output in outputs.EnumerateArray())
-                supplemental.Add(DecodeOutput(output, original, encoding, source));
+                supplemental.Add(DecodeOutput(output, original, source));
         var diagnostics = new List<Diagnostic>();
-        if (result.TryGetProperty("diagnostics", out var errors))
+        if (result.TryGetProperty("diagnostics"u8, out var errors))
             foreach (var error in errors.EnumerateArray())
             {
-                int start = error.TryGetProperty("start", out var offset) ? offset.GetInt32() : 0;
-                int length = error.TryGetProperty("length", out var rawLength) ? rawLength.GetInt32() : 0;
+                int start = error.TryGetProperty("start"u8, out var offset) ? offset.GetInt32() : 0;
+                int length = error.TryGetProperty("length"u8, out var rawLength) ? rawLength.GetInt32() : 0;
                 if (length < 0)
                     throw new InvalidDataException("Negative mapper diagnostic length");
-                int low = Position(original, encoding, start), high = Position(original, encoding, checked(start + length));
-                int code = error.TryGetProperty("code", out var rawCode) ? rawCode.GetInt32() : 0;
-                string message = error.TryGetProperty("messageText", out var text) ? JsonStrings.GetString(text) : "";
+                int low = Position(original, start), high = Position(original, checked(start + length));
+                int code = error.TryGetProperty("code"u8, out var rawCode) ? rawCode.GetInt32() : 0;
+                Utf8String message = error.TryGetProperty("messageText"u8, out var text) ? JsonStrings.GetString(text) : Utf8String.Empty;
                 diagnostics.Add(new(new((DiagnosticCode)code, DiagnosticCategory.Error, source + code, message),
                     low, high - low, [])
                 { Source = source });
@@ -95,26 +95,26 @@ internal static class MapperOutputDecoder
         return new(canonical, supplemental.ToArray(), diagnostics.ToArray());
     }
 
-    private static MapperOutput DecodeOutput(JsonElement output, SourceText original, string encoding, string source)
+    private static MapperOutput DecodeOutput(JsonElement output, SourceText original, Utf8String source)
     {
-        string extension = JsonStrings.GetString(output.GetProperty("extension"));
+        Utf8String extension = JsonStrings.GetString(output.GetProperty("extension"u8));
         if (!SupportedExtension(extension))
-            throw new InvalidDataException("Unsupported mapper virtual extension: " + extension);
-        var text = new SourceText(output.TryGetProperty("text", out var rawText) ? JsonStrings.GetString(rawText) : "");
-        var raw = SpanMap.Read(output.TryGetProperty("mappings", out var mappings) ? mappings : default);
+            throw new InvalidDataException($"Unsupported mapper virtual extension: {extension}");
+        var text = new SourceText(output.TryGetProperty("text"u8, out var rawText) ? JsonStrings.GetString(rawText) : Utf8String.Empty);
+        var raw = SpanMap.Read(output.TryGetProperty("mappings"u8, out var mappings) ? mappings : default);
         var map = new SpanMap(raw.Segments.Select(s => s with
         {
-            VirtualStart = Position(text, encoding, s.VirtualStart),
-            VirtualEnd = Position(text, encoding, s.VirtualEnd),
-            OriginalStart = Position(original, encoding, s.OriginalStart),
-            OriginalEnd = Position(original, encoding, s.OriginalEnd)
+            VirtualStart = Position(text, s.VirtualStart),
+            VirtualEnd = Position(text, s.VirtualEnd),
+            OriginalStart = Position(original, s.OriginalStart),
+            OriginalEnd = Position(original, s.OriginalEnd)
         }));
         map.Validate(text.Bytes.Span, original.Bytes.Span);
         var directives = new List<MappedDiagnosticDirective>();
-        if (output.TryGetProperty("diagnosticDirectives", out var rawDirectives) && rawDirectives.ValueKind != JsonValueKind.Null)
+        if (output.TryGetProperty("diagnosticDirectives"u8, out var rawDirectives) && rawDirectives.ValueKind != JsonValueKind.Null)
         {
-            JsonElement unused = rawDirectives.TryGetProperty("unusedExpectDirectiveDiagnostics", out var values) ? values : default;
-            if (rawDirectives.TryGetProperty("directives", out var tuples))
+            JsonElement unused = rawDirectives.TryGetProperty("unusedExpectDirectiveDiagnostics"u8, out var values) ? values : default;
+            if (rawDirectives.TryGetProperty("directives"u8, out var tuples))
                 foreach (var tuple in tuples.EnumerateArray())
                 {
                     if (tuple.GetArrayLength() is not (5 or 6))
@@ -122,7 +122,7 @@ internal static class MapperOutputDecoder
                     int policy = tuple[4].GetInt32();
                     if (policy is not (0 or 1))
                         throw new InvalidDataException("Invalid diagnostic directive policy");
-                    int start = Position(text, encoding, tuple[2].GetInt32()), end = Position(text, encoding, tuple[3].GetInt32());
+                    int start = Position(text, tuple[2].GetInt32()), end = Position(text, tuple[3].GetInt32());
                     if (end < start)
                         throw new InvalidDataException("Reversed diagnostic directive range");
                     int originalStart = 0, originalEnd = 0;
@@ -131,23 +131,23 @@ internal static class MapperOutputDecoder
                         int offset = tuple[0].GetInt32(), length = tuple[1].GetInt32();
                         if (length < 0)
                             throw new InvalidDataException("Negative directive length");
-                        originalStart = Position(original, encoding, offset);
-                        originalEnd = Position(original, encoding, checked(offset + length));
+                        originalStart = Position(original, offset);
+                        originalEnd = Position(original, checked(offset + length));
                     }
                     catch (Exception e) when (policy == 0 && e is InvalidDataException or OverflowException)
                     {
                         originalStart = originalEnd = 0;
                     }
                     DiagnosticCode code = DiagnosticCode.None;
-                    string message = "";
+                    Utf8String message = default;
                     if (policy == 1)
                     {
                         int count = unused.ValueKind == JsonValueKind.Array ? unused.GetArrayLength() : 0;
                         int index = tuple.GetArrayLength() == 6 ? tuple[5].GetInt32() : count == 1 ? 0 : -1;
                         if (index < 0 || index >= count)
                             throw new InvalidDataException("Missing unused-expect diagnostic");
-                        code = (DiagnosticCode)unused[index].GetProperty("code").GetInt32();
-                        message = JsonStrings.GetString(unused[index].GetProperty("messageText"));
+                        code = (DiagnosticCode)unused[index].GetProperty("code"u8).GetInt32();
+                        message = JsonStrings.GetString(unused[index].GetProperty("messageText"u8));
                     }
                     directives.Add(new(originalStart, originalEnd, start, end, policy == 1, source, code, message));
                 }
@@ -162,30 +162,28 @@ internal static class MapperOutputDecoder
         return new(text, extension, map, directives.ToArray());
     }
 
-    private static int Position(SourceText text, string encoding, int position)
+    private static int Position(SourceText text, int position)
     {
-        int length = encoding == "utf-16" ? text.Length : text.Bytes.Length;
-        if (position < 0 || position > length)
+        if (position < 0 || position > text.Length)
             throw new InvalidDataException("Mapper position is outside the source text");
-        int result = encoding == "utf-16" ? text.ToBytePosition(position) : position;
-        if (result < text.Bytes.Length && (text.Bytes.Span[result] & 0xC0) == 0x80)
+        if (position < text.Length && (text.Bytes.Span[position] & 0xC0) == 0x80)
             throw new InvalidDataException("Mapper position splits a Unicode code point");
-        return result;
+        return position;
     }
 
     internal static async ValueTask<MappedSourceFiles> Parse(MapperResult result, ParseOptions options, SourceText original,
-        string identity, string transformIdentity, CancellationToken cancellation)
+        Utf8String identity, Utf8String transformIdentity, CancellationToken cancellation)
     {
-        async ValueTask<MappedSourceFile> File(MapperOutput output, string fileName)
+        async ValueTask<MappedSourceFile> File(MapperOutput output, Utf8String fileName)
         {
-            string virtualName = fileName == options.FileName ? fileName + output.Extension : fileName;
-            var script = output.Extension is ".js" or ".mjs" or ".cjs" ? ScriptKind.JS : output.Extension == ".jsx" ? ScriptKind.JSX
-                : output.Extension == ".tsx" ? ScriptKind.TSX : output.Extension == ".json" ? ScriptKind.JSON : ScriptKind.TS;
+            Utf8String virtualName = fileName == options.FileName ? fileName + output.Extension : fileName;
+            var script = (output.Extension == ".js"u8 || output.Extension == ".mjs"u8 || output.Extension == ".cjs"u8) ? ScriptKind.JS : output.Extension == Utf8Literals.Jsx ? ScriptKind.JSX
+                : output.Extension == Utf8Literals.Tsx ? ScriptKind.TSX : output.Extension == Utf8Literals.Json ? ScriptKind.JSON : ScriptKind.TS;
             var parse = options with
             {
                 FileName = fileName,
                 ScriptKind = script,
-                ForceExternalModule = options.ForceExternalModule || output.Extension is ".mts" or ".cts" or ".mjs" or ".cjs"
+                ForceExternalModule = options.ForceExternalModule || output.Extension == ".mts"u8 || output.Extension == ".cts"u8 || output.Extension == ".mjs"u8 || output.Extension == ".cjs"u8
             };
             var syntax = await Parser.ParseSourceFileAsync(parse, output.Text, cancellation).ConfigureAwait(false);
             return new(syntax, original, output.Mappings, virtualName, identity, transformIdentity, output.Directives);
@@ -199,7 +197,7 @@ internal static class MapperOutputDecoder
         var supplemental = new List<MappedSourceFile>();
         for (int i = 0; i < result.Supplemental.Count; i++)
             supplemental.Add(
-                await File(result.Supplemental[i], options.FileName + "." + i + result.Supplemental[i].Extension).ConfigureAwait(false));
+                await File(result.Supplemental[i], options.FileName + Utf8Literals.Dot + i + result.Supplemental[i].Extension).ConfigureAwait(false));
         return new(canonical, supplemental.ToArray());
     }
 }

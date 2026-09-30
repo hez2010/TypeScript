@@ -49,7 +49,7 @@ internal static class DiagnosticCollection
                 (left, right) = next;
                 continue;
             }
-            int result = CompareText(a.FileName ?? "", b.FileName ?? "");
+            int result = CompareText(a.FileName ?? Utf8String.Empty, b.FileName ?? Utf8String.Empty);
             if (result == 0)
                 result = a.Start.CompareTo(b.Start);
             if (result == 0)
@@ -59,7 +59,7 @@ internal static class DiagnosticCollection
             if (result == 0)
                 result = ((int)a.Message.Category).CompareTo((int)b.Message.Category);
             if (result == 0)
-                result = CompareText(a.Source ?? "", b.Source ?? "");
+                result = CompareText(a.Source ?? Utf8String.Empty, b.Source ?? Utf8String.Empty);
             if (result == 0)
                 result = CompareText(DiagnosticEqualityComparer.Identity(a), DiagnosticEqualityComparer.Identity(b));
             if (result == 0)
@@ -116,7 +116,7 @@ internal static class DiagnosticCollection
         return 0;
     }
 
-    private static int CompareArguments(TextSlice[] left, TextSlice[] right)
+    private static int CompareArguments(Utf8String[] left, Utf8String[] right)
     {
         for (int i = 0; i < Math.Min(left.Length, right.Length); i++)
         {
@@ -128,22 +128,5 @@ internal static class DiagnosticCollection
     }
 
     // UTF-8 and WTF-8 sort by code point, including unpaired surrogate values.
-    private static int CompareText(ReadOnlySpan<char> left, ReadOnlySpan<char> right)
-    {
-        int i = 0, j = 0;
-        while (i < left.Length && j < right.Length)
-        {
-            int a = Point(left, ref i), b = Point(right, ref j);
-            if (a != b)
-                return a.CompareTo(b);
-        }
-        return (left.Length - i).CompareTo(right.Length - j);
-
-        static int Point(ReadOnlySpan<char> text, ref int position)
-        {
-            char first = text[position++];
-            return char.IsHighSurrogate(first) && position < text.Length && char.IsLowSurrogate(text[position])
-                ? char.ConvertToUtf32(first, text[position++]) : first;
-        }
-    }
+    private static int CompareText(ReadOnlySpan<byte> left, ReadOnlySpan<byte> right) => left.SequenceCompareTo(right);
 }

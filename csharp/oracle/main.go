@@ -115,8 +115,7 @@ func probeProject(input projectInput) projectOutput {
 	typesByName := map[string]*checker.Type{}
 	for _, name := range names {
 		file := program.GetSourceFile(name)
-		wire, _, err := encoder.EncodeSourceFile(file)
-		fail(err)
+		wire := encodeBytePositionFixture(file)
 		r := fileResult{Name: name, Wire: base64.StdEncoding.EncodeToString(wire), Locals: []string{}, Diagnostics: []diagnostic{}}
 		for local := range file.AsNode().Locals() {
 			r.Locals = append(r.Locals, local)
@@ -157,6 +156,26 @@ func fail(err error) {
 		panic(err)
 	}
 }
+
+// The C# experiment's version 9 node records use UTF-8 byte positions. Adapt
+// only the reference record coordinates used by the packet-view comparison;
+// the pinned Go encoder and the repository's JavaScript client stay unchanged.
+func encodeBytePositionFixture(file *ast.SourceFile) []byte {
+	wire, _, err := encoder.EncodeSourceFile(file)
+	fail(err)
+	metadata := binary.LittleEndian.Uint32(wire)
+	binary.LittleEndian.PutUint32(wire, metadata&0x00FFFFFF|9<<24)
+	positions := ast.ComputePositionMap(file.Text())
+	nodes := int(binary.LittleEndian.Uint32(wire[40:]))
+	for offset := nodes; offset < len(wire); offset += 28 {
+		for _, field := range []int{4, 8} {
+			position := int(int32(binary.LittleEndian.Uint32(wire[offset+field:])))
+			binary.LittleEndian.PutUint32(wire[offset+field:], uint32(positions.UTF16ToUTF8(position)))
+		}
+	}
+	return wire
+}
+
 func bytes(s string) []byte { b, err := base64.StdEncoding.DecodeString(s); fail(err); return b }
 func bits(n jsnum.Number) string {
 	if n.IsNaN() {
@@ -238,8 +257,7 @@ func main() {
 		file := parser.ParseSourceFile(ast.SourceFileParseOptions{FileName: "/" + inputFile.Name}, string(bytes(inputFile.Text)), core.ScriptKindTS)
 		file.Hash = xxh3.Hash128(bytes(inputFile.Text))
 		binder.BindSourceFile(file)
-		wire, _, err := encoder.EncodeSourceFile(file)
-		fail(err)
+		wire := encodeBytePositionFixture(file)
 		r := fileResult{Name: inputFile.Name, Wire: base64.StdEncoding.EncodeToString(wire), Locals: []string{}, Diagnostics: []diagnostic{}}
 		for name := range file.AsNode().Locals() {
 			r.Locals = append(r.Locals, name)

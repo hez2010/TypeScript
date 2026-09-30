@@ -15,7 +15,7 @@ internal enum SymbolAccessibility
 }
 
 internal sealed record SymbolAccessibilityResult(SymbolAccessibility Accessibility, IReadOnlyList<SyntaxNode>? AliasesToMakeVisible = null,
-    TextSlice ErrorSymbolName = default, TextSlice ErrorModuleName = default, SyntaxNode? ErrorNode = null);
+    Utf8String ErrorSymbolName = default, Utf8String ErrorModuleName = default, SyntaxNode? ErrorNode = null);
 
 // Preserve the symbols that require diagnostic names. Formatting those names
 // belongs to the node-builder service, separate from the accessibility decision.
@@ -34,10 +34,10 @@ internal sealed partial class Checker
         VisibilityQueryAsync(enclosing, () => ChainOperationAsync(() => ContainerOperationAsync(async () =>
         {
             var result = await SymbolAccessibilityAsync(symbol, enclosing, meaning, computeAliases, allowModules, cancellation);
-            TextSlice name = result.ErrorSymbol is null
-                ? ""
+            Utf8String name = result.ErrorSymbol is null
+                ? Utf8String.Empty
                 : await SymbolDisplayNameAsync(result.ErrorSymbol, enclosing, result.ErrorMeaning, cancellation);
-            TextSlice module = result.ErrorModule is null ? "" : await SymbolDisplayNameAsync(result.ErrorModule,
+            Utf8String module = result.ErrorModule is null ? Utf8String.Empty : await SymbolDisplayNameAsync(result.ErrorModule,
                 result.Accessibility == SymbolAccessibility.CannotBeNamed ? null : enclosing,
                 result.Accessibility == SymbolAccessibility.CannotBeNamed ? SymbolFlags.All : SymbolFlags.Namespace, cancellation);
             return new SymbolAccessibilityResult(result.Accessibility, result.AliasesToMakeVisible, name, module, result.ErrorNode);
@@ -76,7 +76,7 @@ internal sealed partial class Checker
         var symbol = program.Symbols.NameResolver(cancellation).Resolve(enclosing, identifier.Text, meaning);
         if (symbol is not null && (symbol.Flags & SymbolFlags.TypeParameter) != 0 && (meaning & SymbolFlags.Type) != 0)
             return new(SymbolAccessibility.Accessible);
-        if (symbol is null && identifier.Text == "this")
+        if (symbol is null && identifier.Text == Utf8Literals.This)
         {
             var container = MissingNamePrefixes.ThisContainer(identifier, false, false);
             var owner = container is null ? null : program.Symbols.Declaration(container);

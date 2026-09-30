@@ -22,19 +22,18 @@ internal static class CheckerVisibilityTests
             checks++;
         }
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        const string source = "namespace N { export class Item {private field=1;} } import A=N; import B=A; export {B}; "
-            + "import {named} from './dep'; const hidden=1; export function visible(){return hidden;}";
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/main.ts"] = Wtf8.Encode(source), ["/project/dep.ts"] = Wtf8.Encode("export const named=1;") }), "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
-        var file = program.GetFile("/project/main.ts")!.Syntax;
+        options.SetRaw("noLib"u8, "true"u8);
+        Utf8String source = Utf8String.Concat("namespace N { export class Item {private field=1;} } import A=N; import B=A; export {B}; "u8, "import {named} from './dep'; const hidden=1; export function visible(){return hidden;}"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/main.ts"u8] = source.Span.ToArray(), ["/project/dep.ts"u8] = Wtf8.Encode("export const named=1;") }), "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
+        var file = program.GetFile("/project/main.ts"u8)!.Syntax;
         var nodes = file.DescendantsAndSelf().ToArray();
         var ns = nodes.OfType<ModuleDeclarationNode>().Single();
         var aliases = nodes.OfType<ImportEqualsDeclarationNode>().ToArray();
         var exported = nodes.OfType<ExportSpecifierNode>().Single();
         var import = nodes.OfType<ImportSpecifierNode>().Single();
-        var hidden = nodes.OfType<VariableDeclarationNode>().Single(n => n.Name is IdentifierNode { Text: { Span: "hidden" } });
+        var hidden = nodes.OfType<VariableDeclarationNode>().Single(n => (n.Name is IdentifierNode { Text: { Span: var matchedText } } && matchedText.SequenceEqual("hidden"u8)));
         var member = nodes.OfType<PropertyDeclarationNode>().Single();
         var checker = await program.CreateCheckerAsync();
         Check(await checker.IsDeclarationVisibleAsync(file));
@@ -93,7 +92,7 @@ internal static class CheckerVisibilityTests
         var failedChecker = await program.CreateCheckerAsync();
         Check(!await failedChecker.IsDeclarationVisibleAsync(import));
         baselineCount = failedChecker.DeclarationVisibilityCount;
-        var combined = new Symbol(SymbolFlags.Transient | SymbolFlags.TypeAlias, "combined");
+        var combined = new Symbol(SymbolFlags.Transient | SymbolFlags.TypeAlias, "combined"u8);
         combined.DeclarationList = combined.DeclarationList.Add(import);
         combined.DeclarationList = combined.DeclarationList.Add(member);
         failedChecker.BeforeVisibilityNode = node =>
@@ -116,7 +115,7 @@ internal static class CheckerVisibilityTests
         }
         Check(failedChecker.DeclarationVisibilityCount == baselineCount && !await failedChecker.IsDeclarationVisibleAsync(import));
         Check(await failedChecker.GetVisibleDeclarationsAsync(checker.Symbols.Declaration(import)!, true) is [ImportDeclarationNode]);
-        var leaf = new TypeReferenceNode { TypeName = new IdentifierNode { Text = "T" } };
+        var leaf = new TypeReferenceNode { TypeName = new IdentifierNode { Text = "T"u8 } };
         SyntaxNode current = leaf;
         for (int i = 0; i < 20_000; i++)
         {
@@ -145,7 +144,7 @@ internal static class CheckerVisibilityTests
         Func<Symbol?, int> symbolId, Func<SyntaxNode?, int> nodeId)
     {
         var selected = nodes.Where(
-            n => SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main.", StringComparison.Ordinal) == true).ToArray();
+            n => SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main."u8, StringComparison.Ordinal) == true).ToArray();
         var entries = new List<(SyntaxNode Node, int Owner, int DocumentationIndex)>();
         foreach (var node in selected)
         {
@@ -160,7 +159,7 @@ internal static class CheckerVisibilityTests
         foreach (var node in selected)
             if (QuerySyntax.Declaration(node) && checker.Symbols.Declaration(node) is { } symbol && symbols.Add(symbol))
                 declarations.Add((node, symbol));
-        writer.WriteStartArray("visibilityQueries");
+        writer.WriteStartArray("visibilityQueries"u8);
         async Task Visibility(int phase)
         {
             foreach (var entry in entries)

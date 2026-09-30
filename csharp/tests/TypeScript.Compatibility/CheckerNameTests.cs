@@ -21,22 +21,52 @@ internal static class CheckerNameTests
                 throw new InvalidOperationException($"Name/symbol ownership assertion {assertions + 1}");
             assertions++;
         }
-        var file = Parser.ParseSourceFile(new("/scope.ts"), new SourceText("let x;"));
+        var compact = new SymbolTable();
+        var firstValue = new Symbol(SymbolFlags.Property, "value"u8);
+        var secondValue = new Symbol(SymbolFlags.Property, "other"u8);
+        var keys = compact.Keys;
+        compact.Add("alias"u8, firstValue);
+        Check(compact[Utf8String.Copy("alias"u8)] == firstValue && compact.Count == 1);
+        Check(!compact.TryAdd("alias"u8, secondValue) && compact["alias"u8] == firstValue);
+        compact["alias"u8] = secondValue;
+        Check(compact.Values.Single() == secondValue && compact.Single().Key == "alias"u8);
+        compact.Add(Utf8String.Copy([0x00, 0xED, 0xA0, 0x80]), firstValue);
+        Check(compact.Count == 2 && compact["alias"u8] == secondValue && compact[Utf8String.Copy([0x00, 0xED, 0xA0, 0x80])] == firstValue);
+        Check(keys.SequenceEqual(new Utf8String[] { "alias"u8, Utf8String.Copy([0x00, 0xED, 0xA0, 0x80]) }));
+        var copied = new Dictionary<Utf8String, Symbol>(compact);
+        Check(copied.Count == 2 && copied["alias"u8] == secondValue);
+        for (int i = 0; i < 8; i++)
+            compact.Add(Utf8String.Format(i), firstValue);
+        Check(compact.Count == 10 && compact["alias"u8] == secondValue && compact["7"u8] == firstValue);
+        try
+        {
+            ((ICollection<KeyValuePair<Utf8String, Symbol>>)compact).Clear();
+            throw new InvalidOperationException("Published symbol table is mutable");
+        }
+        catch (NotSupportedException)
+        {
+            assertions++;
+        }
+        compact.Clear();
+        compact.Add("fresh"u8, firstValue);
+        Check(compact.Count == 1 && keys.Single() == "fresh"u8 && !compact.ContainsKey("alias"u8));
+
+        var file = Parser.ParseSourceFile(new("/scope.ts"u8), new SourceText("let x;"u8));
         var binding = Binder.Bind(file);
         SyntaxNode scope = file;
         const int depth = 20_000;
         for (int i = 0; i < depth; i++)
             scope = new BlockNode { Parent = scope };
-        var use = new IdentifierNode { Text = "x", Parent = scope };
+        var use = new IdentifierNode { Text = "x"u8, Parent = scope };
         var resolver = new NameResolver(new(), _ => binding) { Globals = binding.Locals };
-        Check(resolver.Resolve(use, "x", SymbolFlags.Value) == binding.Locals["x"]);
-        Check(resolver.Resolve(use, "x", SymbolFlags.Value, excludeGlobals: true) is null);
+        Check(resolver.Resolve(use, "x"u8, SymbolFlags.Value) == binding.Locals["x"u8]);
+        Check(resolver.Resolve(use, "x"u8, SymbolFlags.Value, excludeGlobals: true) is null);
         using var canceled = new CancellationTokenSource();
         canceled.Cancel();
         var canceledResolver = new NameResolver(new(), _ => binding) { Globals = binding.Locals, Cancellation = canceled.Token };
         try
         {
-            canceledResolver.Resolve(null, "x", SymbolFlags.Value);
+            canceledResolver.Resolve(null, "x"u8, SymbolFlags.Value);
             throw new InvalidOperationException("Cancellation ignored");
         }
         catch (OperationCanceledException)
@@ -45,55 +75,55 @@ internal static class CheckerNameTests
         }
 
         var deepFile = Parser.ParseSourceFile(
-            new("/initializers.ts"),
-            new SourceText("let x;function f(a=" + new string('(', depth) + "x??1" + new string(')', depth) + "){var x;}"));
+            new("/initializers.ts"u8),
+            new SourceText(Utf8String.Concat("let x;function f(a="u8, new Utf8String('(', depth), "x??1"u8) + new Utf8String(')', depth) + "){var x;}"u8));
         var deepBinding = Binder.Bind(deepFile);
         var identifier = deepFile.DescendantsAndSelf().OfType<IdentifierNode>().First(
-            n => n.Text == "x" && n.Parent is BinaryExpressionNode);
+            n => n.Text == "x"u8 && n.Parent is BinaryExpressionNode);
         var function = deepFile.DescendantsAndSelf().OfType<FunctionDeclarationNode>().Single();
         var legacyOptions = new CompilerOptions();
         using var legacy = JsonDocument.Parse("\"es2015\"");
-        legacyOptions.Set("target", legacy.RootElement);
+        legacyOptions.Set("target"u8, legacy.RootElement);
         var modernOptions = new CompilerOptions();
         using var modern = JsonDocument.Parse("\"es2020\"");
-        modernOptions.Set("target", modern.RootElement);
+        modernOptions.Set("target"u8, modern.RootElement);
         Check(
             new NameResolver(
                 legacyOptions,
                 _ => deepBinding)
-            { Globals = deepBinding.Locals }.Resolve(identifier, "x", SymbolFlags.Value) == deepBinding.Get(function)!.Value.Locals["x"]);
+            { Globals = deepBinding.Locals }.Resolve(identifier, "x"u8, SymbolFlags.Value) == deepBinding.Get(function)!.Value.Locals["x"u8]);
         Check(
             new NameResolver(
                 modernOptions,
                 _ => deepBinding)
-            { Globals = deepBinding.Locals }.Resolve(identifier, "x", SymbolFlags.Value) == deepBinding.Locals["x"]);
+            { Globals = deepBinding.Locals }.Resolve(identifier, "x"u8, SymbolFlags.Value) == deepBinding.Locals["x"u8]);
 
-        var unknown = new Symbol(SymbolFlags.Property, "unknown");
-        var globalThis = new Symbol(SymbolFlags.Module, "globalThis");
+        var unknown = new Symbol(SymbolFlags.Property, "unknown"u8);
+        var globalThis = new Symbol(SymbolFlags.Module, "globalThis"u8);
         int conflicts = 0;
         var merger = new SymbolMerger(unknown, globalThis, s => s, (_, _, _) => conflicts++);
-        var left = new Symbol(SymbolFlags.Interface, "I");
-        var right = new Symbol(SymbolFlags.Interface, "I");
+        var left = new Symbol(SymbolFlags.Interface, "I"u8);
+        var right = new Symbol(SymbolFlags.Interface, "I"u8);
         var merged = merger.MergeAsync(left, right).GetAwaiter().GetResult();
         Check(merged != left && merged != right && (merged.Flags & SymbolFlags.Transient) != 0);
         Check(left.Flags == SymbolFlags.Interface && right.Flags == SymbolFlags.Interface);
         Check(merger.GetMergedSymbol(left) == merged && merger.GetMergedSymbol(right) == merged);
-        var conflicting = new Symbol(SymbolFlags.TypeAlias, "I");
+        var conflicting = new Symbol(SymbolFlags.TypeAlias, "I"u8);
         Check(merger.MergeAsync(merged, conflicting).GetAwaiter().GetResult() == merged && conflicts == 1);
         Check(
-            merger.MergeAsync(globalThis, new(SymbolFlags.BlockScopedVariable, "globalThis")).GetAwaiter().GetResult() == globalThis
+            merger.MergeAsync(globalThis, new(SymbolFlags.BlockScopedVariable, "globalThis"u8)).GetAwaiter().GetResult() == globalThis
                 && conflicts == 1);
 
-        var a = new Symbol(SymbolFlags.ValueModule, "N");
-        var b = new Symbol(SymbolFlags.ValueModule, "N");
+        var a = new Symbol(SymbolFlags.ValueModule, "N"u8);
+        var b = new Symbol(SymbolFlags.ValueModule, "N"u8);
         var parentA = a;
         var parentB = b;
         for (int i = 0; i < depth; i++)
         {
-            var nextA = new Symbol(SymbolFlags.ValueModule, "N") { Parent = parentA };
-            var nextB = new Symbol(SymbolFlags.ValueModule, "N") { Parent = parentB };
-            parentA.ExportTable.Add("N", nextA);
-            parentB.ExportTable.Add("N", nextB);
+            var nextA = new Symbol(SymbolFlags.ValueModule, "N"u8) { Parent = parentA };
+            var nextB = new Symbol(SymbolFlags.ValueModule, "N"u8) { Parent = parentB };
+            parentA.ExportTable.Add("N"u8, nextA);
+            parentB.ExportTable.Add("N"u8, nextB);
             parentA = nextA;
             parentB = nextB;
         }
@@ -101,13 +131,13 @@ internal static class CheckerNameTests
         var node = mergedRoot;
         for (int i = 0; i < depth; i++)
         {
-            var child = node.Exports["N"];
+            var child = node.Exports["N"u8];
             if (child.Parent != node)
                 throw new InvalidOperationException("Merged export parent was not repaired");
             node = child;
         }
         Check(merger.GetMergedSymbol(parentA) == node && merger.GetMergedSymbol(parentB) == node);
-        Check(a.Exports["N"].Parent == a && b.Exports["N"].Parent == b);
+        Check(a.Exports["N"u8].Parent == a && b.Exports["N"u8].Parent == b);
 
         using var cancellation = new CancellationTokenSource();
         int resolutions = 0;
@@ -117,12 +147,12 @@ internal static class CheckerNameTests
                 cancellation.Cancel();
             return s;
         }, (_, _, _) => { });
-        var table = new Dictionary<TextSlice, Symbol> { ["N"] = a };
+        var table = new SymbolTable { ["N"u8] = a };
         try
         {
             interruptible.MergeTableAsync(
                 table,
-                new Dictionary<TextSlice, Symbol> { ["N"] = b },
+                new Dictionary<Utf8String, Symbol> { ["N"u8] = b },
                 cancellation: cancellation.Token).GetAwaiter().GetResult();
             throw new InvalidOperationException("Merge cancellation ignored");
         }
@@ -130,18 +160,18 @@ internal static class CheckerNameTests
         {
             assertions++;
         }
-        Check(table["N"] == a && interruptible.GetMergedSymbol(a) == a && interruptible.GetMergedSymbol(b) == b);
+        Check(table["N"u8] == a && interruptible.GetMergedSymbol(a) == a && interruptible.GetMergedSymbol(b) == b);
         var recovered = interruptible.MergeAsync(a, b).GetAwaiter().GetResult();
         Check(recovered != a && recovered != b && interruptible.GetMergedSymbol(a) == recovered);
 
         // A callback failure must also restore an already existing transient symbol.
-        var before = new Symbol(SymbolFlags.Interface | SymbolFlags.Transient, "I");
-        before.MemberTable["x"] = new(SymbolFlags.BlockScopedVariable, "x");
-        var addition = new Symbol(SymbolFlags.Interface | SymbolFlags.ValueModule, "I") { ValueDeclaration = use };
+        var before = new Symbol(SymbolFlags.Interface | SymbolFlags.Transient, "I"u8);
+        before.MemberTable["x"u8] = new(SymbolFlags.BlockScopedVariable, "x"u8);
+        var addition = new Symbol(SymbolFlags.Interface | SymbolFlags.ValueModule, "I"u8) { ValueDeclaration = use };
         addition.DeclarationList = addition.DeclarationList.Add(use);
-        addition.MemberTable["x"] = new(SymbolFlags.BlockScopedVariable, "x");
+        addition.MemberTable["x"u8] = new(SymbolFlags.BlockScopedVariable, "x"u8);
         var transactional = new SymbolMerger(unknown, globalThis, s => s, (_, _, _) => throw new InvalidDataException("conflict"));
-        var originalMember = before.Members["x"];
+        var originalMember = before.Members["x"u8];
         try
         {
             transactional.MergeAsync(before, addition).GetAwaiter().GetResult();
@@ -151,13 +181,13 @@ internal static class CheckerNameTests
         {
             assertions++;
         }
-        Check(before.Members["x"] == originalMember && transactional.GetMergedSymbol(addition) == addition
+        Check(before.Members["x"u8] == originalMember && transactional.GetMergedSymbol(addition) == addition
             && before.Flags == (SymbolFlags.Interface | SymbolFlags.Transient) && before.ValueDeclaration is null && before.Declarations.Length == 0);
 
-        var importFile = Parser.ParseSourceFile(new("/imports.ts"), new SourceText("import {x as y} from 'p'; y;"));
+        var importFile = Parser.ParseSourceFile(new("/imports.ts"u8), new SourceText("import {x as y} from 'p'; y;"u8));
         var importBinding = Binder.Bind(importFile);
-        var alias = importBinding.Locals["y"];
-        var aliasUse = importFile.DescendantsAndSelf().OfType<IdentifierNode>().Last(n => n.Text == "y");
+        var alias = importBinding.Locals["y"u8];
+        var aliasUse = importFile.DescendantsAndSelf().OfType<IdentifierNode>().Last(n => n.Text == "y"u8);
         var reference = new ReferenceResolver(new(), _ => importBinding, new() { GetResolvedSymbol = _ => alias });
         Check(reference.GetReferencedImportDeclaration(aliasUse) == alias.Declarations[0]);
         reference = new(
@@ -165,17 +195,17 @@ internal static class CheckerNameTests
             _ => importBinding,
             new() { GetResolvedSymbol = _ => alias, GetTypeOnlyAliasDeclaration = (_, _) => alias.Declarations[0] });
         Check(reference.GetReferencedImportDeclaration(aliasUse) is null);
-        var exported = new Symbol(SymbolFlags.Function, "f") { ValueDeclaration = use };
+        var exported = new Symbol(SymbolFlags.Function, "f"u8) { ValueDeclaration = use };
         reference = new(new(), _ => importBinding, new()
         {
             GetResolvedSymbol = _ => alias,
             GetExportSymbolOfValueSymbolIfExported = _ => exported,
-            GetElementAccessExpressionName = _ => "computed"
+            GetElementAccessExpressionName = _ => "computed"u8
         });
         Check(reference.GetReferencedValueDeclaration(aliasUse) == use && reference.GetReferencedMemberValueDeclaration(aliasUse) == use);
         Check(
-            reference.GetElementAccessExpressionName(new ElementAccessExpressionNode()) == "computed"
-                && reference.GetElementAccessExpressionName(null) == "");
+            reference.GetElementAccessExpressionName(new ElementAccessExpressionNode()) == "computed"u8
+                && reference.GetElementAccessExpressionName(null) == ""u8);
         Console.WriteLine($"{assertions} name/symbol state assertions; scope, initializer and merge depth {depth}");
     }
 
@@ -188,15 +218,15 @@ internal static class CheckerNameTests
             using (var writer = new Utf8JsonWriter(stream))
             {
                 var data = Process(document.RootElement, out var file);
-                if (document.RootElement.TryGetProperty("exportTree", out var export) && export.GetBoolean())
+                if (document.RootElement.TryGetProperty("exportTree"u8, out var export) && export.GetBoolean())
                 {
                     writer.WriteStartObject();
-                    writer.WritePropertyName("data");
+                    writer.WritePropertyName("data"u8);
                     BindingTests.Write(writer, data);
-                    writer.WritePropertyName("tree");
+                    writer.WritePropertyName("tree"u8);
                     BindingSyntax.Write(writer, file);
-                    writer.WriteString("syntaxFingerprint", BindingTests.SyntaxFingerprint(file));
-                    writer.WriteNumber("parseErrors", file.ParseDiagnostics.Count);
+                    writer.WriteString("syntaxFingerprint"u8, BindingTests.SyntaxFingerprint(file));
+                    writer.WriteNumber("parseErrors"u8, file.ParseDiagnostics.Count);
                     writer.WriteEndObject();
                 }
                 else
@@ -209,14 +239,14 @@ internal static class CheckerNameTests
     private static object[] Process(JsonElement input, out SourceFileNode file)
     {
         file = Parser.ParseSourceFile(
-            new(input.GetProperty("fileName").GetString()!),
-            new SourceText(input.GetProperty("text").GetBytesFromBase64()));
+            new(JsonStrings.GetString(input.GetProperty("fileName"u8))!),
+            new SourceText(input.GetProperty("text"u8).GetBytesFromBase64()));
         var binding = Binder.Bind(file);
         var options = new CompilerOptions();
-        if (input.TryGetProperty("options", out var configuration))
+        if (input.TryGetProperty("options"u8, out var configuration))
             foreach (var property in configuration.EnumerateObject())
-                options.Set(property.Name, property.Value);
-        bool exclude = input.TryGetProperty("excludeGlobals", out var e) && e.GetBoolean();
+                options.Set(JsonStrings.GetName(property), property.Value);
+        bool exclude = input.TryGetProperty("excludeGlobals"u8, out var e) && e.GetBoolean();
         var nodes = file.DescendantsAndSelf().ToArray();
         var ids = nodes.Select((n, i) => (n, i: i + 1)).ToDictionary(p => p.n, p => p.i);
         int Node(SyntaxNode? n) => n is null ? 0 : ids.GetValueOrDefault(n);
@@ -238,7 +268,7 @@ internal static class CheckerNameTests
         var resolver = new NameResolver(options, _ => binding)
         {
             Globals = binding.IsModule ? null : binding.Locals,
-            RequireSymbol = new(SymbolFlags.Property, "require"),
+            RequireSymbol = new(SymbolFlags.Property, "require"u8),
             Error = (n, m, args) => events.Add(new object[] { 0, Node(n), m.Code, args }),
             SymbolReferenced = (s, m) => events.Add(new object[] { 1, Symbol(s), (uint)m }),
             GetRequiresScopeChangeCache = n => cache.TryGetValue(n, out bool value) ? value : null,

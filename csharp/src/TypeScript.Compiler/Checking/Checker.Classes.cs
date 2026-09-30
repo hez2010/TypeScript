@@ -227,7 +227,7 @@ internal sealed partial class Checker
         {
             if (SemanticSyntax.IsStatic(member)
                 || program.Symbols.Declaration(member) is not { } symbol
-                || symbol.Name == Symbol.InternalPrefix + "computed")
+                || symbol.Name == Symbol.InternalComputed)
                 continue;
             var property = await Properties.PropertyAsync(source, symbol.Name, cancellation: cancellation).ConfigureAwait(false);
             var inherited = await Properties.PropertyAsync(target, symbol.Name, cancellation: cancellation).ConfigureAwait(false);
@@ -274,8 +274,8 @@ internal sealed partial class Checker
     private async ValueTask CheckClassDuplicatesAsync(SyntaxNode node, CancellationToken cancellation)
     {
         var members = PropertyInitialization.Members(node);
-        var seen = new Dictionary<(TextSlice, bool), int>();
-        var privateNames = new Dictionary<TextSlice, int>(TextSliceComparer.Ordinal);
+        var seen = new Dictionary<(Utf8String, bool), int>();
+        var privateNames = new Dictionary<Utf8String, int>(Utf8StringComparer.Ordinal);
         bool ambient = (node.Flags & NodeFlags.Ambient) != 0;
         foreach (var member in members)
         {
@@ -290,13 +290,13 @@ internal sealed partial class Checker
             if (!ambient
                 && @static
                 && symbol?.Name is { } name
-                && (name == "prototype" || !UseDefineForClassFields && name.Span is "name" or "length" or "caller" or "arguments"))
+                && (name == Utf8Literals.Prototype || !UseDefineForClassFields && (name.Span.SequenceEqual("name"u8) || name.Span.SequenceEqual("length"u8) || name.Span.SequenceEqual("caller"u8) || name.Span.SequenceEqual("arguments"u8))))
                 Error(
                     SemanticSyntax.Name(member)!,
                     DiagnosticCode.StaticProperty0ConflictsWithBuiltInPropertyFunction0OfConstructorFunction1,
                     name,
                     program.Symbols.Declaration(node) is { } owner
-                    ? await SymbolDisplayNameAsync(owner, null, SymbolFlags.All, cancellation) : "(Anonymous class)");
+                    ? await SymbolDisplayNameAsync(owner, null, SymbolFlags.All, cancellation) : Utf8Literals.AnonymousClass);
             Check(
                 member,
                 @static,

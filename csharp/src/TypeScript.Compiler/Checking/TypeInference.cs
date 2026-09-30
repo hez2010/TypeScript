@@ -40,7 +40,7 @@ internal interface ITypeInferenceHost
 
     ValueTask<IReadOnlyList<Symbol>> ObjectPropertiesAsync(Type type, CancellationToken cancellation);
 
-    ValueTask<Symbol?> PropertyAsync(Type type, TextSlice name, CancellationToken cancellation);
+    ValueTask<Symbol?> PropertyAsync(Type type, Utf8String name, CancellationToken cancellation);
 
     ValueTask<Type> SymbolTypeAsync(Symbol symbol, CancellationToken cancellation);
 

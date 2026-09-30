@@ -21,30 +21,30 @@ internal static class CheckerDisplayTests
             checks++;
         }
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        var files = new Dictionary<string, byte[]>
+        options.SetRaw("noLib"u8, "true"u8);
+        var files = new Dictionary<Utf8String, byte[]>
         {
-            ["/project/main.ts"] = Wtf8.Encode(
+            ["/project/main.ts"u8] = Wtf8.Encode(
                 "interface Object{}interface Function{}type A={p:{q:number}};declare let value:A;class C{}class D{}function f(value:C):D{return new D()}function guard(value:unknown):value is A{return true}")
         };
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
-            new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project"u8,
+            new("/project/tsconfig.json"u8, options, files.Keys.ToArray(), [], [], []));
         var source = program.SourceFiles[0].Syntax;
         var snapshot = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
         var checker = await program.CreateCheckerAsync();
         var declaration = source.Statements!.OfType<VariableStatementNode>().Single().DeclarationList!.Declarations![0] as VariableDeclarationNode;
         var type = await checker.GetTypeFromTypeNodeAsync(declaration!.Type!);
-        const string expanded = "{\n    p: {\n        q: number;\n    };\n}";
+        Utf8String expanded = "{\n    p: {\n        q: number;\n    };\n}"u8;
         var flags = TypeFormatFlags.InTypeAlias | TypeFormatFlags.MultilineObjectLiterals;
-        Check(await checker.GetTypeDisplayAsync(type) == "A");
+        Check(await checker.GetTypeDisplayAsync(type) == "A"u8);
         Check(await checker.GetTypeDisplayAsync(type, source, flags) == expanded);
-        Check(await checker.GetTypeDisplayAsync(type, source, (TypeFormatFlags)(1u << 31)) == "A");
+        Check(await checker.GetTypeDisplayAsync(type, source, (TypeFormatFlags)(1u << 31)) == "A"u8);
         var functions = source.Statements!.OfType<FunctionDeclarationNode>().ToDictionary(n => n.Name!.Text);
-        var signature = await checker.Signatures.FromDeclarationAsync(functions["f"]);
-        Check(await checker.GetSignatureDisplayAsync(signature, flags: TypeFormatFlags.WriteArrowStyleSignature) == "(value: C) => D");
-        var guard = await checker.Signatures.FromDeclarationAsync(functions["guard"]);
+        var signature = await checker.Signatures.FromDeclarationAsync(functions["f"u8]);
+        Check(await checker.GetSignatureDisplayAsync(signature, flags: TypeFormatFlags.WriteArrowStyleSignature) == "(value: C) => D"u8);
+        var guard = await checker.Signatures.FromDeclarationAsync(functions["guard"u8]);
         var predicate = (await checker.Signatures.PredicateAsync(guard))!;
-        Check(await checker.GetPredicateDisplayAsync(predicate, source, flags) == "value is " + expanded);
+        Check(await checker.GetPredicateDisplayAsync(predicate, source, flags) == Utf8String.Copy("value is "u8) + expanded);
         var originalCaches = (checker.AccessibleChainCacheCount, checker.SymbolTableAliasCacheCount, checker.SymbolContainerCacheCount);
         using var stop = new CancellationTokenSource();
         checker.BeforeSymbolChainTable = _ =>
@@ -66,7 +66,7 @@ internal static class CheckerDisplayTests
             checker.BeforeSymbolChainTable = null;
         }
         Check(originalCaches == (checker.AccessibleChainCacheCount, checker.SymbolTableAliasCacheCount, checker.SymbolContainerCacheCount));
-        Check(await checker.GetSignatureDisplayAsync(signature, source) == "(value: C): D");
+        Check(await checker.GetSignatureDisplayAsync(signature, source) == "(value: C): D"u8);
         try
         {
             await checker.GetTypeDisplayAsync(type, cancellation: stop.Token);
@@ -86,7 +86,7 @@ internal static class CheckerDisplayTests
         {
             checks++;
         }
-        var otherSignature = await other.Signatures.FromDeclarationAsync(functions["guard"]);
+        var otherSignature = await other.Signatures.FromDeclarationAsync(functions["guard"u8]);
         try
         {
             await checker.GetSignatureDisplayAsync(otherSignature);
@@ -105,7 +105,7 @@ internal static class CheckerDisplayTests
         {
             checks++;
         }
-        var foreignSource = Parser.ParseSourceFile(new("/foreign.ts"), new SourceText("const x=0"));
+        var foreignSource = Parser.ParseSourceFile(new("/foreign.ts"u8), new SourceText("const x=0"u8));
         try
         {
             await checker.GetTypeDisplayAsync(type, foreignSource);
@@ -124,10 +124,10 @@ internal static class CheckerDisplayTests
     internal static async Task FormatsAsync(Checker checker, SourceFileNode source, TypeFormatFlags[] formats, Utf8JsonWriter writer)
     {
         writer.WriteStartObject();
-        writer.WriteStartArray("formats");
+        writer.WriteStartArray("formats"u8);
         foreach (var declaration in source.DescendantsAndSelf().OfType<VariableDeclarationNode>())
             if (declaration.Name is IdentifierNode name
-                && name.Text.Span.StartsWith("show", StringComparison.Ordinal)
+                && name.Text.Span.StartsWith("show"u8, StringComparison.Ordinal)
                 && declaration.Type is not null)
             {
                 var type = await checker.GetTypeFromTypeNodeAsync(declaration.Type);
@@ -135,19 +135,19 @@ internal static class CheckerDisplayTests
                 for (int scope = 0; scope < enclosings.Length; scope++)
                     foreach (var format in formats)
                     {
-                        Write("type", await checker.GetTypeDisplayAsync(type, enclosings[scope], format));
+                        Write("type"u8, await checker.GetTypeDisplayAsync(type, enclosings[scope], format));
                         for (int kind = 0; kind < 2; kind++)
                         {
                             var signatures = await checker.SignaturesAsync(type, kind != 0, default);
                             for (int i = 0; i < signatures.Count; i++)
                             {
-                                string key = kind + ":" + i;
-                                Write("signature:" + key, await checker.GetSignatureDisplayAsync(signatures[i], enclosings[scope], format));
+                                Utf8String key = Utf8String.Concat(Utf8String.Format(kind), ":"u8, Utf8String.Format(i));
+                                Write(Utf8String.Copy("signature:"u8) + key, await checker.GetSignatureDisplayAsync(signatures[i], enclosings[scope], format));
                                 if (await checker.Signatures.PredicateAsync(signatures[i]) is { } predicate)
-                                    Write("predicate:" + key, await checker.GetPredicateDisplayAsync(predicate, enclosings[scope], format));
+                                    Write(Utf8String.Copy("predicate:"u8) + key, await checker.GetPredicateDisplayAsync(predicate, enclosings[scope], format));
                             }
                         }
-                        void Write(string kind, TextSlice text)
+                        void Write(Utf8String kind, Utf8String text)
                         {
                             writer.WriteStartArray();
                             writer.WriteStringValue(name.Text.Span);
@@ -161,7 +161,7 @@ internal static class CheckerDisplayTests
             }
         writer.WriteEndArray();
         await checker.CheckSourceFileAsync(source);
-        writer.WriteStartArray("diagnostics");
+        writer.WriteStartArray("diagnostics"u8);
         foreach (int code in checker.DiagnosticCodesForFile(source))
             writer.WriteNumberValue(code);
         writer.WriteEndArray();
@@ -170,7 +170,7 @@ internal static class CheckerDisplayTests
 
     internal static async Task<int> Safety()
     {
-        const string source = """
+        Utf8String source = """
             type NoInfer<T> = intrinsic; type Uppercase<S extends string> = intrinsic; type Lowercase<S extends string> = intrinsic;
             interface Array<T>{length:number;[n:number]:T;} interface ReadonlyArray<T>{readonly length:number;readonly [n:number]:T;}
             interface Object{} interface Function{} interface CallableFunction{} interface NewableFunction{} interface IArguments{} interface String{} interface Number{} interface Boolean{} interface RegExp{}
@@ -194,32 +194,31 @@ internal static class CheckerDisplayTests
             let showTuple: readonly [name:T, value?:U, ...rest:V[]];
             let showFunction: <X extends "foo" | "bar" = "foo">(x:X,...rest:U[])=>X;
             }
-            """;
-        // Captured from the pinned reference's TypeToString, with strict mode off and on.
-        const string reference = """
+            """u8;
+        Utf8String reference = """
             [{"typeDisplays":[["showTemplate","`prefix${T}tail`"],["showEscaped","`line\n${T}\\`\\${end}`"],["showMapping","Uppercase\u003cT\u003e"],["showNoInfer","NoInfer\u003cT\u003e"],["showConditional","T extends string ? U : V"],["showInferred","T extends `first${infer R}` ? R : never"],["showMapped","{ readonly [P in keyof U]?: U[P]; }"],["showMappedMinus","{ -readonly [P in keyof U]-?: U[P]; }"],["showRemapped","{ [P in keyof U as `x${P \u0026 string}`]: U[P]; }"],["showIndex","(U \u0026 { z: boolean; })[\"x\"]"],["showKeys","keyof U \u0026 \"z\""],["showAlias","Alias\u003cT\u003e"],["showModel","Model"],["showClass","Klass"],["showTuple","readonly [name: T, value?: U, ...rest: V[]]"],["showFunction","\u003cX extends \"foo\" | \"bar\" = \"foo\"\u003e(x: X, ...rest: U[]) =\u003e X"]]},{"typeDisplays":[["showTemplate","`prefix${T}tail`"],["showEscaped","`line\n${T}\\`\\${end}`"],["showMapping","Uppercase\u003cT\u003e"],["showNoInfer","NoInfer\u003cT\u003e"],["showConditional","T extends string ? U : V"],["showInferred","T extends `first${infer R}` ? R : never"],["showMapped","{ readonly [P in keyof U]?: U[P] | undefined; }"],["showMappedMinus","{ -readonly [P in keyof U]-?: U[P]; }"],["showRemapped","{ [P in keyof U as `x${P \u0026 string}`]: U[P]; }"],["showIndex","(U \u0026 { z: boolean; })[\"x\"]"],["showKeys","keyof U \u0026 \"z\""],["showAlias","Alias\u003cT\u003e"],["showModel","Model"],["showClass","Klass"],["showTuple","readonly [name: T, value?: U | undefined, ...rest: V[]]"],["showFunction","\u003cX extends \"foo\" | \"bar\" = \"foo\"\u003e(x: X, ...rest: U[]) =\u003e X"]]}]
-            """;
-        using var expected = JsonDocument.Parse(reference);
+            """u8;
+        using var expected = JsonDocument.Parse(reference.Memory);
         int checks = 0;
         for (int mode = 0; mode < 2; mode++)
         {
             var options = new CompilerOptions();
-            options.SetRaw("noLib", "true");
-            options.SetRaw("strict", mode == 0 ? "false" : "true");
-            var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-            { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
-                new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+            options.SetRaw("noLib"u8, "true"u8);
+            options.SetRaw("strict"u8, mode == 0 ? Utf8String.Copy("false"u8) : Utf8String.Copy("true"u8));
+            var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+            { ["/project/main.ts"u8] = source.Span.ToArray() }), "/project"u8,
+                new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
             var checker = await program.CreateCheckerAsync();
-            var declarations = program.GetFile("/project/main.ts")!.Syntax.DescendantsAndSelf().OfType<VariableDeclarationNode>()
-                .Where(d => d.Name is IdentifierNode name && name.Text.Span.StartsWith("show", StringComparison.Ordinal)).ToArray();
-            var rows = expected.RootElement[mode].GetProperty("typeDisplays");
+            var declarations = program.GetFile("/project/main.ts"u8)!.Syntax.DescendantsAndSelf().OfType<VariableDeclarationNode>()
+                .Where(d => d.Name is IdentifierNode name && name.Text.Span.StartsWith("show"u8, StringComparison.Ordinal)).ToArray();
+            var rows = expected.RootElement[mode].GetProperty("typeDisplays"u8);
             if (rows.GetArrayLength() != declarations.Length)
                 throw new InvalidOperationException("Type display fixture coverage changed");
             for (int i = 0; i < declarations.Length; i++)
             {
                 var type = await checker.GetTypeFromTypeNodeAsync(declarations[i].Type!);
-                TextSlice text = await checker.TypeDisplay.GetAsync(type);
-                if (((IdentifierNode)declarations[i].Name!).Text != rows[i][0].GetString()! || text != rows[i][1].GetString()!)
+                Utf8String text = await checker.TypeDisplay.GetAsync(type);
+                if (((IdentifierNode)declarations[i].Name!).Text != JsonStrings.GetString(rows[i][0])! || text != JsonStrings.GetString(rows[i][1])!)
                     throw new InvalidOperationException($"Type display {mode}/{i}: {text}");
                 checks++;
             }
@@ -231,27 +230,27 @@ internal static class CheckerDisplayTests
                 throw new InvalidOperationException("Cancelled type display succeeded");
             }
             catch (OperationCanceledException) { }
-            if (await checker.TypeDisplay.GetAsync(checker.Context.StringType) != "string")
+            if (await checker.TypeDisplay.GetAsync(checker.Context.StringType) != "string"u8)
                 throw new InvalidOperationException("Type display did not recover from cancellation");
             checks++;
         }
         foreach (bool noTruncation in new[] { false, true })
         {
             var options = new CompilerOptions();
-            options.SetRaw("noLib", "true");
-            options.SetRaw("noErrorTruncation", noTruncation ? "true" : "false");
-            var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-            { ["/project/main.ts"] = [] }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+            options.SetRaw("noLib"u8, "true"u8);
+            options.SetRaw("noErrorTruncation"u8, noTruncation ? Utf8String.Copy("true"u8) : Utf8String.Copy("false"u8));
+            var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+            { ["/project/main.ts"u8] = [] }), "/project"u8, new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
             var checker = await program.CreateCheckerAsync();
             int limit = noTruncation ? 2_000_000 : 320;
-            TextSlice text = await checker.TypeDisplay.GetAsync(checker.Context.GetStringLiteralType(new string('a', limit + 10)));
-            if (text != "\"" + new string('a', limit - 4) + "...")
+            Utf8String text = await checker.TypeDisplay.GetAsync(checker.Context.GetStringLiteralType(new Utf8String('a', limit + 10)));
+            if (text != Utf8String.Concat("\""u8, new Utf8String('a', limit - 4), "..."u8))
                 throw new InvalidOperationException("Diagnostic display byte limit");
             checks++;
             if (!noTruncation)
             {
-                text = await checker.TypeDisplay.GetAsync(checker.Context.GetStringLiteralType(string.Concat(Enumerable.Repeat("日", 150))));
-                if (text != "\"" + string.Concat(Enumerable.Repeat("日", 105)) + "\ufffd...")
+                text = await checker.TypeDisplay.GetAsync(checker.Context.GetStringLiteralType(Utf8String.Concat(Enumerable.Repeat(Utf8String.Copy("日"u8), 150))));
+                if (text != Utf8String.Concat("\""u8, Utf8String.Concat(Enumerable.Repeat(Utf8String.Copy("日"u8), 105)), [0xE6, (byte)'.', (byte)'.', (byte)'.']))
                     throw new InvalidOperationException("Diagnostic display UTF-8 truncation");
                 checks++;
             }

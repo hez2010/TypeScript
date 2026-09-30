@@ -121,7 +121,7 @@ internal sealed class InstantiationExpressions(TypeContext context, TypeAlgebra 
                     applicable |= calls.Count != 0 || constructors.Count != 0;
                     if (calls != resolved.CallSignatures || constructors != resolved.ConstructSignatures)
                     {
-                        var symbol = new Symbol(SymbolFlags.Transient, Symbol.InternalPrefix + "instantiationExpression");
+                        var symbol = new Symbol(SymbolFlags.Transient, Symbol.InternalInstantiationExpression);
                         symbol.DeclarationList = symbol.DeclarationList.AddRange(
                             (part.Symbol ?? throw new InvalidOperationException("Instantiation source must have a symbol")).Declarations);
                         var value = (InstantiationExpressionType)context.NewObjectType(

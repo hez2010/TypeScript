@@ -11,11 +11,11 @@ internal interface IElementAccessErrorHost
 
     ValueTask<IReadOnlyList<IndexInfo>> IndexesAsync(Type type, CancellationToken cancellation);
 
-    ValueTask<bool> StaticPropertyAsync(TextSlice name, Type type, CancellationToken cancellation);
+    ValueTask<bool> StaticPropertyAsync(Utf8String name, Type type, CancellationToken cancellation);
 
-    ValueTask<TextSlice?> PropertySuggestionAsync(TextSlice name, Type type, CancellationToken cancellation);
+    ValueTask<Utf8String?> PropertySuggestionAsync(Utf8String name, Type type, CancellationToken cancellation);
 
-    ValueTask<TextSlice?> IndexSuggestionAsync(Type type, ElementAccessExpressionNode node, Type index, CancellationToken cancellation);
+    ValueTask<Utf8String?> IndexSuggestionAsync(Type type, ElementAccessExpressionNode node, Type index, CancellationToken cancellation);
 
     ValueTask InvalidIndexAsync(
         SyntaxNode node,
@@ -24,14 +24,14 @@ internal interface IElementAccessErrorHost
         DiagnosticCode code,
         CancellationToken cancellation,
         Type? fullIndex = null,
-        TextSlice? suggestion = null);
+        Utf8String? suggestion = null);
 }
 
 internal sealed class ElementAccessErrors(TypeContext context, TypeAlgebra algebra, CheckerSymbols symbols, TypeProperties properties,
     SymbolTypes values, IElementAccessErrorHost host)
 {
     internal async ValueTask<Type?> MissingAsync(Type original, Type type, Type index, Type fullIndex,
-        ElementAccessExpressionNode node, TextSlice? name, AccessFlags flags, CancellationToken cancellation = default)
+        ElementAccessExpressionNode node, Utf8String? name, AccessFlags flags, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
         if ((type.ObjectFlags & ObjectFlags.ObjectLiteral) != 0)
@@ -65,7 +65,7 @@ internal sealed class ElementAccessErrors(TypeContext context, TypeAlgebra algeb
                 cancellation).ConfigureAwait(false);
         else if (host.NoImplicitAny && (flags & AccessFlags.SuppressNoImplicitAnyError) == 0)
         {
-            if (name is not null && await host.StaticPropertyAsync((name).Value, type, cancellation).ConfigureAwait(false))
+            if (name is not null && await host.StaticPropertyAsync(name.Value, type, cancellation).ConfigureAwait(false))
                 await host.InvalidIndexAsync(
                     node,
                     type,
@@ -81,8 +81,8 @@ internal sealed class ElementAccessErrors(TypeContext context, TypeAlgebra algeb
                     cancellation).ConfigureAwait(false);
             else
             {
-                TextSlice? suggestion = name is not null
-                    ? await host.PropertySuggestionAsync((name).Value, type, cancellation).ConfigureAwait(false)
+                Utf8String? suggestion = name is not null
+                    ? await host.PropertySuggestionAsync(name.Value, type, cancellation).ConfigureAwait(false)
                     : null;
                 if (suggestion is { IsEmpty: false })
                     await host.InvalidIndexAsync(

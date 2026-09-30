@@ -32,7 +32,7 @@ internal static class FunctionSyntax
         && (parameters.OfType<ParameterDeclarationNode>().Any(p => p.Type is null)
             || node is not ArrowFunctionNode
                 && ((node.Flags | (symbols?.Binding(node)?.Get(node)?.Flags ?? 0)) & NodeFlags.ContainsThis) != 0
-                && parameters.FirstOrDefault() is not ParameterDeclarationNode { Name: IdentifierNode { Text.Span: "this" } });
+                && !(parameters.FirstOrDefault() is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: var matchedText } } && matchedText.SequenceEqual("this"u8)));
 
     internal static bool Sensitive(SyntaxNode node, CheckerSymbols? symbols = null)
     {

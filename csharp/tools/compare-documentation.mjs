@@ -1,5 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
+import { gunzipSync } from "node:zlib";
+import { documentationBytePositions } from "./documentation-byte-positions.mjs";
 
 export const digest = value => createHash("sha256").update(typeof value === "string" || Buffer.isBuffer(value) ? value : JSON.stringify(value)).digest("hex");
 export const caseName = value => value.replaceAll("\\", "/");
@@ -35,6 +37,15 @@ export function documentationMeaning(output) {
 
 const document = JSON.parse(readFileSync(new URL("../tests/fixtures/jsdoc/documentation-differences.json", import.meta.url), "utf8"));
 const approved = new Map(document.cases.map(entry => [entry.name, entry]));
+const evidence = JSON.parse(gunzipSync(readFileSync(new URL("../tests/fixtures/jsdoc/documentation-evidence.json.gz", import.meta.url))));
+for (const record of evidence) {
+    const entry = approved.get(caseName(record.input.name));
+    if (!entry || entry.sourceSha256 !== digest(Buffer.from(record.input.text, "base64")) || entry.expectedSha256 !== digest(record.expected) || entry.actualSha256 !== digest(record.actual)) {
+        throw new Error(`Documentation evidence does not match its approved hashes: ${record.input.name}`);
+    }
+    entry.expectedSha256 = digest(documentationBytePositions(record.input, record.expected));
+    entry.actualSha256 = digest(documentationBytePositions(record.input, record.actual));
+}
 export function classifyDocumentationDifference(input, expected, actual) {
     const expectedSha256 = digest(expected), actualSha256 = digest(actual);
     if (expectedSha256 === actualSha256) return "exact";

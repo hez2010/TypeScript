@@ -27,14 +27,14 @@ internal sealed partial class Checker
         var arguments = reference.TypeArguments;
         Type? result = name.Text.Span switch
         {
-            "String" => context.StringType,
-            "Number" => context.NumberType,
-            "BigInt" => context.BigIntType,
-            "Boolean" => context.BooleanType,
-            "Void" => context.VoidType,
-            "Undefined" => context.UndefinedType,
-            "Null" => context.NullType,
-            "Function" or "function" => program.Globals.Types["Function"],
+            _ when name.Text.Span.SequenceEqual("String"u8) => context.StringType,
+            _ when name.Text.Span.SequenceEqual("Number"u8) => context.NumberType,
+            _ when name.Text.Span.SequenceEqual("BigInt"u8) => context.BigIntType,
+            _ when name.Text.Span.SequenceEqual("Boolean"u8) => context.BooleanType,
+            _ when name.Text.Span.SequenceEqual("Void"u8) => context.VoidType,
+            _ when name.Text.Span.SequenceEqual("Undefined"u8) => context.UndefinedType,
+            _ when name.Text.Span.SequenceEqual("Null"u8) => context.NullType,
+            _ when name.Text.Span.SequenceEqual("Function"u8) || name.Text.Span.SequenceEqual("function"u8) => program.Globals.Types[Utf8Literals.FunctionType],
             _ => null
         };
         if (result is not null)
@@ -43,11 +43,11 @@ internal sealed partial class Checker
                 Error(node, DiagnosticCode.Type0IsNotGeneric, name.Text);
             return result;
         }
-        if (name.Text == "Object")
+        if (name.Text == Utf8Literals.ObjectType)
         {
             if (arguments is { Count: 2 })
             {
-                if (await program.Globals.AliasAsync("Record", 2, Declared, cancellation).ConfigureAwait(false) is { } record)
+                if (await program.Globals.AliasAsync(Utf8Literals.Record, 2, Declared, cancellation).ConfigureAwait(false) is { } record)
                 {
                     var key = await Nodes.FromNodeAsync(arguments[0], cancellation).ConfigureAwait(false);
                     if (await Instantiation.Members.ValidIndexKeyAsync(key, cancellation).ConfigureAwait(false))
@@ -67,9 +67,9 @@ internal sealed partial class Checker
         }
         else if (!NoImplicitAny && arguments is null or { Count: 0 })
         {
-            if (name.Text == "array")
+            if (name.Text == Utf8Literals.ArrayKeyword)
                 return program.Globals.AnyArrayType;
-            if (name.Text == "promise")
+            if (name.Text == Utf8Literals.PromiseTag)
                 return await PromiseResultAsync(node, context.AnyType, false, cancellation).ConfigureAwait(false);
         }
         return null;
@@ -99,7 +99,7 @@ internal sealed partial class Checker
         var parameters = (node as IFunctionSignature)?.Parameters ?? (node as IndexSignatureDeclarationNode)?.Parameters;
         if (parameters is null)
             return;
-        var names = new HashSet<TextSlice>();
+        var names = new HashSet<Utf8String>();
         var excluded = new HashSet<int>();
         for (int i = 0; i < parameters.Count; i++)
             if (SemanticSyntax.Name(parameters[i]) is IdentifierNode name)
@@ -168,7 +168,7 @@ internal sealed partial class Checker
         while (pending.TryPop(out var current))
         {
             cancellation.ThrowIfCancellationRequested();
-            if (current is IdentifierNode { Text.Span: "arguments" } identifier
+            if (current is IdentifierNode { Text.Span: var matchedText } identifier && matchedText.SequenceEqual("arguments"u8)
                 && program.ReferenceSymbols.Resolve(identifier, cancellation) == program.Symbols.ArgumentsSymbol)
                 return argumentsReferences[node] = true;
             switch (current)

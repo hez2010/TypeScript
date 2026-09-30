@@ -23,7 +23,7 @@ internal sealed class ModuleTypes(TypeContext context, CheckerLinks links, Alias
             result.ExportTable.Add(pair.Key, pair.Value);
         var declared = new List<Symbol>();
         var inherited = new List<Symbol>();
-        foreach (var (name, member) in resolved.Members ?? new Dictionary<TextSlice, Symbol>())
+        foreach (var (name, member) in resolved.Members ?? new Dictionary<Utf8String, Symbol>())
         {
             cancellation.ThrowIfCancellationRequested();
             if (!Named(name) || (member.Flags & S.Value) == 0
@@ -52,7 +52,6 @@ internal sealed class ModuleTypes(TypeContext context, CheckerLinks links, Alias
         return result;
     }
 
-    private static bool Named(TextSlice name) => !name.Span.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal)
-        || name.Span.StartsWith(Symbol.InternalPrefix + Symbol.InternalPrefix, StringComparison.Ordinal)
-        || name.Length < 2 || name[1] is '@' or '#';
+    private static bool Named(Utf8String name) => !name.Span.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal)
+        || name.Length < 2 || name[1] is (byte)'@' or (byte)'#';
 }

@@ -23,47 +23,47 @@ internal static class CheckerWorkloadTests
 
     private static async Task RunAsync(JsonElement input)
     {
-        var files = input.GetProperty("files").EnumerateObject().ToDictionary(p => p.Name,
-            p => File.ReadAllBytes(Path.Combine(input.GetProperty("blobDirectory").GetString()!, p.Value.GetString()!)));
-        var links = input.GetProperty("symlinks").EnumerateObject().ToDictionary(p => p.Name, p => p.Value.GetString()!);
+        var files = input.GetProperty("files"u8).EnumerateObject().ToDictionary(p => JsonStrings.GetName(p),
+            p => File.ReadAllBytes(Path.Combine((JsonStrings.GetString(input.GetProperty("blobDirectory"u8))!).ToString(), (JsonStrings.GetString(p.Value)!).ToString())));
+        var links = input.GetProperty("symlinks"u8).EnumerateObject().ToDictionary(p => JsonStrings.GetName(p), p => JsonStrings.GetString(p.Value)!);
         var options = new CompilerOptions();
-        foreach (var option in input.GetProperty("options").EnumerateObject())
-            options.Set(option.Name, option.Value);
-        var config = new ParsedConfig(input.GetProperty("configFileName").GetString()!, options,
-            input.GetProperty("roots").EnumerateArray().Select(p => p.GetString()!).ToArray(), [], [], []);
-        string cwd = input.GetProperty("currentDirectory").GetString()!;
-        var fs = new LibraryFileSystem(new MemoryFileSystem(files, input.GetProperty("caseSensitive").GetBoolean(), cwd, links));
-        bool single = input.GetProperty("singleThreaded").GetBoolean();
+        foreach (var option in input.GetProperty("options"u8).EnumerateObject())
+            options.Set(JsonStrings.GetName(option), option.Value);
+        var config = new ParsedConfig(JsonStrings.GetString(input.GetProperty("configFileName"u8))!, options,
+            input.GetProperty("roots"u8).EnumerateArray().Select(p => JsonStrings.GetString(p)!).ToArray(), [], [], []);
+        Utf8String cwd = TypeScript.Compiler.Configuration.JsonStrings.GetString(input.GetProperty("currentDirectory"u8))!;
+        var fs = new LibraryFileSystem(new MemoryFileSystem(files, input.GetProperty("caseSensitive"u8).GetBoolean(), cwd, links));
+        bool single = input.GetProperty("singleThreaded"u8).GetBoolean();
         GC.Collect();
         GC.WaitForPendingFinalizers();
         GC.Collect();
-        var result = await MeasureAsync(fs, cwd, config, input.GetProperty("libraryDirectory").GetString(), single);
+        var result = await MeasureAsync(fs, cwd, config, JsonStrings.GetString(input.GetProperty("libraryDirectory"u8)), single);
         long releasedBytes = GC.GetTotalMemory(true);
         using var stream = new MemoryStream();
         using (var writer = new Utf8JsonWriter(stream))
         {
             writer.WriteStartObject();
-            writer.WriteString("runtime", RuntimeInformation.FrameworkDescription);
-            writer.WriteBoolean("serverGC", GCSettings.IsServerGC);
-            writer.WriteNumber("elapsedMs", result.Elapsed);
-            writer.WriteNumber("startedTimestamp", result.Started);
-            writer.WriteNumber("stoppedTimestamp", result.Stopped);
-            writer.WriteNumber("cpuMs", result.Cpu);
-            writer.WriteNumber("programMs", result.Program);
-            writer.WriteNumber("poolMs", result.Pool);
-            writer.WriteNumber("programGcPauseMs", result.ProgramPause);
-            writer.WriteNumber("gcPauseMs", result.Pause);
-            writer.WriteNumber("gen0Collections", result.Gen0);
-            writer.WriteNumber("gen1Collections", result.Gen1);
-            writer.WriteNumber("gen2Collections", result.Gen2);
-            writer.WriteNumber("allocatedBytes", result.Allocated);
-            writer.WriteNumber("liveBytes", result.Live);
-            writer.WriteNumber("releasedBytes", releasedBytes);
-            writer.WriteNumber("peakRssBytes", Process.GetCurrentProcess().PeakWorkingSet64);
-            writer.WriteNumber("sourceFiles", result.SourceFiles);
-            writer.WriteNumber("checkerCount", result.Checkers);
-            writer.WriteNumber("diagnosticCount", result.Diagnostics);
-            writer.WriteString("graphSha256", result.Graph);
+            writer.WriteString("runtime"u8, RuntimeInformation.FrameworkDescription);
+            writer.WriteBoolean("serverGC"u8, GCSettings.IsServerGC);
+            writer.WriteNumber("elapsedMs"u8, result.Elapsed);
+            writer.WriteNumber("startedTimestamp"u8, result.Started);
+            writer.WriteNumber("stoppedTimestamp"u8, result.Stopped);
+            writer.WriteNumber("cpuMs"u8, result.Cpu);
+            writer.WriteNumber("programMs"u8, result.Program);
+            writer.WriteNumber("poolMs"u8, result.Pool);
+            writer.WriteNumber("programGcPauseMs"u8, result.ProgramPause);
+            writer.WriteNumber("gcPauseMs"u8, result.Pause);
+            writer.WriteNumber("gen0Collections"u8, result.Gen0);
+            writer.WriteNumber("gen1Collections"u8, result.Gen1);
+            writer.WriteNumber("gen2Collections"u8, result.Gen2);
+            writer.WriteNumber("allocatedBytes"u8, result.Allocated);
+            writer.WriteNumber("liveBytes"u8, result.Live);
+            writer.WriteNumber("releasedBytes"u8, releasedBytes);
+            writer.WriteNumber("peakRssBytes"u8, Process.GetCurrentProcess().PeakWorkingSet64);
+            writer.WriteNumber("sourceFiles"u8, result.SourceFiles);
+            writer.WriteNumber("checkerCount"u8, result.Checkers);
+            writer.WriteNumber("diagnosticCount"u8, result.Diagnostics);
+            writer.WriteString("graphSha256"u8, result.Graph);
             writer.WriteEndObject();
         }
         Console.WriteLine(Encoding.UTF8.GetString(stream.ToArray()));
@@ -72,9 +72,9 @@ internal static class CheckerWorkloadTests
 
     private static async Task<Measurement> MeasureAsync(
         LibraryFileSystem fs,
-        string cwd,
+        Utf8String cwd,
         ParsedConfig config,
-        string? libraries,
+        Utf8String? libraries,
         bool single)
     {
         long allocated = GC.GetTotalAllocatedBytes(true);
@@ -99,11 +99,11 @@ internal static class CheckerWorkloadTests
         gen2 = GC.CollectionCount(2) - gen2;
         double cpuMs = (process.TotalProcessorTime - cpu).TotalMilliseconds;
         long bytes = GC.GetTotalAllocatedBytes(true) - allocated;
-        var graph = new StringBuilder();
+        var graph = new Utf8StringBuilder();
         foreach (var file in program.SourceFiles)
-            graph.Append(file.Syntax.FileName).Append('\0')
-                .Append(Convert.ToHexStringLower(SHA256.HashData(file.Syntax.Source.Bytes.Span))).Append('\n');
-        string hash = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(graph.ToString())));
+            graph.Append(file.Syntax.FileName).Append((byte)'\0')
+                .Append(Utf8String.FromString(Convert.ToHexStringLower(SHA256.HashData(file.Syntax.Source.Bytes.Span)))).Append((byte)'\n');
+        Utf8String hash = Utf8String.FromString(Convert.ToHexStringLower(SHA256.HashData(graph.ToUtf8String().Span.ToArray())));
         long live = GC.GetTotalMemory(true);
         var result = new Measurement(timer.Elapsed.TotalMilliseconds, cpuMs, programMs, bytes, live, program.SourceFiles.Count,
             pool.Count, diagnostics.Semantic.Count + diagnostics.Global.Count, hash, poolMs, programPause, pauseMs, gen0, gen1, gen2, started, stopped);
@@ -113,6 +113,6 @@ internal static class CheckerWorkloadTests
     }
 
     private readonly record struct Measurement(double Elapsed, double Cpu, double Program, long Allocated, long Live,
-        int SourceFiles, int Checkers, int Diagnostics, string Graph, double Pool, double ProgramPause, double Pause, int Gen0, int Gen1, int Gen2,
+        int SourceFiles, int Checkers, int Diagnostics, Utf8String Graph, double Pool, double ProgramPause, double Pause, int Gen0, int Gen1, int Gen2,
         long Started, long Stopped);
 }

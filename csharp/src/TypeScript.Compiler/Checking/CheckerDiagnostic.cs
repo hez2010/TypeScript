@@ -8,18 +8,18 @@ namespace TypeScript.Compiler.Checking;
 
 internal static class CheckerDiagnostic
 {
-    internal static TextSlice DeclarationName(SyntaxNode node)
+    internal static Utf8String DeclarationName(SyntaxNode node)
     {
         if (node.Pos == node.End)
-            return "(Missing)";
+            return Utf8Literals.MissingDisplay;
         var file = SemanticSyntax.Source(node);
         if (file is null)
             return SyntaxNameText.Get(node);
         var (start, _) = TokenRange(file, node.Pos);
-        return file.Source.Text[file.Source.ToUtf16Position(start)..file.Source.ToUtf16Position(node.End)];
+        return file.Source.Text[start..node.End];
     }
 
-    internal static Diagnostic Create(SyntaxNode? node, DiagnosticMessage message, params TextSlice[] arguments)
+    internal static Diagnostic Create(SyntaxNode? node, DiagnosticMessage message, params Utf8String[] arguments)
     {
         var file = SemanticSyntax.Source(node);
         var (start, end) = node is null || file is null ? (0, 0) : ErrorRange(file, node);
@@ -29,13 +29,13 @@ internal static class CheckerDiagnostic
     internal static (int Start, int End) TokenRange(SourceFileNode file, int position)
     {
         var scanner = ScannerAt(file, position);
-        return (file.Source.ToBytePosition(scanner.TokenStart), file.Source.ToBytePosition(scanner.Position));
+        return (scanner.TokenStart, scanner.Position);
     }
 
     private static Scanner ScannerAt(SourceFileNode file, int position)
     {
         var scanner = new Scanner(file.Source, jsx: file.ScriptKind is ScriptKind.JSX or ScriptKind.TSX);
-        scanner.ResetPosition(file.Source.ToUtf16Position(Math.Max(0, position)));
+        scanner.ResetPosition(Math.Max(0, position));
         scanner.Scan();
         return scanner;
     }
@@ -68,9 +68,14 @@ internal static class CheckerDiagnostic
                     if (line < file.Source.GetLineAndCharacter(block.End).Line)
                     {
                         int end = file.Source.LineStarts[line];
-                        while (end < file.Source.Length && file.Source.Text[end] is not ('\r' or '\n' or '\u2028' or '\u2029'))
-                            end++;
-                        return (start, file.Source.ToBytePosition(end));
+                        while (end < file.Source.Length)
+                        {
+                            int point = Wtf8.Decode(file.Source.Text.Span[end..], out int width);
+                            if (TokenFacts.IsLineBreak(point))
+                                break;
+                            end += width;
+                        }
+                        return (start, end);
                     }
                 }
                 return (start, node.End);
@@ -87,7 +92,7 @@ internal static class CheckerDiagnostic
                 int constructorStart = scanner.TokenStart;
                 while (scanner.Kind is not (SyntaxKind.ConstructorKeyword or SyntaxKind.StringLiteral or SyntaxKind.EndOfFile))
                     scanner.Scan();
-                return (file.Source.ToBytePosition(constructorStart), file.Source.ToBytePosition(scanner.Position));
+                return (constructorStart, scanner.Position);
         }
         if (errorNode is null)
             return TokenRange(file, node.Pos);

@@ -8,6 +8,32 @@ namespace TypeScript.Compiler.Text;
 // maximal invalid subsequence. Encoding.UTF8's replacement fallback differs.
 public static class Wtf8
 {
+    public static int EncodeCodePoint(int value, Span<byte> destination)
+    {
+        if (value is >= 0xD800 and <= 0xDFFF)
+        {
+            destination[0] = 0xED;
+            destination[1] = (byte)(0x80 | value >> 6 & 63);
+            destination[2] = (byte)(0x80 | value & 63);
+            return 3;
+        }
+        return new Rune(value).EncodeToUtf8(destination);
+    }
+
+    public static int DecodeLast(ReadOnlySpan<byte> source, out int consumed)
+    {
+        if (source.IsEmpty)
+        { consumed = 0; return 0xFFFD; }
+        int start = source.Length - 1;
+        while (start > 0 && source.Length - start < 4 && (source[start] & 0xC0) == 0x80)
+            start--;
+        int point = Decode(source[start..], out consumed);
+        if (consumed == source.Length - start)
+            return point;
+        consumed = 1;
+        return 0xFFFD;
+    }
+
     // Continuation bytes, overlong headers and out-of-range headers cannot
     // begin a code point. Each consumes one replacement character in Go.
     private static readonly SearchValues<byte> InvalidLeadingBytes = SearchValues.Create(
@@ -24,7 +50,7 @@ public static class Wtf8
         if (source.Length >= 3 && source[0] == 0xED && source[1] is >= 0xA0 and <= 0xBF && (source[2] & 0xC0) == 0x80)
         {
             consumed = 3;
-            return 0xD000 | ((source[1] & 63) << 6) | (source[2] & 63);
+            return 0xD000 | (source[1] & 63) << 6 | source[2] & 63;
         }
         if (Rune.DecodeFromUtf8(source, out Rune rune, out consumed) == OperationStatus.Done)
             return rune.Value;
@@ -62,8 +88,8 @@ public static class Wtf8
                 throw new InvalidOperationException("Unexpected UTF-8 conversion status");
             char surrogate = text[0];
             destination[0] = 0xED;
-            destination[1] = (byte)(0x80 | ((surrogate >> 6) & 63));
-            destination[2] = (byte)(0x80 | (surrogate & 63));
+            destination[1] = (byte)(0x80 | surrogate >> 6 & 63);
+            destination[2] = (byte)(0x80 | surrogate & 63);
             destination = destination[3..];
             text = text[1..];
         }
@@ -91,7 +117,8 @@ public static class Wtf8
                 if (InvalidLeadingBytes.Contains(source[0]))
                 {
                     int count = source.IndexOfAnyExcept(InvalidLeadingBytes);
-                    if (count < 0) count = source.Length;
+                    if (count < 0)
+                        count = source.Length;
                     target[..count].Fill('\uFFFD');
                     target = target[count..];
                     source = source[count..];
@@ -126,6 +153,9 @@ public static class Wtf8
     }
 
     // Retains malformed bytes exactly, as Go CombineSurrogatePairs does.
+    internal static Utf8String CombineSurrogatePairs(Utf8String value) => !value.Span.Contains((byte)0xED)
+        ? value : new(CombineSurrogatePairs(value.Span));
+
     public static byte[] CombineSurrogatePairs(ReadOnlySpan<byte> source)
     {
         if (!source.Contains((byte)0xED))

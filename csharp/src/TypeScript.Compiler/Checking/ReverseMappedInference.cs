@@ -184,7 +184,7 @@ internal sealed class ReverseMappedInference(TypeContext context, TypeAlgebra al
         IReadOnlyList<IndexInfo> indexes = sourceIndex is null ? [] : [context.NewIndexInfo(context.StringType,
             await ElementAsync(sourceIndex.ValueType, target, constraint, cancellation).ConfigureAwait(false) ?? context.UnknownType,
             readOnly && sourceIndex.IsReadonly)];
-        var members = new Dictionary<TextSlice, Symbol>();
+        var members = new Dictionary<Utf8String, Symbol>();
         var limit = await LimitedConstraintAsync(target, constraint, cancellation).ConfigureAwait(false);
         foreach (var property in await host.PropertiesAsync(source, cancellation).ConfigureAwait(false))
         {

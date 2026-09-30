@@ -27,7 +27,7 @@ internal interface IBindingTypeHost
 
     ValueTask<IReadOnlyList<IndexInfo>> IndexesAsync(Type type, CancellationToken cancellation);
 
-    ValueTask<IndexInfo?> ApplicableIndexAsync(Type type, TextSlice name, CancellationToken cancellation);
+    ValueTask<IndexInfo?> ApplicableIndexAsync(Type type, Utf8String name, CancellationToken cancellation);
 
     ValueTask<Type> OmitAsync(Type source, Type keys, CancellationToken cancellation);
 
@@ -96,10 +96,10 @@ internal sealed class BindingTypes(TypeContext context, CheckerLinks links, Chec
         foreach (var part in type is UnionType union ? union.Types : [type])
         {
             if (part is TypeReference { Target: TupleType }
-                || await properties.PropertyAsync(part, "0", cancellation: cancellation).ConfigureAwait(false) is not null)
+                || await properties.PropertyAsync(part, Utf8Literals.Zero, cancellation: cancellation).ConfigureAwait(false) is not null)
                 continue;
             var length = await host.ArrayLikeAsync(part, cancellation).ConfigureAwait(false)
-                ? await properties.PropertyAsync(part, "length", cancellation: cancellation).ConfigureAwait(false) : null;
+                ? await properties.PropertyAsync(part, Utf8Literals.Length, cancellation: cancellation).ConfigureAwait(false) : null;
             if (length is not null)
             {
                 var lengthType = await values.GetAsync(length, cancellation).ConfigureAwait(false);
@@ -111,7 +111,7 @@ internal sealed class BindingTypes(TypeContext context, CheckerLinks links, Chec
         }
         if (tupleLike)
         {
-            if (await properties.PropertyAsync(type, TextSlice.Format(index),
+            if (await properties.PropertyAsync(type, Utf8String.Format(index),
                 cancellation: cancellation).ConfigureAwait(false) is { } property)
                 return await values.GetAsync(property, cancellation).ConfigureAwait(false);
             if ((type is UnionType union ? union.Types : [type]).All(t => t is TypeReference { Target: TupleType }))
@@ -301,7 +301,7 @@ internal sealed class BindingTypes(TypeContext context, CheckerLinks links, Chec
                 omit = await algebra.UnionAsync([omit, .. unspreadable], cancellation: cancellation).ConfigureAwait(false);
             return (omit.Flags & TypeFlags.Never) != 0 ? source : await host.OmitAsync(source, omit, cancellation).ConfigureAwait(false);
         }
-        var members = new Dictionary<TextSlice, Symbol>();
+        var members = new Dictionary<Utf8String, Symbol>();
         foreach (var property in spreadable)
             members[property.Name] = await SpreadSymbolAsync(property, false, cancellation).ConfigureAwait(false);
         var result = context.NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved | ObjectFlags.ObjectRestType, symbol);
@@ -322,8 +322,8 @@ internal sealed class BindingTypes(TypeContext context, CheckerLinks links, Chec
         bool setOnly = (property.Flags & SymbolFlags.SetAccessor) != 0 && (property.Flags & SymbolFlags.GetAccessor) == 0;
         if (!setOnly && readOnly == host.IsReadonly(property))
             return property;
-        var result = new Symbol(SymbolFlags.Property | SymbolFlags.Transient | (property.Flags & SymbolFlags.Optional), property.Name)
-        { CheckFlags = (property.CheckFlags & CheckFlags.Late) | (readOnly ? CheckFlags.Readonly : 0) };
+        var result = new Symbol(SymbolFlags.Property | SymbolFlags.Transient | property.Flags & SymbolFlags.Optional, property.Name)
+        { CheckFlags = property.CheckFlags & CheckFlags.Late | (readOnly ? CheckFlags.Readonly : 0) };
         var data = links.Values.Get(result);
         data.ResolvedType = setOnly ? context.UndefinedType : await values.GetAsync(property, cancellation).ConfigureAwait(false);
         result.DeclarationList = result.DeclarationList.AddRange(property.Declarations);

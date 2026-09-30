@@ -16,11 +16,11 @@ public sealed partial class NativeProfile : IDisposable
     private static NativeProfile? active;
     [ThreadStatic] private static Frame? current;
     [ThreadStatic] private static long sampleSession, lastSampleTime;
-    [ThreadStatic] private static Dictionary<string, StackState>? stackStates;
+    [ThreadStatic] private static Dictionary<Utf8String, StackState>? stackStates;
     private static long nextSession;
     private readonly long session = Interlocked.Increment(ref nextSession);
-    private readonly ConcurrentDictionary<string, Sample> samples = new(StringComparer.Ordinal);
-    private readonly ConcurrentDictionary<string, Sample> stackSamples = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<Utf8String, Sample> samples = new(Utf8StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<Utf8String, Sample> stackSamples = new(Utf8StringComparer.Ordinal);
     private readonly ConditionalWeakTable<object, Owner> owners = new();
     private readonly object gate = new();
     private readonly long started = Stopwatch.GetTimestamp();
@@ -30,11 +30,11 @@ public sealed partial class NativeProfile : IDisposable
     private int openScopes;
     private bool stopped;
 
-    private sealed record Owner(string Name, long SourceBytes, int Nodes);
+    private sealed record Owner(Utf8String Name, long SourceBytes, int Nodes);
 
-    private sealed class Sample(string[] stack)
+    private sealed class Sample(Utf8String[] stack)
     {
-        public readonly string[] Stack = stack;
+        public readonly Utf8String[] Stack = stack;
         public long Cpu, Allocated;
     }
 
@@ -43,12 +43,12 @@ public sealed partial class NativeProfile : IDisposable
         public long Cpu, Allocated, ReportedCpu, ReportedAllocated;
     }
 
-    internal sealed class Frame(NativeProfile profile, string name, Frame? parent)
+    internal sealed class Frame(NativeProfile profile, Utf8String name, Frame? parent)
     {
         public readonly NativeProfile Profile = profile;
-        public readonly string Name = name;
+        public readonly Utf8String Name = name;
         public readonly Frame? Parent = parent;
-        public readonly string Key = name + "\0" + parent?.Key;
+        public readonly Utf8String Key = name + Utf8Literals.NullCharacter + (parent?.Key ?? default);
         public StackState Samples = null!;
         public readonly int Thread = Environment.CurrentManagedThreadId;
         public long CpuStart, AllocatedStart, ChildCpu, ChildAllocated;
@@ -65,7 +65,7 @@ public sealed partial class NativeProfile : IDisposable
         return profile;
     }
 
-    public static Scope Enter(string phase)
+    public static Scope Enter(Utf8String phase)
     {
         NativeProfile? profile = Volatile.Read(ref active);
         if (profile is null)
@@ -81,7 +81,7 @@ public sealed partial class NativeProfile : IDisposable
         {
             sampleSession = profile.session;
             lastSampleTime = Stopwatch.GetTimestamp();
-            (stackStates ??= new(StringComparer.Ordinal)).Clear();
+            (stackStates ??= new(Utf8StringComparer.Ordinal)).Clear();
         }
         if (!stackStates!.TryGetValue(frame.Key, out var state))
             stackStates.Add(frame.Key, state = new());
@@ -114,7 +114,7 @@ public sealed partial class NativeProfile : IDisposable
             }
             Sample sample = frame.Profile.samples.GetOrAdd(frame.Key, static (_, frame) =>
             {
-                var stack = new List<string>();
+                var stack = new List<Utf8String>();
                 for (Frame? cursor = frame; cursor is not null; cursor = cursor.Parent)
                     stack.Add(cursor.Name);
                 return new Sample([.. stack]);
@@ -127,7 +127,7 @@ public sealed partial class NativeProfile : IDisposable
         }
     }
 
-    public static void TrackOwner(object owner, string name, long sourceBytes, int nodes)
+    public static void TrackOwner(object owner, Utf8String name, long sourceBytes, int nodes)
     {
         Volatile.Read(ref active)?.owners.AddOrUpdate(owner, new(name, sourceBytes, nodes));
     }
@@ -154,10 +154,10 @@ public sealed partial class NativeProfile : IDisposable
         long allocated = state.Allocated + Math.Max(
             0,
             GC.GetAllocatedBytesForCurrentThread() - frame.AllocatedStart - frame.ChildAllocated);
-        string trace = new StackTrace(skipFrames: 1, fNeedFileInfo: false).ToString();
+        Utf8String trace = Utf8String.FromString(new StackTrace(skipFrames: 1, fNeedFileInfo: false).ToString());
         Sample sample = stackSamples.GetOrAdd(
             trace,
-            static trace => new Sample(trace.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)));
+            static trace => new Sample(trace.Split((byte)'\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)));
         Interlocked.Add(ref sample.Cpu, Math.Max(0, cpu - state.ReportedCpu));
         Interlocked.Add(ref sample.Allocated, Math.Max(0, allocated - state.ReportedAllocated));
         state.ReportedCpu = cpu;
@@ -165,7 +165,7 @@ public sealed partial class NativeProfile : IDisposable
         lastSampleTime = Stopwatch.GetTimestamp();
     }
 
-    public void Stop(string directory)
+    public void Stop(Utf8String directory)
     {
         lock (gate)
         {
@@ -177,58 +177,58 @@ public sealed partial class NativeProfile : IDisposable
                 throw new InvalidOperationException("Profile ownership changed");
             stopped = true;
         }
-        Directory.CreateDirectory(directory);
+        Directory.CreateDirectory(directory.ToString());
         long duration = (long)(Stopwatch.GetElapsedTime(started).TotalMilliseconds * 1_000_000);
-        var records = samples.Values.OrderBy(sample => string.Join("\0", sample.Stack), StringComparer.Ordinal).ToArray();
+        var records = samples.Values.OrderBy(sample => Utf8String.Join("\0"u8, sample.Stack), Utf8StringComparer.Ordinal).ToArray();
         long otherCpu = Math.Max(0, ProcessCpu() - processCpuStart - records.Sum(sample => sample.Cpu));
         long otherAllocated = Math.Max(
             0,
             GC.GetTotalAllocatedBytes(precise: true) - processAllocatedStart - records.Sum(sample => sample.Allocated));
         Write(
-            Path.Combine(directory, "cpu.pb.gz"),
-            [("cpu", "nanoseconds")],
+            Hosts.CompilerPath.Combine(directory, Utf8Literals.CpuPbGz),
+            [(Utf8Literals.Cpu, Utf8Literals.Nanoseconds)],
             records.Select(sample => (sample.Stack, new[] { sample.Cpu })).Append(
-                (new[] { "Runtime and other process work (outside scopes)" }, new[] { otherCpu })),
-            "Instrumented compiler-phase thread CPU time; exclusive counters, not statistical instruction samples. Remaining process CPU is grouped separately, including runtime/background work.",
+                (new Utf8String[] { Utf8Literals.RuntimeAndOtherProcessWorkOutside }, new[] { otherCpu })),
+            Utf8Literals.InstrumentedCompilerPhaseThreadCPUTime,
             duration);
         Write(
-            Path.Combine(directory, "alloc.pb.gz"),
-            [("alloc_space", "bytes")],
+            Hosts.CompilerPath.Combine(directory, Utf8Literals.AllocPbGz),
+            [(Utf8Literals.AllocSpace, Utf8Literals.Bytes)],
             records.Select(
                 sample => (sample.Stack, new[] { sample.Allocated })).Append(
-                    (new[] { "Runtime and profiler allocations (outside scopes)" }, new[] { otherAllocated })),
-            "Measured managed allocation bytes; compiler-phase attribution, not allocation stack sampling. Remaining process allocations are grouped separately.",
+                    (new Utf8String[] { Utf8Literals.RuntimeAndProfilerAllocationsOutsideScopes }, new[] { otherAllocated })),
+            Utf8Literals.MeasuredManagedAllocationBytesCompilerPhase,
             duration);
         var stacks = stackSamples.Values.ToArray();
         Write(
-            Path.Combine(directory, "cpu-stacks.pb.gz"),
-            [("cpu", "nanoseconds")],
+            Hosts.CompilerPath.Combine(directory, Utf8Literals.CpuStacksPbGz),
+            [(Utf8Literals.Cpu, Utf8Literals.Nanoseconds)],
             stacks.Select(sample => (sample.Stack, new[] { sample.Cpu })),
-            "Cooperative 100 Hz checkpoints with actual NativeAOT managed stacks. Exclusive phase-local CPU since its prior checkpoint is attributed to the observed stack; polling-location bias and unsampled phase tails apply. See cpu.pb.gz for complete accounting.",
+            Utf8Literals.Cooperative100HzCheckpointsWithActual,
             duration);
         Write(
-            Path.Combine(directory, "alloc-stacks.pb.gz"),
-            [("alloc_space", "bytes")],
+            Hosts.CompilerPath.Combine(directory, Utf8Literals.AllocStacksPbGz),
+            [(Utf8Literals.AllocSpace, Utf8Literals.Bytes)],
             stacks.Select(sample => (sample.Stack, new[] { sample.Allocated })),
-            "Cooperative checkpoints with actual NativeAOT managed stacks. Phase-local allocation deltas are attributed approximately to the observed stack, not to individual allocation sites. See alloc.pb.gz for complete accounting.",
+            Utf8Literals.CooperativeCheckpointsWithActualNativeAOTManaged,
             duration);
     }
 
-    public void SaveHeap(string path)
+    public void SaveHeap(Utf8String path)
     {
         long bytes = GC.GetTotalMemory(forceFullCollection: true);
-        var retained = new List<(string[] Stack, long[] Values)> { (new[] { "Managed heap (whole process)" }, new[] { bytes, 0L, 0L }) };
+        var retained = new List<(Utf8String[] Stack, long[] Values)> { (new Utf8String[] { Utf8Literals.ManagedHeapWholeProcess }, new[] { bytes, 0L, 0L }) };
         foreach (var entry in owners)
         {
             Owner owner = entry.Value;
-            retained.Add((new[] { owner.Name, "Retained compiler owners" }, new[] { 0L, owner.SourceBytes, (long)owner.Nodes }));
+            retained.Add((new[] { owner.Name, Utf8Literals.RetainedCompilerOwners }, new[] { 0L, owner.SourceBytes, (long)owner.Nodes }));
             GC.KeepAlive(entry.Key);
         }
         Write(
             path,
-            [("inuse_space", "bytes"), ("source_bytes", "bytes"), ("syntax_nodes", "count")],
+            [(Utf8Literals.InuseSpace, Utf8Literals.Bytes), (Utf8Literals.SourceBytes, Utf8Literals.Bytes), (Utf8Literals.SyntaxNodes, Utf8Literals.Count)],
             retained,
-            "inuse_space is measured whole-process managed heap bytes after collection. Separate source_bytes and syntax_nodes attribute retained source owners; they are not estimates of each owner's managed object size.",
+            Utf8Literals.InuseSpaceIsMeasuredWholeProcess,
             0);
     }
 
@@ -266,17 +266,17 @@ public sealed partial class NativeProfile : IDisposable
     // format has no BCL serializer. All field IDs follow google/pprof profile.proto;
     // Go's independent profile reader validates each produced artifact.
     private void Write(
-        string path,
-        (string Name, string Unit)[] kinds,
-        IEnumerable<(string[] Stack, long[] Values)> values,
-        string comment,
+        Utf8String path,
+        (Utf8String Name, Utf8String Unit)[] kinds,
+        IEnumerable<(Utf8String[] Stack, long[] Values)> values,
+        Utf8String comment,
         long duration)
     {
-        var strings = new List<string> { "" };
-        var stringIds = new Dictionary<string, int>(StringComparer.Ordinal) { [""] = 0 };
-        var functions = new Dictionary<string, int>(StringComparer.Ordinal);
+        var strings = new List<Utf8String> { Utf8String.Empty };
+        var stringIds = new Dictionary<Utf8String, int>(Utf8StringComparer.Ordinal) { [Utf8String.Empty] = 0 };
+        var functions = new Dictionary<Utf8String, int>(Utf8StringComparer.Ordinal);
         var profile = new Proto();
-        int String(string value)
+        int String(Utf8String value)
         {
             if (stringIds.TryGetValue(value, out int id))
                 return id;
@@ -297,7 +297,7 @@ public sealed partial class NativeProfile : IDisposable
             if (sample.Values.Length != kinds.Length)
                 throw new InvalidDataException("Profile sample width mismatch");
             var record = new Proto();
-            foreach (string frame in sample.Stack)
+            foreach (Utf8String frame in sample.Stack)
             {
                 if (!functions.TryGetValue(frame, out int id))
                 {
@@ -331,10 +331,10 @@ public sealed partial class NativeProfile : IDisposable
         profile.Number(10, (ulong)duration);
         profile.Number(13, (ulong)String(comment));
         profile.Number(14, (ulong)String(kinds[0].Name));
-        foreach (string text in strings)
-            profile.Bytes(6, Encoding.UTF8.GetBytes(text));
-        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
-        using var stream = File.Create(path);
+        foreach (Utf8String text in strings)
+            profile.Bytes(6, text.Span);
+        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path.ToString()))!);
+        using var stream = File.Create(path.ToString());
         using var gzip = new GZipStream(stream, CompressionLevel.Fastest);
         gzip.Write(profile.Data);
     }
@@ -358,7 +358,7 @@ public sealed partial class NativeProfile : IDisposable
 
         public void Bytes(int field, ReadOnlySpan<byte> bytes)
         {
-            Varint((ulong)((field << 3) | 2));
+            Varint((ulong)(field << 3 | 2));
             Varint((ulong)bytes.Length);
             writer.Write(bytes);
         }

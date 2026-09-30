@@ -17,20 +17,20 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
     public ValueTask<Type> CheckExpressionAsync(SyntaxNode node, CheckMode mode, CancellationToken cancellation)
             => Expressions.CheckAsync(node, mode, cancellation);
 
-    public ValueTask<Type> PromiseTypeAsync(CancellationToken cancellation) => program.Globals.GetAsync("Promise", 1, false, cancellation);
+    public ValueTask<Type> PromiseTypeAsync(CancellationToken cancellation) => program.Globals.GetAsync(Utf8Literals.Promise, 1, false, cancellation);
 
     public async ValueTask<Symbol?> AwaitedSymbolAsync(bool reportErrors, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         if (awaitedSymbols.TryGetValue(reportErrors, out var cached))
             return cached;
-        var symbol = program.Symbols.Globals.GetValueOrDefault("Awaited");
+        var symbol = program.Symbols.Globals.GetValueOrDefault(Utf8Literals.Awaited);
         if (symbol is null || (symbol.Flags & SymbolFlags.TypeAlias) == 0)
         {
             if (reportErrors)
             {
                 Diagnostics.Add(DiagnosticCode.CannotFindGlobalType0);
-                TrackDiagnostic(null, DiagnosticCode.CannotFindGlobalType0, "Awaited");
+                TrackDiagnostic(null, DiagnosticCode.CannotFindGlobalType0, Utf8Literals.Awaited);
             }
             return awaitedSymbols[reportErrors] = null;
         }
@@ -102,43 +102,43 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
         Error(node, diagnostic);
     }
 
-    public void BinaryDiagnostic(SyntaxNode node, DiagnosticCode code, bool suggestion = false, params TextSlice[] suppliedArguments)
+    public void BinaryDiagnostic(SyntaxNode node, DiagnosticCode code, bool suggestion = false, params Utf8String[] suppliedArguments)
     {
         if (!suggestion)
         {
-            TextSlice[] arguments = code switch
+            Utf8String[] arguments = code switch
             {
                 DiagnosticCode.The0OperatorIsNotAllowedForBooleanTypesConsiderUsing1Instead => [TokenFacts.Text(node.Kind)!, node.Kind is SyntaxKind.BarToken
-                    or SyntaxKind.BarEqualsToken ? "||"
-                    : node.Kind is SyntaxKind.AmpersandToken or SyntaxKind.AmpersandEqualsToken ? "&&" : "!=="],
+                    or SyntaxKind.BarEqualsToken ? Utf8Literals.LogicalOr
+                    : node.Kind is SyntaxKind.AmpersandToken or SyntaxKind.AmpersandEqualsToken ? Utf8Literals.LogicalAnd : Utf8Literals.StrictNotEquals],
                 DiagnosticCode.ThisConditionWillAlwaysReturn0SinceJavaScriptComparesObjectsByReferenceNotValue
                     or DiagnosticCode.ThisConditionWillAlwaysReturn0 when node is BinaryExpressionNode equality =>
                     [equality.OperatorToken!.Kind is SyntaxKind.EqualsEqualsToken or SyntaxKind.EqualsEqualsEqualsToken
-                        ? "false"
-                        : "true"],
+                        ? Utf8Literals.False
+                        : Utf8Literals.True],
                 DiagnosticCode.The0OperatorCannotBeAppliedToTypeSymbol when node.Parent is BinaryExpressionNode binary => [TokenFacts.Text(binary.OperatorToken!.Kind)!],
                 _ => suppliedArguments
             };
             if (code == DiagnosticCode.ThisConditionWillAlwaysReturn0 && node is BinaryExpressionNode comparison)
             {
-                bool IsNaN(SyntaxNode expression) => MemberAccessRules.SkipParentheses(expression) is IdentifierNode { Text.Span: "NaN" } identifier
-                    && links.SymbolNodes.TryGet(identifier)?.ResolvedSymbol == program.Symbols.Globals.GetValueOrDefault("NaN");
+                bool IsNaN(SyntaxNode expression) => MemberAccessRules.SkipParentheses(expression) is IdentifierNode { Text.Span: var matchedText } identifier && matchedText.SequenceEqual("NaN"u8)
+                    && links.SymbolNodes.TryGet(identifier)?.ResolvedSymbol == program.Symbols.Globals.GetValueOrDefault(Utf8Literals.NaN);
                 bool left = IsNaN(comparison.Left!), right = IsNaN(comparison.Right!);
                 var diagnostic = CheckerDiagnostic.Create(node, Messages.This_condition_will_always_return_0, arguments);
                 if (left != right)
                 {
                     var location = left ? comparison.Right! : comparison.Left!;
-                    TextSlice name = ExpressionChecks.EntityText(MemberAccessRules.SkipParentheses(location)) ?? "...";
-                    TextSlice prefix = comparison.OperatorToken!.Kind is SyntaxKind.ExclamationEqualsToken
+                    Utf8String name = ExpressionChecks.EntityText(MemberAccessRules.SkipParentheses(location)) ?? Utf8Literals.Ellipsis;
+                    Utf8String prefix = comparison.OperatorToken!.Kind is SyntaxKind.ExclamationEqualsToken
                         or SyntaxKind.ExclamationEqualsEqualsToken
-                        ? "!"
-                        : "";
+                        ? Utf8Literals.Exclamation
+                        : Utf8String.Empty;
                     diagnostic = diagnostic with
                     {
                         RelatedInformation = [CheckerDiagnostic.Create(
                         location,
                         Messages.Did_you_mean_0,
-TextSlice.ConcatMany(prefix, "Number.isNaN(", name, ")"))]
+Utf8String.ConcatMany(prefix, Utf8Literals.NumberIsNaN, name, Utf8Literals.CloseParen))]
                     };
                 }
                 Error(node, diagnostic);
@@ -151,7 +151,7 @@ TextSlice.ConcatMany(prefix, "Number.isNaN(", name, ")"))]
     }
 
     public async ValueTask<bool> GlobalNaNAsync(SyntaxNode node, CancellationToken cancellation)
-            => node is IdentifierNode { Text.Span: "NaN" } && program.Symbols.Globals.GetValueOrDefault("NaN") is { } symbol
+            => node is IdentifierNode { Text.Span: var matchedText2 } && matchedText2.SequenceEqual("NaN"u8) && program.Symbols.Globals.GetValueOrDefault(Utf8Literals.NaN) is { } symbol
                 && await program.EntityNames.ResolveAsync(node, SymbolFlags.Value, true, cancellation: cancellation) == symbol;
 
     public ValueTask AssignmentAsync(

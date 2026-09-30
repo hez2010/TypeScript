@@ -133,8 +133,13 @@ public sealed partial class Scanner
                 }
                 pos++;
             }
-            while (pos > TokenStart + 1 && (IsWhiteSpace(text[pos - 1]) || IsLineBreak(text[pos - 1]) || text[pos - 1] == ';'))
-                pos--;
+            while (pos > TokenStart + 1)
+            {
+                int point = Wtf8.DecodeLast(text.Span[(TokenStart + 1)..pos], out int width);
+                if (!IsWhiteSpace(point) && !IsLineBreak(point) && point != ';')
+                    break;
+                pos -= width;
+            }
             Error(Messages.Unterminated_regular_expression_literal, TokenStart, pos - TokenStart);
             Value = text.Memory.Slice(TokenStart, pos - TokenStart);
             return Kind = SyntaxKind.RegularExpressionLiteral;
@@ -216,8 +221,13 @@ public sealed partial class Scanner
     public SyntaxKind ScanJsxAttributeValue()
     {
         FullStart = pos;
-        while (IsWhiteSpace(Char()) || IsLineBreak(Char()))
-            pos++;
+        while (true)
+        {
+            int point = CodePoint(out int width);
+            if (!IsWhiteSpace(point) && !IsLineBreak(point))
+                break;
+            pos += width;
+        }
         TokenStart = pos;
         if (Char() is not ('\'' or '"'))
             return Scan();
@@ -242,8 +252,8 @@ public sealed partial class Scanner
         pos += width;
         if (ch is ' ' or '\t' or '\v' or '\f')
         {
-            while (IsWhiteSpace(Char()))
-                pos++;
+            while (IsWhiteSpace(CodePoint(out width)))
+                pos += width;
             return Kind = SyntaxKind.WhitespaceTrivia;
         }
         if (ch is '\r' or '\n')
@@ -273,7 +283,9 @@ public sealed partial class Scanner
             int ch = CodePoint(out int width);
             if (IsLineBreak(ch) || ch == '`')
                 break;
-            if (!inBackticks && (ch == '{' || ch == '@' && pos > 0 && IsWhiteSpace(text[pos - 1]) && IsIdentifierStart(Char(1))))
+            if (!inBackticks && (ch == '{' || ch == '@' && pos > 0
+                && IsWhiteSpace(Wtf8.DecodeLast(text.Span[..pos], out _))
+                && pos + 1 < end && IsIdentifierStart(Wtf8.Decode(text.Span[(pos + 1)..end], out _))))
                 break;
             pos += width;
         }
@@ -283,5 +295,9 @@ public sealed partial class Scanner
         return Kind = SyntaxKind.JSDocCommentTextToken;
     }
 
-    public bool CanFollowJSDocAt() => pos == end || IsIdentifierStart(CodePoint(out _)) || IsWhiteSpace(Char()) || IsLineBreak(Char());
+    public bool CanFollowJSDocAt()
+    {
+        int point = CodePoint(out _);
+        return pos == end || IsIdentifierStart(point) || IsWhiteSpace(point) || IsLineBreak(point);
+    }
 }

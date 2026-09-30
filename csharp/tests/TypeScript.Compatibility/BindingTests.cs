@@ -18,20 +18,20 @@ internal static class BindingTests
             using var document = JsonDocument.Parse(line);
             var input = document.RootElement;
             var file = Parser.ParseSourceFile(
-                new(input.GetProperty("fileName").GetString()!),
-                new SourceText(input.GetProperty("text").GetBytesFromBase64()));
+                new(JsonStrings.GetString(input.GetProperty("fileName"u8))!),
+                new SourceText(input.GetProperty("text"u8).GetBytesFromBase64()));
             var binding = Binder.Bind(file);
             using var stream = new MemoryStream();
             using (var writer = new Utf8JsonWriter(stream))
             {
-                if (input.TryGetProperty("exportTree", out var export) && export.GetBoolean())
+                if (input.TryGetProperty("exportTree"u8, out var export) && export.GetBoolean())
                 {
                     writer.WriteStartObject();
-                    writer.WritePropertyName("binding");
+                    writer.WritePropertyName("binding"u8);
                     Write(writer, Encode(binding));
-                    writer.WritePropertyName("tree");
+                    writer.WritePropertyName("tree"u8);
                     BindingSyntax.Write(writer, file);
-                    writer.WriteString("syntaxFingerprint", SyntaxFingerprint(file));
+                    writer.WriteString("syntaxFingerprint"u8, SyntaxFingerprint(file));
                     writer.WriteEndObject();
                 }
                 else
@@ -41,7 +41,7 @@ internal static class BindingTests
         }
     }
 
-    internal static string SyntaxFingerprint(SourceFileNode file)
+    internal static Utf8String SyntaxFingerprint(SourceFileNode file)
     {
         using var stream = new MemoryStream();
         using (var writer = new Utf8JsonWriter(stream))
@@ -61,7 +61,7 @@ internal static class BindingTests
             }
             writer.WriteEndArray();
         }
-        return Convert.ToHexStringLower(SHA256.HashData(stream.GetBuffer().AsSpan(0, (int)stream.Length)));
+        return Utf8String.FromString(Convert.ToHexStringLower(SHA256.HashData(stream.GetBuffer().AsSpan(0, (int)stream.Length))));
     }
 
     private static object[] Encode(BoundSourceFile binding)
@@ -96,19 +96,19 @@ internal static class BindingTests
             }
             return id;
         }
-        string Name(Symbol symbol)
+        Utf8String Name(Symbol symbol)
         {
-            if (symbol.Name.Span.StartsWith(TypeScript.Compiler.Binding.Symbol.InternalPrefix + "#", StringComparison.Ordinal)
+            if (symbol.Name.Span.StartsWith(TypeScript.Compiler.Binding.Symbol.InternalPrefix + "#"u8, StringComparison.Ordinal)
                 && symbol.Parent is { Declarations.Length: > 0 } parent)
-                return "__#" + Node(parent.Declarations[0]) + symbol.Name[symbol.Name.Span.IndexOf('@')..].ToString();
-            if (symbol.Name.Span.StartsWith(TypeScript.Compiler.Binding.Symbol.InternalPrefix + "\"", StringComparison.Ordinal)
+                return Utf8String.Copy("__#"u8) + Node(parent.Declarations[0]) + symbol.Name[symbol.Name.Span.IndexOf((byte)'@')..];
+            if (symbol.Name.Span.StartsWith(TypeScript.Compiler.Binding.Symbol.InternalPrefix + "\""u8, StringComparison.Ordinal)
                 && symbol.Name.Span.Contains(
-                    "pattern@",
+                    "pattern@"u8,
                     StringComparison.Ordinal) && symbol.Declarations.FirstOrDefault() is ModuleDeclarationNode { Attributes: { } attributes })
-                return TypeScript.Compiler.Binding.Symbol.EscapeName(symbol.Name[..(symbol.Name.Span.LastIndexOf('@') + 1)]).ToString() + Node(attributes);
-            return TypeScript.Compiler.Binding.Symbol.EscapeName(symbol.Name).ToString();
+                return TypeScript.Compiler.Binding.Symbol.EscapeName(symbol.Name[..(symbol.Name.Span.LastIndexOf((byte)'@') + 1)]) + Node(attributes);
+            return Utf8String.Format(TypeScript.Compiler.Binding.Symbol.EscapeName(symbol.Name));
         }
-        object[] Table(IReadOnlyDictionary<TextSlice, Symbol>? table) => table?.Values.OrderBy(Name, StringComparer.Ordinal)
+        object[] Table(IReadOnlyDictionary<Utf8String, Symbol>? table) => table?.Values.OrderBy(Name, Utf8StringComparer.Ordinal)
             .Select(s => (object)new object[] { Name(s), Symbol(s) }).ToArray() ?? [];
         var nr = new List<object>();
         foreach (var node in nodes)
@@ -160,7 +160,7 @@ internal static class BindingTests
     }
 
     private static object[] DiagnosticValue(Diagnostic diagnostic) => [diagnostic.Code, diagnostic.Start, diagnostic.Length,
-        diagnostic.Arguments.Select(a => Convert.ToBase64String(Wtf8.Encode(a))).ToArray(),
+        diagnostic.Arguments.Select(a => Convert.ToBase64String(a.Span.ToArray())).ToArray(),
         diagnostic.RelatedInformation.Select(DiagnosticValue).ToArray()];
 
     internal static void Write(Utf8JsonWriter writer, object value)
@@ -173,7 +173,7 @@ internal static class BindingTests
             case uint n:
                 writer.WriteNumberValue(n);
                 break;
-            case TextSlice slice:
+            case Utf8String slice:
                 writer.WriteStringValue(slice.Span);
                 break;
             case string text:

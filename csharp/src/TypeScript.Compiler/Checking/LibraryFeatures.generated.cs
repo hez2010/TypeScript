@@ -6,370 +6,384 @@ namespace TypeScript.Compiler.Checking;
 
 internal static class LibraryFeatures
 {
-    internal static string? PropertyLibrary(TextSlice? type, ReadOnlySpan<char> property) => type.GetValueOrDefault().Span switch
+    internal static Utf8String? PropertyLibrary(Utf8String? type, ReadOnlySpan<byte> property)
     {
-        "Array" => property switch
+        var name = type.GetValueOrDefault().Span;
+        if (name.SequenceEqual("Array"u8))
         {
-            "find" or "findIndex" or "fill" or "copyWithin" or "entries" or "keys" or "values" => "es2015",
-            "includes" => "es2016",
-            "flat" or "flatMap" => "es2019",
-            "at" => "es2022",
-            "findLastIndex" or "findLast" or "toReversed" or "toSorted" or "toSpliced" or "with" => "es2023",
-            _ => null
-        },
-        "Iterator" => property switch
+            if (property.SequenceEqual("find"u8) || property.SequenceEqual("findIndex"u8) || property.SequenceEqual("fill"u8) || property.SequenceEqual("copyWithin"u8) || property.SequenceEqual("entries"u8) || property.SequenceEqual("keys"u8) || property.SequenceEqual("values"u8)) return Libraryes2015;
+            if (property.SequenceEqual("includes"u8)) return Libraryes2016;
+            if (property.SequenceEqual("flat"u8) || property.SequenceEqual("flatMap"u8)) return Libraryes2019;
+            if (property.SequenceEqual("at"u8)) return Libraryes2022;
+            if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
+            return null;
+        }
+        if (name.SequenceEqual("Iterator"u8))
         {
-            _ => null
-        },
-        "AsyncIterator" => property switch
+            return null;
+        }
+        if (name.SequenceEqual("AsyncIterator"u8))
         {
-            _ => null
-        },
-        "ArrayBuffer" => property switch
+            return null;
+        }
+        if (name.SequenceEqual("ArrayBuffer"u8))
         {
-            "maxByteLength" or "resizable" or "resize" or "detached" or "transfer" or "transferToFixedLength" => "es2024",
-            _ => null
-        },
-        "Atomics" => property switch
+            if (property.SequenceEqual("maxByteLength"u8) || property.SequenceEqual("resizable"u8) || property.SequenceEqual("resize"u8) || property.SequenceEqual("detached"u8) || property.SequenceEqual("transfer"u8) || property.SequenceEqual("transferToFixedLength"u8)) return Libraryes2024;
+            return null;
+        }
+        if (name.SequenceEqual("Atomics"u8))
         {
-            "add" or "and" or "compareExchange" or "exchange" or "isLockFree" or "load" or "or" or "store" or "sub" or "wait" or "notify" or "xor" => "es2017",
-            "waitAsync" => "es2024",
-            _ => null
-        },
-        "SharedArrayBuffer" => property switch
+            if (property.SequenceEqual("add"u8) || property.SequenceEqual("and"u8) || property.SequenceEqual("compareExchange"u8) || property.SequenceEqual("exchange"u8) || property.SequenceEqual("isLockFree"u8) || property.SequenceEqual("load"u8) || property.SequenceEqual("or"u8) || property.SequenceEqual("store"u8) || property.SequenceEqual("sub"u8) || property.SequenceEqual("wait"u8) || property.SequenceEqual("notify"u8) || property.SequenceEqual("xor"u8)) return Libraryes2017;
+            if (property.SequenceEqual("waitAsync"u8)) return Libraryes2024;
+            return null;
+        }
+        if (name.SequenceEqual("SharedArrayBuffer"u8))
         {
-            "byteLength" or "slice" => "es2017",
-            "growable" or "maxByteLength" or "grow" => "es2024",
-            _ => null
-        },
-        "AsyncIterable" => property switch
+            if (property.SequenceEqual("byteLength"u8) || property.SequenceEqual("slice"u8)) return Libraryes2017;
+            if (property.SequenceEqual("growable"u8) || property.SequenceEqual("maxByteLength"u8) || property.SequenceEqual("grow"u8)) return Libraryes2024;
+            return null;
+        }
+        if (name.SequenceEqual("AsyncIterable"u8))
         {
-            _ => null
-        },
-        "AsyncIterableIterator" => property switch
+            return null;
+        }
+        if (name.SequenceEqual("AsyncIterableIterator"u8))
         {
-            _ => null
-        },
-        "AsyncGenerator" => property switch
+            return null;
+        }
+        if (name.SequenceEqual("AsyncGenerator"u8))
         {
-            _ => null
-        },
-        "AsyncGeneratorFunction" => property switch
+            return null;
+        }
+        if (name.SequenceEqual("AsyncGeneratorFunction"u8))
         {
-            _ => null
-        },
-        "RegExp" => property switch
+            return null;
+        }
+        if (name.SequenceEqual("RegExp"u8))
         {
-            "flags" or "sticky" or "unicode" => "es2015",
-            "dotAll" => "es2018",
-            "unicodeSets" => "es2024",
-            _ => null
-        },
-        "RegExpConstructor" => property switch
+            if (property.SequenceEqual("flags"u8) || property.SequenceEqual("sticky"u8) || property.SequenceEqual("unicode"u8)) return Libraryes2015;
+            if (property.SequenceEqual("dotAll"u8)) return Libraryes2018;
+            if (property.SequenceEqual("unicodeSets"u8)) return Libraryes2024;
+            return null;
+        }
+        if (name.SequenceEqual("RegExpConstructor"u8))
         {
-            "escape" => "es2025",
-            _ => null
-        },
-        "Reflect" => property switch
+            if (property.SequenceEqual("escape"u8)) return Libraryes2025;
+            return null;
+        }
+        if (name.SequenceEqual("Reflect"u8))
         {
-            "apply" or "construct" or "defineProperty" or "deleteProperty" or "get" or "getOwnPropertyDescriptor" or "getPrototypeOf" or "has" or "isExtensible" or "ownKeys" or "preventExtensions" or "set" or "setPrototypeOf" => "es2015",
-            _ => null
-        },
-        "ArrayConstructor" => property switch
+            if (property.SequenceEqual("apply"u8) || property.SequenceEqual("construct"u8) || property.SequenceEqual("defineProperty"u8) || property.SequenceEqual("deleteProperty"u8) || property.SequenceEqual("get"u8) || property.SequenceEqual("getOwnPropertyDescriptor"u8) || property.SequenceEqual("getPrototypeOf"u8) || property.SequenceEqual("has"u8) || property.SequenceEqual("isExtensible"u8) || property.SequenceEqual("ownKeys"u8) || property.SequenceEqual("preventExtensions"u8) || property.SequenceEqual("set"u8) || property.SequenceEqual("setPrototypeOf"u8)) return Libraryes2015;
+            return null;
+        }
+        if (name.SequenceEqual("ArrayConstructor"u8))
         {
-            "from" or "of" => "es2015",
-            "fromAsync" => "esnext",
-            _ => null
-        },
-        "ObjectConstructor" => property switch
+            if (property.SequenceEqual("from"u8) || property.SequenceEqual("of"u8)) return Libraryes2015;
+            if (property.SequenceEqual("fromAsync"u8)) return Libraryesnext;
+            return null;
+        }
+        if (name.SequenceEqual("ObjectConstructor"u8))
         {
-            "assign" or "getOwnPropertySymbols" or "keys" or "is" or "setPrototypeOf" => "es2015",
-            "values" or "entries" or "getOwnPropertyDescriptors" => "es2017",
-            "fromEntries" => "es2019",
-            "hasOwn" => "es2022",
-            "groupBy" => "es2024",
-            _ => null
-        },
-        "NumberConstructor" => property switch
+            if (property.SequenceEqual("assign"u8) || property.SequenceEqual("getOwnPropertySymbols"u8) || property.SequenceEqual("keys"u8) || property.SequenceEqual("is"u8) || property.SequenceEqual("setPrototypeOf"u8)) return Libraryes2015;
+            if (property.SequenceEqual("values"u8) || property.SequenceEqual("entries"u8) || property.SequenceEqual("getOwnPropertyDescriptors"u8)) return Libraryes2017;
+            if (property.SequenceEqual("fromEntries"u8)) return Libraryes2019;
+            if (property.SequenceEqual("hasOwn"u8)) return Libraryes2022;
+            if (property.SequenceEqual("groupBy"u8)) return Libraryes2024;
+            return null;
+        }
+        if (name.SequenceEqual("NumberConstructor"u8))
         {
-            "isFinite" or "isInteger" or "isNaN" or "isSafeInteger" or "parseFloat" or "parseInt" => "es2015",
-            _ => null
-        },
-        "Math" => property switch
+            if (property.SequenceEqual("isFinite"u8) || property.SequenceEqual("isInteger"u8) || property.SequenceEqual("isNaN"u8) || property.SequenceEqual("isSafeInteger"u8) || property.SequenceEqual("parseFloat"u8) || property.SequenceEqual("parseInt"u8)) return Libraryes2015;
+            return null;
+        }
+        if (name.SequenceEqual("Math"u8))
         {
-            "clz32" or "imul" or "sign" or "log10" or "log2" or "log1p" or "expm1" or "cosh" or "sinh" or "tanh" or "acosh" or "asinh" or "atanh" or "hypot" or "trunc" or "fround" or "cbrt" => "es2015",
-            "f16round" => "es2025",
-            _ => null
-        },
-        "Map" => property switch
+            if (property.SequenceEqual("clz32"u8) || property.SequenceEqual("imul"u8) || property.SequenceEqual("sign"u8) || property.SequenceEqual("log10"u8) || property.SequenceEqual("log2"u8) || property.SequenceEqual("log1p"u8) || property.SequenceEqual("expm1"u8) || property.SequenceEqual("cosh"u8) || property.SequenceEqual("sinh"u8) || property.SequenceEqual("tanh"u8) || property.SequenceEqual("acosh"u8) || property.SequenceEqual("asinh"u8) || property.SequenceEqual("atanh"u8) || property.SequenceEqual("hypot"u8) || property.SequenceEqual("trunc"u8) || property.SequenceEqual("fround"u8) || property.SequenceEqual("cbrt"u8)) return Libraryes2015;
+            if (property.SequenceEqual("f16round"u8)) return Libraryes2025;
+            return null;
+        }
+        if (name.SequenceEqual("Map"u8))
         {
-            "entries" or "keys" or "values" => "es2015",
-            "getOrInsert" or "getOrInsertComputed" => "esnext",
-            _ => null
-        },
-        "MapConstructor" => property switch
+            if (property.SequenceEqual("entries"u8) || property.SequenceEqual("keys"u8) || property.SequenceEqual("values"u8)) return Libraryes2015;
+            if (property.SequenceEqual("getOrInsert"u8) || property.SequenceEqual("getOrInsertComputed"u8)) return Libraryesnext;
+            return null;
+        }
+        if (name.SequenceEqual("MapConstructor"u8))
         {
-            "groupBy" => "es2024",
-            _ => null
-        },
-        "Set" => property switch
+            if (property.SequenceEqual("groupBy"u8)) return Libraryes2024;
+            return null;
+        }
+        if (name.SequenceEqual("Set"u8))
         {
-            "entries" or "keys" or "values" => "es2015",
-            "union" or "intersection" or "difference" or "symmetricDifference" or "isSubsetOf" or "isSupersetOf" or "isDisjointFrom" => "es2025",
-            _ => null
-        },
-        "PromiseConstructor" => property switch
+            if (property.SequenceEqual("entries"u8) || property.SequenceEqual("keys"u8) || property.SequenceEqual("values"u8)) return Libraryes2015;
+            if (property.SequenceEqual("union"u8) || property.SequenceEqual("intersection"u8) || property.SequenceEqual("difference"u8) || property.SequenceEqual("symmetricDifference"u8) || property.SequenceEqual("isSubsetOf"u8) || property.SequenceEqual("isSupersetOf"u8) || property.SequenceEqual("isDisjointFrom"u8)) return Libraryes2025;
+            return null;
+        }
+        if (name.SequenceEqual("PromiseConstructor"u8))
         {
-            "all" or "race" or "reject" or "resolve" => "es2015",
-            "allSettled" => "es2020",
-            "any" => "es2021",
-            "withResolvers" => "es2024",
-            "try" => "es2025",
-            _ => null
-        },
-        "Symbol" => property switch
+            if (property.SequenceEqual("all"u8) || property.SequenceEqual("race"u8) || property.SequenceEqual("reject"u8) || property.SequenceEqual("resolve"u8)) return Libraryes2015;
+            if (property.SequenceEqual("allSettled"u8)) return Libraryes2020;
+            if (property.SequenceEqual("any"u8)) return Libraryes2021;
+            if (property.SequenceEqual("withResolvers"u8)) return Libraryes2024;
+            if (property.SequenceEqual("try"u8)) return Libraryes2025;
+            return null;
+        }
+        if (name.SequenceEqual("Symbol"u8))
         {
-            "for" or "keyFor" => "es2015",
-            "description" => "es2019",
-            _ => null
-        },
-        "WeakMap" => property switch
+            if (property.SequenceEqual("for"u8) || property.SequenceEqual("keyFor"u8)) return Libraryes2015;
+            if (property.SequenceEqual("description"u8)) return Libraryes2019;
+            return null;
+        }
+        if (name.SequenceEqual("WeakMap"u8))
         {
-            "getOrInsert" or "getOrInsertComputed" => "esnext",
-            _ => null
-        },
-        "WeakSet" => property switch
+            if (property.SequenceEqual("getOrInsert"u8) || property.SequenceEqual("getOrInsertComputed"u8)) return Libraryesnext;
+            return null;
+        }
+        if (name.SequenceEqual("WeakSet"u8))
         {
-            _ => null
-        },
-        "String" => property switch
+            return null;
+        }
+        if (name.SequenceEqual("String"u8))
         {
-            "codePointAt" or "includes" or "endsWith" or "normalize" or "repeat" or "startsWith" or "anchor" or "big" or "blink" or "bold" or "fixed" or "fontcolor" or "fontsize" or "italics" or "link" or "small" or "strike" or "sub" or "sup" => "es2015",
-            "padStart" or "padEnd" => "es2017",
-            "trimStart" or "trimEnd" or "trimLeft" or "trimRight" => "es2019",
-            "matchAll" => "es2020",
-            "replaceAll" => "es2021",
-            "at" => "es2022",
-            "isWellFormed" or "toWellFormed" => "es2024",
-            _ => null
-        },
-        "StringConstructor" => property switch
+            if (property.SequenceEqual("codePointAt"u8) || property.SequenceEqual("includes"u8) || property.SequenceEqual("endsWith"u8) || property.SequenceEqual("normalize"u8) || property.SequenceEqual("repeat"u8) || property.SequenceEqual("startsWith"u8) || property.SequenceEqual("anchor"u8) || property.SequenceEqual("big"u8) || property.SequenceEqual("blink"u8) || property.SequenceEqual("bold"u8) || property.SequenceEqual("fixed"u8) || property.SequenceEqual("fontcolor"u8) || property.SequenceEqual("fontsize"u8) || property.SequenceEqual("italics"u8) || property.SequenceEqual("link"u8) || property.SequenceEqual("small"u8) || property.SequenceEqual("strike"u8) || property.SequenceEqual("sub"u8) || property.SequenceEqual("sup"u8)) return Libraryes2015;
+            if (property.SequenceEqual("padStart"u8) || property.SequenceEqual("padEnd"u8)) return Libraryes2017;
+            if (property.SequenceEqual("trimStart"u8) || property.SequenceEqual("trimEnd"u8) || property.SequenceEqual("trimLeft"u8) || property.SequenceEqual("trimRight"u8)) return Libraryes2019;
+            if (property.SequenceEqual("matchAll"u8)) return Libraryes2020;
+            if (property.SequenceEqual("replaceAll"u8)) return Libraryes2021;
+            if (property.SequenceEqual("at"u8)) return Libraryes2022;
+            if (property.SequenceEqual("isWellFormed"u8) || property.SequenceEqual("toWellFormed"u8)) return Libraryes2024;
+            return null;
+        }
+        if (name.SequenceEqual("StringConstructor"u8))
         {
-            "fromCodePoint" or "raw" => "es2015",
-            _ => null
-        },
-        "DateTimeFormat" => property switch
+            if (property.SequenceEqual("fromCodePoint"u8) || property.SequenceEqual("raw"u8)) return Libraryes2015;
+            return null;
+        }
+        if (name.SequenceEqual("DateTimeFormat"u8))
         {
-            "formatToParts" => "es2017",
-            _ => null
-        },
-        "Promise" => property switch
+            if (property.SequenceEqual("formatToParts"u8)) return Libraryes2017;
+            return null;
+        }
+        if (name.SequenceEqual("Promise"u8))
         {
-            "finally" => "es2018",
-            _ => null
-        },
-        "RegExpMatchArray" => property switch
+            if (property.SequenceEqual("finally"u8)) return Libraryes2018;
+            return null;
+        }
+        if (name.SequenceEqual("RegExpMatchArray"u8))
         {
-            "groups" => "es2018",
-            _ => null
-        },
-        "RegExpExecArray" => property switch
+            if (property.SequenceEqual("groups"u8)) return Libraryes2018;
+            return null;
+        }
+        if (name.SequenceEqual("RegExpExecArray"u8))
         {
-            "groups" => "es2018",
-            _ => null
-        },
-        "Intl" => property switch
+            if (property.SequenceEqual("groups"u8)) return Libraryes2018;
+            return null;
+        }
+        if (name.SequenceEqual("Intl"u8))
         {
-            "PluralRules" => "es2018",
-            "RelativeTimeFormat" or "Locale" or "DisplayNames" => "es2020",
-            "ListFormat" or "DateTimeFormat" => "es2021",
-            "Segmenter" => "es2022",
-            "DurationFormat" => "es2025",
-            _ => null
-        },
-        "NumberFormat" => property switch
+            if (property.SequenceEqual("PluralRules"u8)) return Libraryes2018;
+            if (property.SequenceEqual("RelativeTimeFormat"u8) || property.SequenceEqual("Locale"u8) || property.SequenceEqual("DisplayNames"u8)) return Libraryes2020;
+            if (property.SequenceEqual("ListFormat"u8) || property.SequenceEqual("DateTimeFormat"u8)) return Libraryes2021;
+            if (property.SequenceEqual("Segmenter"u8)) return Libraryes2022;
+            if (property.SequenceEqual("DurationFormat"u8)) return Libraryes2025;
+            return null;
+        }
+        if (name.SequenceEqual("NumberFormat"u8))
         {
-            "formatToParts" => "es2018",
-            _ => null
-        },
-        "SymbolConstructor" => property switch
+            if (property.SequenceEqual("formatToParts"u8)) return Libraryes2018;
+            return null;
+        }
+        if (name.SequenceEqual("SymbolConstructor"u8))
         {
-            "matchAll" => "es2020",
-            "metadata" or "dispose" or "asyncDispose" => "esnext",
-            _ => null
-        },
-        "DataView" => property switch
+            if (property.SequenceEqual("matchAll"u8)) return Libraryes2020;
+            if (property.SequenceEqual("metadata"u8) || property.SequenceEqual("dispose"u8) || property.SequenceEqual("asyncDispose"u8)) return Libraryesnext;
+            return null;
+        }
+        if (name.SequenceEqual("DataView"u8))
         {
-            "setBigInt64" or "setBigUint64" or "getBigInt64" or "getBigUint64" => "es2020",
-            "setFloat16" or "getFloat16" => "es2025",
-            _ => null
-        },
-        "BigInt" => property switch
+            if (property.SequenceEqual("setBigInt64"u8) || property.SequenceEqual("setBigUint64"u8) || property.SequenceEqual("getBigInt64"u8) || property.SequenceEqual("getBigUint64"u8)) return Libraryes2020;
+            if (property.SequenceEqual("setFloat16"u8) || property.SequenceEqual("getFloat16"u8)) return Libraryes2025;
+            return null;
+        }
+        if (name.SequenceEqual("BigInt"u8))
         {
-            _ => null
-        },
-        "RelativeTimeFormat" => property switch
+            return null;
+        }
+        if (name.SequenceEqual("RelativeTimeFormat"u8))
         {
-            "format" or "formatToParts" or "resolvedOptions" => "es2020",
-            _ => null
-        },
-        "Int8Array" => property switch
+            if (property.SequenceEqual("format"u8) || property.SequenceEqual("formatToParts"u8) || property.SequenceEqual("resolvedOptions"u8)) return Libraryes2020;
+            return null;
+        }
+        if (name.SequenceEqual("Int8Array"u8))
         {
-            "at" => "es2022",
-            "findLastIndex" or "findLast" or "toReversed" or "toSorted" or "toSpliced" or "with" => "es2023",
-            _ => null
-        },
-        "Uint8Array" => property switch
+            if (property.SequenceEqual("at"u8)) return Libraryes2022;
+            if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
+            return null;
+        }
+        if (name.SequenceEqual("Uint8Array"u8))
         {
-            "at" => "es2022",
-            "findLastIndex" or "findLast" or "toReversed" or "toSorted" or "toSpliced" or "with" => "es2023",
-            _ => null
-        },
-        "Uint8ClampedArray" => property switch
+            if (property.SequenceEqual("at"u8)) return Libraryes2022;
+            if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
+            return null;
+        }
+        if (name.SequenceEqual("Uint8ClampedArray"u8))
         {
-            "at" => "es2022",
-            "findLastIndex" or "findLast" or "toReversed" or "toSorted" or "toSpliced" or "with" => "es2023",
-            _ => null
-        },
-        "Int16Array" => property switch
+            if (property.SequenceEqual("at"u8)) return Libraryes2022;
+            if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
+            return null;
+        }
+        if (name.SequenceEqual("Int16Array"u8))
         {
-            "at" => "es2022",
-            "findLastIndex" or "findLast" or "toReversed" or "toSorted" or "toSpliced" or "with" => "es2023",
-            _ => null
-        },
-        "Uint16Array" => property switch
+            if (property.SequenceEqual("at"u8)) return Libraryes2022;
+            if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
+            return null;
+        }
+        if (name.SequenceEqual("Uint16Array"u8))
         {
-            "at" => "es2022",
-            "findLastIndex" or "findLast" or "toReversed" or "toSorted" or "toSpliced" or "with" => "es2023",
-            _ => null
-        },
-        "Int32Array" => property switch
+            if (property.SequenceEqual("at"u8)) return Libraryes2022;
+            if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
+            return null;
+        }
+        if (name.SequenceEqual("Int32Array"u8))
         {
-            "at" => "es2022",
-            "findLastIndex" or "findLast" or "toReversed" or "toSorted" or "toSpliced" or "with" => "es2023",
-            _ => null
-        },
-        "Uint32Array" => property switch
+            if (property.SequenceEqual("at"u8)) return Libraryes2022;
+            if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
+            return null;
+        }
+        if (name.SequenceEqual("Uint32Array"u8))
         {
-            "at" => "es2022",
-            "findLastIndex" or "findLast" or "toReversed" or "toSorted" or "toSpliced" or "with" => "es2023",
-            _ => null
-        },
-        "Float16Array" => property switch
+            if (property.SequenceEqual("at"u8)) return Libraryes2022;
+            if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
+            return null;
+        }
+        if (name.SequenceEqual("Float16Array"u8))
         {
-            _ => null
-        },
-        "Float32Array" => property switch
+            return null;
+        }
+        if (name.SequenceEqual("Float32Array"u8))
         {
-            "at" => "es2022",
-            "findLastIndex" or "findLast" or "toReversed" or "toSorted" or "toSpliced" or "with" => "es2023",
-            _ => null
-        },
-        "Float64Array" => property switch
+            if (property.SequenceEqual("at"u8)) return Libraryes2022;
+            if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
+            return null;
+        }
+        if (name.SequenceEqual("Float64Array"u8))
         {
-            "at" => "es2022",
-            "findLastIndex" or "findLast" or "toReversed" or "toSorted" or "toSpliced" or "with" => "es2023",
-            _ => null
-        },
-        "BigInt64Array" => property switch
+            if (property.SequenceEqual("at"u8)) return Libraryes2022;
+            if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
+            return null;
+        }
+        if (name.SequenceEqual("BigInt64Array"u8))
         {
-            "at" => "es2022",
-            "findLastIndex" or "findLast" or "toReversed" or "toSorted" or "toSpliced" or "with" => "es2023",
-            _ => null
-        },
-        "BigUint64Array" => property switch
+            if (property.SequenceEqual("at"u8)) return Libraryes2022;
+            if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
+            return null;
+        }
+        if (name.SequenceEqual("BigUint64Array"u8))
         {
-            "at" => "es2022",
-            "findLastIndex" or "findLast" or "toReversed" or "toSorted" or "toSpliced" or "with" => "es2023",
-            _ => null
-        },
-        "Error" => property switch
+            if (property.SequenceEqual("at"u8)) return Libraryes2022;
+            if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
+            return null;
+        }
+        if (name.SequenceEqual("Error"u8))
         {
-            "cause" => "es2022",
-            _ => null
-        },
-        "ErrorConstructor" => property switch
+            if (property.SequenceEqual("cause"u8)) return Libraryes2022;
+            return null;
+        }
+        if (name.SequenceEqual("ErrorConstructor"u8))
         {
-            "isError" => "esnext",
-            _ => null
-        },
-        "Uint8ArrayConstructor" => property switch
+            if (property.SequenceEqual("isError"u8)) return Libraryesnext;
+            return null;
+        }
+        if (name.SequenceEqual("Uint8ArrayConstructor"u8))
         {
-            "fromBase64" or "fromHex" => "esnext",
-            _ => null
-        },
-        "DisposableStack" => property switch
+            if (property.SequenceEqual("fromBase64"u8) || property.SequenceEqual("fromHex"u8)) return Libraryesnext;
+            return null;
+        }
+        if (name.SequenceEqual("DisposableStack"u8))
         {
-            _ => null
-        },
-        "AsyncDisposableStack" => property switch
+            return null;
+        }
+        if (name.SequenceEqual("AsyncDisposableStack"u8))
         {
-            _ => null
-        },
-        "Date" => property switch
+            return null;
+        }
+        if (name.SequenceEqual("Date"u8))
         {
-            "toTemporalInstant" => "esnext",
-            _ => null
-        },
-        _ => null
-    };
+            if (property.SequenceEqual("toTemporalInstant"u8)) return Libraryesnext;
+            return null;
+        }
+        return null;
+    }
 
-    internal static string? NameLibrary(ReadOnlySpan<char> name) => name switch
+    internal static Utf8String? NameLibrary(ReadOnlySpan<byte> name)
     {
-        "Array" => "es2015",
-        "Iterator" => "es2015",
-        "AsyncIterator" => "es2015",
-        "ArrayBuffer" => "es2024",
-        "Atomics" => "es2017",
-        "SharedArrayBuffer" => "es2017",
-        "AsyncIterable" => "es2018",
-        "AsyncIterableIterator" => "es2018",
-        "AsyncGenerator" => "es2018",
-        "AsyncGeneratorFunction" => "es2018",
-        "RegExp" => "es2015",
-        "RegExpConstructor" => "es2025",
-        "Reflect" => "es2015",
-        "ArrayConstructor" => "es2015",
-        "ObjectConstructor" => "es2015",
-        "NumberConstructor" => "es2015",
-        "Math" => "es2015",
-        "Map" => "es2015",
-        "MapConstructor" => "es2024",
-        "Set" => "es2015",
-        "PromiseConstructor" => "es2015",
-        "Symbol" => "es2015",
-        "WeakMap" => "es2015",
-        "WeakSet" => "es2015",
-        "String" => "es2015",
-        "StringConstructor" => "es2015",
-        "DateTimeFormat" => "es2017",
-        "Promise" => "es2015",
-        "RegExpMatchArray" => "es2018",
-        "RegExpExecArray" => "es2018",
-        "Intl" => "es2018",
-        "NumberFormat" => "es2018",
-        "SymbolConstructor" => "es2020",
-        "DataView" => "es2020",
-        "BigInt" => "es2020",
-        "RelativeTimeFormat" => "es2020",
-        "Int8Array" => "es2022",
-        "Uint8Array" => "es2022",
-        "Uint8ClampedArray" => "es2022",
-        "Int16Array" => "es2022",
-        "Uint16Array" => "es2022",
-        "Int32Array" => "es2022",
-        "Uint32Array" => "es2022",
-        "Float16Array" => "es2025",
-        "Float32Array" => "es2022",
-        "Float64Array" => "es2022",
-        "BigInt64Array" => "es2020",
-        "BigUint64Array" => "es2020",
-        "Error" => "es2022",
-        "ErrorConstructor" => "esnext",
-        "Uint8ArrayConstructor" => "esnext",
-        "DisposableStack" => "esnext",
-        "AsyncDisposableStack" => "esnext",
-        "Date" => "esnext",
-        _ => null
-    };
+        if (name.SequenceEqual("Array"u8)) return Libraryes2015;
+        if (name.SequenceEqual("Iterator"u8)) return Libraryes2015;
+        if (name.SequenceEqual("AsyncIterator"u8)) return Libraryes2015;
+        if (name.SequenceEqual("ArrayBuffer"u8)) return Libraryes2024;
+        if (name.SequenceEqual("Atomics"u8)) return Libraryes2017;
+        if (name.SequenceEqual("SharedArrayBuffer"u8)) return Libraryes2017;
+        if (name.SequenceEqual("AsyncIterable"u8)) return Libraryes2018;
+        if (name.SequenceEqual("AsyncIterableIterator"u8)) return Libraryes2018;
+        if (name.SequenceEqual("AsyncGenerator"u8)) return Libraryes2018;
+        if (name.SequenceEqual("AsyncGeneratorFunction"u8)) return Libraryes2018;
+        if (name.SequenceEqual("RegExp"u8)) return Libraryes2015;
+        if (name.SequenceEqual("RegExpConstructor"u8)) return Libraryes2025;
+        if (name.SequenceEqual("Reflect"u8)) return Libraryes2015;
+        if (name.SequenceEqual("ArrayConstructor"u8)) return Libraryes2015;
+        if (name.SequenceEqual("ObjectConstructor"u8)) return Libraryes2015;
+        if (name.SequenceEqual("NumberConstructor"u8)) return Libraryes2015;
+        if (name.SequenceEqual("Math"u8)) return Libraryes2015;
+        if (name.SequenceEqual("Map"u8)) return Libraryes2015;
+        if (name.SequenceEqual("MapConstructor"u8)) return Libraryes2024;
+        if (name.SequenceEqual("Set"u8)) return Libraryes2015;
+        if (name.SequenceEqual("PromiseConstructor"u8)) return Libraryes2015;
+        if (name.SequenceEqual("Symbol"u8)) return Libraryes2015;
+        if (name.SequenceEqual("WeakMap"u8)) return Libraryes2015;
+        if (name.SequenceEqual("WeakSet"u8)) return Libraryes2015;
+        if (name.SequenceEqual("String"u8)) return Libraryes2015;
+        if (name.SequenceEqual("StringConstructor"u8)) return Libraryes2015;
+        if (name.SequenceEqual("DateTimeFormat"u8)) return Libraryes2017;
+        if (name.SequenceEqual("Promise"u8)) return Libraryes2015;
+        if (name.SequenceEqual("RegExpMatchArray"u8)) return Libraryes2018;
+        if (name.SequenceEqual("RegExpExecArray"u8)) return Libraryes2018;
+        if (name.SequenceEqual("Intl"u8)) return Libraryes2018;
+        if (name.SequenceEqual("NumberFormat"u8)) return Libraryes2018;
+        if (name.SequenceEqual("SymbolConstructor"u8)) return Libraryes2020;
+        if (name.SequenceEqual("DataView"u8)) return Libraryes2020;
+        if (name.SequenceEqual("BigInt"u8)) return Libraryes2020;
+        if (name.SequenceEqual("RelativeTimeFormat"u8)) return Libraryes2020;
+        if (name.SequenceEqual("Int8Array"u8)) return Libraryes2022;
+        if (name.SequenceEqual("Uint8Array"u8)) return Libraryes2022;
+        if (name.SequenceEqual("Uint8ClampedArray"u8)) return Libraryes2022;
+        if (name.SequenceEqual("Int16Array"u8)) return Libraryes2022;
+        if (name.SequenceEqual("Uint16Array"u8)) return Libraryes2022;
+        if (name.SequenceEqual("Int32Array"u8)) return Libraryes2022;
+        if (name.SequenceEqual("Uint32Array"u8)) return Libraryes2022;
+        if (name.SequenceEqual("Float16Array"u8)) return Libraryes2025;
+        if (name.SequenceEqual("Float32Array"u8)) return Libraryes2022;
+        if (name.SequenceEqual("Float64Array"u8)) return Libraryes2022;
+        if (name.SequenceEqual("BigInt64Array"u8)) return Libraryes2020;
+        if (name.SequenceEqual("BigUint64Array"u8)) return Libraryes2020;
+        if (name.SequenceEqual("Error"u8)) return Libraryes2022;
+        if (name.SequenceEqual("ErrorConstructor"u8)) return Libraryesnext;
+        if (name.SequenceEqual("Uint8ArrayConstructor"u8)) return Libraryesnext;
+        if (name.SequenceEqual("DisposableStack"u8)) return Libraryesnext;
+        if (name.SequenceEqual("AsyncDisposableStack"u8)) return Libraryesnext;
+        if (name.SequenceEqual("Date"u8)) return Libraryesnext;
+        return null;
+    }
+
+    private static readonly Utf8String Libraryes2015 = "es2015"u8;
+    private static readonly Utf8String Libraryes2016 = "es2016"u8;
+    private static readonly Utf8String Libraryes2017 = "es2017"u8;
+    private static readonly Utf8String Libraryes2018 = "es2018"u8;
+    private static readonly Utf8String Libraryes2019 = "es2019"u8;
+    private static readonly Utf8String Libraryes2020 = "es2020"u8;
+    private static readonly Utf8String Libraryes2021 = "es2021"u8;
+    private static readonly Utf8String Libraryes2022 = "es2022"u8;
+    private static readonly Utf8String Libraryes2023 = "es2023"u8;
+    private static readonly Utf8String Libraryes2024 = "es2024"u8;
+    private static readonly Utf8String Libraryes2025 = "es2025"u8;
+    private static readonly Utf8String Libraryesnext = "esnext"u8;
 }

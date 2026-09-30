@@ -23,20 +23,20 @@ internal static class CheckerIndexTests
                 throw new InvalidOperationException($"Indexed type assertion {checks + 1}");
             checks++;
         }
-        const string source = "interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}interface I{a:string;b?:number}interface J{x:string;y:number}type M<T>={[P in keyof T]?:T[P]};type A<T>={a:string;b:number}[keyof T];type B<T>=[1,...T[]][number];";
+        Utf8String source = "interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}interface I{a:string;b?:number}interface J{x:string;y:number}type M<T>={[P in keyof T]?:T[P]};type A<T>={a:string;b:number}[keyof T];type B<T>=[1,...T[]][number];"u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/main.ts"u8] = source.Span.ToArray() }), "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
         var scope = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
         var host = new Checker(context, links, scope);
-        var i = await host.Declared.GetAsync(symbols.Globals["I"]);
-        var j = await host.Declared.GetAsync(symbols.Globals["J"]);
+        var i = await host.Declared.GetAsync(symbols.Globals["I"u8]);
+        var j = await host.Declared.GetAsync(symbols.Globals["J"u8]);
         host.BeforeMemberTable = _ => throw new OperationCanceledException();
         try
         {
@@ -51,12 +51,12 @@ internal static class CheckerIndexTests
         var keys = await host.Keys.GetAsync(i);
         Check(keys is UnionType { Types.Count: 2, Origin: IndexType });
         Check(await host.Keys.GetAsync(i) == keys);
-        Check(await host.Indexed.GetAsync(i, context.GetStringLiteralType("a")) == context.StringType);
-        Check(await host.Indexed.TryGetAsync(i, context.GetStringLiteralType("absent")) is null);
-        Check(await host.Indexed.GetAsync(i, context.GetStringLiteralType("absent")) == context.UnknownType);
+        Check(await host.Indexed.GetAsync(i, context.GetStringLiteralType("a"u8)) == context.StringType);
+        Check(await host.Indexed.TryGetAsync(i, context.GetStringLiteralType("absent"u8)) is null);
+        Check(await host.Indexed.GetAsync(i, context.GetStringLiteralType("absent"u8)) == context.UnknownType);
         Check(await host.Indexed.GetAsync(context.WildcardType, context.NumberType) == context.WildcardType);
         Check(await host.Indexed.GetAsync(i, context.WildcardType) == context.WildcardType);
-        var both = await host.Algebra.UnionAsync([context.GetStringLiteralType("x"), context.GetStringLiteralType("y")]);
+        var both = await host.Algebra.UnionAsync([context.GetStringLiteralType("x"u8), context.GetStringLiteralType("y"u8)]);
         Check(await host.Indexed.GetAsync(j, both) == context.StringOrNumberType);
         Check(await host.Indexed.GetAsync(j, both, AccessFlags.Writing) == context.NeverType);
         var p = context.NewTypeParameter();
@@ -69,7 +69,7 @@ internal static class CheckerIndexTests
         var optional = context.GetGenericIndexedAccess(p, context.StringType, AccessFlags.Writing | AccessFlags.IncludeUndefined);
         Check(optional.AccessFlags == AccessFlags.IncludeUndefined && optional != generic);
 
-        var mapping = (MappedType)await host.Declared.GetAsync(symbols.Globals["M"]);
+        var mapping = (MappedType)await host.Declared.GetAsync(symbols.Globals["M"u8]);
         var mappedAccess = context.GetGenericIndexedAccess(mapping, context.StringType, 0);
         host.BeforeNode = _ => throw new OperationCanceledException();
         try
@@ -123,7 +123,7 @@ internal static class CheckerIndexTests
 
     private static async Task<int> IndexDiagnosticSafety()
     {
-        string source = "\n" + """
+        Utf8String source = Utf8String.Concat("\n"u8, Utf8String.FromString("""
             interface Array<T> { length: number; [n: number]: T; }
             interface Shape { length: number; }
             declare const shape: Shape;
@@ -156,34 +156,34 @@ internal static class CheckerIndexTests
             type Bad = Shape['missing'];
             type Invalid = Shape[{}];
             type Numeric = Shape[number];
-            """.Replace("\r\n", "\n", StringComparison.Ordinal) + "\n";
-        const string reference = """
+            """.Replace("\r\n", "\n", StringComparison.Ordinal)), "\n"u8);
+        Utf8String reference = """
             [{"arguments":["\"missing\"","Shape"],"category":1,"chain":[{"arguments":["missing","Shape"],"category":1,"chain":[],"code":2339,"file":"/project/main.ts","key":"Property_0_does_not_exist_on_type_1_2339","length":16,"related":[],"start":120}],"code":7053,"file":"/project/main.ts","key":"Element_implicitly_has_an_any_type_because_expression_of_type_0_can_t_be_used_to_index_type_1_7053","length":16,"related":[],"start":120},{"arguments":["lenght","Shape","length"],"category":1,"chain":[],"code":2551,"file":"/project/main.ts","key":"Property_0_does_not_exist_on_type_1_Did_you_mean_2_2551","length":8,"related":[],"start":144},{"arguments":["string","Shape"],"category":1,"chain":[{"arguments":["string","Shape"],"category":1,"chain":[],"code":7054,"file":"/project/main.ts","key":"No_index_signature_with_a_parameter_of_type_0_was_found_on_type_1_7054","length":10,"related":[],"start":182}],"code":7053,"file":"/project/main.ts","key":"Element_implicitly_has_an_any_type_because_expression_of_type_0_can_t_be_used_to_index_type_1_7053","length":10,"related":[],"start":182},{"arguments":["number","Shape"],"category":1,"chain":[{"arguments":["number","Shape"],"category":1,"chain":[],"code":7054,"file":"/project/main.ts","key":"No_index_signature_with_a_parameter_of_type_0_was_found_on_type_1_7054","length":14,"related":[],"start":225}],"code":7053,"file":"/project/main.ts","key":"Element_implicitly_has_an_any_type_because_expression_of_type_0_can_t_be_used_to_index_type_1_7053","length":14,"related":[],"start":225},{"arguments":["[number, string]","2","3"],"category":1,"chain":[],"code":2493,"file":"/project/main.ts","key":"Tuple_type_0_of_length_1_has_no_element_at_index_2_2493","length":1,"related":[],"start":286},{"arguments":[],"category":1,"chain":[],"code":2514,"file":"/project/main.ts","key":"A_tuple_type_cannot_be_indexed_with_a_negative_value_2514","length":2,"related":[],"start":296},{"arguments":["{}"],"category":1,"chain":[],"code":2538,"file":"/project/main.ts","key":"Type_0_cannot_be_used_as_an_index_type_2538","length":9,"related":[],"start":336},{"arguments":["true"],"category":1,"chain":[],"code":2538,"file":"/project/main.ts","key":"Type_0_cannot_be_used_as_an_index_type_2538","length":4,"related":[],"start":354},{"arguments":[],"category":1,"chain":[],"code":7015,"file":"/project/main.ts","key":"Element_implicitly_has_an_any_type_because_index_expression_is_not_of_type_number_7015","length":9,"related":[],"start":398},{"arguments":["value","Static","Static['value']"],"category":1,"chain":[],"code":2576,"file":"/project/main.ts","key":"Property_0_does_not_exist_on_type_1_Did_you_mean_to_access_the_static_member_2_instead_2576","length":17,"related":[],"start":477},{"arguments":["{ get(key: string): number; set(key: string, value: number): void; }","container.api.get"],"category":1,"chain":[],"code":7052,"file":"/project/main.ts","key":"Element_implicitly_has_an_any_type_because_type_0_has_no_index_signature_Did_you_mean_to_call_1_7052","length":18,"related":[],"start":599},{"arguments":["{ get(key: string): number; set(key: string, value: number): void; }","container.api.set"],"category":1,"chain":[],"code":7052,"file":"/project/main.ts","key":"Element_implicitly_has_an_any_type_because_type_0_has_no_index_signature_Did_you_mean_to_call_1_7052","length":18,"related":[],"start":619},{"arguments":["unique symbol","Shape"],"category":1,"chain":[{"arguments":["[symbol]","Shape"],"category":1,"chain":[],"code":2339,"file":"/project/main.ts","key":"Property_0_does_not_exist_on_type_1_2339","length":13,"related":[],"start":680}],"code":7053,"file":"/project/main.ts","key":"Element_implicitly_has_an_any_type_because_expression_of_type_0_can_t_be_used_to_index_type_1_7053","length":13,"related":[],"start":680},{"arguments":["E.A","Shape"],"category":1,"chain":[{"arguments":["[E.A]","Shape"],"category":1,"chain":[],"code":2339,"file":"/project/main.ts","key":"Property_0_does_not_exist_on_type_1_2339","length":13,"related":[],"start":750}],"code":7053,"file":"/project/main.ts","key":"Element_implicitly_has_an_any_type_because_expression_of_type_0_can_t_be_used_to_index_type_1_7053","length":13,"related":[],"start":750},{"arguments":["\"missing\"","{ value: number; }"],"category":1,"chain":[{"arguments":["missing","{ value: number; }"],"category":1,"chain":[],"code":2339,"file":"/project/main.ts","key":"Property_0_does_not_exist_on_type_1_2339","length":18,"related":[],"start":795}],"code":7053,"file":"/project/main.ts","key":"Element_implicitly_has_an_any_type_because_expression_of_type_0_can_t_be_used_to_index_type_1_7053","length":18,"related":[],"start":795},{"arguments":["missing","Shape"],"category":1,"chain":[],"code":2339,"file":"/project/main.ts","key":"Property_0_does_not_exist_on_type_1_2339","length":9,"related":[],"start":832},{"arguments":["{}"],"category":1,"chain":[],"code":2538,"file":"/project/main.ts","key":"Type_0_cannot_be_used_as_an_index_type_2538","length":2,"related":[],"start":865},{"arguments":["Shape","number"],"category":1,"chain":[],"code":2537,"file":"/project/main.ts","key":"Type_0_has_no_matching_index_signature_for_type_1_2537","length":6,"related":[],"start":891}]
-            """;
+            """u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        options.SetRaw("noErrorTruncation", "true");
-        options.SetRaw("target", "\"esnext\"");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        options.SetRaw("noErrorTruncation"u8, "true"u8);
+        options.SetRaw("target"u8, "\"esnext\""u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/main.ts"u8] = source.Span.ToArray() }), "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
         await checker.CheckProgramAsync();
-        var file = program.GetFile("/project/main.ts")!.Syntax;
+        var file = program.GetFile("/project/main.ts"u8)!.Syntax;
         using var stream = new MemoryStream();
         using (var writer = new Utf8JsonWriter(stream))
             CheckerCorpusTests.WriteDiagnostics(writer, checker.DetailedDiagnosticsForFile(file).OrderBy(d => d.Start));
         using var actual = JsonDocument.Parse(stream.ToArray());
-        using var expected = JsonDocument.Parse(reference);
+        using var expected = JsonDocument.Parse(reference.Memory);
         if (actual.RootElement.GetArrayLength() != expected.RootElement.GetArrayLength())
             throw new InvalidOperationException("Index diagnostic count");
         for (int i = 0; i < actual.RootElement.GetArrayLength(); i++)
             if (!JsonElement.DeepEquals(actual.RootElement[i], expected.RootElement[i]))
-                throw new InvalidOperationException($"Index diagnostic {i}: {actual.RootElement[i].GetRawText()}");
+                throw new InvalidOperationException($"Index diagnostic {i}: {JsonStrings.Raw(actual.RootElement[i])}");
         int count = checker.DetailedDiagnosticsForFile(file).Count;
         var node = file.DescendantsAndSelf().OfType<ElementAccessExpressionNode>().First();
-        var type = await checker.Declared.GetAsync(checker.Symbols.Globals["Shape"]);
+        var type = await checker.Declared.GetAsync(checker.Symbols.Globals["Shape"u8]);
         using var cancellation = new CancellationTokenSource();
         cancellation.Cancel();
         try
@@ -207,26 +207,26 @@ internal static class CheckerIndexTests
 
     private static async Task<int> ComputedIndexSafety()
     {
-        const string source = """
+        Utf8String source = """
             interface Array<T> { length: number; [n: number]: T; }
             declare const textKey: string, numberKey: number, symbolKey: symbol;
             class Strings { [textKey] = 1; named = 'text'; }
             class Numbers { readonly [numberKey] = 1; 1 = 'text'; other = true; }
             class Symbols { [symbolKey] = true; other = 1; }
-            """;
+            """u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        options.SetRaw("target", "\"esnext\"");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/main.ts"] = Wtf8.Encode(source) }),
-            "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        options.SetRaw("target"u8, "\"esnext\""u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/main.ts"u8] = source.Span.ToArray() }),
+            "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
         var file = program.SourceFiles[0].Syntax;
         var nodes = file.DescendantsAndSelf().ToArray();
         var parents = nodes.Select(n => n.Parent).ToArray();
-        var stringType = await checker.Declared.GetAsync(checker.Symbols.Globals["Strings"]);
+        var stringType = await checker.Declared.GetAsync(checker.Symbols.Globals["Strings"u8]);
         int tables = checker.LateMembers.CachedTableCount;
         checker.BeforeExpressionFinish = () => throw new OperationCanceledException();
         try
@@ -243,13 +243,13 @@ internal static class CheckerIndexTests
             || !checker.Predicates.Maybe(strings.ValueType, TypeFlags.NumberLike, default)
             || !checker.Predicates.Maybe(strings.ValueType, TypeFlags.StringLike, default))
             throw new InvalidOperationException("Computed string index lost sibling property types");
-        var numbers = (await checker.IndexesAsync(await checker.Declared.GetAsync(checker.Symbols.Globals["Numbers"]), default)).Single();
+        var numbers = (await checker.IndexesAsync(await checker.Declared.GetAsync(checker.Symbols.Globals["Numbers"u8]), default)).Single();
         if (numbers.KeyType != checker.Context.NumberType || !numbers.IsReadonly
             || !checker.Predicates.Maybe(numbers.ValueType, TypeFlags.NumberLike, default)
             || !checker.Predicates.Maybe(numbers.ValueType, TypeFlags.StringLike, default)
             || checker.Predicates.Maybe(numbers.ValueType, TypeFlags.BooleanLike, default))
             throw new InvalidOperationException("Computed number index classification or readonly flag changed");
-        var symbols = (await checker.IndexesAsync(await checker.Declared.GetAsync(checker.Symbols.Globals["Symbols"]), default)).Single();
+        var symbols = (await checker.IndexesAsync(await checker.Declared.GetAsync(checker.Symbols.Globals["Symbols"u8]), default)).Single();
         if (symbols.KeyType != checker.Context.ESSymbolType || symbols.IsReadonly
             || !checker.Predicates.Maybe(symbols.ValueType, TypeFlags.BooleanLike, default)
             || checker.Predicates.Maybe(symbols.ValueType, TypeFlags.NumberLike, default))
@@ -289,7 +289,7 @@ internal static class CheckerIndexTests
                 }
             }
         }
-        void Rows(string name, List<int[]> rows)
+        void Rows(Utf8String name, List<int[]> rows)
         {
             writer.WriteStartArray(name);
             foreach (var row in rows)
@@ -301,7 +301,7 @@ internal static class CheckerIndexTests
             }
             writer.WriteEndArray();
         }
-        Rows("keyQueries", keys);
-        Rows("indexQueries", indexes);
+        Rows("keyQueries"u8, keys);
+        Rows("indexQueries"u8, indexes);
     }
 }

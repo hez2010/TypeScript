@@ -7,7 +7,7 @@ namespace TypeScript.Compiler.Checking;
 
 internal interface ITypeDiscriminationHost
 {
-    ValueTask<Type?> FlowPropertyTypeAsync(Type type, TextSlice name, bool includeIndex, CancellationToken cancellation);
+    ValueTask<Type?> FlowPropertyTypeAsync(Type type, Utf8String name, bool includeIndex, CancellationToken cancellation);
 }
 
 internal sealed class TypeDiscrimination(TypeContext context, TypeAlgebra algebra, TypeViews views, TypeProperties properties,
@@ -20,13 +20,13 @@ internal sealed class TypeDiscrimination(TypeContext context, TypeAlgebra algebr
     internal async ValueTask<Type> JsxAsync(
         JsxAttributesNode node,
         UnionType target,
-        TextSlice? childrenName,
+        Utf8String? childrenName,
         bool hasChildren,
         CancellationToken cancellation)
     {
         if (jsxAttributes.TryGetValue((node, target), out var cached))
             return cached;
-        var names = new List<TextSlice>();
+        var names = new List<Utf8String>();
         var sources = new List<(SyntaxNode? Expression, Type Fixed)>();
         foreach (var attribute in node.Properties!.OfType<JsxAttributeNode>())
         {
@@ -69,7 +69,7 @@ internal sealed class TypeDiscrimination(TypeContext context, TypeAlgebra algebr
         cancellation.ThrowIfCancellationRequested();
         if (objects.TryGetValue((node, target), out var cached))
             return cached;
-        TextSlice key = await discriminants.KeyAsync(target, cancellation).ConfigureAwait(false);
+        Utf8String key = await discriminants.KeyAsync(target, cancellation).ConfigureAwait(false);
         if (key.Length != 0)
         {
             var property = node.Properties!.OfType<PropertyAssignmentNode>().FirstOrDefault(p =>
@@ -83,7 +83,7 @@ internal sealed class TypeDiscrimination(TypeContext context, TypeAlgebra algebr
                     return objects[(node, target)] = match;
             }
         }
-        var names = new List<TextSlice>();
+        var names = new List<Utf8String>();
         var expressions = new List<SyntaxNode?>();
         foreach (var property in node.Properties!)
         {
@@ -155,7 +155,7 @@ internal sealed class TypeDiscrimination(TypeContext context, TypeAlgebra algebr
         return result == target ? null : result;
     }
 
-    private async ValueTask<Type> SelectAsync(UnionType target, IReadOnlyList<TextSlice> names, Func<int, Type, ValueTask<bool>> matches,
+    private async ValueTask<Type> SelectAsync(UnionType target, IReadOnlyList<Utf8String> names, Func<int, Type, ValueTask<bool>> matches,
         CancellationToken cancellation)
     {
         var include = new Ternary[target.Types.Count];

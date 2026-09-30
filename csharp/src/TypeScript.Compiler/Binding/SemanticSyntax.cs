@@ -73,10 +73,9 @@ internal static class SemanticSyntax
     }
 
     internal static bool ConstAssertion(SyntaxNode node) => node.Kind is K.AsExpression or K.TypeAssertionExpression
-        && node is ITypedNode { Type: TypeReferenceNode { TypeName: IdentifierNode { Text.Span: "const" }, TypeArguments: null or { Count: 0 } } };
+        && node is ITypedNode { Type: TypeReferenceNode { TypeName: IdentifierNode { Text.Span: var matchedText }, TypeArguments: null or { Count: 0 } } } && matchedText.SequenceEqual("const"u8);
 
-    internal static bool RequireCall(SyntaxNode? node) => node is CallExpressionNode
-    { Expression: IdentifierNode { Text.Span: "require" }, Arguments.Count: 1 };
+    internal static bool RequireCall(SyntaxNode? node) => node is CallExpressionNode { Expression: IdentifierNode { Text.Span: var matchedText2 }, Arguments.Count: 1 } && matchedText2.SequenceEqual("require"u8);
 
     internal static bool ImmediatelyInvoked(SyntaxNode node)
     {

@@ -10,10 +10,10 @@ internal sealed partial class Checker : ITypePropertyHost, ITypeViewHost, ICompo
     internal TypeProperties Properties { get; }
     internal TypeViews Views { get; }
     internal CompositeMembers Composites { get; }
-    public Type GlobalObject => program.Globals.Types["Object"];
-    public Type GlobalFunction => program.Globals.Types["Function"];
-    public Type GlobalCallableFunction => program.Globals.Types["CallableFunction"];
-    public Type GlobalNewableFunction => program.Globals.Types["NewableFunction"];
+    public Type GlobalObject => program.Globals.Types[Utf8Literals.ObjectType];
+    public Type GlobalFunction => program.Globals.Types[Utf8Literals.FunctionType];
+    public Type GlobalCallableFunction => program.Globals.Types[Utf8Literals.CallableFunction];
+    public Type GlobalNewableFunction => program.Globals.Types[Utf8Literals.NewableFunction];
 
     public ValueTask<Type> ReducedApparentAsync(Type type, CancellationToken cancellation) =>
         Views.ReducedApparentAsync(type, cancellation);
@@ -21,7 +21,7 @@ internal sealed partial class Checker : ITypePropertyHost, ITypeViewHost, ICompo
     public ValueTask<StructuredType> ResolveAsync(StructuredType type, CancellationToken cancellation) =>
         Members.ResolveAsync(type, cancellation);
 
-    public ValueTask<Type> GlobalAsync(TextSlice name, CancellationToken cancellation) => program.Globals.Types.TryGetValue(name, out var type)
+    public ValueTask<Type> GlobalAsync(Utf8String name, CancellationToken cancellation) => program.Globals.Types.TryGetValue(name, out var type)
             ? ValueTask.FromResult(type) : program.Globals.GetAsync(name, 0, false, cancellation);
 
     public ValueTask<Type> WithThisAsync(Type type, Type argument, bool apparent, CancellationToken cancellation) =>
@@ -35,9 +35,9 @@ internal sealed partial class Checker : ITypePropertyHost, ITypeViewHost, ICompo
     public ValueTask<bool> UnknownLikeUnionAsync(Type type, CancellationToken cancellation) =>
         Views.UnknownLikeUnionAsync(type, cancellation);
 
-    public async ValueTask<IndexInfo?> ApplicableIndexAsync(Type type, TextSlice name, CancellationToken cancellation)
+    public async ValueTask<IndexInfo?> ApplicableIndexAsync(Type type, Utf8String name, CancellationToken cancellation)
             => await IndexSignatures.ApplicableAsync(await IndexesAsync(type, cancellation),
-                name.Span.StartsWith(Symbol.InternalPrefix + "@", StringComparison.Ordinal)
+                name.Span.StartsWith(Symbol.InternalUnique, StringComparison.Ordinal)
                     ? context.ESSymbolType
                     : context.GetStringLiteralType(name),
                 cancellation);
@@ -45,7 +45,7 @@ internal sealed partial class Checker : ITypePropertyHost, ITypeViewHost, ICompo
     public ValueTask<Type?> TupleRestAsync(TypeReference type, CancellationToken cancellation)
             => Instantiation.Tuples.SliceElementAsync(type, ((TupleType)type.Target!).FixedLength, cancellation: cancellation);
 
-    public ValueTask<Symbol?> PropertyAsync(Type type, TextSlice name, CancellationToken cancellation)
+    public ValueTask<Symbol?> PropertyAsync(Type type, Utf8String name, CancellationToken cancellation)
             => Properties.PropertyAsync(type, name, cancellation: cancellation);
 
     public async ValueTask<IndexInfo?> ApplicableIndexAsync(Type type, Type key, CancellationToken cancellation)
@@ -56,8 +56,8 @@ internal sealed partial class Checker : ITypePropertyHost, ITypeViewHost, ICompo
         symbol = await LateMembers.SymbolAsync(symbol, cancellation);
         if (links.Values.Get(symbol).NameType is { } cached)
             return (cached.Flags & TypeFlags.StringOrNumberLiteralOrUnique) != 0 ? cached : context.NeverType;
-        if (symbol.Name == "default")
-            return context.GetStringLiteralType("default");
+        if (symbol.Name == Utf8Literals.Default)
+            return context.GetStringLiteralType(Utf8Literals.Default);
         var name = symbol.ValueDeclaration is { } declaration ? LateMembers.Name(declaration) : null;
         var type = name switch
         {

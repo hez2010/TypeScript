@@ -10,7 +10,7 @@ internal sealed partial class Checker
 {
     private async ValueTask DecoratorMetadataAsync(SyntaxNode node, DecoratorNode decorator, CancellationToken cancellation)
     {
-        await ExternalHelpersAsync(decorator, ["__metadata"], cancellation);
+        await ExternalHelpersAsync(decorator, [Utf8Literals.Metadata], cancellation);
         var annotations = new List<SyntaxNode?>();
         switch (node)
         {
@@ -73,7 +73,7 @@ internal sealed partial class Checker
     private static SyntaxNode? AccessorAnnotation(SyntaxNode node) => node switch
     {
         GetAccessorDeclarationNode getter => getter.Type,
-        SetAccessorDeclarationNode setter => setter.Parameters!.OfType<ParameterDeclarationNode>().FirstOrDefault(p => p.Name is not IdentifierNode { Text.Span: "this" })?.Type,
+        SetAccessorDeclarationNode setter => setter.Parameters!.OfType<ParameterDeclarationNode>().FirstOrDefault(p => (!(p.Name is IdentifierNode { Text.Span: var matchedText } && matchedText.SequenceEqual("this"u8))))?.Type,
         _ => null
     };
 

@@ -32,7 +32,7 @@ internal sealed class SymbolMerger(Symbol unknownSymbol, Symbol globalThisSymbol
         return result;
     }
 
-    internal async ValueTask MergeTableAsync(Dictionary<TextSlice, Symbol> target, IReadOnlyDictionary<TextSlice, Symbol> source,
+    internal async ValueTask MergeTableAsync(SymbolTable target, IReadOnlyDictionary<Utf8String, Symbol> source,
         bool unidirectional = false, Symbol? mergedParent = null, CancellationToken cancellation = default)
     {
         bool ownsJournal = journal is null;
@@ -54,7 +54,7 @@ internal sealed class SymbolMerger(Symbol unknownSymbol, Symbol globalThisSymbol
         }
     }
 
-    private async ValueTask MergeTableCore(Dictionary<TextSlice, Symbol> target, IReadOnlyDictionary<TextSlice, Symbol> source,
+    private async ValueTask MergeTableCore(SymbolTable target, IReadOnlyDictionary<Utf8String, Symbol> source,
         bool unidirectional, Symbol? mergedParent, CancellationToken cancellation)
     {
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
@@ -161,7 +161,7 @@ internal sealed class SymbolMerger(Symbol unknownSymbol, Symbol globalThisSymbol
         private readonly record struct Snapshot(S Flags, Symbol? Parent, SyntaxNode? Value, SymbolDeclarations Declarations);
 
         private readonly Dictionary<Symbol, Snapshot> symbols = new(ReferenceEqualityComparer.Instance);
-        private readonly Dictionary<Dictionary<TextSlice, Symbol>, KeyValuePair<TextSlice, Symbol>[]> tables = new(ReferenceEqualityComparer.Instance);
+        private readonly Dictionary<SymbolTable, KeyValuePair<Utf8String, Symbol>[]> tables = new(ReferenceEqualityComparer.Instance);
         private readonly Dictionary<Symbol, Symbol?> mappings = new(ReferenceEqualityComparer.Instance);
 
         internal void Capture(Symbol symbol)
@@ -170,7 +170,7 @@ internal sealed class SymbolMerger(Symbol unknownSymbol, Symbol globalThisSymbol
                 symbols.Add(symbol, new(symbol.Flags, symbol.Parent, symbol.ValueDeclaration, symbol.Declarations));
         }
 
-        internal void Capture(Dictionary<TextSlice, Symbol> table)
+        internal void Capture(SymbolTable table)
         {
             if (!tables.ContainsKey(table))
                 tables.Add(table, table.ToArray());

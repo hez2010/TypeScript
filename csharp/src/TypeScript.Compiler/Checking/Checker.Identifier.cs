@@ -51,7 +51,7 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
                 or DiagnosticCode.CannotAssignTo0BecauseItIsNotAVariable ? [TypeDisplay.SymbolName(symbol)]
             : code is DiagnosticCode.Variable0ImplicitlyHasType1InSomeLocationsWhereItsTypeCannotBeDetermined
                 or DiagnosticCode.Variable0ImplicitlyHasAn1Type
-                ? [TypeDisplay.SymbolName(symbol), type == context.AutoType ? "any" : "any[]"]
+                ? [TypeDisplay.SymbolName(symbol), type == context.AutoType ? Utf8Literals.Any : Utf8Literals.AnyArray]
                 : []);
 
     public void CircularInitializer(Symbol symbol) => CircularSymbol(symbol);
@@ -77,7 +77,7 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
             node = node.Parent;
         if (node.Parent is ImportAttributeNode attribute)
         {
-            var attributes = globalImportAttributes ?? await program.Globals.GetAsync("ImportAttributes", 0, false, cancellation);
+            var attributes = globalImportAttributes ?? await program.Globals.GetAsync(Utf8Literals.ImportAttributes, 0, false, cancellation);
             return await ContextualPropertyAsync(attributes, ImportAttributeName(attribute.Name!), cancellation);
         }
         if (node.Parent is DecoratorNode decorator)
@@ -112,7 +112,7 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
             var awaited = await Awaited.GetAsync(contextual, false, cancellation: cancellation);
             if (awaited is null)
                 return null;
-            var promise = await program.Globals.GetAsync("PromiseLike", 1, false, cancellation);
+            var promise = await program.Globals.GetAsync(Utf8Literals.PromiseLike, 1, false, cancellation);
             return await Algebra.UnionAsync([awaited, promise == context.EmptyGenericType ? context.UnknownType
                 : context.CreateTypeReference((InterfaceType)promise, [awaited])], cancellation: cancellation);
         }
@@ -140,7 +140,7 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
                 var awaited = await Awaited.GetAsync(contextual, false, cancellation: cancellation);
                 if (awaited is null)
                     return null;
-                var promise = await program.Globals.GetAsync("PromiseLike", 1, false, cancellation);
+                var promise = await program.Globals.GetAsync(Utf8Literals.PromiseLike, 1, false, cancellation);
                 return await Algebra.UnionAsync([awaited, promise == context.EmptyGenericType ? context.UnknownType
                     : context.CreateTypeReference((InterfaceType)promise, [awaited])], cancellation: cancellation);
             }
@@ -203,9 +203,7 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
                 or NoSubstitutionTemplateLiteralNode => element.Expression,
             _ => null
         };
-        return receiver is IdentifierNode { Text.Span: "exports" }
-            or PropertyAccessExpressionNode { Expression: IdentifierNode { Text.Span: "module" }, Name: IdentifierNode { Text.Span: "exports" } }
-            or ElementAccessExpressionNode { Expression: IdentifierNode { Text.Span: "module" }, ArgumentExpression: StringLiteralNode { Text.Span: "exports" } };
+        return receiver is IdentifierNode { Text.Span: var matchedText } && matchedText.SequenceEqual("exports"u8) || receiver is PropertyAccessExpressionNode { Expression: IdentifierNode { Text.Span: var matchedText2 }, Name: IdentifierNode { Text.Span: var matchedText3 } } && matchedText2.SequenceEqual("module"u8) && matchedText3.SequenceEqual("exports"u8) || receiver is ElementAccessExpressionNode { Expression: IdentifierNode { Text.Span: var matchedText4 }, ArgumentExpression: StringLiteralNode { Text.Span: var matchedText5 } } && matchedText4.SequenceEqual("module"u8) && matchedText5.SequenceEqual("exports"u8);
     }
 
     public ValueTask<Type> PropertyWriteAsync(PropertyAccessExpressionNode left, CancellationToken cancellation)
@@ -269,7 +267,7 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
                     node,
                     DiagnosticCode.X0ComponentsDonTAcceptTextAsChildElementsTextInJSXHasTheTypeStringButTheExpectedTypeOf1Is2,
                     CheckerDiagnostic.DeclarationName(element.OpeningElement!.TagName!),
-                    await JsxPropertyNameAsync("ElementChildrenAttribute", node, cancellation) ?? "children",
+                    await JsxPropertyNameAsync(Utf8Literals.ElementChildrenAttribute, node, cancellation) ?? Utf8Literals.Children,
                     await TypeDisplay.GetAsync(target, cancellation));
                 return false;
             }
@@ -283,7 +281,7 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
                     var location = (excess.ValueDeclaration as INamedNode)?.Name ?? node;
                     var suggestion = location is IdentifierNode identifier ? await SymbolSuggestions.FindAsync(identifier.Text,
                         await Properties.GetAsync(unknown.Target, cancellation), SymbolFlags.Value, cancellation) : null;
-                    TextSlice propertyName = TypeDisplay.SymbolName(excess), targetName = await TypeDisplay.GetAsync(
+                    Utf8String propertyName = TypeDisplay.SymbolName(excess), targetName = await TypeDisplay.GetAsync(
                         unknown.Target,
                         cancellation);
                     RelationError(

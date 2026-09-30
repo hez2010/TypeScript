@@ -80,16 +80,16 @@ internal sealed partial class Checker : ITypeNormalizationHost, ITypeRelationHos
                 other.Declarations.OfType<EnumMemberNode>().First(),
                 cancellation).ConfigureAwait(false)).Value;
             bool equal = value is double number && otherValue is double otherNumber ? number == otherNumber : Equals(value, otherValue);
-            if (!equal && (value is not null && otherValue is not null || value is TextSlice || otherValue is TextSlice))
+            if (!equal && (value is not null && otherValue is not null || value is Utf8String || otherValue is Utf8String))
             {
                 if (operation is not null)
                 {
-                    TextSlice ValueText(object v) => v switch
+                    Utf8String ValueText(object v) => v switch
                     {
-                        TextSlice text => QuoteSymbolText(text, '"', false),
+                        Utf8String text => QuoteSymbolText(text, '"', false),
                         double number => TokenFacts.NumberText(number),
-                        bool boolean => boolean ? "true" : "false",
-                        System.Numerics.BigInteger integer => TextSlice.Concat(TextSlice.Format(integer), "n"),
+                        bool boolean => boolean ? Utf8Literals.True : Utf8Literals.False,
+                        System.Numerics.BigInteger integer => Utf8String.Concat(Utf8String.Format(integer), "n"u8),
                         _ => throw new InvalidOperationException("Unexpected enum constant")
                     };
                     if (value is not null && otherValue is not null)

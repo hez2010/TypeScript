@@ -9,23 +9,23 @@ using S = TypeScript.Compiler.Binding.SymbolFlags;
 
 namespace TypeScript.Compiler.Binding;
 
-public delegate Symbol? ResolveName(SyntaxNode? location, TextSlice name, SymbolFlags meaning,
+public delegate Symbol? ResolveName(SyntaxNode? location, Utf8String name, SymbolFlags meaning,
     DiagnosticMessage? nameNotFoundMessage, bool isUse, bool excludeGlobals);
 
 /// <summary>Lexical lookup over bound syntax. Checker hooks supply merged symbols, alias meanings and semantic diagnostics.</summary>
 public sealed class NameResolver(CompilerOptions options, Func<SyntaxNode, BoundSourceFile?> getBinding)
 {
-    public IReadOnlyDictionary<TextSlice, Symbol>? Globals { get; init; }
+    public IReadOnlyDictionary<Utf8String, Symbol>? Globals { get; init; }
     public Symbol? ArgumentsSymbol { get; set; }
     public Symbol? RequireSymbol { get; init; }
     public Func<SyntaxNode, Symbol?>? GetSymbolOfDeclaration { get; init; }
-    public Func<IReadOnlyDictionary<TextSlice, Symbol>?, TextSlice, S, Symbol?>? Lookup { get; init; }
-    public Action<SyntaxNode?, DiagnosticMessage, TextSlice[]>? Error { get; init; }
+    public Func<IReadOnlyDictionary<Utf8String, Symbol>?, Utf8String, S, Symbol?>? Lookup { get; init; }
+    public Action<SyntaxNode?, DiagnosticMessage, Utf8String[]>? Error { get; init; }
     public Action<Symbol, S>? SymbolReferenced { get; init; }
     public Func<SyntaxNode, bool?>? GetRequiresScopeChangeCache { get; init; }
     public Action<SyntaxNode, bool>? SetRequiresScopeChangeCache { get; init; }
-    public Func<SyntaxNode?, TextSlice, SyntaxNode, Symbol?, bool>? OnPropertyWithInvalidInitializer { get; init; }
-    public Action<SyntaxNode?, TextSlice, S, DiagnosticMessage>? OnFailedToResolveSymbol { get; init; }
+    public Func<SyntaxNode?, Utf8String, SyntaxNode, Symbol?, bool>? OnPropertyWithInvalidInitializer { get; init; }
+    public Action<SyntaxNode?, Utf8String, S, DiagnosticMessage>? OnFailedToResolveSymbol { get; init; }
     public Action<SyntaxNode?, Symbol, S, SyntaxNode?, SyntaxNode?, bool>? OnSuccessfullyResolvedSymbol { get; init; }
     public CancellationToken Cancellation { get; init; }
 
@@ -36,23 +36,15 @@ public sealed class NameResolver(CompilerOptions options, Func<SyntaxNode, Bound
     private Symbol BoundTypeSymbol(SyntaxNode node) => SymbolOf(node)
             ?? throw new InvalidOperationException("Class or interface declaration has no bound symbol");
 
-    private static TextSlice Key(TextSlice name) =>
-        name.Span.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal) ? TextSlice.Concat(Symbol.InternalPrefix, name) : name;
-
-    private static TextSlice UserName(Symbol symbol) => symbol.Name.Span.StartsWith(
-        Symbol.InternalPrefix + Symbol.InternalPrefix,
-        StringComparison.Ordinal)
-            ? symbol.Name[1..] : symbol.Name;
-
-    private Symbol? Find(IReadOnlyDictionary<TextSlice, Symbol>? table, TextSlice name, S meaning)
+    private Symbol? Find(IReadOnlyDictionary<Utf8String, Symbol>? table, Utf8String name, S meaning)
     {
         if (Lookup is { } lookup)
             return lookup(table, name, meaning);
-        var symbol = meaning == 0 ? null : table?.GetValueOrDefault(Key(name));
+        var symbol = meaning == 0 ? null : table?.GetValueOrDefault(name);
         return symbol is not null && (symbol.Flags & meaning) != 0 ? symbol : null;
     }
 
-    public Symbol? Resolve(SyntaxNode? location, TextSlice name, S meaning, DiagnosticMessage? nameNotFoundMessage = null,
+    public Symbol? Resolve(SyntaxNode? location, Utf8String name, S meaning, DiagnosticMessage? nameNotFoundMessage = null,
         bool isUse = false, bool excludeGlobals = false)
     {
         Cancellation.ThrowIfCancellationRequested();
@@ -63,7 +55,7 @@ public sealed class NameResolver(CompilerOptions options, Func<SyntaxNode, Bound
         while (location is not null)
         {
             Cancellation.ThrowIfCancellationRequested();
-            if (name == "const" && ConstAssertion(location))
+            if (name == Utf8Literals.Const && ConstAssertion(location))
                 return null;
             if (location.Kind is K.ModuleDeclaration or K.EnumDeclaration && last is not null && Name(location) == last)
             {
@@ -118,20 +110,20 @@ public sealed class NameResolver(CompilerOptions options, Func<SyntaxNode, Bound
                     if (location is SourceFileNode || location is ModuleDeclarationNode { Keyword: not K.GlobalKeyword }
                         && (location.Flags & NodeFlags.Ambient) != 0)
                     {
-                        result = exports.GetValueOrDefault("default");
+                        result = exports.GetValueOrDefault(Utf8Literals.Default);
                         if (result is not null)
                         {
                             var local = GetLocalSymbolForExportDefault(result);
-                            if (local is not null && (result.Flags & meaning) != 0 && UserName(local) == name)
+                            if (local is not null && (result.Flags & meaning) != 0 && local.Name == name)
                                 goto Resolved;
                             result = null;
                         }
-                        var exported = exports.GetValueOrDefault(Key(name));
+                        var exported = exports.GetValueOrDefault(name);
                         if (exported is { Flags: S.Alias }
                             && exported.Declarations.Any(d => d.Kind is K.ExportSpecifier or K.NamespaceExport))
                             break;
                     }
-                    if (name != "default" && (result = Find(exports, name, meaning & S.ModuleMember)) is not null)
+                    if (name != Utf8Literals.Default && (result = Find(exports, name, meaning & S.ModuleMember)) is not null)
                     {
                         if (location is SourceFileNode
                             && getBinding(location)?.CommonJSModuleIndicator is not null
@@ -156,8 +148,8 @@ public sealed class NameResolver(CompilerOptions options, Func<SyntaxNode, Bound
                                 Messages.Cannot_access_0_from_another_file_without_qualification_when_1_is_enabled_Use_2_instead,
                                 [
                                         name,
-                                        options.VerbatimModuleSyntax == true ? "verbatimModuleSyntax" : "isolatedModules",
-                                        TextSlice.Concat(UserName(enumeration), ".", name)
+                                        options.VerbatimModuleSyntax == true ? Utf8Literals.VerbatimModuleSyntax : Utf8Literals.IsolatedModules,
+                                        Utf8String.Concat(enumeration.Name, "."u8, name)
                                     ]);
                         goto Resolved;
                     }
@@ -227,9 +219,9 @@ public sealed class NameResolver(CompilerOptions options, Func<SyntaxNode, Bound
                 case K.SetAccessor:
                 case K.FunctionDeclaration:
                 case K.FunctionExpression:
-                    if ((meaning & S.Variable) != 0 && name == "arguments")
+                    if ((meaning & S.Variable) != 0 && name == Utf8Literals.Arguments)
                     {
-                        result = ArgumentsSymbol ??= new(S.Property | S.Transient, "arguments");
+                        result = ArgumentsSymbol ??= new(S.Property | S.Transient, Utf8Literals.Arguments);
                         goto Resolved;
                     }
                     if (location is FunctionExpressionNode { Name: IdentifierNode functionName }

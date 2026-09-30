@@ -22,25 +22,25 @@ internal static class CheckerAccessibilityTests
             checks++;
         }
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("module", "\"esnext\"");
-        options.SetRaw("moduleResolution", "\"bundler\"");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("module"u8, "\"esnext\""u8);
+        options.SetRaw("moduleResolution"u8, "\"bundler\""u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
         {
-            ["/project/main.ts"] = Wtf8.Encode(
+            ["/project/main.ts"u8] = Wtf8.Encode(
                 "import {Public as Renamed} from './barrel'; export interface Surface {value:Renamed;} export type Missing=Unknown; function local(){class Local{} return Local;}"),
-            ["/project/dep.ts"] = Wtf8.Encode("class Hidden {} export class Public {field=1;}"),
-            ["/project/barrel.ts"] = Wtf8.Encode("export {Public} from './dep';")
-        }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+            ["/project/dep.ts"u8] = Wtf8.Encode("class Hidden {} export class Public {field=1;}"),
+            ["/project/barrel.ts"u8] = Wtf8.Encode("export {Public} from './dep';")
+        }), "/project"u8, new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
-        var file = program.GetFile("/project/main.ts")!.Syntax;
-        var dependency = program.GetFile("/project/dep.ts")!.Syntax;
-        var barrel = checker.Symbols.Declaration(program.GetFile("/project/barrel.ts")!.Syntax)!;
+        var file = program.GetFile("/project/main.ts"u8)!.Syntax;
+        var dependency = program.GetFile("/project/dep.ts"u8)!.Syntax;
+        var barrel = checker.Symbols.Declaration(program.GetFile("/project/barrel.ts"u8)!.Syntax)!;
         var dependencySymbol = checker.Symbols.Declaration(dependency)!;
-        var publicNode = dependency.DescendantsAndSelf().OfType<ClassDeclarationNode>().Single(n => n.Name?.Text == "Public");
+        var publicNode = dependency.DescendantsAndSelf().OfType<ClassDeclarationNode>().Single(n => n.Name?.Text == "Public"u8);
         var publicSymbol = checker.Symbols.Declaration(publicNode)!;
         var hidden = checker.Symbols.Declaration(
-            dependency.DescendantsAndSelf().OfType<ClassDeclarationNode>().Single(n => n.Name?.Text == "Hidden"))!;
+            dependency.DescendantsAndSelf().OfType<ClassDeclarationNode>().Single(n => n.Name?.Text == "Hidden"u8))!;
         var local = checker.Symbols.Declaration(file.DescendantsAndSelf().OfType<ClassDeclarationNode>().Single())!;
         Check(await checker.IsTypeSymbolAccessibleAsync(publicSymbol, file));
         Check(await checker.IsValueSymbolAccessibleAsync(publicSymbol, file));
@@ -78,14 +78,14 @@ internal static class CheckerAccessibilityTests
                 SymbolFlags.Type,
                 true)).AliasesToMakeVisible is { Count: 0 });
         var renamed = file.DescendantsAndSelf().OfType<TypeReferenceNode>().Single(
-            n => n.TypeName is IdentifierNode { Text: { Span: "Renamed" } }).TypeName!;
+            n => (n.TypeName is IdentifierNode { Text: { Span: var matchedText } } && matchedText.SequenceEqual("Renamed"u8))).TypeName!;
         var entity = await checker.GetEntityNameVisibilityAsync(renamed, file);
         Check(entity.Accessibility == SymbolAccessibility.Accessible && entity.ErrorSymbolName.Length == 0);
-        var unknown = file.DescendantsAndSelf().OfType<IdentifierNode>().Single(n => n.Text == "Unknown");
+        var unknown = file.DescendantsAndSelf().OfType<IdentifierNode>().Single(n => n.Text == "Unknown"u8);
         var unresolved = await checker.GetEntityNameVisibilityAsync(unknown, file);
         Check(
             unresolved.Accessibility == SymbolAccessibility.NotResolved
-                && unresolved.ErrorSymbolName == "Unknown"
+                && unresolved.ErrorSymbolName == "Unknown"u8
                 && unresolved.ErrorNode == unknown);
         var field = checker.Symbols.Declaration(publicNode.Members!.OfType<PropertyDeclarationNode>().Single())!;
         var retry = await program.CreateCheckerAsync();
@@ -166,10 +166,10 @@ internal static class CheckerAccessibilityTests
         var targets = new List<Symbol>();
         var seen = new HashSet<Symbol>();
         foreach (var node in nodes)
-            if (SemanticSyntax.Source(node)?.FileName != "/project/globals.d.ts" && QuerySyntax.Declaration(node)
+            if (SemanticSyntax.Source(node)?.FileName != "/project/globals.d.ts"u8 && QuerySyntax.Declaration(node)
                 && checker.Symbols.Declaration(node) is { } symbol && seen.Add(symbol))
                 targets.Add(symbol);
-        var locations = nodes.Where(n => SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main.", StringComparison.Ordinal) == true
+        var locations = nodes.Where(n => SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main."u8, StringComparison.Ordinal) == true
             && n is SourceFileNode or ModuleDeclarationNode or ClassDeclarationNode or ClassExpressionNode or FunctionDeclarationNode).ToArray();
         void Nodes(IReadOnlyList<SyntaxNode>? aliases)
         {
@@ -186,7 +186,7 @@ internal static class CheckerAccessibilityTests
             if (symbol is not null)
                 writer.WriteNumberValue(symbolId(symbol));
         }
-        writer.WriteStartArray("accessibilityQueries");
+        writer.WriteStartArray("accessibilityQueries"u8);
         foreach (var location in locations)
             foreach (var target in targets)
             {
@@ -223,7 +223,7 @@ internal static class CheckerAccessibilityTests
                 writer.WriteEndArray();
             }
         foreach (var node in nodes)
-            if (SemanticSyntax.Source(node)?.FileName.StartsWith("/project/main.", StringComparison.Ordinal) == true && EntityName(node))
+            if (SemanticSyntax.Source(node)?.FileName.StartsWith("/project/main."u8, StringComparison.Ordinal) == true && EntityName(node))
             {
                 Start(4, node);
                 var result = await checker.GetEntityNameVisibilityAsync(node, node);

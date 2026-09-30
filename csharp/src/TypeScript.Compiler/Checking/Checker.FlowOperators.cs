@@ -63,11 +63,11 @@ internal sealed partial class Checker
         var nameType = await ExpressionAsync(expression.Left!, cancellation);
         if ((nameType.Flags & TypeFlags.StringOrNumberLiteralOrUnique) == 0)
             return type;
-        TextSlice name = MappedMembers.PropertyName(nameType);
+        Utf8String name = MappedMembers.PropertyName(nameType);
         foreach (var part in type is UnionType parts ? parts.Types : [type])
             if (await PropertyPresenceAsync(part, name, true, cancellation))
                 return await Algebra.FilterAsync(type, part => PropertyPresenceAsync(part, name, assumeTrue, cancellation), cancellation);
-        if (assumeTrue && await program.Globals.AliasAsync("Record", 2, Declared, cancellation) is { } record)
+        if (assumeTrue && await program.Globals.AliasAsync(Utf8Literals.Record, 2, Declared, cancellation) is { } record)
             return await Algebra.IntersectionAsync([type,
                 await References.AliasInstantiationAsync(record, [nameType, context.UnknownType], cancellation: cancellation)],
                 cancellation: cancellation);
@@ -76,7 +76,7 @@ internal sealed partial class Checker
 
     private async ValueTask<Type> InstanceTypeAsync(Type type, CancellationToken cancellation)
     {
-        if (await Properties.PropertyAsync(type, "prototype", cancellation: cancellation) is { } property
+        if (await Properties.PropertyAsync(type, Utf8Literals.Prototype, cancellation: cancellation) is { } property
             && await Values.GetAsync(property, cancellation) is { } prototype && (prototype.Flags & TypeFlags.Any) == 0)
             return prototype;
         var signatures = await SignaturesAsync(type, true, cancellation);
@@ -88,7 +88,7 @@ internal sealed partial class Checker
         return await Algebra.UnionAsync(instances, cancellation: cancellation);
     }
 
-    private async ValueTask<bool> PropertyPresenceAsync(Type type, TextSlice name, bool assumeTrue, CancellationToken cancellation)
+    private async ValueTask<bool> PropertyPresenceAsync(Type type, Utf8String name, bool assumeTrue, CancellationToken cancellation)
     {
         if (await Properties.PropertyAsync(type, name, cancellation: cancellation) is { } property)
             return (property.Flags & SymbolFlags.Optional) != 0 || (property.CheckFlags & CheckFlags.Partial) != 0 || assumeTrue;

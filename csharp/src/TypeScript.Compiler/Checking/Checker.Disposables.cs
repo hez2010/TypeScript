@@ -18,8 +18,8 @@ internal sealed partial class Checker
             || program.Symbols.Declaration(node)?.ValueDeclaration != node)
             return;
         if (kind == NodeFlags.AwaitUsing)
-            asyncDisposableType ??= await program.Globals.GetAsync("AsyncDisposable", 0, true, cancellation);
-        disposableType ??= await program.Globals.GetAsync("Disposable", 0, true, cancellation);
+            asyncDisposableType ??= await program.Globals.GetAsync(Utf8Literals.AsyncDisposable, 0, true, cancellation);
+        disposableType ??= await program.Globals.GetAsync(Utf8Literals.Disposable, 0, true, cancellation);
         if (disposableType == context.EmptyObjectType || kind == NodeFlags.AwaitUsing && asyncDisposableType == context.EmptyObjectType)
             return;
         var target = await Algebra.UnionAsync(kind == NodeFlags.AwaitUsing
@@ -84,12 +84,12 @@ internal sealed partial class Checker
                     Error(
                         variable,
                         DiagnosticCode.X0DeclarationsCanOnlyBeDeclaredInsideABlock,
-                        kind == NodeFlags.Let ? "let" : kind == NodeFlags.Const ? "const"
-                        : kind == NodeFlags.Using ? "using" : "await using");
+                        kind == NodeFlags.Let ? Utf8Literals.Let : kind == NodeFlags.Const ? Utf8Literals.Const
+                        : kind == NodeFlags.Using ? Utf8Literals.Using : Utf8Literals.AwaitUsing);
             }
         }
         if (usingDeclaration && TargetYear < int.MaxValue)
-            await ExternalHelpersAsync(node, ["__addDisposableResource", "__disposeResources"], cancellation);
+            await ExternalHelpersAsync(node, [Utf8Literals.AddDisposableResource, Utf8Literals.DisposeResources], cancellation);
     }
 
     private static bool AllowsBlockScopedDeclaration(SyntaxNode? parent)

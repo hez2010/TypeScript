@@ -14,7 +14,7 @@ internal sealed partial class Checker
     private readonly Dictionary<SourceFileNode, Type> jsxFragmentTypes = [];
     private readonly Dictionary<SyntaxNode, Type> jsxIntrinsicTypes = [];
     private readonly Dictionary<SyntaxNode, int> jsxReferenceKinds = [];
-    private readonly Dictionary<TextSlice, TextSlice?> jsxFactoryNames = [];
+    private readonly Dictionary<Utf8String, Utf8String?> jsxFactoryNames = [];
 
     private int JsxMode => (int)program.Symbols.Program.Configuration.Options.Jsx;
 
@@ -28,45 +28,45 @@ internal sealed partial class Checker
 
     private static bool IntrinsicJsx(SyntaxNode? node) => node is JsxNamespacedNameNode
             || node is IdentifierNode identifier
-                && (identifier.Text.Length != 0 && identifier.Text[0] is >= 'a' and <= 'z' || identifier.Text.Span.Contains('-'));
+                && (identifier.Text.Length != 0 && identifier.Text[0] is >= (byte)'a' and <= (byte)'z' || identifier.Text.Span.Contains((byte)'-'));
 
-    private static TextSlice JsxName(SyntaxNode node) => node is JsxNamespacedNameNode namespaced
-        ? TextSlice.Concat(((IdentifierNode)namespaced.Namespace!).Text, ":", ((IdentifierNode)namespaced.Name!).Text) : SyntaxNameText.Get(node);
+    private static Utf8String JsxName(SyntaxNode node) => node is JsxNamespacedNameNode namespaced
+        ? Utf8String.Concat(((IdentifierNode)namespaced.Namespace!).Text, ":"u8, ((IdentifierNode)namespaced.Name!).Text) : SyntaxNameText.Get(node);
 
-    private static TextSlice? JsxPragma(SourceFileNode file, TextSlice name) =>
-        TextSlice.FromNullable(file.Pragmas.LastOrDefault(p => p.Name == name).Arguments?.GetValueOrDefault("factory").Value);
+    private static Utf8String? JsxPragma(SourceFileNode file, Utf8String name) =>
+        file.Pragmas.LastOrDefault(p => p.Name == name).Arguments?.GetValueOrDefault(Utf8Literals.Factory).Value;
 
-    private TextSlice JsxFactoryName(SyntaxNode node, bool fragment = false)
+    private Utf8String JsxFactoryName(SyntaxNode node, bool fragment = false)
     {
         var file = SemanticSyntax.Source(node)!;
         var options = program.Symbols.Program.Configuration.Options;
-        if (fragment && ValidJsxFactory(JsxPragma(file, "jsxfrag") ?? TextSlice.FromNullable(options.JsxFragmentFactory)) is { } fragmentFactory)
+        if (fragment && ValidJsxFactory(JsxPragma(file, Utf8Literals.Jsxfrag) ?? options.JsxFragmentFactory) is { } fragmentFactory)
             return CacheEmitJsxFactory(fragmentFactory, file, true);
-        if (!fragment && ValidJsxFactory(JsxPragma(file, "jsx")) is { } local)
+        if (!fragment && ValidJsxFactory(JsxPragma(file, Utf8Literals.JsxKeyword)) is { } local)
             return CacheEmitJsxFactory(local, file);
         return CacheEmitJsxFactory(
-            options.JsxFactory is { Length: > 0 } configured ? ValidJsxFactory(configured) ?? "React.createElement"
-            : TextSlice.Concat((options.ReactNamespace is { Length: > 0 } reactNamespace ? reactNamespace : "React"), ".createElement"));
+            options.JsxFactory is { Length: > 0 } configured ? ValidJsxFactory(configured) ?? Utf8Literals.ReactCreateElement
+            : Utf8String.Concat(options.ReactNamespace is { Length: > 0 } reactNamespace ? reactNamespace : "React"u8, ".createElement"u8));
     }
 
-    private TextSlice? ValidJsxFactory(TextSlice? text)
+    private Utf8String? ValidJsxFactory(Utf8String? text)
     {
         if (text is null or { IsEmpty: true })
             return null;
-        if (!jsxFactoryNames.TryGetValue((text).Value, out var name))
-            jsxFactoryNames[(text).Value] = name = Parser.ParseIsolatedEntityName((text).Value) is { } entity ? SyntaxNameText.Get(entity) : (TextSlice?)null;
+        if (!jsxFactoryNames.TryGetValue(text.Value, out var name))
+            jsxFactoryNames[text.Value] = name = Parser.ParseIsolatedEntityName(text.Value) is { } entity ? SyntaxNameText.Get(entity) : (Utf8String?)null;
         return name;
     }
 
-    private static TextSlice JsxFactoryRoot(TextSlice name)
+    private static Utf8String JsxFactoryRoot(Utf8String name)
     {
-        int dot = name.Span.IndexOf('.');
+        int dot = name.Span.IndexOf((byte)'.');
         return dot < 0 ? name : name[..dot];
     }
 
-    private static SyntaxNode JsxFactoryEntity(TextSlice text, SyntaxNode location)
+    private static SyntaxNode JsxFactoryEntity(Utf8String text, SyntaxNode location)
     {
-        var parts = text.Span.Split('.');
+        var parts = text.Span.Split((byte)'.');
         parts.MoveNext();
         SyntaxNode result = new IdentifierNode { Text = text[parts.Current], Pos = -1, End = -1, Flags = NodeFlags.Synthesized };
         while (parts.MoveNext())
@@ -85,13 +85,13 @@ internal sealed partial class Checker
         var file = SemanticSyntax.Source(location)!;
         if (jsxImplicitModules.TryGetValue(file, out var cached))
             return cached;
-        TextSlice? runtime = JsxPragma(file, "jsxruntime");
+        Utf8String? runtime = JsxPragma(file, Utf8Literals.Jsxruntime);
         var options = program.Symbols.Program.Configuration.Options;
-        if (runtime == "classic" || JsxMode is not (4 or 5) && options.JsxImportSource is null
-            && JsxPragma(file, "jsximportsource") is null && runtime != "automatic")
+        if (runtime == Utf8Literals.Classic || JsxMode is not (4 or 5) && options.JsxImportSource is null
+            && JsxPragma(file, Utf8Literals.Jsximportsource) is null && runtime != Utf8Literals.Automatic)
             return null;
-        TextSlice source = JsxPragma(file, "jsximportsource") ?? options.JsxImportSource ?? "react";
-        TextSlice name = TextSlice.Concat(source, (JsxMode == 5 ? "/jsx-dev-runtime" : "/jsx-runtime"));
+        Utf8String source = JsxPragma(file, Utf8Literals.Jsximportsource) ?? options.JsxImportSource ?? Utf8Literals.React;
+        Utf8String name = Utf8String.Concat(source, JsxMode == 5 ? "/jsx-dev-runtime"u8 : "/jsx-runtime"u8);
         var first = file.DescendantsAndSelf().FirstOrDefault(n => n is JsxElementNode or JsxSelfClosingElementNode or JsxFragmentNode);
         var errorNode = first is JsxFragmentNode fragment ? fragment.OpeningFragment! : first ?? location;
         var specifier = new StringLiteralNode
@@ -122,7 +122,7 @@ internal sealed partial class Checker
         var container = await JsxImplicitModuleAsync(location, cancellation);
         if (container is null || container == UnknownSymbol)
         {
-            TextSlice name = JsxFactoryRoot(JsxFactoryName(location, location is JsxOpeningFragmentNode));
+            Utf8String name = JsxFactoryRoot(JsxFactoryName(location, location is JsxOpeningFragmentNode));
             container = program.Symbols.NameResolver(cancellation).Resolve(location, name, SymbolFlags.Namespace);
         }
         Symbol? result = null;
@@ -131,18 +131,18 @@ internal sealed partial class Checker
             container = await program.Aliases.SymbolAsync(container, cancellation: cancellation);
             if (container is not null)
                 result = await program.Aliases.SymbolAsync(
-                    program.Symbols.Lookup(await program.ExportsAsync(container, cancellation), "JSX", SymbolFlags.Namespace),
+                    program.Symbols.Lookup(await program.ExportsAsync(container, cancellation), Utf8Literals.JSX, SymbolFlags.Namespace),
                     cancellation: cancellation);
         }
         if (result is null || result == UnknownSymbol)
             result = await program.Aliases.SymbolAsync(
-                program.Symbols.Lookup(program.Symbols.Globals, "JSX", SymbolFlags.Namespace),
+                program.Symbols.Lookup(program.Symbols.Globals, Utf8Literals.JSX, SymbolFlags.Namespace),
                 cancellation: cancellation);
         cancellation.ThrowIfCancellationRequested();
         return jsxNamespaces[location] = result == UnknownSymbol ? null : result;
     }
 
-    private async ValueTask<Type> JsxTypeAsync(TextSlice name, SyntaxNode location, CancellationToken cancellation)
+    private async ValueTask<Type> JsxTypeAsync(Utf8String name, SyntaxNode location, CancellationToken cancellation)
     {
         if (await JsxNamespaceAsync(location, cancellation) is { } ns
             && program.Symbols.Lookup(await program.ExportsAsync(ns, cancellation), name, SymbolFlags.Type) is { } symbol)
@@ -154,12 +154,12 @@ internal sealed partial class Checker
     {
         if (jsxIntrinsicTypes.TryGetValue(node, out var cached))
             return cached;
-        var intrinsic = await JsxTypeAsync("IntrinsicElements", node, cancellation);
+        var intrinsic = await JsxTypeAsync(Utf8Literals.IntrinsicElements, node, cancellation);
         Symbol? symbol = null;
         Type result = context.ErrorType;
         if (intrinsic != context.ErrorType)
         {
-            TextSlice name = JsxName(JsxTag(node)!);
+            Utf8String name = JsxName(JsxTag(node)!);
             symbol = await Properties.PropertyAsync(intrinsic, name, cancellation: cancellation);
             if (symbol is not null)
                 result = await Values.GetAsync(symbol, cancellation);
@@ -169,24 +169,24 @@ internal sealed partial class Checker
                 result = index.ValueType;
             }
             else
-                Error(node, DiagnosticCode.Property0DoesNotExistOnType1, name, "JSX.IntrinsicElements");
+                Error(node, DiagnosticCode.Property0DoesNotExistOnType1, name, Utf8Literals.JSXIntrinsicElements);
         }
         else if (NoImplicitAny)
-            Error(node, DiagnosticCode.JSXElementImplicitlyHasTypeAnyBecauseNoInterfaceJSX0Exists, "IntrinsicElements");
+            Error(node, DiagnosticCode.JSXElementImplicitlyHasTypeAnyBecauseNoInterfaceJSX0Exists, Utf8Literals.IntrinsicElements);
         links.SymbolNodes.Get(node).ResolvedSymbol = symbol ?? UnknownSymbol;
         return jsxIntrinsicTypes[node] = result;
     }
 
-    private async ValueTask<TextSlice?> JsxPropertyNameAsync(TextSlice container, SyntaxNode node, CancellationToken cancellation)
+    private async ValueTask<Utf8String?> JsxPropertyNameAsync(Utf8String container, SyntaxNode node, CancellationToken cancellation)
     {
-        if (container == "ElementChildrenAttribute" && JsxMode is 4 or 5)
-            return "children";
+        if (container == Utf8Literals.ElementChildrenAttribute && JsxMode is 4 or 5)
+            return Utf8Literals.Children;
         var type = await JsxTypeAsync(container, node, cancellation);
         if (type == context.ErrorType)
             return null;
         var properties = await Properties.GetAsync(type, cancellation);
         if (properties.Count == 0)
-            return "";
+            return Utf8String.Empty;
         if (properties.Count == 1)
             return properties[0].Name;
         if (type.Symbol?.Declarations.FirstOrDefault() is { } declaration)

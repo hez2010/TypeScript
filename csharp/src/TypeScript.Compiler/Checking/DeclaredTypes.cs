@@ -83,7 +83,7 @@ internal sealed class DeclaredTypes(TypeContext context, CheckerLinks links, Che
                     data.TypeParameters = Array.AsReadOnly(parameters);
                     data.Instantiations = new() { [TypeCacheKey.Instantiation(parameters, null, false)] = type };
                 }
-                if (type == context.IntrinsicMarkerType && symbol.Name == "BuiltinIteratorReturn")
+                if (type == context.IntrinsicMarkerType && symbol.Name == Utf8Literals.BuiltinIteratorReturn)
                 {
                     bool strict = symbols.Program.Configuration.Options.EffectiveStrictBuiltinIteratorReturn;
                     type = strict ? context.UndefinedType : context.AnyType;
@@ -129,7 +129,7 @@ internal sealed class DeclaredTypes(TypeContext context, CheckerLinks links, Che
                     var value = await host.EnumValueAsync(member, cancellation).ConfigureAwait(false);
                     var type = value switch
                     {
-                        TextSlice text => context.GetEnumLiteralType(text, symbol, memberSymbol),
+                        Utf8String text => context.GetEnumLiteralType(text, symbol, memberSymbol),
                         double number => context.GetEnumLiteralType(number, symbol, memberSymbol),
                         null => ComputedEnum(memberSymbol),
                         _ => throw new InvalidOperationException("Invalid enum value")

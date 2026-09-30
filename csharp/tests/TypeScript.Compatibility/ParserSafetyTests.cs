@@ -17,25 +17,25 @@ internal static class ParserSafetyTests
         VerifySingleWorkerDocumentation(false);
         const int depth = 21_000;
         int cases = 0, nodes = 0;
-        SourceFileNode Parse(string name, string text, ScriptKind kind = ScriptKind.TS)
+        SourceFileNode Parse(Utf8String name, Utf8String text, ScriptKind kind = ScriptKind.TS)
         {
             var timer = Stopwatch.StartNew();
             SourceFileNode file = Parser.ParseSourceFile(new(name, kind), new(text));
             Check(
                 file.ParseDiagnostics.Count == 0,
-                $"{name}: {string.Join(", ", file.ParseDiagnostics.Select(d => $"{d.Code}@{d.Start}"))}");
+                Utf8String.ConcatMany(name, ": "u8, Utf8String.Join(", "u8, file.ParseDiagnostics.Select(d => Utf8String.ConcatMany(Utf8String.EnumName(d.Code), "@"u8, Utf8String.Format(d.Start))))));
             foreach (SyntaxNode node in file.DescendantsAndSelf())
             {
-                Check(0 <= node.Pos && node.Pos <= node.End && node.End <= file.Source.Bytes.Length, $"{name}: {node.Kind} source range");
+                Check(0 <= node.Pos && node.Pos <= node.End && node.End <= file.Source.Bytes.Length, Utf8String.ConcatMany(name, ": "u8, Utf8String.EnumName(node.Kind), " source range"u8));
                 for (int i = 0; i < node.ChildCount; i++)
                 {
                     SyntaxNode child = node.GetChild(i);
-                    Check(ReferenceEquals(child.Parent, node), $"{name}: {child.Kind} parent");
+                    Check(ReferenceEquals(child.Parent, node), Utf8String.ConcatMany(name, ": "u8, Utf8String.EnumName(child.Kind), " parent"u8));
                     // A JS annotation reparsed from a preceding comment retains
                     // the comment range even when attached to a later declaration.
                     Check(
                         (child.Flags & NodeFlags.Reparsed) != 0 || node.Pos <= child.Pos && child.End <= node.End,
-                        $"{name}: {child.Kind} child range");
+                        Utf8String.ConcatMany(name, ": "u8, Utf8String.EnumName(child.Kind), " child range"u8));
                 }
                 nodes++;
             }
@@ -43,46 +43,46 @@ internal static class ParserSafetyTests
             Console.WriteLine($"{name}: {timer.ElapsedMilliseconds} ms");
             return file;
         }
-        SourceFileNode Type(string name, string prefix, string suffix, K kind)
+        SourceFileNode Type(Utf8String name, Utf8String prefix, Utf8String suffix, K kind)
         {
-            SourceFileNode file = Parse(name, "type T=" + Repeat(prefix, depth) + "A" + Repeat(suffix, depth) + ";");
-            Check(file.DescendantsAndSelf().Count(n => n.Kind == kind) == depth, $"{name}: nesting preserved");
+            SourceFileNode file = Parse(name, Utf8String.Concat("type T="u8, Repeat(prefix, depth), "A"u8) + Repeat(suffix, depth) + ";"u8);
+            Check(file.DescendantsAndSelf().Count(n => n.Kind == kind) == depth, Utf8String.ConcatMany(name, ": nesting preserved"u8));
             return file;
         }
 
-        string unicodePrefix = "/*é😀*/type T=";
-        SourceFileNode parentheses = Parse("parentheses.ts", unicodePrefix + new string('(', depth) + "A" + new string(')', depth) + ";");
+        Utf8String unicodePrefix = "/*é😀*/type T="u8;
+        SourceFileNode parentheses = Parse("parentheses.ts"u8, Utf8String.Concat(unicodePrefix, new Utf8String('(', depth), "A"u8) + new Utf8String(')', depth) + ";"u8);
         SyntaxNode nested = ((TypeAliasDeclarationNode)parentheses.Statements![0]).Type!;
         for (int i = 0; i < depth; i++)
         {
-            Check(nested is ParenthesizedTypeNode, "parenthesized type kind");
-            Check(nested.Pos == parentheses.Source.ToBytePosition(unicodePrefix.Length + i), "parenthesized byte start");
-            Check(nested.End == parentheses.Source.ToBytePosition(unicodePrefix.Length + depth * 2 + 1 - i), "parenthesized byte end");
+            Check(nested is ParenthesizedTypeNode, "parenthesized type kind"u8);
+            Check(nested.Pos == unicodePrefix.Length + i, "parenthesized byte start"u8);
+            Check(nested.End == unicodePrefix.Length + depth * 2 + 1 - i, "parenthesized byte end"u8);
             nested = ((ParenthesizedTypeNode)nested).Type!;
         }
-        Check(nested is TypeReferenceNode { TypeName: IdentifierNode { Text: { Span: "A" } } }, "parenthesized leaf");
+        Check(nested is TypeReferenceNode { TypeName: IdentifierNode { Text: { Span: var matchedText } } } && matchedText.SequenceEqual("A"u8), "parenthesized leaf"u8);
 
-        SourceFileNode precedence = Parse("parenthesis-precedence.ts", "type T=((A)|B); type U=(A&(B|C))[];");
+        SourceFileNode precedence = Parse("parenthesis-precedence.ts"u8, "type T=((A)|B); type U=(A&(B|C))[];"u8);
         Check(
             ((TypeAliasDeclarationNode)precedence.Statements![0]).Type is ParenthesizedTypeNode { Type: UnionTypeNode { Types.Count: 2 } union }
-            && union.Types[0] is ParenthesizedTypeNode, "parenthesized union structure");
+            && union.Types[0] is ParenthesizedTypeNode, "parenthesized union structure"u8);
 
-        SourceFileNode awaitSpans = Parse("await-spans.ts",
-            "/*é😀*/export {}; await value; await (value); const untouched=1; await [value]; const last=2;");
+        SourceFileNode awaitSpans = Parse("await-spans.ts"u8,
+            "/*é😀*/export {}; await value; await (value); const untouched=1; await [value]; const last=2;"u8);
         Check(awaitSpans.Statements!.Select(n => (n.Flags & NodeFlags.AwaitContext) != 0)
-            .SequenceEqual([false, false, true, false, true, false]), "only ambiguous await statements are reparsed");
-        Check(awaitSpans.DescendantsAndSelf().OfType<AwaitExpressionNode>().Count() == 3, "await expression shapes");
+            .SequenceEqual([false, false, true, false, true, false]), "only ambiguous await statements are reparsed"u8);
+        Check(awaitSpans.DescendantsAndSelf().OfType<AwaitExpressionNode>().Count() == 3, "await expression shapes"u8);
 
-        SourceFileNode awaitOverlap = Parse("await-overlap.ts",
-            "export {}; await\nvalue; const between=1; await (value); const after=2;");
+        SourceFileNode awaitOverlap = Parse("await-overlap.ts"u8,
+            "export {}; await\nvalue; const between=1; await (value); const after=2;"u8);
         Check(awaitOverlap.Statements!.Select(n => (n.Flags & NodeFlags.AwaitContext) != 0)
-            .SequenceEqual([false, true, true, true, false]), "await reparse extends to the next marked span");
+            .SequenceEqual([false, true, true, true, false]), "await reparse extends to the next marked span"u8);
 
-        SourceFileNode awaitEnd = Parse("await-end.ts", "export {}; await\nvalue; const tail=1;");
+        SourceFileNode awaitEnd = Parse("await-end.ts"u8, "export {}; await\nvalue; const tail=1;"u8);
         Check(awaitEnd.Statements!.Select(n => (n.Flags & NodeFlags.AwaitContext) != 0)
-            .SequenceEqual([false, true, true]), "await reparse extends to EOF after consuming the last boundary");
+            .SequenceEqual([false, true, true]), "await reparse extends to EOF after consuming the last boundary"u8);
 
-        SourceFileNode signatures = Parse("index-signatures.ts", """
+        SourceFileNode signatures = Parse("index-signatures.ts"u8, """
             type Index = {
                 [key: string,]: number;
                 [idx?: number]: any;
@@ -95,208 +95,215 @@ internal static class ParserSafetyTests
                 [a ? b : c]: number;
                 [single]: number;
             };
-            """);
+            """u8);
         var indices = signatures.DescendantsAndSelf().OfType<IndexSignatureDeclarationNode>().ToArray();
-        Check(indices.Length == 8 && indices[0].Parameters is { Count: 1, HasTrailingComma: true }, "index signature trailing comma");
+        Check(indices.Length == 8 && indices[0].Parameters is { Count: 1, HasTrailingComma: true }, "index signature trailing comma"u8);
         Check(indices[1].Parameters![0] is ParameterDeclarationNode { QuestionToken: not null }
             && indices[2].Parameters![0] is ParameterDeclarationNode { DotDotDotToken: not null },
-            "index parameter optional and rest syntax");
-        Check(indices[3].Parameters?.Count == 2 && indices[4].Parameters?.Count == 0, "index parameter list recovery");
+            "index parameter optional and rest syntax"u8);
+        Check(indices[3].Parameters?.Count == 2 && indices[4].Parameters?.Count == 0, "index parameter list recovery"u8);
         Check(indices[5].Parameters![0] is ParameterDeclarationNode { Modifiers.Count: 1 }
-            && indices[6].Parameters![0] is ParameterDeclarationNode { Name: IdentifierNode { Text: { Span: "readonly" } } }
+            && indices[6].Parameters![0] is ParameterDeclarationNode { Name: IdentifierNode { Text: { Span: var matchedText2 } } } && matchedText2.SequenceEqual("readonly"u8)
             && indices[7].Parameters![0] is ParameterDeclarationNode { Initializer: StringLiteralNode },
-            "index parameter modifiers, name and initializer");
+            "index parameter modifiers, name and initializer"u8);
         Check(
             signatures.DescendantsAndSelf().Count(n => n is ComputedPropertyNameNode) == 2,
-            "computed names stay distinct from index signatures");
+            "computed names stay distinct from index signatures"u8);
 
-        SourceFileNode nestedFunctions = Parse("generic-function-types.ts", """
+        SourceFileNode nestedFunctions = Parse("generic-function-types.ts"u8, """
             type F = Box<<T>(x: T) => T>;
             type G = import("module").Modifier<<T>(x: T) => T>;
             type H = (readonly: string) => string;
             type I<X> = any extends ((any extends any ? any : string) extends any ? import("./name").Name<X> : any) ? any : any;
             type J = import("module", { with: { type: "json" }, });
             type K = typeof f< <T>()=>T>;
-            """);
-        Check(nestedFunctions.DescendantsAndSelf().Count(n => n is FunctionTypeNode) == 4, "nested generic function types");
+            """u8);
+        Check(nestedFunctions.DescendantsAndSelf().Count(n => n is FunctionTypeNode) == 4, "nested generic function types"u8);
         Check(
             nestedFunctions.DescendantsAndSelf().Count(n => n is ConditionalTypeNode) == 3,
-            "import type remains the true conditional branch");
+            "import type remains the true conditional branch"u8);
 
-        SourceFileNode heritage = Parse("heritage-expressions.ts", """
+        SourceFileNode heritage = Parse("heritage-expressions.ts"u8, """
             class C {}
             interface I extends ns.Base<T>, (typeof C) {}
             class D extends C, {}
             class E implements ns.Base<T>, a?.b {}
-            """);
+            """u8);
         var bases = heritage.DescendantsAndSelf().OfType<HeritageClauseNode>().ToArray();
         Check(bases[0].Types![0] is TypeReferenceNode { TypeName: QualifiedNameNode }
             && bases[0].Types![1] is ExpressionWithTypeArgumentsNode { Expression: ParenthesizedExpressionNode },
-            "interface heritage retains nonentity expressions");
+            "interface heritage retains nonentity expressions"u8);
         Check(
             bases[1].Types?.Count == 1 && bases[1].Types![0] is ExpressionWithTypeArgumentsNode { Expression: IdentifierNode },
-            "class heritage trailing comma");
+            "class heritage trailing comma"u8);
         Check(bases[2].Types![1] is ExpressionWithTypeArgumentsNode { Expression: PropertyAccessExpressionNode { Flags: var flags } }
-            && (flags & NodeFlags.OptionalChain) != 0, "optional heritage chain is not converted to an entity name");
+            && (flags & NodeFlags.OptionalChain) != 0, "optional heritage chain is not converted to an entity name"u8);
 
         SourceFileNode privateNames = Parse(
-            "private-type-query.ts",
-            "class C { #x = 0; get #v(){ return this.#x; } set #v(value){} get 1n(){ return 0; } get enum(){ return 0; } value: typeof this.#x; }");
+            "private-type-query.ts"u8,
+            "class C { #x = 0; get #v(){ return this.#x; } set #v(value){} get 1n(){ return 0; } get enum(){ return 0; } value: typeof this.#x; }"u8);
         Check(
             privateNames.DescendantsAndSelf().OfType<TypeQueryNode>().Single().ExprName is QualifiedNameNode { Right: PrivateIdentifierNode },
-            "type query preserves private identifier");
+            "type query preserves private identifier"u8);
         Parse(
-            "this-parameters.ts",
-            "function f(this: C, value: string){} type F=(this:C, value:string)=>void; interface I { get value(): number {} }");
-        (string Text, DiagnosticCode Diagnostic)[] invalidTypes =
+            "this-parameters.ts"u8,
+            "function f(this: C, value: string){} type F=(this:C, value:string)=>void; interface I { get value(): number {} }"u8);
+        (Utf8String Text, DiagnosticCode Diagnostic)[] invalidTypes =
         [
-            ("var v:void.x;", DiagnosticCode.X0Expected),
-            ("type T=typeof f<<A>()=>A>;", DiagnosticCode.X0Expected),
-            ("function f(this?:C){}", DiagnosticCode.X0Expected),
-            ("function f(this:C=foo){}", DiagnosticCode.X0Expected),
-            ("function f(@dec this:C){}", DiagnosticCode.NeitherDecoratorsNorModifiersMayBeAppliedToThisParameters),
-            ("function f(public this:C){}", DiagnosticCode.NeitherDecoratorsNorModifiersMayBeAppliedToThisParameters),
-            ("interface I { f(): void {} }", DiagnosticCode.X0Expected),
-            ("type F=A|()=>B;", DiagnosticCode.FunctionTypeNotationMustBeParenthesizedWhenUsedInAUnionType),
+            (Utf8String.Copy("var v:void.x;"u8), DiagnosticCode.X0Expected),
+            (Utf8String.Copy("type T=typeof f<<A>()=>A>;"u8), DiagnosticCode.X0Expected),
+            (Utf8String.Copy("function f(this?:C){}"u8), DiagnosticCode.X0Expected),
+            (Utf8String.Copy("function f(this:C=foo){}"u8), DiagnosticCode.X0Expected),
+            (Utf8String.Copy("function f(@dec this:C){}"u8), DiagnosticCode.NeitherDecoratorsNorModifiersMayBeAppliedToThisParameters),
+            (Utf8String.Copy("function f(public this:C){}"u8), DiagnosticCode.NeitherDecoratorsNorModifiersMayBeAppliedToThisParameters),
+            (Utf8String.Copy("interface I { f(): void {} }"u8), DiagnosticCode.X0Expected),
+            (Utf8String.Copy("type F=A|()=>B;"u8), DiagnosticCode.FunctionTypeNotationMustBeParenthesizedWhenUsedInAUnionType),
         ];
         foreach (var invalid in invalidTypes)
         {
-            SourceFileNode file = Parser.ParseSourceFile(new("invalid-type.ts"), new(invalid.Text));
+            SourceFileNode file = Parser.ParseSourceFile(new("invalid-type.ts"u8), new(invalid.Text));
             Check(
                 file.ParseDiagnostics.Any(d => d.Code == invalid.Diagnostic),
-                $"invalid type syntax must report {invalid.Diagnostic}: {invalid.Text}");
+                Utf8String.ConcatMany("invalid type syntax must report "u8, Utf8String.EnumName(invalid.Diagnostic), ": "u8, invalid.Text));
         }
-        (string Text, string[] Methods)[] memberRecovery =
+        (Utf8String Text, Utf8String[] Methods)[] memberRecovery =
         [
-            ("class C { private a(): boolean { private b(): boolean {} }", ["a", "b"]),
-            ("class Foo { f1(){ if(a.b){} public f2(){} f3(){} }", ["f1", "f2", "f3"]),
+            (Utf8String.Copy("class C { private a(): boolean { private b(): boolean {} }"u8), ["a"u8, "b"u8]),
+            (Utf8String.Copy("class Foo { f1(){ if(a.b){} public f2(){} f3(){} }"u8), ["f1"u8, "f2"u8, "f3"u8]),
         ];
         foreach (var recovery in memberRecovery)
         {
-            SourceFileNode file = Parser.ParseSourceFile(new("class-recovery.ts"), new(recovery.Text));
+            SourceFileNode file = Parser.ParseSourceFile(new("class-recovery.ts"u8), new(recovery.Text));
             var declaration = file.DescendantsAndSelf().OfType<ClassDeclarationNode>().Single();
             Check(
                 file.ParseDiagnostics.Count != 0
-                    && declaration.Members!.OfType<MethodDeclarationNode>().Select(m => ((IdentifierNode)m.Name!).Text.ToString()).SequenceEqual(recovery.Methods),
-                "class body recovery retains following methods");
+                    && declaration.Members!.OfType<MethodDeclarationNode>().Select(m => ((IdentifierNode)m.Name!).Text).SequenceEqual(recovery.Methods),
+                "class body recovery retains following methods"u8);
         }
 
-        Type("tuples.ts", "[", "]", K.TupleType);
-        SourceFileNode generic = Parse("generics.ts", "type T=" + Repeat("Box<", depth) + "A" + new string('>', depth) + ";");
-        Check(generic.DescendantsAndSelf().Count(n => n is TypeReferenceNode) == depth + 1, "generic nesting preserved");
-        Type("indexed-access.ts", "A[", "]", K.IndexedAccessType);
-        Type("operators.ts", "keyof ", "", K.TypeOperator);
-        Type("functions.ts", "()=>", "", K.FunctionType);
-        Type("conditionals.ts", "A extends B ? C : ", "", K.ConditionalType);
-        Type("mapped.ts", "{[P in K]:", "}", K.MappedType);
-        Type("type-literals.ts", "{value:", "}", K.TypeLiteral);
-        Type("template-types.ts", "`a${", "}`", K.TemplateLiteralType);
+        Type("tuples.ts"u8, "["u8, "]"u8, K.TupleType);
+        SourceFileNode generic = Parse("generics.ts"u8, Utf8String.Concat(Utf8String.Copy("type T="u8), Repeat("Box<"u8, depth), "A"u8) + new Utf8String('>', depth) + ";"u8);
+        Check(generic.DescendantsAndSelf().Count(n => n is TypeReferenceNode) == depth + 1, "generic nesting preserved"u8);
+        Type("indexed-access.ts"u8, "A["u8, "]"u8, K.IndexedAccessType);
+        Type("operators.ts"u8, "keyof "u8, ""u8, K.TypeOperator);
+        Type("functions.ts"u8, "()=>"u8, ""u8, K.FunctionType);
+        Type("conditionals.ts"u8, "A extends B ? C : "u8, ""u8, K.ConditionalType);
+        Type("mapped.ts"u8, "{[P in K]:"u8, "}"u8, K.MappedType);
+        Type("type-literals.ts"u8, "{value:"u8, "}"u8, K.TypeLiteral);
+        Type("template-types.ts"u8, "`a${"u8, "}`"u8, K.TemplateLiteralType);
 
-        (string Prefix, string Suffix)[] productions =
+        (Utf8String Prefix, Utf8String Suffix)[] productions =
         [
-            ("(", "|B)"), ("Box<", ">"), ("[", "]"), ("{value:", "}"),
-            ("(x:", ")=>A"), ("A extends B ? ", " : C"), ("{[P in K]:", "}"), ("keyof (", ")"),
+            (Utf8String.Copy("("u8), Utf8String.Copy("|B)"u8)), (Utf8String.Copy("Box<"u8), Utf8String.Copy(">"u8)), (Utf8String.Copy("["u8), Utf8String.Copy("]"u8)), (Utf8String.Copy("{value:"u8), Utf8String.Copy("}"u8)),
+            (Utf8String.Copy("(x:"u8), Utf8String.Copy(")=>A"u8)), (Utf8String.Copy("A extends B ? "u8), Utf8String.Copy(" : C"u8)), (Utf8String.Copy("{[P in K]:"u8), Utf8String.Copy("}"u8)), (Utf8String.Copy("keyof ("u8), Utf8String.Copy(")"u8)),
         ];
-        var compound = new StringBuilder("type T=");
+        var compound = new Utf8StringBuilder(Utf8String.Copy("type T="u8));
         for (int i = 0; i < depth; i++)
             compound.Append(productions[i % productions.Length].Prefix);
-        compound.Append('A');
+        compound.Append((byte)'A');
         for (int i = depth - 1; i >= 0; i--)
             compound.Append(productions[i % productions.Length].Suffix);
-        compound.Append(';');
-        SourceFileNode combined = Parse("compound-types.ts", compound.ToString());
-        Check(MaxDepth(combined) >= depth, "compound type depth");
+        compound.Append((byte)';');
+        SourceFileNode combined = Parse("compound-types.ts"u8, compound.ToUtf8String());
+        Check(MaxDepth(combined) >= depth, "compound type depth"u8);
 
-        Parse("blocks.ts", new string('{', depth) + ";" + new string('}', depth));
-        Parse("if-statements.ts", Repeat("if(a)", depth) + ";");
-        Parse("expression-parentheses.ts", "const x=" + new string('(', depth) + "1" + new string(')', depth) + ";");
-        Parse("array-expressions.ts", "const x=" + new string('[', depth) + "1" + new string(']', depth) + ";");
-        Parse("object-expressions.ts", "const x=" + Repeat("{a:", depth) + "1" + new string('}', depth) + ";");
-        Parse("binary-expressions.ts", "const x=" + Repeat("a**", depth) + "a;");
-        Parse("function-expressions.ts", "const x=" + Repeat("(function(){return ", depth) + "0" + Repeat(";})()", depth) + ";");
-        Parse("jsx.tsx", "const x=" + Repeat("<a>", depth) + "text" + Repeat("</a>", depth) + ";", ScriptKind.TSX);
-        string jsxName = Repeat("ns.", depth) + "Tag";
-        Parse("jsx-qualified.tsx", "const x=<" + jsxName + "></" + jsxName + ">;", ScriptKind.TSX);
+        Parse("blocks.ts"u8, Utf8String.Concat(new Utf8String('{', depth), ";"u8) + new Utf8String('}', depth));
+        Parse("if-statements.ts"u8, Repeat("if(a)"u8, depth) + ";"u8);
+        Parse("expression-parentheses.ts"u8, Utf8String.Concat("const x="u8, new Utf8String('(', depth), "1"u8) + new Utf8String(')', depth) + ";"u8);
+        Parse("array-expressions.ts"u8, Utf8String.Concat("const x="u8, new Utf8String('[', depth), "1"u8) + new Utf8String(']', depth) + ";"u8);
+        Parse("object-expressions.ts"u8, Utf8String.Concat(Utf8String.Copy("const x="u8), Repeat("{a:"u8, depth), "1"u8) + new Utf8String('}', depth) + ";"u8);
+        Parse("binary-expressions.ts"u8, Utf8String.Copy("const x="u8) + Repeat("a**"u8, depth) + "a;"u8);
+        Parse("function-expressions.ts"u8, Utf8String.Concat(Utf8String.Copy("const x="u8), Repeat("(function(){return "u8, depth), "0"u8) + Repeat(";})()"u8, depth) + ";"u8);
+        Parse("jsx.tsx"u8, Utf8String.Concat(Utf8String.Copy("const x="u8), Repeat("<a>"u8, depth), "text"u8) + Repeat("</a>"u8, depth) + ";"u8, ScriptKind.TSX);
+        Utf8String jsxName = Repeat("ns."u8, depth) + "Tag"u8;
+        Parse("jsx-qualified.tsx"u8, Utf8String.Concat("const x=<"u8, jsxName, "></"u8) + jsxName + ">;"u8, ScriptKind.TSX);
         SourceFileNode jsxThis = Parse(
-            "jsx-names.tsx",
-            "const x=<this.Item xml:lang={language} {...left,right}>{...items}<ns:tag/><this/></this.Item>; const y=<Component<number>/>;",
+            "jsx-names.tsx"u8,
+            "const x=<this.Item xml:lang={language} {...left,right}>{...items}<ns:tag/><this/></this.Item>; const y=<Component<number>/>;"u8,
             ScriptKind.TSX);
         Check(
             jsxThis.DescendantsAndSelf().OfType<JsxSelfClosingElementNode>().Any(
                 n => n.TagName is KeywordExpressionNode { Kind: K.ThisKeyword }),
-            "JSX this tag keeps keyword semantics");
-        (string Text, ScriptKind Kind, DiagnosticCode Diagnostic)[] invalidJsx =
+            "JSX this tag keeps keyword semantics"u8);
+        (Utf8String Text, ScriptKind Kind, DiagnosticCode Diagnostic)[] invalidJsx =
         [
-            ("<a></b>;", ScriptKind.TSX, DiagnosticCode.ExpectedCorrespondingJSXClosingTagFor0),
-            ("<a:b></b>;", ScriptKind.TSX, DiagnosticCode.ExpectedCorrespondingJSXClosingTagFor0),
-            ("<a.b.c></a>;", ScriptKind.TSX, DiagnosticCode.ExpectedCorrespondingJSXClosingTagFor0),
-            ("<a><b></a>;", ScriptKind.TSX, DiagnosticCode.JSXElement0HasNoCorrespondingClosingTag),
-            (@"<\u0061/>;", ScriptKind.TSX, DiagnosticCode.UnicodeEscapeSequenceCannotAppearHere),
-            (@"<a data-\u0061/>;", ScriptKind.TSX, DiagnosticCode.UnicodeEscapeSequenceCannotAppearHere),
-            ("<this.#private/>;", ScriptKind.TSX, DiagnosticCode.IdentifierExpected),
-            ("<X a={...a}/>;", ScriptKind.TSX, DiagnosticCode.ExpressionExpected),
-            ("<X<T>/>;", ScriptKind.JSX, DiagnosticCode.IdentifierExpected),
-            ("<a/><b/>;", ScriptKind.TSX, DiagnosticCode.JSXExpressionsMustHaveOneParentElement),
+            (Utf8String.Copy("<a></b>;"u8), ScriptKind.TSX, DiagnosticCode.ExpectedCorrespondingJSXClosingTagFor0),
+            (Utf8String.Copy("<a:b></b>;"u8), ScriptKind.TSX, DiagnosticCode.ExpectedCorrespondingJSXClosingTagFor0),
+            (Utf8String.Copy("<a.b.c></a>;"u8), ScriptKind.TSX, DiagnosticCode.ExpectedCorrespondingJSXClosingTagFor0),
+            (Utf8String.Copy("<a><b></a>;"u8), ScriptKind.TSX, DiagnosticCode.JSXElement0HasNoCorrespondingClosingTag),
+            (Utf8String.Copy(@"<\u0061/>;"u8), ScriptKind.TSX, DiagnosticCode.UnicodeEscapeSequenceCannotAppearHere),
+            (Utf8String.Copy(@"<a data-\u0061/>;"u8), ScriptKind.TSX, DiagnosticCode.UnicodeEscapeSequenceCannotAppearHere),
+            (Utf8String.Copy("<this.#private/>;"u8), ScriptKind.TSX, DiagnosticCode.IdentifierExpected),
+            (Utf8String.Copy("<X a={...a}/>;"u8), ScriptKind.TSX, DiagnosticCode.ExpressionExpected),
+            (Utf8String.Copy("<X<T>/>;"u8), ScriptKind.JSX, DiagnosticCode.IdentifierExpected),
+            (Utf8String.Copy("<a/><b/>;"u8), ScriptKind.TSX, DiagnosticCode.JSXExpressionsMustHaveOneParentElement),
         ];
         foreach (var invalid in invalidJsx)
         {
-            SourceFileNode file = Parser.ParseSourceFile(new("invalid.tsx", invalid.Kind), new(invalid.Text));
+            SourceFileNode file = Parser.ParseSourceFile(new("invalid.tsx"u8, invalid.Kind), new(invalid.Text));
             Check(
                 file.ParseDiagnostics.Any(d => d.Code == invalid.Diagnostic),
-                $"invalid JSX must report {invalid.Diagnostic}: {invalid.Text}");
+                Utf8String.ConcatMany("invalid JSX must report "u8, Utf8String.EnumName(invalid.Diagnostic), ": "u8, invalid.Text));
         }
-        Parse("nested.json", new string('[', depth) + "1" + new string(']', depth), ScriptKind.JSON);
-        Parse("documentation.js", "/** @type {" + Repeat("Box<", depth) + "A" + new string('>', depth) + "} */ const x=0;", ScriptKind.JS);
-        Parse("documentation-array.js", "/** @param {Object" + Repeat("[]", depth) + "} value */ function f(value){}", ScriptKind.JS);
+        Parse("nested.json"u8, Utf8String.Concat(new Utf8String('[', depth), "1"u8) + new Utf8String(']', depth), ScriptKind.JSON);
+        Parse("documentation.js"u8, Utf8String.Concat(Utf8String.Copy("/** @type {"u8), Repeat("Box<"u8, depth), "A"u8) + new Utf8String('>', depth) + "} */ const x=0;"u8, ScriptKind.JS);
+        Parse("documentation-array.js"u8, Utf8String.Copy("/** @param {Object"u8) + Repeat("[]"u8, depth) + "} value */ function f(value){}"u8, ScriptKind.JS);
         Parse(
-            "documentation-host.js",
-            "/** @returns {number} */ const f=" + new string('(', depth) + "()=>0" + new string(')', depth) + ";",
+            "documentation-host.js"u8,
+            Utf8String.Concat("/** @returns {number} */ const f="u8, new Utf8String('(', depth), "()=>0"u8) + new Utf8String(')', depth) + ";"u8,
             ScriptKind.JS);
         SourceFileNode names = Parse(
-            "documentation-names.js",
-            "/** @param {Object} " + Repeat("a.", depth) + "value */ function f(value){}",
+            "documentation-names.js"u8,
+            Utf8String.Copy("/** @param {Object} "u8) + Repeat("a."u8, depth) + "value */ function f(value){}"u8,
             ScriptKind.JS);
         Check(
             names.GetDocumentation(names.Statements![0]).SelectMany(n => n.DescendantsAndSelf()).Count(n => n is QualifiedNameNode) == depth,
-            "documentation name depth");
-        string qualified = Repeat("ns.", depth) + "Base";
+            "documentation name depth"u8);
+        Utf8String qualified = Repeat("ns."u8, depth) + "Base"u8;
         Parse(
-            "documentation-heritage.js",
-            "/** @extends {" + qualified + "<number>} */ class C extends " + qualified + " {}",
+            "documentation-heritage.js"u8,
+            Utf8String.Concat("/** @extends {"u8, qualified, "<number>} */ class C extends "u8) + qualified + " {}"u8,
             ScriptKind.JS);
 
         const int propertyDepth = 384;
-        var properties = new StringBuilder("/**\n");
-        string propertyName = "value";
+        var properties = new Utf8StringBuilder(Utf8String.Copy("/**\n"u8));
+        Utf8String propertyName = "value"u8;
         for (int i = 0; i < propertyDepth; i++)
         {
-            properties.Append(" * @param {Object} ").Append(propertyName).Append('\n');
-            propertyName += ".p";
+            properties.Append(" * @param {Object} "u8).Append(propertyName).Append((byte)'\n');
+            propertyName += ".p"u8;
         }
-        properties.Append(" * @param {number} ").Append(propertyName).Append("\n */ function f(value){}");
-        SourceFileNode grouped = Parse("documentation-properties.js", properties.ToString(), ScriptKind.JS);
+        properties.Append(" * @param {number} "u8).Append(propertyName).Append("\n */ function f(value){}"u8);
+        SourceFileNode grouped = Parse("documentation-properties.js"u8, properties.ToUtf8String(), ScriptKind.JS);
         Check(
             grouped.DescendantsAndSelf().Count(n => n is TypeLiteralNode) == propertyDepth,
-            "documentation property grouping and cloning");
+            "documentation property grouping and cloning"u8);
         SourceFileNode typedef = Parse(
-            "documentation-typedef.js",
-            "/** @typedef {Object} T\n * @property {Object} a\n * @property {number} a.b\n */",
+            "documentation-typedef.js"u8,
+            "/** @typedef {Object} T\n * @property {Object} a\n * @property {number} a.b\n */"u8,
             ScriptKind.JS);
         Check(typedef.DescendantsAndSelf().OfType<TypeLiteralNode>().First().Members is { Count: 1 } members
-            && members[0] is PropertySignatureDeclarationNode { Type: TypeLiteralNode }, "typedef preserves nested property ownership");
+            && members[0] is PropertySignatureDeclarationNode { Type: TypeLiteralNode }, "typedef preserves nested property ownership"u8);
+        foreach (int lineBreak in new[] { 0x2028, 0x2029 })
+        {
+            SourceFileNode documentation = Parse("documentation-unicode-lines.js"u8,
+                Utf8String.Concat("/**"u8, new Utf8String(lineBreak, 2), "text*/ function f() {}"u8), ScriptKind.JS);
+            Check(documentation.GetDocumentation(documentation.Statements![0])[0].Comment![0] is JSDocTextNode comment
+                && comment.Text is [var text] && text == "\ntext"u8, "Unicode documentation line breaks retain leading empty lines"u8);
+        }
 
         SynchronizationContext? previousContext = SynchronizationContext.Current;
         try
         {
             SynchronizationContext.SetSynchronizationContext(new NonPumpingContext());
-            Type("synchronization-context.ts", "Box<(", ")>", K.ParenthesizedType);
+            Type("synchronization-context.ts"u8, "Box<("u8, ")>"u8, K.ParenthesizedType);
         }
         finally
         {
             SynchronizationContext.SetSynchronizationContext(previousContext);
         }
 
-        var cancellationSource = new SourceText("type T=" + new string('(', 1_000_000) + "A" + new string(')', 1_000_000) + ";");
+        var cancellationSource = new SourceText(Utf8String.Concat("type T="u8, new Utf8String('(', 1_000_000), "A"u8) + new Utf8String(')', 1_000_000) + ";"u8);
         using (var cancelled = new CancellationTokenSource())
         {
             cancelled.Cancel();
@@ -308,7 +315,7 @@ internal static class ParserSafetyTests
             ExpectCancellation(cancellationSource, cancelled.Token);
         }
         var documentationSource = new SourceText(
-            "/** @type {" + new string('(', 1_000_000) + "A" + new string(')', 1_000_000) + "} */ const x=0;");
+            Utf8String.Concat("/** @type {"u8, new Utf8String('(', 1_000_000), "A"u8) + new Utf8String(')', 1_000_000) + "} */ const x=0;"u8);
         using (var cancelled = new CancellationTokenSource())
         {
             cancelled.CancelAfter(10);
@@ -318,12 +325,12 @@ internal static class ParserSafetyTests
             $"Parser safety: {cases} cases, {nodes} nodes; depth {depth}, source positions, parents and cancellation passed.");
     }
 
-    private static string Repeat(string value, int count)
+    private static Utf8String Repeat(Utf8String value, int count)
     {
-        var result = new StringBuilder(value.Length * count);
+        var result = new Utf8StringBuilder(value.Length * count);
         for (int i = 0; i < count; i++)
             result.Append(value);
-        return result.ToString();
+        return result.ToUtf8String();
     }
 
     private static void VerifyScalarProperties()
@@ -336,48 +343,47 @@ internal static class ParserSafetyTests
             return JsonDocument.Parse(buffer.ToArray());
         }
         var factory = new NodeFactory();
-        var identifier = factory.NewIdentifier("value");
+        var identifier = factory.NewIdentifier("value"u8);
         using var plus = Scalars(factory.NewPrefixUnaryExpression(K.PlusToken, identifier));
         using var minus = Scalars(factory.NewPrefixUnaryExpression(K.MinusToken, identifier));
-        Check(plus.RootElement.GetProperty("Operator").GetInt32() == (int)K.PlusToken
-            && minus.RootElement.GetProperty("Operator").GetInt32() == (int)K.MinusToken,
-            "scalar oracle distinguishes unary operators with identical tree shape");
+        Check(plus.RootElement.GetProperty("Operator"u8).GetInt32() == (int)K.PlusToken
+            && minus.RootElement.GetProperty("Operator"u8).GetInt32() == (int)K.MinusToken,
+            "scalar oracle distinguishes unary operators with identical tree shape"u8);
         using var typeOnly = Scalars(factory.NewImportSpecifier(true, null, identifier));
         using var valueImport = Scalars(factory.NewImportSpecifier(false, null, identifier));
         Check(
-            typeOnly.RootElement.GetProperty("IsTypeOnly").GetBoolean() && !valueImport.RootElement.GetProperty("IsTypeOnly").GetBoolean(),
-            "scalar oracle preserves import erasure semantics");
+            typeOnly.RootElement.GetProperty("IsTypeOnly"u8).GetBoolean() && !valueImport.RootElement.GetProperty("IsTypeOnly"u8).GetBoolean(),
+            "scalar oracle preserves import erasure semantics"u8);
         using var phase = Scalars(factory.NewImportClause(K.DeferKeyword, identifier, null));
         Check(
-            phase.RootElement.GetProperty("PhaseModifier").GetInt32() == (int)K.DeferKeyword,
-            "scalar oracle preserves import evaluation phase");
-        using var template = Scalars(factory.NewTemplateHead("\n", "\\n", TokenFlags.ContainsInvalidEscape));
-        Check(Wtf8.DecodeString(template.RootElement.GetProperty("RawText").GetBytesFromBase64()) == "\\n"
-            && template.RootElement.GetProperty("TemplateFlags").GetUInt32() == (uint)TokenFlags.ContainsInvalidEscape,
-            "scalar oracle preserves raw template spelling and flags");
+            phase.RootElement.GetProperty("PhaseModifier"u8).GetInt32() == (int)K.DeferKeyword,
+            "scalar oracle preserves import evaluation phase"u8);
+        using var template = Scalars(factory.NewTemplateHead("\n"u8, "\\n"u8, TokenFlags.ContainsInvalidEscape));
+        Check(Wtf8.DecodeString(template.RootElement.GetProperty("RawText"u8).GetBytesFromBase64()) == "\\n"
+            && template.RootElement.GetProperty("TemplateFlags"u8).GetUInt32() == (uint)TokenFlags.ContainsInvalidEscape,
+            "scalar oracle preserves raw template spelling and flags"u8);
         Check(
-            template.RootElement.EnumerateObject().Select(p => p.Name).SequenceEqual(["RawText", "TemplateFlags", "Text"]),
-            "scalar property ordering is canonical");
-        using var text = Scalars(factory.NewJSDocText(["a", "\ud800"]));
-        Check(text.RootElement.GetProperty("Text").GetArrayLength() == 2
+            template.RootElement.EnumerateObject().Select(p => JsonStrings.GetName(p)).SequenceEqual([Utf8String.Copy("RawText"u8), Utf8String.Copy("TemplateFlags"u8), Utf8String.Copy("Text"u8)]),
+            "scalar property ordering is canonical"u8);
+        using var text = Scalars(factory.NewJSDocText(["a"u8, Utf8String.Copy([0xED, 0xA0, 0x80])]));
+        Check(text.RootElement.GetProperty("Text"u8).GetArrayLength() == 2
             && Wtf8.DecodeString(
-                text.RootElement.GetProperty("Text")[1].GetBytesFromBase64()) == "\ud800",
-            "scalar oracle preserves string chunks and unpaired surrogates");
-
-        const string callText = "/*é😀*/f(1,);";
-        SourceFileNode file = Parser.ParseSourceFile(new("lists.ts"), new(callText));
+                text.RootElement.GetProperty("Text"u8)[1].GetBytesFromBase64()) == "\ud800",
+            "scalar oracle preserves string chunks and unpaired surrogates"u8);
+        Utf8String callText = "/*é😀*/f(1,);"u8;
+        SourceFileNode file = Parser.ParseSourceFile(new("lists.ts"u8), new(callText));
         CallExpressionNode call = file.DescendantsAndSelf().OfType<CallExpressionNode>().Single();
         using var listBuffer = new MemoryStream();
         using (var writer = new Utf8JsonWriter(listBuffer))
-            AstScalarProperties.WriteLists(writer, call, file.Source.ToUtf16Position);
+            AstScalarProperties.WriteLists(writer, call, static value => value);
         using JsonDocument lists = JsonDocument.Parse(listBuffer.ToArray());
-        JsonElement arguments = lists.RootElement.GetProperty("Arguments");
-        Check(arguments[0].GetInt32() == 1 && arguments[1].GetInt32() == callText.IndexOf('(') + 1
-            && arguments[2].GetInt32() == callText.IndexOf(')') && arguments[3].GetBoolean(),
-            "list audit preserves Unicode positions and trailing comma");
+        JsonElement arguments = lists.RootElement.GetProperty("Arguments"u8);
+        Check(arguments[0].GetInt32() == 1 && arguments[1].GetInt32() == callText.IndexOf((byte)'(') + 1
+            && arguments[2].GetInt32() == callText.IndexOf((byte)')') && arguments[3].GetBoolean(),
+            "list audit preserves Unicode positions and trailing comma"u8);
         Check(
-            lists.RootElement.GetProperty("TypeArguments").ValueKind == JsonValueKind.Null,
-            "list audit distinguishes null from empty lists");
+            lists.RootElement.GetProperty("TypeArguments"u8).ValueKind == JsonValueKind.Null,
+            "list audit distinguishes null from empty lists"u8);
         var missing = new NodeList([], 3, 3, true);
         var empty = new NodeList([], 3, 3);
         var signature = factory.NewFunctionTypeNode(null, missing, null);
@@ -385,12 +391,12 @@ internal static class ParserSafetyTests
         Check(missing.IsMissing && !empty.IsMissing && clonedSignature.Parameters is { IsMissing: true, Count: 0 }
             && !ReferenceEquals(
                 missing,
-                clonedSignature.Parameters), "missing parameter lists survive cloning independently of empty lists");
-        var parameterName = factory.NewIdentifier("value");
+                clonedSignature.Parameters), "missing parameter lists survive cloning independently of empty lists"u8);
+        var parameterName = factory.NewIdentifier("value"u8);
         var parameterType = factory.NewJSDocTypeExpression(factory.NewKeywordTypeNode(K.StringKeyword));
         var parameterTag = factory.NewJSDocParameterOrPropertyTag(
             K.JSDocParameterTag,
-            factory.NewIdentifier("param"),
+            factory.NewIdentifier("param"u8),
             parameterName,
             false,
             parameterType,
@@ -398,11 +404,11 @@ internal static class ParserSafetyTests
             null);
         Check(
             ReferenceEquals(parameterTag.GetChild(1), parameterType) && ReferenceEquals(parameterTag.GetChild(2), parameterName),
-            "JSDoc type-first traversal follows source spelling");
+            "JSDoc type-first traversal follows source spelling"u8);
         parameterTag.IsNameFirst = true;
         Check(
             ReferenceEquals(parameterTag.GetChild(1), parameterName) && ReferenceEquals(parameterTag.GetChild(2), parameterType),
-            "JSDoc name-first traversal follows source spelling");
+            "JSDoc name-first traversal follows source spelling"u8);
     }
 
     public static void RunSingleWorkerDocumentation() => VerifySingleWorkerDocumentation(true);
@@ -411,40 +417,40 @@ internal static class ParserSafetyTests
     {
         const int depth = 21_000;
         var source = new SourceText(
-            "/*é😀*/ /** @throws {" + new string('(', depth) + "import('module').T" + new string(')', depth) + "} */ function f(){}");
+            Utf8String.Concat("/*é😀*/ /** @throws {"u8, new Utf8String('(', depth), "import('module').T"u8) + new Utf8String(')', depth) + "} */ function f(){}"u8);
         ThreadPool.GetMinThreads(out int minimumWorkers, out int minimumIo);
         ThreadPool.GetMaxThreads(out int maximumWorkers, out int maximumIo);
         using var cancellation = new CancellationTokenSource();
         try
         {
             bool singleWorker = ThreadPool.SetMinThreads(1, minimumIo) && ThreadPool.SetMaxThreads(1, maximumIo);
-            Check(!requireWorkerLimit || singleWorker, "strict single-worker test requires a configurable worker pool");
+            Check(!requireWorkerLimit || singleWorker, "strict single-worker test requires a configurable worker pool"u8);
             Task verify = Task.Run(async () =>
             {
                 SourceFileNode original = await Parser.ParseSourceFileAsync(
-                    new("single-worker.js"),
+                    new("single-worker.js"u8),
                     source,
                     cancellation.Token).ConfigureAwait(false);
-                Check(original.ParseDiagnostics.Count == 0 && original.Imports.Count == 1, "async JSDoc parser completes on one worker");
+                Check(original.ParseDiagnostics.Count == 0 && original.Imports.Count == 1, "async JSDoc parser completes on one worker"u8);
                 SourceFileNode clone = original.DeepClone<SourceFileNode>();
                 Check(
                     clone.Imports.Count == 1 && !ReferenceEquals(clone.Imports[0], original.Imports[0]),
-                    "clone owns the documentation import reference");
+                    "clone owns the documentation import reference"u8);
                 Check(
                     clone.Imports[0].Pos == original.Imports[0].Pos && clone.Imports[0].End == original.Imports[0].End,
-                    "cloned documentation retains UTF-8 source positions");
+                    "cloned documentation retains UTF-8 source positions"u8);
                 SyntaxNode owner = clone.Imports[0];
                 while (owner.Parent is { } parent)
                     owner = parent;
-                Check(ReferenceEquals(owner, clone), "cloned documentation import has complete parent ownership");
+                Check(ReferenceEquals(owner, clone), "cloned documentation import has complete parent ownership"u8);
                 IReadOnlyList<JSDocNode> comments = await clone.GetDocumentationAsync(
                     clone.Statements![0],
                     cancellation.Token).ConfigureAwait(false);
                 Check(
                     comments.SelectMany(c => c.DescendantsAndSelf()).Any(n => ReferenceEquals(n, clone.Imports[0])),
-                    "clone metadata reuses its cached documentation node");
+                    "clone metadata reuses its cached documentation node"u8);
                 SourceFileNode typed = await Parser.ParseSourceFileAsync(
-                    new("single-worker.ts"),
+                    new("single-worker.ts"u8),
                     source,
                     cancellation.Token).ConfigureAwait(false);
                 IReadOnlyList<JSDocNode> lazy = await typed.GetDocumentationAsync(
@@ -452,14 +458,14 @@ internal static class ParserSafetyTests
                     cancellation.Token).ConfigureAwait(false);
                 Check(
                     lazy.Count == 1 && MaxDepth(lazy[0]) >= depth && ReferenceEquals(lazy[0].Parent, typed.Statements[0]),
-                    "lazy TypeScript documentation parses on one worker");
+                    "lazy TypeScript documentation parses on one worker"u8);
                 IReadOnlyList<JSDocNode> cached = await typed.GetDocumentationAsync(
                     typed.Statements[0],
                     cancellation.Token).ConfigureAwait(false);
-                Check(ReferenceEquals(lazy[0], cached[0]), "async documentation preserves cached query identity");
+                Check(ReferenceEquals(lazy[0], cached[0]), "async documentation preserves cached query identity"u8);
                 SourceFileNode aliases = await Parser.ParseSourceFileAsync(
-                    new("alias.js"),
-                    new("/** @typedef {number} T */ const x=1;"),
+                    new("alias.js"u8),
+                    new("/** @typedef {number} T */ const x=1;"u8),
                     cancellation.Token).ConfigureAwait(false);
                 SyntaxNode alias = aliases.Statements!.Single(n => n.Kind == K.JSTypeAliasDeclaration);
                 JSDocNode originalComment = aliases.GetDocumentation(alias).Single();
@@ -472,19 +478,19 @@ internal static class ParserSafetyTests
                     && clonedComment.Parent is not null
                     && !ReferenceEquals(clonedComment.Parent, originalComment.Parent)
                     && clonedComment.Pos == originalComment.Pos && clonedComment.End == originalComment.End,
-                    "synthetic aliases retain source-local documentation after cloning");
+                    "synthetic aliases retain source-local documentation after cloning"u8);
                 SyntaxNode originalHost = originalComment.Parent!;
                 SyntaxNode clonedHost = clonedComment.Parent!;
                 Check(ReferenceEquals(aliases.GetDocumentation(originalHost).Single(), originalComment)
                     && ReferenceEquals(
                         (await clonedAliases.GetDocumentationAsync(clonedHost, cancellation.Token).ConfigureAwait(false)).Single(),
-                        clonedComment), "cloned aliases share the cloned original host's comment identity");
+                        clonedComment), "cloned aliases share the cloned original host's comment identity"u8);
             });
-            Check(verify.Wait(TimeSpan.FromSeconds(10)), "async parsing and documentation cloning do not block the sole worker");
+            Check(verify.Wait(TimeSpan.FromSeconds(10)), "async parsing and documentation cloning do not block the sole worker"u8);
             verify.GetAwaiter().GetResult();
             Console.WriteLine(singleWorker
-                ? "Async documentation: single-worker parsing, lazy queries, cloning and cache identity passed."
-                : "Async documentation: default worker pool passed; worker limits unsupported, separate portable-pool single-worker gate required.");
+                ? Utf8String.Copy("Async documentation: single-worker parsing, lazy queries, cloning and cache identity passed."u8)
+                : Utf8String.Copy("Async documentation: default worker pool passed; worker limits unsupported, separate portable-pool single-worker gate required."u8));
         }
         finally
         {
@@ -512,7 +518,7 @@ internal static class ParserSafetyTests
     {
         try
         {
-            Parser.ParseSourceFile(new("cancel.ts", kind), source, cancellation);
+            Parser.ParseSourceFile(new("cancel.ts"u8, kind), source, cancellation);
         }
         catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
         {
@@ -521,10 +527,10 @@ internal static class ParserSafetyTests
         throw new InvalidDataException("The production parser did not observe cancellation.");
     }
 
-    private static void Check(bool condition, string message)
+    private static void Check(bool condition, Utf8String message)
     {
         if (!condition)
-            throw new InvalidDataException(message);
+            throw new InvalidDataException(message.ToString());
     }
 
     private sealed class NonPumpingContext : SynchronizationContext

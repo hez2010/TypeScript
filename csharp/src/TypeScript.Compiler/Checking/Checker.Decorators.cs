@@ -23,7 +23,7 @@ internal sealed partial class Checker
             ParameterDeclarationNode => LegacyDecorators
                 && node.Parent is ConstructorDeclarationNode or MethodDeclarationNode or SetAccessorDeclarationNode
                 && SemanticSyntax.Body(node.Parent) is not null && node.Parent.Parent is ClassDeclarationNode
-                && SemanticSyntax.Name(node) is not IdentifierNode { Text.Span: "this" },
+                && !(SemanticSyntax.Name(node) is IdentifierNode { Text.Span: var matchedText } && matchedText.SequenceEqual("this"u8)),
             _ => false
         };
     }
@@ -38,7 +38,7 @@ internal sealed partial class Checker
         {
             if (modifier is DecoratorNode)
             {
-                if (node is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: "this" } })
+                if (node is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: var matchedText2 } } && matchedText2.SequenceEqual("this"u8))
                 {
                     Error(node, DiagnosticCode.NeitherDecoratorsNorModifiersMayBeAppliedToThisParameters);
                     return true;
@@ -110,13 +110,13 @@ internal sealed partial class Checker
         var first = decorators[0];
         if (LegacyDecorators)
         {
-            await ExternalHelpersAsync(first, node is ParameterDeclarationNode ? ["__decorate", "__param"] : ["__decorate"], cancellation);
+            await ExternalHelpersAsync(first, node is ParameterDeclarationNode ? [Utf8Literals.Decorate, Utf8Literals.Param] : [Utf8Literals.Decorate], cancellation);
             if (program.Symbols.Program.Configuration.Options.EmitDecoratorMetadata == true)
                 await DecoratorMetadataAsync(node, first, cancellation);
         }
         else if (TargetYear < int.MaxValue)
         {
-            await ExternalHelpersAsync(first, ["__esDecorate", "__runInitializers"], cancellation);
+            await ExternalHelpersAsync(first, [Utf8Literals.EsDecorate, Utf8Literals.RunInitializers], cancellation);
             if (node is ClassDeclarationNode && (SemanticSyntax.Name(node) is null
                 || PropertyInitialization.Members(node).Any(m => HasDecorators(m) && CanDecorate(m) || m is ClassStaticBlockDeclarationNode
                     || SemanticSyntax.IsStatic(m) && (SemanticSyntax.Name(m) is PrivateIdentifierNode
@@ -124,9 +124,9 @@ internal sealed partial class Checker
                 || SemanticSyntax.Name(node) is PrivateIdentifierNode && (node is MethodDeclarationNode or GetAccessorDeclarationNode
                     or SetAccessorDeclarationNode
                     || SemanticSyntax.HasModifier(node, SyntaxKind.AccessorKeyword)))
-                await ExternalHelpersAsync(first, ["__setFunctionName"], cancellation);
+                await ExternalHelpersAsync(first, [Utf8Literals.SetFunctionName], cancellation);
             if (!SemanticSyntax.ClassLike(node) && SemanticSyntax.Name(node) is ComputedPropertyNameNode)
-                await ExternalHelpersAsync(first, ["__propKey"], cancellation);
+                await ExternalHelpersAsync(first, [Utf8Literals.PropKey], cancellation);
         }
         foreach (var decorator in decorators)
         {

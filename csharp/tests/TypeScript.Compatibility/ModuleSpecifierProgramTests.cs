@@ -20,26 +20,26 @@ internal static class ModuleSpecifierProgramTests
                 throw new InvalidOperationException($"Program module naming assertion {checks + 1}");
             checks++;
         }
-        var fs = new ObservedFileSystem(new MemoryFileSystem(new Dictionary<string, byte[]>
+        var fs = new ObservedFileSystem(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
         {
-            ["/project/main.ts"] = Wtf8.Encode("export const main=1;"),
-            ["/project/package.json"] = Wtf8.Encode("{\"dependencies\":{\"pkg\":\"*\"}}"),
-            ["/store/pkg/package.json"] = Wtf8.Encode("{\"name\":\"pkg\",\"version\":\"1\",\"types\":\"item.ts\"}"),
-            ["/store/pkg/item.ts"] = Wtf8.Encode("export const item=1;")
-        }, symbolicLinks: new Dictionary<string, string> { ["/project/node_modules/pkg"] = "/store/pkg" }));
+            ["/project/main.ts"u8] = Wtf8.Encode("export const main=1;"),
+            ["/project/package.json"u8] = Wtf8.Encode("{\"dependencies\":{\"pkg\":\"*\"}}"),
+            ["/store/pkg/package.json"u8] = Wtf8.Encode("{\"name\":\"pkg\",\"version\":\"1\",\"types\":\"item.ts\"}"),
+            ["/store/pkg/item.ts"u8] = Wtf8.Encode("export const item=1;")
+        }, symbolicLinks: new Dictionary<Utf8String, Utf8String> { ["/project/node_modules/pkg"u8] = "/store/pkg"u8 }));
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
+        options.SetRaw("noLib"u8, "true"u8);
         var program = await CompilerProgram.CreateAsync(
             fs,
-            "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts", "/store/pkg/item.ts"], [], [], []));
-        var source = program.GetFile("/project/main.ts")!.Syntax;
-        Check(program.CommonSourceDirectory == "/project/");
+            "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8, "/store/pkg/item.ts"u8], [], [], []));
+        var source = program.GetFile("/project/main.ts"u8)!.Syntax;
+        Check(program.CommonSourceDirectory == "/project/"u8);
         using var stop = new CancellationTokenSource();
         stop.Cancel();
         try
         {
-            program.GetModuleSpecifiers(source, "/store/pkg/item.ts", cancellation: stop.Token);
+            program.GetModuleSpecifiers(source, "/store/pkg/item.ts"u8, cancellation: stop.Token);
             throw new InvalidOperationException("Pre-cancellation ignored");
         }
         catch (OperationCanceledException)
@@ -50,7 +50,7 @@ internal static class ModuleSpecifierProgramTests
         fs.BeforeRead = _ => duringRead.Cancel();
         try
         {
-            program.GetModuleSpecifiers(source, "/store/pkg/item.ts", cancellation: duringRead.Token);
+            program.GetModuleSpecifiers(source, "/store/pkg/item.ts"u8, cancellation: duringRead.Token);
             throw new InvalidOperationException("Host cancellation ignored");
         }
         catch (OperationCanceledException)
@@ -60,7 +60,7 @@ internal static class ModuleSpecifierProgramTests
         fs.BeforeRead = _ => throw new IOException("host read failure");
         try
         {
-            program.GetModuleSpecifiers(source, "/store/pkg/item.ts");
+            program.GetModuleSpecifiers(source, "/store/pkg/item.ts"u8);
             throw new InvalidOperationException("Host failure ignored");
         }
         catch (IOException error) when (error.Message == "host read failure")
@@ -68,25 +68,25 @@ internal static class ModuleSpecifierProgramTests
             checks++;
         }
         fs.BeforeRead = null;
-        var result = program.GetModuleSpecifiers(source, "/store/pkg/item.ts");
-        Check(result.Kind == ModuleSpecifierKind.NodeModules && result.Specifiers.SequenceEqual(["pkg"]));
+        var result = program.GetModuleSpecifiers(source, "/store/pkg/item.ts"u8);
+        Check(result.Kind == ModuleSpecifierKind.NodeModules && result.Specifiers.SequenceEqual([Utf8String.Copy("pkg"u8)]));
         int reads = fs.Reads;
-        Check(program.GetModuleSpecifiers(source, "/store/pkg/item.ts").Specifiers.SequenceEqual(["pkg"]));
+        Check(program.GetModuleSpecifiers(source, "/store/pkg/item.ts"u8).Specifiers.SequenceEqual([Utf8String.Copy("pkg"u8)]));
         Check(fs.Reads == reads);
         try
         {
-            ((IList<string>)result.Specifiers)[0] = "bad";
+            ((IList<Utf8String>)result.Specifiers)[0] = "bad"u8;
             throw new InvalidOperationException("Mutable naming result");
         }
         catch (NotSupportedException)
         {
             checks++;
         }
-        var paths = program.GetModuleSpecifierPaths(source, "/store/pkg/item.ts");
-        Check(paths.Any(p => p.FileName == "/project/node_modules/pkg/item.ts"));
+        var paths = program.GetModuleSpecifierPaths(source, "/store/pkg/item.ts"u8);
+        Check(paths.Any(p => p.FileName == "/project/node_modules/pkg/item.ts"u8));
         try
         {
-            program.GetModuleSpecifiers(Parser.ParseSourceFile(new("/project/main.ts"), new SourceText("")), "/store/pkg/item.ts");
+            program.GetModuleSpecifiers(Parser.ParseSourceFile(new("/project/main.ts"u8), new SourceText(""u8)), "/store/pkg/item.ts"u8);
             throw new InvalidOperationException("Foreign source accepted");
         }
         catch (ArgumentException)
@@ -94,75 +94,75 @@ internal static class ModuleSpecifierProgramTests
             checks++;
         }
         var results = await Task.WhenAll(
-            Enumerable.Range(0, 16).Select(_ => Task.Run(() => program.GetModuleSpecifiers(source, "/store/pkg/item.ts"))));
-        Check(results.All(r => r.Specifiers.SequenceEqual(["pkg"])) && fs.Reads == reads);
+            Enumerable.Range(0, 16).Select(_ => Task.Run(() => program.GetModuleSpecifiers(source, "/store/pkg/item.ts"u8))));
+        Check(results.All(r => r.Specifiers.SequenceEqual([Utf8String.Copy("pkg"u8)])) && fs.Reads == reads);
         Check(program.SourceFileMayBeEmitted(source));
         return checks;
     }
 
     private sealed class ObservedFileSystem(IFileSystem inner) : IFileSystem
     {
-        internal Action<string>? BeforeRead { get; set; }
+        internal Action<Utf8String>? BeforeRead { get; set; }
         internal int Reads { get; private set; }
         public bool CaseSensitive => inner.CaseSensitive;
 
-        public byte[]? ReadFile(string path)
+        public byte[]? ReadFile(Utf8String path)
         {
             Reads++;
             BeforeRead?.Invoke(path);
             return inner.ReadFile(path);
         }
 
-        public bool FileExists(string path) => inner.FileExists(path);
+        public bool FileExists(Utf8String path) => inner.FileExists(path);
 
-        public bool DirectoryExists(string path) => inner.DirectoryExists(path);
+        public bool DirectoryExists(Utf8String path) => inner.DirectoryExists(path);
 
-        public string RealPath(string path) => inner.RealPath(path);
+        public Utf8String RealPath(Utf8String path) => inner.RealPath(path);
 
-        public DirectoryEntries GetAccessibleEntries(string path) => inner.GetAccessibleEntries(path);
+        public DirectoryEntries GetAccessibleEntries(Utf8String path) => inner.GetAccessibleEntries(path);
 
-        public FileEntry? Stat(string path) => inner.Stat(path);
+        public FileEntry? Stat(Utf8String path) => inner.Stat(path);
 
-        public void WriteFile(string path, ReadOnlySpan<byte> contents) => inner.WriteFile(path, contents);
+        public void WriteFile(Utf8String path, ReadOnlySpan<byte> contents) => inner.WriteFile(path, contents);
 
-        public void AppendFile(string path, ReadOnlySpan<byte> contents) => inner.AppendFile(path, contents);
+        public void AppendFile(Utf8String path, ReadOnlySpan<byte> contents) => inner.AppendFile(path, contents);
 
-        public void Remove(string path) => inner.Remove(path);
+        public void Remove(Utf8String path) => inner.Remove(path);
 
-        public void SetTimes(string path, DateTime accessTimeUtc, DateTime writeTimeUtc) =>
+        public void SetTimes(Utf8String path, DateTime accessTimeUtc, DateTime writeTimeUtc) =>
             inner.SetTimes(path, accessTimeUtc, writeTimeUtc);
     }
 
     internal static async ValueTask<int> WriteAsync(JsonElement input, Utf8JsonWriter writer)
     {
-        string Text(string key, string fallback = "") => input.TryGetProperty(key, out var value) ? JsonStrings.GetString(value) : fallback;
-        bool Flag(string key) => input.TryGetProperty(key, out var value) && value.GetBoolean();
-        var files = input.GetProperty("files").EnumerateObject().ToDictionary(
-            p => p.Name,
-            p => Wtf8.Encode(JsonStrings.GetString(p.Value)));
-        var links = input.TryGetProperty("fileLinks", out var fileLinks)
-            ? fileLinks.EnumerateObject().ToDictionary(p => p.Name, p => JsonStrings.GetString(p.Value)) : null;
-        string cwd = Text("directory"), configPath = Text("config");
+        Utf8String Text(Utf8String key, Utf8String fallback = default) => input.TryGetProperty(key, out var value) ? JsonStrings.GetString(value) : fallback;
+        bool Flag(Utf8String key) => input.TryGetProperty(key, out var value) && value.GetBoolean();
+        var files = input.GetProperty("files"u8).EnumerateObject().ToDictionary(
+            p => JsonStrings.GetName(p),
+            p => JsonStrings.GetString(p.Value).Span.ToArray());
+        var links = input.TryGetProperty("fileLinks"u8, out var fileLinks)
+            ? fileLinks.EnumerateObject().ToDictionary(p => JsonStrings.GetName(p), p => JsonStrings.GetString(p.Value)) : null;
+        Utf8String cwd = Text("directory"u8), configPath = Text("config"u8);
         if (configPath.Length == 0)
         {
-            configPath = CompilerPath.Combine(cwd, "tsconfig.json");
+            configPath = CompilerPath.Combine(cwd, "tsconfig.json"u8);
             using var stream = new MemoryStream();
             using (var configWriter = new Utf8JsonWriter(stream))
             {
                 configWriter.WriteStartObject();
-                configWriter.WritePropertyName("compilerOptions");
-                input.GetProperty("options").WriteTo(configWriter);
-                configWriter.WritePropertyName("files");
-                input.GetProperty("roots").WriteTo(configWriter);
+                configWriter.WritePropertyName("compilerOptions"u8);
+                input.GetProperty("options"u8).WriteTo(configWriter);
+                configWriter.WritePropertyName("files"u8);
+                input.GetProperty("roots"u8).WriteTo(configWriter);
                 configWriter.WriteEndObject();
             }
             files[configPath] = stream.ToArray();
         }
-        var fs = new MemoryFileSystem(files, Flag("sensitive"), cwd, links);
+        var fs = new MemoryFileSystem(files, Flag("sensitive"u8), cwd, links);
         var config = new ConfigParser(fs, cwd).Parse(configPath);
-        var program = await CompilerProgram.CreateAsync(fs, cwd, config, useProjectReferenceSources: Flag("useSources"),
-            concurrency: input.TryGetProperty("concurrency", out var concurrency) ? concurrency.GetInt32() : 4,
-            globalTypingsCache: Text("globalTypingsCache"));
+        var program = await CompilerProgram.CreateAsync(fs, cwd, config, useProjectReferenceSources: Flag("useSources"u8),
+            concurrency: input.TryGetProperty("concurrency"u8, out var concurrency) ? concurrency.GetInt32() : 4,
+            globalTypingsCache: Text("globalTypingsCache"u8));
         writer.WriteStartArray();
         writer.WriteStringValue(program.CommonSourceDirectory);
         writer.WriteStartArray();
@@ -174,20 +174,20 @@ internal static class ModuleSpecifierProgramTests
             writer.WriteStringValue(
                 program.ProjectReferences.Outputs.TryGetValue(source.FileName, out var output) ? output.Source : source.FileName);
             writer.WriteStringValue(
-                program.ProjectReferences.Sources.TryGetValue(source.FileName, out var reference) ? reference.Output : "");
+                program.ProjectReferences.Sources.TryGetValue(source.FileName, out var reference) ? reference.Output : Utf8String.Empty);
             writer.WriteNumberValue((int)program.ResolutionModeForUsage(source, null));
             writer.WriteBooleanValue(program.SourceFileMayBeEmitted(source));
             writer.WriteStartArray();
             foreach (var import in source.Imports)
             {
-                TextSlice text = import is TypeScript.Compiler.Ast.StringLiteralNode literal
+                Utf8String text = import is TypeScript.Compiler.Ast.StringLiteralNode literal
                     ? literal.Text
                     : ((TypeScript.Compiler.Ast.NoSubstitutionTemplateLiteralNode)import).Text;
                 var mode = program.ResolutionModeForUsage(source, import);
                 var resolved = file.Resolutions.FirstOrDefault(r => !r.TypeReference && r.Specifier == text && r.Mode == mode)?.Resolution;
                 writer.WriteStartArray();
                 writer.WriteStringValue(text.Span);
-                writer.WriteStringValue(resolved?.FileName ?? "");
+                writer.WriteStringValue(resolved?.FileName ?? ""u8);
                 writer.WriteNumberValue((int)mode);
                 writer.WriteEndArray();
             }
@@ -198,7 +198,7 @@ internal static class ModuleSpecifierProgramTests
         writer.WriteStartArray();
         foreach (var source in program.SourceFiles)
             foreach (var target in program.SourceFiles)
-                foreach (string preference in new[] { "shortest", "project-relative", "non-relative" })
+                foreach (Utf8String preference in new Utf8String[] { "shortest"u8, "project-relative"u8, "non-relative"u8 })
                     foreach (var mode in new[]
                     {
                         ReferenceResolutionMode.Unspecified,
@@ -214,16 +214,16 @@ internal static class ModuleSpecifierProgramTests
                         writer.WriteNumberValue((int)mode);
                         writer.WriteNumberValue((int)result.Kind);
                         writer.WriteStartArray();
-                        foreach (string name in result.Specifiers)
+                        foreach (Utf8String name in result.Specifiers)
                             writer.WriteStringValue(name);
                         writer.WriteEndArray();
                         writer.WriteStartArray();
                         foreach (var path in program.GetModuleSpecifierPaths(source.Syntax, target.Syntax.FileName))
                         {
                             writer.WriteStartObject();
-                            writer.WriteString("FileName", path.FileName);
-                            writer.WriteBoolean("IsInNodeModules", path.IsInNodeModules);
-                            writer.WriteBoolean("IsRedirect", path.IsRedirect);
+                            writer.WriteString("FileName"u8, path.FileName);
+                            writer.WriteBoolean("IsInNodeModules"u8, path.IsInNodeModules);
+                            writer.WriteBoolean("IsRedirect"u8, path.IsRedirect);
                             writer.WriteEndObject();
                         }
                         writer.WriteEndArray();

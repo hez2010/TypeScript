@@ -36,7 +36,7 @@ internal interface IAliasTargetHost
 
     bool UsesRequireModuleExports { get; }
 
-    ValueTask<Symbol?> ExportOfModuleAsync(Symbol module, TextSlice name, SyntaxNode declaration, CancellationToken cancellation);
+    ValueTask<Symbol?> ExportOfModuleAsync(Symbol module, Utf8String name, SyntaxNode declaration, CancellationToken cancellation);
 }
 
 internal sealed class AliasTargets(CheckerSymbols symbols, AliasResolver aliases, EntityNames names, IAliasTargetHost host)
@@ -121,7 +121,7 @@ internal sealed class AliasTargets(CheckerSymbols symbols, AliasResolver aliases
             if (resolved is not null && host.UsesRequireModuleExports
                 && await host.ExportOfModuleAsync(
                     resolved,
-                    "module.exports",
+                    Utf8Literals.ModuleExports,
                     declaration,
                     cancellation).ConfigureAwait(false) is { } exported)
                 return exported;
@@ -160,7 +160,7 @@ internal sealed class AliasTargets(CheckerSymbols symbols, AliasResolver aliases
 
     private async ValueTask<Symbol?> ImportSpecifierAsync(SyntaxNode declaration, CancellationToken cancellation)
     {
-        if (declaration is ImportSpecifierNode import && Text(import.PropertyName ?? import.Name) == "default")
+        if (declaration is ImportSpecifierNode import && Text(import.PropertyName ?? import.Name) == Utf8Literals.Default)
         {
             var specifier = ModuleSpecifier(import);
             if (specifier is not null)
@@ -186,7 +186,7 @@ internal sealed class AliasTargets(CheckerSymbols symbols, AliasResolver aliases
         CancellationToken cancellation = default)
     {
         var name = declaration.PropertyName ?? declaration.Name!;
-        if (Text(name) == "default" && ModuleSpecifier(declaration) is { } specifier)
+        if (Text(name) == Utf8Literals.Default && ModuleSpecifier(declaration) is { } specifier)
         {
             var module = await host.ExternalModuleAsync(
                 declaration,
@@ -214,7 +214,7 @@ internal sealed class AliasTargets(CheckerSymbols symbols, AliasResolver aliases
         if (module is not null)
         {
             var exported = await aliases.SymbolAsync(
-                module.Exports.GetValueOrDefault("export="),
+                module.Exports.GetValueOrDefault(Utf8Literals.ExportEquals),
                 dontResolveAlias,
                 cancellation).ConfigureAwait(false);
             if (exported is not null)
@@ -292,10 +292,10 @@ internal sealed class AliasTargets(CheckerSymbols symbols, AliasResolver aliases
         return expression is IdentifierNode;
     }
 
-    internal static TextSlice? Text(SyntaxNode? name) => name switch
+    internal static Utf8String? Text(SyntaxNode? name) => name switch
     {
         IdentifierNode identifier => identifier.Text,
         StringLiteralNode literal => literal.Text,
-        _ => (TextSlice?)null
+        _ => (Utf8String?)null
     };
 }

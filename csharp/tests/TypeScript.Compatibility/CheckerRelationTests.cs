@@ -23,47 +23,47 @@ internal static class CheckerRelationTests
             checks++;
         }
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        var files = new Dictionary<string, byte[]>
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        var files = new Dictionary<Utf8String, byte[]>
         {
-            ["/project/globals.d.ts"] = Wtf8.Encode(
+            ["/project/globals.d.ts"u8] = Wtf8.Encode(
                 "interface Object{toString():string}interface Function{}interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}interface String{length:number}interface Number{}interface Boolean{}interface RegExp{}"),
-            ["/project/main.ts"] = Wtf8.Encode(
+            ["/project/main.ts"u8] = Wtf8.Encode(
                 "interface Inv<in out T>{f:(x:T)=>T}declare let a:Inv<string>;let b:Inv<unknown>=a;function missing<T>(x:T){let y:number=x;}interface Left{p:string}interface Right{p:number}interface Both extends Left,Right{p:boolean}declare let boxed:String;let primitive:string=boxed;namespace A{export enum E{X=1,Y=2}}namespace B{export enum E{X=1,Y=3}}declare let sourceEnum:B.E;let enumeration:A.E=sourceEnum;declare let optional:number|undefined;optional='bad';"),
-            ["/project/excess.ts"] = Wtf8.Encode(
+            ["/project/excess.ts"u8] = Wtf8.Encode(
                 "declare function accept<T>(x:{[key:string]:T}|{[key:number]:T}):void;accept({toString:123});type Basic={id:number};type Extra=Basic&{description:string};const data:{items:Basic[]}&{items:Extra[]}={items:[{id:1,description:'ok'}]};")
         };
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
-            new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project"u8,
+            new("/project/tsconfig.json"u8, options, files.Keys.ToArray(), [], [], []));
         var checker = await program.CreateCheckerAsync();
-        var source = program.GetFile("/project/main.ts")!.Syntax;
+        var source = program.GetFile("/project/main.ts"u8)!.Syntax;
         var snapshot = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
         await checker.CheckProgramAsync();
         var diagnostics = checker.DetailedDiagnosticsForProgramFile(source);
         static bool Contains(Diagnostic d, DiagnosticCode code) => d.Code == code || d.MessageChain.Any(c => Contains(c, code));
-        var invariant = diagnostics.Single(d => d.Arguments.SequenceEqual(["Inv<string>", "Inv<unknown>"]));
+        var invariant = diagnostics.Single(d => d.Arguments.SequenceEqual([Utf8String.Copy("Inv<string>"u8), Utf8String.Copy("Inv<unknown>"u8)]));
         Check(
             Contains(invariant, DiagnosticCode.TypesOfProperty0AreIncompatible)
                 && Contains(invariant, DiagnosticCode.TypesOfParameters0And1AreIncompatible));
-        var constraint = diagnostics.Single(d => d.Arguments.SequenceEqual(["T", "number"]));
+        var constraint = diagnostics.Single(d => d.Arguments.SequenceEqual([Utf8String.Copy("T"u8), Utf8String.Copy("number"u8)]));
         Check(
             constraint.RelatedInformation is [var note]
                 && note.Code == DiagnosticCode.ThisTypeParameterMightNeedAnExtends0Constraint
-                && note.Arguments.SequenceEqual(["number"]));
+                && note.Arguments.SequenceEqual([Utf8String.Copy("number"u8)]));
         Check(diagnostics.Count(d => d.Code == DiagnosticCode.Interface0IncorrectlyExtendsInterface1) == 2);
         Check(
             diagnostics.Where(
                 d => d.Code == DiagnosticCode.Interface0IncorrectlyExtendsInterface1).Select(d => d.Arguments[1]).Order().SequenceEqual(
                     [
-                        "Left",
-                        "Right"
+                        Utf8String.Copy("Left"u8),
+                        Utf8String.Copy("Right"u8)
                     ]));
         Check(diagnostics.Any(d => Contains(d, DiagnosticCode.X0IsAPrimitiveBut1IsAWrapperObjectPreferUsing0WhenPossible)));
         Check(diagnostics.Any(d => Contains(d, DiagnosticCode.EachDeclarationOf01DiffersInItsValueWhere2WasExpectedBut3WasGiven)));
         Check(
-            diagnostics.Any(d => d.Code == DiagnosticCode.Type0IsNotAssignableToType1 && d.Arguments.SequenceEqual(["string", "number"])));
-        Check(checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/excess.ts")!.Syntax).Count == 0);
+            diagnostics.Any(d => d.Code == DiagnosticCode.Type0IsNotAssignableToType1 && d.Arguments.SequenceEqual([Utf8String.Copy("string"u8), Utf8String.Copy("number"u8)])));
+        Check(checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/excess.ts"u8)!.Syntax).Count == 0);
         await checker.CheckProgramAsync();
         Check(checker.DetailedDiagnosticsForProgramFile(source).SequenceEqual(diagnostics, DiagnosticEqualityComparer.Instance));
         Check(snapshot.All(n => n.Node.Parent == n.Parent && n.Node.Pos == n.Pos && n.Node.End == n.End && n.Node.Flags == n.Flags));
@@ -80,18 +80,18 @@ internal static class CheckerRelationTests
             checks++;
         }
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        const string text = "interface Box<T>{value:T;self:this}interface Other<T>{value:T}interface Empty extends Box<string>{}type N=Empty;type A={next:A};type B={next:B};";
+        options.SetRaw("noLib"u8, "true"u8);
+        Utf8String text = "interface Box<T>{value:T;self:this}interface Other<T>{value:T}interface Empty extends Box<string>{}type N=Empty;type A={next:A};type B={next:B};"u8;
         var program = await CompilerProgram.CreateAsync(
-            new MemoryFileSystem(new Dictionary<string, byte[]> { ["/project/main.ts"] = Wtf8.Encode(text) }),
-            "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+            new MemoryFileSystem(new Dictionary<Utf8String, byte[]> { ["/project/main.ts"u8] = text.Span.ToArray() }),
+            "/project"u8, new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
         var scope = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
         var host = new Checker(context, links, scope);
-        var box = (InterfaceType)await host.Declared.GetAsync(symbols.Globals["Box"]);
-        var other = (InterfaceType)await host.Declared.GetAsync(symbols.Globals["Other"]);
+        var box = (InterfaceType)await host.Declared.GetAsync(symbols.Globals["Box"u8]);
+        var other = (InterfaceType)await host.Declared.GetAsync(symbols.Globals["Other"u8]);
         var directKey = new RelationKey(context.StringType, context.NumberType, IntersectionState.Source);
         var expandedKey = new RelationKey([new((byte)'s'), new((byte)'t', context.StringType),
             new((byte)'t', context.NumberType)], IntersectionState.Source);
@@ -279,10 +279,10 @@ internal static class CheckerRelationTests
         var depthSession = new RelationSession(context, depthRelation, host.RelationKeys, recursion, state);
         var left = Enumerable.Range(
             0,
-            101).Select(i => (Type)context.NewObjectType(ObjectFlags.Anonymous, new(SymbolFlags.TypeLiteral, "L" + i))).ToArray();
+            101).Select(i => (Type)context.NewObjectType(ObjectFlags.Anonymous, new(SymbolFlags.TypeLiteral, Utf8String.Copy("L"u8) + i))).ToArray();
         var right = Enumerable.Range(
             0,
-            101).Select(i => (Type)context.NewObjectType(ObjectFlags.Anonymous, new(SymbolFlags.TypeLiteral, "R" + i))).ToArray();
+            101).Select(i => (Type)context.NewObjectType(ObjectFlags.Anonymous, new(SymbolFlags.TypeLiteral, Utf8String.Copy("R"u8) + i))).ToArray();
         int visited = 0;
         ValueTask<Ternary> Descend(int depth) => depthSession.RecursiveAsync(left[depth], right[depth], 0, RecursionFlags.Both, false,
             () =>
@@ -333,7 +333,7 @@ internal static class CheckerRelationTests
                 NoOverflow) == Ternary.True);
         Check(reliability.Reliability == RelationComparisonResult.ReportsUnmeasurable);
 
-        var n = (TypeReference)await host.Declared.GetAsync(symbols.Globals["N"]);
+        var n = (TypeReference)await host.Declared.GetAsync(symbols.Globals["N"u8]);
         var regular = context.CreateTypeReference((InterfaceType)n.ReferencedType, (await host.References.TypeArgumentsAsync(n)).ToArray());
         host.BeforeMemberTable = _ => throw new OperationCanceledException();
         try
@@ -352,8 +352,8 @@ internal static class CheckerRelationTests
         Check(normalized == baseType);
         Check(
             await host.Relations.RelatedAsync(
-                await host.Declared.GetAsync(symbols.Globals["A"]),
-                await host.Declared.GetAsync(symbols.Globals["B"]),
+                await host.Declared.GetAsync(symbols.Globals["A"u8]),
+                await host.Declared.GetAsync(symbols.Globals["B"u8]),
                 RelationKind.Identity));
 
         Type deep = bp;
@@ -365,7 +365,7 @@ internal static class CheckerRelationTests
         {
             var target = (InterfaceType)context.NewObjectType(
                 ObjectFlags.Interface | ObjectFlags.Reference,
-                new(SymbolFlags.Interface, "E" + i));
+                new(SymbolFlags.Interface, Utf8String.Copy("E"u8) + i));
             var self = context.NewTypeParameter();
             self.IsThisType = true;
             self.Constraint = target;
@@ -394,7 +394,7 @@ internal static class CheckerRelationTests
 
     private static async Task<int> EnumSafety()
     {
-        const string source = """
+        Utf8String source = """
             namespace A { export enum E { First = 0, Second = 1 } }
             namespace B { export enum E { First = 0, Second = 1 } }
             namespace C { export enum E { First = 0, Second = 2 } }
@@ -402,31 +402,31 @@ internal static class CheckerRelationTests
             namespace Opaque { export declare enum E { First, Second } }
             namespace Text { export enum E { First = 'first', Second = 'second' } }
             namespace Constant { export const enum E { First = 0, Second = 1 } }
-            """;
+            """u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/main.ts"u8] = source.Span.ToArray() }), "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
         var enums = program.SourceFiles[0].Syntax.DescendantsAndSelf().OfType<EnumDeclarationNode>()
             .ToDictionary(n => ((IdentifierNode)((ModuleDeclarationNode)n.Parent!.Parent!).Name!).Text,
                 n => checker.Environment.Symbols.Declaration(n)!);
-        var cases = new (string Source, string Target, bool Expected)[]
+        var cases = new (Utf8String Source, Utf8String Target, bool Expected)[]
         {
-            ("A", "A", true), ("A", "B", true), ("A", "C", false), ("A", "D", false), ("D", "A", true),
-            ("A", "Opaque", true), ("Opaque", "A", true), ("Text", "Opaque", false), ("Opaque", "Text", false), ("A", "Constant", false)
+            (Utf8String.Copy("A"u8), Utf8String.Copy("A"u8), true), (Utf8String.Copy("A"u8), Utf8String.Copy("B"u8), true), (Utf8String.Copy("A"u8), Utf8String.Copy("C"u8), false), (Utf8String.Copy("A"u8), Utf8String.Copy("D"u8), false), (Utf8String.Copy("D"u8), Utf8String.Copy("A"u8), true),
+            (Utf8String.Copy("A"u8), Utf8String.Copy("Opaque"u8), true), (Utf8String.Copy("Opaque"u8), Utf8String.Copy("A"u8), true), (Utf8String.Copy("Text"u8), Utf8String.Copy("Opaque"u8), false), (Utf8String.Copy("Opaque"u8), Utf8String.Copy("Text"u8), false), (Utf8String.Copy("A"u8), Utf8String.Copy("Constant"u8), false)
         };
         foreach (var item in cases)
             if (await checker.EnumRelatedAsync(enums[item.Source], enums[item.Target], default) != item.Expected)
                 throw new InvalidOperationException($"Enum relation {item.Source} -> {item.Target}");
-        if (!await checker.EnumRelatedAsync(enums["A"].Exports["First"], enums["B"].Exports["First"], default))
+        if (!await checker.EnumRelatedAsync(enums["A"u8].Exports["First"u8], enums["B"u8].Exports["First"u8], default))
             throw new InvalidOperationException("Enum member relation lost parent identity");
         using var cancelled = new CancellationTokenSource();
         cancelled.Cancel();
         try
         {
-            await checker.EnumRelatedAsync(enums["A"], enums["B"], cancelled.Token);
+            await checker.EnumRelatedAsync(enums["A"u8], enums["B"u8], cancelled.Token);
             throw new InvalidOperationException("Cached enum relation ignored cancellation");
         }
         catch (OperationCanceledException) { }
@@ -439,10 +439,10 @@ internal static class CheckerRelationTests
         var roots = new List<(SyntaxNode Node, Type Type)>();
         foreach (var node in nodes)
             if (node is TypeAliasDeclarationNode or InterfaceDeclarationNode or ClassDeclarationNode
-                && node is INamedNode { Name: IdentifierNode identifier } && identifier.Text.Length > 1 && identifier.Text[0] == 'R' && char.IsAsciiDigit(identifier.Text[1]))
+                && node is INamedNode { Name: IdentifierNode identifier } && identifier.Text.Length > 1 && identifier.Text[0] == 'R' && Utf8Ascii.IsDigit(identifier.Text[1]))
                 roots.Add((node, await host.Declared.GetAsync(symbols.Declaration(node)!)));
         var keys = new Dictionary<RelationKey, int>();
-        writer.WriteStartArray("relations");
+        writer.WriteStartArray("relations"u8);
         foreach (var source in roots)
             foreach (var target in roots)
             {
@@ -483,7 +483,7 @@ internal static class CheckerRelationTests
         writer.WriteEndArray();
         if (allKinds)
         {
-            writer.WriteStartArray("variances");
+            writer.WriteStartArray("variances"u8);
             var seen = new HashSet<Symbol>();
             foreach (var node in nodes)
             {
@@ -499,7 +499,7 @@ internal static class CheckerRelationTests
                 writer.WriteEndArray();
             }
             writer.WriteEndArray();
-            writer.WriteStartArray("facts");
+            writer.WriteStartArray("facts"u8);
             foreach (var root in roots)
             {
                 writer.WriteStartArray();
@@ -517,9 +517,9 @@ internal static class CheckerRelationTests
             if (node is TypeAliasDeclarationNode { Name: IdentifierNode identifier }
                 && identifier.Text.Length > 1
                 && identifier.Text[0] == 'K'
-                && char.IsAsciiDigit(identifier.Text[1]))
+                && Utf8Ascii.IsDigit(identifier.Text[1]))
                 keyRoots.Add((node, await host.Normalization.GetAsync(await host.Declared.GetAsync(symbols.Declaration(node)!))));
-        writer.WriteStartArray("relationKeys");
+        writer.WriteStartArray("relationKeys"u8);
         foreach (var source in keyRoots)
             foreach (var target in keyRoots)
                 foreach (bool identity in new[] { false, true })

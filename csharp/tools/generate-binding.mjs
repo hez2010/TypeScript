@@ -107,7 +107,7 @@ for (const [name, definition] of Object.entries(schema.nodes.definitions)) {
     for (const field of fields) {
         const key = upper(field.name), access = "n." + key, target = "n." + field.name, raw = `row.Fields[${JSON.stringify(key)}]`, kind = scalar(field);
         if (kind === "string") {
-            cs.push(`                    writer.WriteBase64String(${JSON.stringify(key)}, Wtf8.Encode(${access}));`);
+            cs.push(`                    writer.WriteBase64String(${JSON.stringify(key)}, ${access}.Span);`);
             go.push(`        ${target}=csharpString(${raw})`);
         }
         else if (kind === "bool") {
@@ -115,7 +115,7 @@ for (const [name, definition] of Object.entries(schema.nodes.definitions)) {
             go.push(`        ${target}=csharpDecode[bool](${raw})`);
         }
         else if (kind === "strings") {
-            cs.push(`                    writer.WriteStartArray(${JSON.stringify(key)});`, `                    foreach(var value in ${access}) writer.WriteBase64StringValue(Wtf8.Encode(value));`, "                    writer.WriteEndArray();");
+            cs.push(`                    writer.WriteStartArray(${JSON.stringify(key)});`, `                    foreach(var value in ${access}) writer.WriteBase64StringValue(value.Span);`, "                    writer.WriteEndArray();");
             go.push(`        for _,raw:=range csharpDecode[[]json.RawMessage](${raw}){${target}=append(${target},csharpString(raw))}`);
         }
         else if (kind === "any") {
@@ -148,6 +148,10 @@ go.push("    } }", "    root.ExternalModuleIndicator=nodes[tree.External]", "   
 for (const [relative, lines] of [["csharp/tests/TypeScript.Compatibility/BindingSyntax.generated.cs", cs], ["csharp/oracle/binding/syntax.generated.go", go]]) {
     const file = path.join(root, relative);
     let text = lines.join("\n") + "\n";
+    if (relative.endsWith(".cs")) text = text.replaceAll(/("[^"\r\n]*")(?=,|\))/g, (literal, offset) => {
+        const line = text.slice(text.lastIndexOf("\n", offset) + 1, offset);
+        return line.includes("writer.Write") ? literal + "u8" : literal;
+    });
     if (relative.endsWith(".go")) {
         const formatted = spawnSync(process.env.GOFMT ?? "D:/go1.27.1-20260904.9.windows-amd64/go/bin/gofmt.exe", [], { input: text, encoding: "utf8", windowsHide: true });
         if (formatted.status !== 0) throw Error(formatted.stderr || "Cannot format the development-only Go oracle");

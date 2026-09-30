@@ -23,7 +23,7 @@ public sealed class Symbol
 
     public SymbolFlags Flags { get; internal set; }
     public CheckFlags CheckFlags { get; internal set; }
-    public TextSlice Name { get; }
+    public Utf8String Name { get; }
     public Symbol? Parent { get; internal set; }
     public Symbol? ExportSymbol { get; internal set; }
     public SyntaxNode? ValueDeclaration { get; internal set; }
@@ -35,7 +35,7 @@ public sealed class Symbol
     }
     public SymbolDeclarations Declarations => new(declarations);
 
-    internal Dictionary<TextSlice, Symbol> MemberTable
+    internal SymbolTable MemberTable
     {
         get
         {
@@ -50,46 +50,59 @@ public sealed class Symbol
                     _ => 0
                 } : 0;
                 members = new(capacity);
-                membersView = members.AsReadOnly();
             }
             return members;
         }
     }
 
-    internal Dictionary<TextSlice, Symbol> ExportTable
+    internal SymbolTable ExportTable
     {
         get
         {
             if (exports is null)
             {
                 exports = new(DeclarationList is [EnumDeclarationNode { Members: { } list }, ..] ? list.Count : 0);
-                exportsView = exports.AsReadOnly();
             }
             return exports;
         }
     }
 
-    private Dictionary<TextSlice, Symbol>? members, exports;
-    private IReadOnlyDictionary<TextSlice, Symbol>? membersView, exportsView;
-    public IReadOnlyDictionary<TextSlice, Symbol> Members => membersView ?? Empty;
-    public IReadOnlyDictionary<TextSlice, Symbol> Exports => exportsView ?? Empty;
-    private static readonly IReadOnlyDictionary<TextSlice, Symbol> Empty = ReadOnlyDictionary<TextSlice, Symbol>.Empty;
+    private SymbolTable? members, exports;
+    public IReadOnlyDictionary<Utf8String, Symbol> Members => (IReadOnlyDictionary<Utf8String, Symbol>?)members ?? Empty;
+    public IReadOnlyDictionary<Utf8String, Symbol> Exports => (IReadOnlyDictionary<Utf8String, Symbol>?)exports ?? Empty;
+    private static readonly IReadOnlyDictionary<Utf8String, Symbol> Empty = ReadOnlyDictionary<Utf8String, Symbol>.Empty;
     public SymbolFlags CombinedFlags => Flags | (ExportSymbol?.Flags ?? 0);
 
-    internal Symbol(SymbolFlags flags, TextSlice name)
+    internal Symbol(SymbolFlags flags, Utf8String name)
     {
         Flags = flags;
         Name = name;
     }
 
-    // A noncharacter prefix is represented independently of the Go implementation's invalid UTF-8 byte.
-    // Source names starting with this prefix are doubled by the binder so they cannot collide.
-    // Escaped names at client/serialization boundaries retain the documented __ spelling.
-    public const string InternalPrefix = "\uFDD0";
+    // FE is not a valid UTF-8 leading byte and cannot occur in an identifier.
+    public static readonly Utf8String InternalPrefix = new(new byte[] { 0xFE });
 
-    public static TextSlice EscapeName(TextSlice name) => name.Span.StartsWith(InternalPrefix + InternalPrefix, StringComparison.Ordinal)
-            ? name[InternalPrefix.Length..] : name.Span.StartsWith(InternalPrefix, StringComparison.Ordinal)
-                ? TextSlice.Concat("__", name[InternalPrefix.Length..]) : name.Span.StartsWith("__", StringComparison.Ordinal) ? TextSlice.Concat("_", name) : name;
+    internal static readonly Utf8String InternalAssignment = Utf8String.Concat(InternalPrefix, "assignment"u8);
+    internal static readonly Utf8String InternalCall = Utf8String.Concat(InternalPrefix, "call"u8);
+    internal static readonly Utf8String InternalClass = Utf8String.Concat(InternalPrefix, "class"u8);
+    internal static readonly Utf8String InternalComputed = Utf8String.Concat(InternalPrefix, "computed"u8);
+    internal static readonly Utf8String InternalConstructor = Utf8String.Concat(InternalPrefix, "constructor"u8);
+    internal static readonly Utf8String InternalExport = Utf8String.Concat(InternalPrefix, "export"u8);
+    internal static readonly Utf8String InternalFunction = Utf8String.Concat(InternalPrefix, "function"u8);
+    internal static readonly Utf8String InternalGlobal = Utf8String.Concat(InternalPrefix, "global"u8);
+    internal static readonly Utf8String InternalImportAttributes = Utf8String.Concat(InternalPrefix, "importAttributes"u8);
+    internal static readonly Utf8String InternalIndex = Utf8String.Concat(InternalPrefix, "index"u8);
+    internal static readonly Utf8String InternalInstantiationExpression = Utf8String.Concat(InternalPrefix, "instantiationExpression"u8);
+    internal static readonly Utf8String InternalJsxAttributes = Utf8String.Concat(InternalPrefix, "jsxAttributes"u8);
+    internal static readonly Utf8String InternalMissing = Utf8String.Concat(InternalPrefix, "missing"u8);
+    internal static readonly Utf8String InternalNew = Utf8String.Concat(InternalPrefix, "new"u8);
+    internal static readonly Utf8String InternalObject = Utf8String.Concat(InternalPrefix, "object"u8);
+    internal static readonly Utf8String InternalPrivatePrefix = Utf8String.Concat(InternalPrefix, "#"u8);
+    internal static readonly Utf8String InternalType = Utf8String.Concat(InternalPrefix, "type"u8);
+    internal static readonly Utf8String InternalUnique = Utf8String.Concat(InternalPrefix, "@"u8);
+
+    public static Utf8String EscapeName(Utf8String name) => name.Span.StartsWith(InternalPrefix, StringComparison.Ordinal)
+                ? Utf8String.Concat("__"u8, name[InternalPrefix.Length..]) : name.Span.StartsWith("__"u8, StringComparison.Ordinal) ? Utf8String.Concat("_"u8, name) : name;
 }
 
 public sealed class FlowNode
@@ -161,7 +174,7 @@ public readonly struct NodeBinding
         internal set => node.BindingFlags = value;
     }
 
-    internal Dictionary<TextSlice, Symbol> LocalTable
+    internal SymbolTable LocalTable
     {
         get
         {
@@ -176,15 +189,14 @@ public readonly struct NodeBinding
                     _ => 0
                 };
                 node.BindingLocals = locals = new(capacity);
-                node.BindingLocalsView = locals.AsReadOnly();
             }
             return locals;
         }
     }
 
     internal bool HasLocals => node?.BindingLocals is not null;
-    public IReadOnlyDictionary<TextSlice, Symbol> Locals =>
-        node?.BindingLocalsView ?? ReadOnlyDictionary<TextSlice, Symbol>.Empty;
+    public IReadOnlyDictionary<Utf8String, Symbol> Locals =>
+        (IReadOnlyDictionary<Utf8String, Symbol>?)node?.BindingLocals ?? ReadOnlyDictionary<Utf8String, Symbol>.Empty;
 }
 
 /// <summary>Binding slots belong to one source tree and are published only after a successful bind. Syntax clones clear them.</summary>
@@ -196,12 +208,12 @@ public sealed class BoundSourceFile
     internal long Id => id;
     public SourceFileNode SourceFile { get; }
     public Symbol? Symbol => Get(SourceFile)?.Symbol;
-    public IReadOnlyDictionary<TextSlice, Symbol> Locals => Get(SourceFile)!.Value.Locals;
+    public IReadOnlyDictionary<Utf8String, Symbol> Locals => Get(SourceFile)!.Value.Locals;
     public SyntaxNode? CommonJSModuleIndicator { get; internal set; }
     public bool IsModule => SourceFile.ExternalModuleIndicator is not null || CommonJSModuleIndicator is not null;
     public IReadOnlyList<Diagnostic> Diagnostics { get; internal set; } = [];
     public IReadOnlyList<SyntaxNode> Containers { get; internal set; } = [];
-    public IReadOnlyDictionary<TextSlice, Symbol> GlobalExports { get; internal set; } = ReadOnlyDictionary<TextSlice, Symbol>.Empty;
+    public IReadOnlyDictionary<Utf8String, Symbol> GlobalExports { get; internal set; } = ReadOnlyDictionary<Utf8String, Symbol>.Empty;
     public int SymbolCount { get; internal set; }
 
     internal BoundSourceFile(SourceFileNode file) => SourceFile = file;

@@ -60,7 +60,7 @@ internal sealed class FunctionExpressions(TypeContext context, CheckerLinks link
                 var result = context.NewObjectType(
                     ObjectFlags.Anonymous | ObjectFlags.MembersResolved | ObjectFlags.NonInferrableType,
                     symbols.Declaration(node));
-                result.Members = new Dictionary<TextSlice, Symbol>().AsReadOnly();
+                result.Members = new Dictionary<Utf8String, Symbol>().AsReadOnly();
                 result.Properties = [];
                 var returnType = await bodies.ReturnAsync(node, mode, cancellation).ConfigureAwait(false);
                 result.CallSignatures = [context.NewSignature(SignatureFlags.IsNonInferrable, null, [], null, [], returnType, null, 0)];

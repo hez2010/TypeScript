@@ -36,7 +36,7 @@ internal static class MappingTests
         }
         try
         {
-            map.Validate(Wtf8.Encode(input.GetProperty("virtual").GetString()!), Wtf8.Encode(input.GetProperty("original").GetString()!));
+            map.Validate((JsonStrings.GetString(input.GetProperty("virtual"))!).Span.ToArray(), (JsonStrings.GetString(input.GetProperty("original"))!).Span.ToArray());
         }
         catch (MappingException e)
         {

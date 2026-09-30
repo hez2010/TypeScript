@@ -22,22 +22,22 @@ internal static class CheckerFlowTests
                 throw new InvalidOperationException($"Flow assertion {checks + 1}");
             checks++;
         }
-        const string source = "interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T} declare function __flow(value:unknown):void; function f(x:string|number,c:boolean){while(c){x=1;}__flow(x);const callback=(z:number)=>z;} function g(y:string|number,c:boolean){if(c){y=1;} (()=>{y='a';})();} ";
+        Utf8String source = "interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T} declare function __flow(value:unknown):void; function f(x:string|number,c:boolean){while(c){x=1;}__flow(x);const callback=(z:number)=>z;} function g(y:string|number,c:boolean){if(c){y=1;} (()=>{y='a';})();} "u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/main.ts"] = Wtf8.Encode(source) }),
-            "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/main.ts"u8] = source.Span.ToArray() }),
+            "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
         var scope = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
         var host = new Checker(context, links, scope);
         var nodes = program.SourceFiles[0].Syntax.DescendantsAndSelf().ToArray();
-        var function = nodes.OfType<FunctionDeclarationNode>().Single(n => n.Name?.Text == "f");
-        var reference = nodes.OfType<CallExpressionNode>().Single(n => n.Expression is IdentifierNode { Text: { Span: "__flow" } }).Arguments![0];
+        var function = nodes.OfType<FunctionDeclarationNode>().Single(n => n.Name?.Text == "f"u8);
+        var reference = nodes.OfType<CallExpressionNode>().Single(n => (n.Expression is IdentifierNode { Text: { Span: var matchedText } } && matchedText.SequenceEqual("__flow"u8))).Arguments![0];
         var symbol = scope.ReferenceSymbols.Resolve((IdentifierNode)reference);
         var declared = await host.Values.GetAsync(symbol);
         using (var cancellation = new CancellationTokenSource())
@@ -94,7 +94,7 @@ internal static class CheckerFlowTests
         }
         Check(host.FlowTypes.SharedCount == 0 && !host.FlowTypes.AnalysisDisabled);
 
-        var unrelated = new NumericLiteralNode { Text = "0" };
+        var unrelated = new NumericLiteralNode { Text = "0"u8 };
         var start = new FlowNode(FlowFlags.Start);
         FlowNode linear = start;
         for (int i = 0; i < 20_000; i++)
@@ -154,10 +154,10 @@ internal static class CheckerFlowTests
         Check(await host.FlowTypes.AssignmentReducedAsync(declared, context.NeverType) == context.NeverType);
         Check(await host.FlowNarrowing.NarrowedAsync(declared, context.StringType, true) == context.StringType);
         Check(await host.FlowNarrowing.NarrowedAsync(declared, context.StringType, false) == context.NumberType);
-        Check(await host.FlowNarrowing.TypeNameAsync(context.UnknownType, "string", true) == context.StringType);
+        Check(await host.FlowNarrowing.TypeNameAsync(context.UnknownType, "string"u8, true) == context.StringType);
         Check(host.FlowNarrowing.InlineLevel == 0 && host.ExplicitValues.ResolvingCount == 0);
-        var thisName = new IdentifierNode { Text = "this" };
-        var propertyName = new IdentifierNode { Text = "this" };
+        var thisName = new IdentifierNode { Text = "this"u8 };
+        var propertyName = new IdentifierNode { Text = "this"u8 };
         var query = new TypeQueryNode { ExprName = new QualifiedNameNode { Left = thisName, Right = propertyName } };
         query.SetParents();
         Check(FlowReferences.ThisInQuery(thisName) && !FlowReferences.ThisInQuery(propertyName));
@@ -171,7 +171,7 @@ internal static class CheckerFlowTests
         var x = freshSymbols.Declaration((SyntaxNode)((IFunctionSignature)function).Parameters![0])!;
         using (var cancellation = new CancellationTokenSource())
         {
-            var nestedParameter = nodes.OfType<ParameterDeclarationNode>().Single(n => n.Name is IdentifierNode { Text: { Span: "z" } });
+            var nestedParameter = nodes.OfType<ParameterDeclarationNode>().Single(n => (n.Name is IdentifierNode { Text: { Span: var matchedText2 } } && matchedText2.SequenceEqual("z"u8)));
             freshScope.BeforeValueResolution = () =>
             {
                 assignments.GetAsync(freshSymbols.Declaration(nestedParameter)!).GetAwaiter().GetResult();
@@ -189,13 +189,13 @@ internal static class CheckerFlowTests
         }
         Check((freshLinks.Nodes.Get(function).Flags & NodeCheckFlags.AssignmentsMarked) == 0);
         var nestedFunction = nodes.OfType<ArrowFunctionNode>().Single(
-            n => n.Parameters is { Count: > 0 } && n.Parameters[0] is ParameterDeclarationNode { Name: IdentifierNode { Text: { Span: "z" } } });
+            n => n.Parameters is { Count: > 0 } && n.Parameters[0] is ParameterDeclarationNode { Name: IdentifierNode { Text: { Span: var matchedText3 } } } && matchedText3.SequenceEqual("z"u8));
         Check((freshLinks.Nodes.Get(nestedFunction).Flags & NodeCheckFlags.AssignmentsMarked) == 0);
         freshScope.BeforeValueResolution = null;
         var mark = await assignments.GetAsync(x);
         Check(mark.Definite && mark.LastPosition > 0 && mark.LastPosition != int.MaxValue);
         Check(await assignments.PastLastAsync(x, reference));
-        var yDeclaration = nodes.OfType<ParameterDeclarationNode>().Single(n => n.Name is IdentifierNode { Text: { Span: "y" } });
+        var yDeclaration = nodes.OfType<ParameterDeclarationNode>().Single(n => (n.Name is IdentifierNode { Text: { Span: var matchedText4 } } && matchedText4.SequenceEqual("y"u8)));
         var y = freshSymbols.Declaration(yDeclaration)!;
         Check((await assignments.GetAsync(y)).LastPosition == int.MaxValue && await assignments.DefiniteAsync(y));
         Check(!await assignments.PastLastAsync(y, reference));
@@ -207,7 +207,7 @@ internal static class CheckerFlowTests
 
     private static async Task<int> ConstructorAndCallSafety()
     {
-        const string source = """
+        Utf8String source = """
             class A { value = 0; }
             class B { value = 0; }
             function narrow(value: A | B) {
@@ -220,31 +220,31 @@ internal static class CheckerFlowTests
             }
             const assert = (value: unknown): asserts value => {};
             function assertion(value: unknown) { assert(value); }
-            """;
+            """u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
         {
-            ["/project/main.ts"] = Wtf8.Encode(source),
-            ["/project/globals.d.ts"] = Wtf8.Encode("interface Object { constructor: Function; } interface Function { prototype: any; }")
-        }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts", "/project/globals.d.ts"], [], [], []));
+            ["/project/main.ts"u8] = source.Span.ToArray(),
+            ["/project/globals.d.ts"u8] = Wtf8.Encode("interface Object { constructor: Function; } interface Function { prototype: any; }")
+        }), "/project"u8, new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8, "/project/globals.d.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
-        var file = program.GetFile("/project/main.ts")!.Syntax;
+        var file = program.GetFile("/project/main.ts"u8)!.Syntax;
         await checker.CheckSourceFileAsync(file);
         var codes = checker.DiagnosticCodesForFile(file);
         if (!codes.SequenceEqual([DiagnosticCode.AssertionsRequireEveryNameInTheCallTargetToBeDeclaredWithAnExplicitTypeAnnotation]))
             throw new InvalidOperationException($"Constructor/call diagnostics: {string.Join(',', codes)}");
         var declarations = file.DescendantsAndSelf().OfType<VariableDeclarationNode>()
             .Where(n => n.Name is IdentifierNode).ToDictionary(n => ((IdentifierNode)n.Name!).Text);
-        if ((await checker.GetExpressionTypeAsync(declarations["equal"].Initializer!)).Symbol?.Name != "A")
+        if ((await checker.GetExpressionTypeAsync(declarations["equal"u8].Initializer!)).Symbol?.Name != "A"u8)
             throw new InvalidOperationException("Constructor identity did not select the matching class");
-        if (await checker.GetExpressionTypeAsync(declarations["unequal"].Initializer!) is not UnionType { Types.Count: 2 })
+        if (await checker.GetExpressionTypeAsync(declarations["unequal"u8].Initializer!) is not UnionType { Types.Count: 2 })
             throw new InvalidOperationException("Constructor inequality narrowed a structural union");
-        if (await checker.GetExpressionTypeAsync(declarations["text"].Initializer!) != checker.Context.StringType)
+        if (await checker.GetExpressionTypeAsync(declarations["text"u8].Initializer!) != checker.Context.StringType)
             throw new InvalidOperationException("Optional call lost its predicate");
         if (checker.AssertionRelatedDeclarations.Count != 1
-            || checker.AssertionRelatedDeclarations.Values.Single().Single().Symbol.Name != "assert")
+            || checker.AssertionRelatedDeclarations.Values.Single().Single().Symbol.Name != "assert"u8)
             throw new InvalidOperationException("Assertion diagnostic lost the unannotated declaration");
         return 5;
     }

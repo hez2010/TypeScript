@@ -36,7 +36,7 @@ internal interface IBinaryExpressionHost
 
     void ArithmeticError(SyntaxNode node, Type type, DiagnosticCode code, bool suggestAwait);
 
-    void BinaryDiagnostic(SyntaxNode node, DiagnosticCode code, bool suggestion = false, params TextSlice[] arguments);
+    void BinaryDiagnostic(SyntaxNode node, DiagnosticCode code, bool suggestion = false, params Utf8String[] arguments);
 }
 
 internal sealed class BinaryExpressions(TypeContext context, TypeAlgebra algebra, TypePredicates predicates,
@@ -280,9 +280,9 @@ internal sealed class BinaryExpressions(TypeContext context, TypeAlgebra algebra
                     var file = TypeScript.Compiler.Binding.SemanticSyntax.Source(left);
                     var scanner = file is null ? null : new Scanner(file.Source);
                     if (scanner is not null)
-                        scanner.ResetPosition(file!.Source.ToUtf16Position(left.Pos));
+                        scanner.ResetPosition(left.Pos);
                     scanner?.Scan();
-                    int start = scanner is not null ? file!.Source.ToBytePosition(scanner.TokenStart) : left.Pos;
+                    int start = scanner is not null ? scanner.TokenStart : left.Pos;
                     if (file?.ParseDiagnostics.Any(
                         d => d.Code == DiagnosticCode.JSXExpressionsMustHaveOneParentElement
                             && d.Start <= start
@@ -403,12 +403,12 @@ internal sealed class BinaryExpressions(TypeContext context, TypeAlgebra algebra
         => await algebra.MapAsync(
             type,
             t => ValueTask.FromResult<Type?>(
-            (t.Flags & TypeFlags.String) != 0 ? context.GetStringLiteralType("")
+            (t.Flags & TypeFlags.String) != 0 ? context.GetStringLiteralType(Utf8String.Empty)
             : (t.Flags & TypeFlags.Number) != 0 ? context.GetNumberLiteralType(0) : (t.Flags & TypeFlags.BigInt) != 0 ? context.GetBigIntLiteralType(BigInteger.Zero)
             : t == context.RegularFalseType
                 || t == context.FalseType
                 || (t.Flags & (TypeFlags.Void | TypeFlags.Nullable | TypeFlags.AnyOrUnknown)) != 0
-                || t is LiteralType { Value: TextSlice { IsEmpty: true } or 0d } || t is LiteralType { Value: BigInteger integer }
+                || t is LiteralType { Value: Utf8String { IsEmpty: true } or 0d } || t is LiteralType { Value: BigInteger integer }
                     && integer.IsZero ? t : context.NeverType),
             cancellation: cancellation).ConfigureAwait(false) ?? context.NeverType;
 
@@ -463,7 +463,7 @@ internal sealed class BinaryExpressions(TypeContext context, TypeAlgebra algebra
     }
 
     private static bool IndirectCall(BinaryExpressionNode node) => node.Parent is ParenthesizedExpressionNode parent
-            && node.Left is NumericLiteralNode { Text.Span: "0" }
+            && node.Left is NumericLiteralNode { Text.Span: var matchedText } && matchedText.SequenceEqual("0"u8)
             && (parent.Parent is CallExpressionNode call && call.Expression == parent || parent.Parent is TaggedTemplateExpressionNode)
-            && (node.Right is PropertyAccessExpressionNode or ElementAccessExpressionNode or IdentifierNode { Text.Span: "eval" });
+            && (node.Right is PropertyAccessExpressionNode || node.Right is ElementAccessExpressionNode || node.Right is IdentifierNode { Text.Span: var matchedText2 } && matchedText2.SequenceEqual("eval"u8));
 }

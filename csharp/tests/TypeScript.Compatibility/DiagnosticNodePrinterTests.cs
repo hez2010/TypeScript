@@ -21,25 +21,25 @@ internal static class DiagnosticNodePrinterTests
             checks++;
         }
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        options.SetRaw("noLib"u8, "true"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
         {
-            ["/project/main.ts"] = Wtf8.Encode("export class C {['é']=1; [0x10]=2;}")
-        }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+            ["/project/main.ts"u8] = Wtf8.Encode("export class C {['é']=1; [0x10]=2;}")
+        }), "/project"u8, new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
-        var file = program.GetFile("/project/main.ts")!.Syntax;
+        var file = program.GetFile("/project/main.ts"u8)!.Syntax;
         var properties = file.DescendantsAndSelf().OfType<PropertyDeclarationNode>().Select(n => checker.Symbols.Declaration(n)!).ToArray();
         var flags = SymbolFormatFlags.AllowAnyNodeKind | SymbolFormatFlags.WriteComputedProps;
-        Check(await checker.GetSymbolDisplayNameAsync(properties[0], file, SymbolFlags.Value, flags) == "['é']");
-        Check(await checker.GetSymbolDisplayNameAsync(properties[0], null, SymbolFlags.Value, flags) == "['\\u00E9']");
-        Check(await checker.GetSymbolDisplayNameAsync(properties[1], file, SymbolFlags.Value, flags) == "[0x10]");
-        Check(await checker.GetSymbolDisplayNameAsync(properties[1], null, SymbolFlags.Value, flags) == "[16]");
+        Check(await checker.GetSymbolDisplayNameAsync(properties[0], file, SymbolFlags.Value, flags) == "['é']"u8);
+        Check(await checker.GetSymbolDisplayNameAsync(properties[0], null, SymbolFlags.Value, flags) == "['\\u00E9']"u8);
+        Check(await checker.GetSymbolDisplayNameAsync(properties[1], file, SymbolFlags.Value, flags) == "[0x10]"u8);
+        Check(await checker.GetSymbolDisplayNameAsync(properties[1], null, SymbolFlags.Value, flags) == "[16]"u8);
         Check(
             await checker.GetSymbolDisplayNameAsync(
                 properties[0],
                 file,
                 SymbolFlags.Value,
-                flags | SymbolFormatFlags.DoNotIncludeSymbolChain) == "['é']");
+                flags | SymbolFormatFlags.DoNotIncludeSymbolChain) == "['é']"u8);
         using var stop = new CancellationTokenSource();
         stop.Cancel();
         try
@@ -51,7 +51,7 @@ internal static class DiagnosticNodePrinterTests
         {
             checks++;
         }
-        Check(await checker.GetSymbolDisplayNameAsync(properties[0], file, SymbolFlags.Value, flags) == "['é']");
+        Check(await checker.GetSymbolDisplayNameAsync(properties[0], file, SymbolFlags.Value, flags) == "['é']"u8);
         return checks;
     }
 
@@ -64,20 +64,20 @@ internal static class DiagnosticNodePrinterTests
                 throw new InvalidOperationException($"Diagnostic printer assertion {checks + 1}");
             checks++;
         }
-        var source = Parser.ParseSourceFile(new("/project/main.ts"), new SourceText("class C { [0x10]:unknown; ['é']:unknown; }"));
+        var source = Parser.ParseSourceFile(new("/project/main.ts"u8), new SourceText("class C { [0x10]:unknown; ['é']:unknown; }"u8));
         var names = source.DescendantsAndSelf().OfType<ComputedPropertyNameNode>().ToArray();
         var snapshot = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
-        Check(Checker.PrintDiagnosticNode(names[0], sourceFile: source) == "[0x10]");
-        Check(Checker.PrintDiagnosticNode(names[0]) == "[16]");
-        Check(Checker.PrintDiagnosticNode(names[1], sourceFile: source) == "['é']");
-        Check(Checker.PrintDiagnosticNode(names[1]) == "['\\u00E9']");
-        Check(Checker.PrintDiagnosticNode(names[1], true) == "['é']");
+        Check(Checker.PrintDiagnosticNode(names[0], sourceFile: source) == "[0x10]"u8);
+        Check(Checker.PrintDiagnosticNode(names[0]) == "[16]"u8);
+        Check(Checker.PrintDiagnosticNode(names[1], sourceFile: source) == "['é']"u8);
+        Check(Checker.PrintDiagnosticNode(names[1]) == "['\\u00E9']"u8);
+        Check(Checker.PrintDiagnosticNode(names[1], true) == "['é']"u8);
         Check(snapshot.All(p => p.Parent == p.Node.Parent && p.Pos == p.Node.Pos && p.End == p.Node.End && p.Flags == p.Node.Flags));
         var factory = new NodeFactory();
-        SyntaxNode deep = factory.NewIdentifier("x");
+        SyntaxNode deep = factory.NewIdentifier("x"u8);
         for (int i = 0; i < 20_000; i++)
             deep = factory.NewParenthesizedExpression(deep);
-        Check(Checker.PrintDiagnosticNode(deep) == new string('(', 20_000) + "x" + new string(')', 20_000));
+        Check(Checker.PrintDiagnosticNode(deep) == Utf8String.Concat(new Utf8String('(', 20_000), "x"u8, new Utf8String(')', 20_000)));
         using var stop = new CancellationTokenSource();
         stop.Cancel();
         try
@@ -89,7 +89,7 @@ internal static class DiagnosticNodePrinterTests
         {
             checks++;
         }
-        Check(Checker.PrintDiagnosticNode(names[0], sourceFile: source) == "[0x10]");
+        Check(Checker.PrintDiagnosticNode(names[0], sourceFile: source) == "[0x10]"u8);
         var failed = factory.NewToken(SyntaxKind.Unknown);
         try
         {
@@ -100,7 +100,7 @@ internal static class DiagnosticNodePrinterTests
         {
             checks++;
         }
-        Check(Checker.PrintDiagnosticNode(names[1], sourceFile: source) == "['é']");
+        Check(Checker.PrintDiagnosticNode(names[1], sourceFile: source) == "['é']"u8);
         return checks;
     }
 }

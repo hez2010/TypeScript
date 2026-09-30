@@ -9,10 +9,10 @@ namespace TypeScript.Compiler.Checking;
 internal sealed partial class Checker
 {
     private readonly Dictionary<SourceFileNode, Symbol> externalHelperModules = [];
-    private readonly HashSet<(SourceFileNode File, TextSlice Name)> checkedExternalHelpers = [];
-    private readonly HashSet<(SyntaxNode Node, DiagnosticCode Code, TextSlice Name)> externalHelperErrors = [];
+    private readonly HashSet<(SourceFileNode File, Utf8String Name)> checkedExternalHelpers = [];
+    private readonly HashSet<(SyntaxNode Node, DiagnosticCode Code, Utf8String Name)> externalHelperErrors = [];
 
-    private async ValueTask ExternalHelpersAsync(SyntaxNode node, IReadOnlyList<TextSlice> names, CancellationToken cancellation)
+    private async ValueTask ExternalHelpersAsync(SyntaxNode node, IReadOnlyList<Utf8String> names, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         if (program.Symbols.Program.Configuration.Options.ImportHelpers != true || (node.Flags & NodeFlags.Ambient) != 0)
@@ -25,10 +25,10 @@ internal sealed partial class Checker
         if (!externalHelperModules.TryGetValue(file, out var module))
         {
             var reference = program.Symbols.Program.GetFile(file.FileName)!.Resolutions.FirstOrDefault(r => r.Node is null
-                && r.Specifier == "tslib");
+                && r.Specifier == Utf8Literals.Tslib);
             var resolved = reference?.Resolution.IsResolved == true
                 ? program.Symbols.Program.GetFile(reference.Resolution.FileName)?.Binding.Symbol : null;
-            resolved ??= program.Symbols.PatternAugmentations.GetValueOrDefault("tslib") ?? program.Symbols.Globals.GetValueOrDefault("\"tslib\"");
+            resolved ??= program.Symbols.PatternAugmentations.GetValueOrDefault(Utf8Literals.Tslib) ?? program.Symbols.Globals.GetValueOrDefault(Utf8Literals.QuotedTslib);
             module = program.Symbols.Merger.GetMergedSymbol(resolved) ?? UnknownSymbol;
             if (module == UnknownSymbol)
                 Error(
@@ -36,7 +36,7 @@ internal sealed partial class Checker
                     reference?.Resolution.IsResolved == true
                         ? DiagnosticCode.File0IsNotAModule
                         : DiagnosticCode.ThisSyntaxRequiresAnImportedHelperButModule0CannotBeFound,
-                    reference?.Resolution.IsResolved == true ? reference.Resolution.FileName : "tslib");
+                    reference?.Resolution.IsResolved == true ? reference.Resolution.FileName : Utf8Literals.Tslib);
             externalHelperModules.Add(file, module);
         }
         if (module == UnknownSymbol)
@@ -52,9 +52,9 @@ internal sealed partial class Checker
                 cancellation: cancellation);
             if (symbol is null)
                 code = DiagnosticCode.ThisSyntaxRequiresAnImportedHelperNamed1WhichDoesNotExistIn0ConsiderUpgradingYourVersionOf0;
-            else if (name.Span is "__classPrivateFieldGet" or "__classPrivateFieldSet")
+            else if (name.Span.SequenceEqual("__classPrivateFieldGet"u8) || name.Span.SequenceEqual("__classPrivateFieldSet"u8))
             {
-                int minimum = name == "__classPrivateFieldGet" ? 4 : 5;
+                int minimum = name == Utf8Literals.ClassPrivateFieldGet ? 4 : 5;
                 bool compatible = false;
                 foreach (var signature in await SignaturesAsync(await Values.GetAsync(symbol, cancellation), false, cancellation))
                     if (await Parameters.CountAsync(signature, cancellation) >= minimum)
@@ -74,7 +74,7 @@ internal sealed partial class Checker
                     node,
                     code,
                     code == DiagnosticCode.ThisSyntaxRequiresAnImportedHelperNamed1With2ParametersWhichIsNotCompatibleWithTheOneIn0ConsiderUpgradingYourVersionOf0
-                    ? ["tslib", name, name == "__classPrivateFieldGet" ? "4" : "5"] : ["tslib", name]);
+                    ? [Utf8Literals.Tslib, name, name == Utf8Literals.ClassPrivateFieldGet ? Utf8Literals.Four : Utf8Literals.Five] : [Utf8Literals.Tslib, name]);
             }
             checkedExternalHelpers.Add((file, name));
         }

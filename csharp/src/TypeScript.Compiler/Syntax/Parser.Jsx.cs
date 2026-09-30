@@ -28,7 +28,7 @@ public sealed partial class Parser
         {
             NextJsx();
             var opening = Finish(factory.NewJsxOpeningFragment(), start);
-            var children = (await JsxChildrenCore().ConfigureAwait(false));
+            var children = await JsxChildrenCore().ConfigureAwait(false);
             int closingStart = Pos;
             if (Token == K.EndOfFile)
                 ErrorAt(Messages.JSX_fragment_has_no_corresponding_closing_tag, opening.Pos, opening.End - opening.Pos);
@@ -46,7 +46,7 @@ public sealed partial class Parser
                 invalidStart).ConfigureAwait(false);
         }
 
-        SyntaxNode name = (await JsxNameCore().ConfigureAwait(false));
+        SyntaxNode name = await JsxNameCore().ConfigureAwait(false);
         NodeList? typeArguments = (context & NodeFlags.JavaScriptFile) == 0
             ? await TypeArgumentsCore(false, allowLineBreak: true).ConfigureAwait(false) : null;
         int attributesStart = Pos;
@@ -65,13 +65,13 @@ public sealed partial class Parser
             if (Take(K.OpenBraceToken))
             {
                 Expected(K.DotDotDotToken);
-                var spread = (await ExpressionCore().ConfigureAwait(false));
+                var spread = await ExpressionCore().ConfigureAwait(false);
                 Expected(K.CloseBraceToken);
                 attributes.Add(Finish(factory.NewJsxSpreadAttribute(spread), attrStart));
             }
             else
             {
-                SyntaxNode attrName = (await JsxNameCore(false).ConfigureAwait(false));
+                SyntaxNode attrName = await JsxNameCore(false).ConfigureAwait(false);
                 SyntaxNode? value = null;
                 if (Token == K.EqualsToken)
                 {
@@ -100,7 +100,7 @@ public sealed partial class Parser
         {
             Expected(K.SlashToken);
             if (Token != K.GreaterThanToken)
-                Error(Messages.X_0_expected, ">");
+                Error(Messages.X_0_expected, Utf8Literals.GreaterThan);
             else if (expressionContext)
                 Next();
             else
@@ -113,7 +113,7 @@ public sealed partial class Parser
 
         NextJsx();
         var open = Finish(factory.NewJsxOpeningElement(name, typeArguments, attributeList), start);
-        NodeList content = (await JsxChildrenCore(name).ConfigureAwait(false));
+        NodeList content = await JsxChildrenCore(name).ConfigureAwait(false);
         int closeStart = Pos;
         JsxClosingElementNode close;
         if (content.Count != 0
@@ -126,7 +126,7 @@ public sealed partial class Parser
             && !JsxTagNamesEqual(childOpen, childClose) && JsxTagNamesEqual(name, childClose))
         {
             int end = childContent.End;
-            var missing = Finish(factory.NewJsxClosingElement(Finish(factory.NewIdentifier(""), end, end)), end, end);
+            var missing = Finish(factory.NewJsxClosingElement(Finish(factory.NewIdentifier(Utf8String.Empty), end, end)), end, end);
             var replacement = Finish(factory.NewJsxElement(child.OpeningElement, childContent, missing), child.Pos, end);
             SyntaxNode[] children = content.ToArray();
             children[^1] = replacement;
@@ -136,10 +136,10 @@ public sealed partial class Parser
         else if (Token == K.LessThanSlashToken)
         {
             Next();
-            SyntaxNode closeName = (await JsxNameCore().ConfigureAwait(false));
+            SyntaxNode closeName = await JsxNameCore().ConfigureAwait(false);
             bool matches = JsxTagNamesEqual(name, closeName);
             if (Token != K.GreaterThanToken)
-                Error(Messages.X_0_expected, ">");
+                Error(Messages.X_0_expected, Utf8Literals.GreaterThan);
             else if (expressionContext || !matches)
                 Next();
             else
@@ -169,7 +169,7 @@ public sealed partial class Parser
                 name.End - name.Pos,
                 source.Text[name.Pos..name.End].Trim());
             Expected(K.LessThanSlashToken);
-            close = Finish(factory.NewJsxClosingElement(Finish(factory.NewIdentifier(""), Pos, Pos)), Pos, Pos);
+            close = Finish(factory.NewJsxClosingElement(Finish(factory.NewIdentifier(Utf8String.Empty), Pos, Pos)), Pos, Pos);
         }
 
         return await JsxAdjacentElementsCore(
@@ -263,12 +263,12 @@ public sealed partial class Parser
             if (Token is K.JsxText or K.JsxTextAllWhiteSpaces)
             {
                 bool whitespace = Token == K.JsxTextAllWhiteSpaces;
-                TextSlice value = scanner.Value;
+                Utf8String value = scanner.Value;
                 NextJsx();
                 children.Add(Finish(factory.NewJsxText(value, whitespace), childStart));
             }
             else if (Token == K.OpenBraceToken)
-                children.Add((await JsxExpressionCore(false).ConfigureAwait(false)));
+                children.Add(await JsxExpressionCore(false).ConfigureAwait(false));
             else if (Token == K.LessThanToken)
             {
                 SyntaxNode child = await JsxElementCore(false, openingTagName).ConfigureAwait(false);
@@ -298,7 +298,7 @@ public sealed partial class Parser
             Error(Messages.Expression_expected);
         SyntaxNode? expression = Token == K.CloseBraceToken ? null : (await ExpressionCore().ConfigureAwait(false));
         if (Token != K.CloseBraceToken)
-            Error(Messages.X_0_expected, "}");
+            Error(Messages.X_0_expected, Utf8Literals.CloseBrace);
         else if (expressionContext)
             Next();
         else

@@ -20,14 +20,14 @@ internal static class CheckerInferenceTests
                 throw new InvalidOperationException($"Inference assertion {checks + 1}");
             checks++;
         }
-        const string source = "interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}type Bound<U extends string>=U;type Box<T>={[P in keyof T]:{value:T[P]}};type Unbox<T>=T extends Box<infer U>?U:never;type Result=Unbox<{a:{value:1};b:{value:string}}>";
+        Utf8String source = "interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}type Bound<U extends string>=U;type Box<T>={[P in keyof T]:{value:T[P]}};type Unbox<T>=T extends Box<infer U>?U:never;type Result=Unbox<{a:{value:1};b:{value:string}}>"u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/main.ts"] = Wtf8.Encode(source) }),
-            "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/main.ts"u8] = source.Span.ToArray() }),
+            "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
         var scope = new CheckerEnvironment(context, links);
@@ -64,7 +64,7 @@ internal static class CheckerInferenceTests
         var wildcard = host.Inference.Create([p]);
         await host.Inference.InferAsync(wildcard, context.WildcardType, p);
         Check(await host.Inference.GetAsync(wildcard, 0) == context.WildcardType);
-        var bound = (TypeParameter)await host.Declared.GetAsync(symbols.Globals["Bound"]);
+        var bound = (TypeParameter)await host.Declared.GetAsync(symbols.Globals["Bound"u8]);
         var cancellable = host.Inference.Create([bound]);
         await host.Inference.InferAsync(cancellable, context.StringType, bound);
         host.BeforeNode = _ => throw new OperationCanceledException();
@@ -108,27 +108,27 @@ internal static class CheckerInferenceTests
                 TypeMapper.Create([context.StringType], [context.NumberType])).MapAsync(p) == context.NumberType
                 && asyncCalls == 1);
 
-        var fresh = context.GetFreshLiteralType(context.GetStringLiteralType("value"));
+        var fresh = context.GetFreshLiteralType(context.GetStringLiteralType("value"u8));
         Check(await host.Widening.LiteralAsync(fresh) == context.StringType);
         Check(await host.Widening.LiteralAsync(fresh.RegularType) == fresh.RegularType);
         Check(await host.Widening.GetAsync(context.UndefinedType) == context.UndefinedType);
         var literal = context.NewObjectType(
             ObjectFlags.Anonymous | ObjectFlags.ObjectLiteral | ObjectFlags.ContainsObjectOrArrayLiteral | ObjectFlags.ContainsWideningType);
-        var property = new Symbol(SymbolFlags.Property | SymbolFlags.Transient, "value");
+        var property = new Symbol(SymbolFlags.Property | SymbolFlags.Transient, "value"u8);
         links.Values.Get(property).ResolvedType = context.NonInferrableAnyType;
-        literal.Members = new Dictionary<TextSlice, Symbol> { ["value"] = property }.AsReadOnly();
+        literal.Members = new Dictionary<Utf8String, Symbol> { ["value"u8] = property }.AsReadOnly();
         literal.Properties = [property];
         literal.ObjectFlags |= ObjectFlags.MembersResolved;
         var widened = await host.Widening.GetAsync(literal);
         Check(widened != literal && (widened.ObjectFlags & ObjectFlags.ObjectLiteral) == 0);
         Check(await host.Widening.GetAsync(literal) == widened);
-        var widenedProperty = await host.Properties.PropertyAsync(widened, "value");
+        var widenedProperty = await host.Properties.PropertyAsync(widened, "value"u8);
         Check(widenedProperty is not null && await host.Values.GetAsync(widenedProperty) == context.AnyType);
         Check(await host.Values.GetAsync(property) == context.NonInferrableAnyType);
-        var reversed = await host.Declared.GetAsync(symbols.Globals["Result"]);
+        var reversed = await host.Declared.GetAsync(symbols.Globals["Result"u8]);
         Check(reversed is ReverseMappedType);
-        Check(await host.Indexed.GetAsync(reversed, context.GetStringLiteralType("a")) == context.GetNumberLiteralType(1));
-        Check(await host.Indexed.GetAsync(reversed, context.GetStringLiteralType("b")) == context.StringType);
+        Check(await host.Indexed.GetAsync(reversed, context.GetStringLiteralType("a"u8)) == context.GetNumberLiteralType(1));
+        Check(await host.Indexed.GetAsync(reversed, context.GetStringLiteralType("b"u8)) == context.StringType);
         try
         {
             host.Inference.Create([new TypeContext().StringType]);
@@ -149,25 +149,25 @@ internal static class CheckerInferenceTests
 
     private static async Task<int> ConditionalCallSafety()
     {
-        const string source = """
+        Utf8String source = """
             declare const f: <T>(f: (x: T) => unknown) => (x: T) => unknown;
             declare const g: <T extends unknown>(x: { foo: T }) => unknown;
             const h = f(g);
             type FirstParameter<T> = T extends (x: infer P) => unknown ? P : unknown;
             type X = FirstParameter<typeof h>["foo"];
-            """;
+            """u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/main.ts"u8] = source.Span.ToArray() }), "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
         var file = program.SourceFiles[0].Syntax;
         await checker.CheckSourceFileAsync(file);
         if (checker.DiagnosticCodesForFile(file).Count != 0)
             throw new InvalidOperationException("Conditional call inference reported an error");
-        var alias = file.DescendantsAndSelf().OfType<TypeAliasDeclarationNode>().Single(n => n.Name!.Text == "X");
+        var alias = file.DescendantsAndSelf().OfType<TypeAliasDeclarationNode>().Single(n => n.Name!.Text == "X"u8);
         if (await checker.Nodes.FromNodeAsync(alias.Type!) != checker.Context.UnknownType)
             throw new InvalidOperationException("Conditional inference lost its unknown result");
         return 2;

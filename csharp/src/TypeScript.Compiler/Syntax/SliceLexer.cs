@@ -14,7 +14,7 @@ public interface ISourceView
 
     int ByteOffset(int position);
 
-    string Slice(int start, int end);
+    Utf8String Slice(int start, int end);
 }
 
 public readonly struct Utf8Source(ReadOnlyMemory<byte> bytes) : ISourceView
@@ -25,33 +25,7 @@ public readonly struct Utf8Source(ReadOnlyMemory<byte> bytes) : ISourceView
 
     public int ByteOffset(int position) => position;
 
-    public string Slice(int start, int end) => Wtf8.DecodeString(bytes.Span.Slice(start, end - start));
-}
-
-public readonly struct Utf16Source : ISourceView
-{
-    private readonly string text;
-    private readonly PositionMap map;
-
-    public Utf16Source(byte[] bytes)
-    {
-        text = Wtf8.DecodeString(bytes);
-        map = new(bytes);
-    }
-
-    public int Length => text.Length;
-
-    public int Read(int position, out int width)
-    {
-        if (Rune.DecodeFromUtf16(text.AsSpan(position), out Rune rune, out width) == OperationStatus.Done)
-            return rune.Value;
-        width = 1;
-        return text[position];
-    }
-
-    public int ByteOffset(int position) => map.Utf16ToUtf8(position);
-
-    public string Slice(int start, int end) => text[start..end];
+    public Utf8String Slice(int start, int end) => new(bytes.Slice(start, end - start));
 }
 
 public readonly record struct SliceToken(
@@ -59,10 +33,10 @@ public readonly record struct SliceToken(
     int Pos,
     int Start,
     int End,
-    string Text = "",
+    Utf8String Text = default,
     uint Flags = 0,
     bool LineBreak = false);
-public readonly record struct SliceDiagnostic(DiagnosticCode Code, int Pos, int Length, string Message);
+public readonly record struct SliceDiagnostic(DiagnosticCode Code, int Pos, int Length, Utf8String Message);
 
 // Scanner slice for the selected TypeScript productions. Unhandled tokens are
 // returned as Unknown and produce a diagnostic, never a successful compilation.
@@ -117,7 +91,7 @@ public sealed class SliceLexer<TSource>(TSource source, List<SliceDiagnostic> di
                 while (position < source.Length && !(Peek() == '*' && Peek(1) == '/'))
                     lineBreak |= Newline(Take());
                 if (position == source.Length)
-                    diagnostics.Add(new(DiagnosticCode.AsteriskSlashExpected, source.ByteOffset(comment), 2, "'*/' expected."));
+                    diagnostics.Add(new(DiagnosticCode.AsteriskSlashExpected, source.ByteOffset(comment), 2, Utf8Literals.Expected));
                 else
                     position += 2;
                 continue;
@@ -132,31 +106,31 @@ public sealed class SliceLexer<TSource>(TSource source, List<SliceDiagnostic> di
         {
             while (position < source.Length && IdentifierPart(Peek()))
                 Take();
-            string text = source.Slice(start, position);
+            Utf8String text = source.Slice(start, position);
             SyntaxKind kind = text switch
             {
-                "type" => SyntaxKind.TypeKeyword,
-                "export" => SyntaxKind.ExportKeyword,
-                "import" => SyntaxKind.ImportKeyword,
-                "from" => SyntaxKind.FromKeyword,
-                "as" => SyntaxKind.AsKeyword,
-                "const" => SyntaxKind.ConstKeyword,
-                "let" => SyntaxKind.LetKeyword,
-                "var" => SyntaxKind.VarKeyword,
-                "string" => SyntaxKind.StringKeyword,
-                "number" => SyntaxKind.NumberKeyword,
-                "bigint" => SyntaxKind.BigIntKeyword,
-                "boolean" => SyntaxKind.BooleanKeyword,
-                "symbol" => SyntaxKind.SymbolKeyword,
-                "object" => SyntaxKind.ObjectKeyword,
-                "any" => SyntaxKind.AnyKeyword,
-                "unknown" => SyntaxKind.UnknownKeyword,
-                "never" => SyntaxKind.NeverKeyword,
-                "void" => SyntaxKind.VoidKeyword,
-                "undefined" => SyntaxKind.UndefinedKeyword,
-                "null" => SyntaxKind.NullKeyword,
-                "true" => SyntaxKind.TrueKeyword,
-                "false" => SyntaxKind.FalseKeyword,
+                _ when text == "type"u8 => SyntaxKind.TypeKeyword,
+                _ when text == "export"u8 => SyntaxKind.ExportKeyword,
+                _ when text == "import"u8 => SyntaxKind.ImportKeyword,
+                _ when text == "from"u8 => SyntaxKind.FromKeyword,
+                _ when text == "as"u8 => SyntaxKind.AsKeyword,
+                _ when text == "const"u8 => SyntaxKind.ConstKeyword,
+                _ when text == "let"u8 => SyntaxKind.LetKeyword,
+                _ when text == "var"u8 => SyntaxKind.VarKeyword,
+                _ when text == "string"u8 => SyntaxKind.StringKeyword,
+                _ when text == "number"u8 => SyntaxKind.NumberKeyword,
+                _ when text == "bigint"u8 => SyntaxKind.BigIntKeyword,
+                _ when text == "boolean"u8 => SyntaxKind.BooleanKeyword,
+                _ when text == "symbol"u8 => SyntaxKind.SymbolKeyword,
+                _ when text == "object"u8 => SyntaxKind.ObjectKeyword,
+                _ when text == "any"u8 => SyntaxKind.AnyKeyword,
+                _ when text == "unknown"u8 => SyntaxKind.UnknownKeyword,
+                _ when text == "never"u8 => SyntaxKind.NeverKeyword,
+                _ when text == "void"u8 => SyntaxKind.VoidKeyword,
+                _ when text == "undefined"u8 => SyntaxKind.UndefinedKeyword,
+                _ when text == "null"u8 => SyntaxKind.NullKeyword,
+                _ when text == "true"u8 => SyntaxKind.TrueKeyword,
+                _ when text == "false"u8 => SyntaxKind.FalseKeyword,
                 _ => SyntaxKind.Identifier,
             };
             return Token(kind, text);
@@ -182,16 +156,16 @@ public sealed class SliceLexer<TSource>(TSource source, List<SliceDiagnostic> di
                 while (Peek() is >= '0' and <= '9')
                     Take();
                 if (exponent == position)
-                    diagnostics.Add(new(DiagnosticCode.DigitExpected, source.ByteOffset(position), 0, "Digit expected."));
+                    diagnostics.Add(new(DiagnosticCode.DigitExpected, source.ByteOffset(position), 0, Utf8Literals.DigitExpected));
             }
-            string text = source.Slice(start, position);
+            Utf8String text = source.Slice(start, position);
             if (double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out double number))
-                text = number.ToString("R", CultureInfo.InvariantCulture);
+                text = Utf8String.Format(number, "R");
             return Token(SyntaxKind.NumericLiteral, text, flags);
         }
         if (ch is '\'' or '"')
         {
-            var text = new StringBuilder();
+            var text = new Utf8StringBuilder();
             uint flags = ch == '\'' ? 1u << 16 : 0;
             bool ended = false;
             while (position < source.Length && !Newline(Peek()))
@@ -224,7 +198,7 @@ public sealed class SliceLexer<TSource>(TSource source, List<SliceDiagnostic> di
                         while (read < digits && Hex(Peek()) is int digit && digit >= 0)
                         {
                             Take();
-                            code = (code << 4) | digit;
+                            code = code << 4 | digit;
                             read++;
                         }
                         bool valid = extended ? read > 0 && Peek() == '}' && code <= 0x10FFFF : read == digits;
@@ -238,7 +212,7 @@ public sealed class SliceLexer<TSource>(TSource source, List<SliceDiagnostic> di
                                     DiagnosticCode.HexadecimalDigitExpected,
                                     source.ByteOffset(position),
                                     0,
-                                    "Hexadecimal digit expected."));
+                                    Utf8Literals.HexadecimalDigitExpected));
                         }
                         Append(text, valid ? code : 0xFFFD);
                     }
@@ -264,9 +238,9 @@ public sealed class SliceLexer<TSource>(TSource source, List<SliceDiagnostic> di
             {
                 flags |= 4;
                 diagnostics.Add(
-                    new(DiagnosticCode.UnterminatedStringLiteral, source.ByteOffset(position), 0, "Unterminated string literal."));
+                    new(DiagnosticCode.UnterminatedStringLiteral, source.ByteOffset(position), 0, Utf8Literals.UnterminatedStringLiteral));
             }
-            return Token(SyntaxKind.StringLiteral, text.ToString(), flags);
+            return Token(SyntaxKind.StringLiteral, text.ToUtf8String(), flags);
         }
         return Token(ch switch
         {
@@ -284,22 +258,15 @@ public sealed class SliceLexer<TSource>(TSource source, List<SliceDiagnostic> di
             _ => SyntaxKind.Unknown,
         });
 
-        SliceToken Token(SyntaxKind kind, string text = "", uint flags = 0) =>
+        SliceToken Token(SyntaxKind kind, Utf8String text = default, uint flags = 0) =>
             new(kind, source.ByteOffset(fullStart), source.ByteOffset(start), source.ByteOffset(position), text, flags, lineBreak);
     }
 
     private static int Hex(int cp) =>
         cp switch { >= '0' and <= '9' => cp - '0', >= 'a' and <= 'f' => cp - 'a' + 10, >= 'A' and <= 'F' => cp - 'A' + 10, _ => -1 };
 
-    private static void Append(StringBuilder builder, int cp)
+    private static void Append(Utf8StringBuilder builder, int cp)
     {
-        if (cp <= 0xFFFF)
-            builder.Append((char)cp);
-        else
-        {
-            Span<char> pair = stackalloc char[2];
-            int count = new Rune(cp).EncodeToUtf16(pair);
-            builder.Append(pair[..count]);
-        }
+        builder.AppendCodePoint(cp);
     }
 }

@@ -10,18 +10,19 @@ namespace TypeScript.Compiler.Syntax;
 
 public readonly record struct CommentDirective(int Start, int End, bool ExpectError);
 public readonly record struct ScannerState(int Position, int FullStart, int TokenStart, SyntaxKind Kind,
-    TextSlice Value, TokenFlags Flags, int DiagnosticCount, int DirectiveCount, int JsDocDepth);
+    Utf8String Value, TokenFlags Flags, int DiagnosticCount, int DirectiveCount, int JsDocDepth);
 
-/// <summary>Scans the UTF-16 view. Positions here are UTF-16; SourceText maps them to the byte-based AST/wire contract.</summary>
+/// <summary>Scans UTF-8 source directly. All positions and text slices use byte offsets.</summary>
 public sealed partial class Scanner(SourceText source, bool skipTrivia = true, bool jsx = false)
 {
-    private readonly TextSlice text = source.Text;
-    private readonly string input = source.Text.ToString();
+    private readonly Utf8String text = source.Text;
+    private readonly byte[] input = source.Buffer;
     private int end = source.Length;
     private int pos;
     private int jsDocDepth;
-    private static readonly SearchValues<char> IdentifierAscii = SearchValues.Create(
-        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_$");
+    private static readonly SearchValues<byte> IdentifierAscii = SearchValues.Create(
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_$"u8);
+    private static readonly SearchValues<byte> CommentStops = SearchValues.Create((ReadOnlySpan<byte>)[(byte)'*', (byte)'\r', (byte)'\n', 0xE2]);
     public SourceText Source { get; } = source;
     public bool SkipTrivia { get; set; } = skipTrivia;
     public bool Jsx { get; set; } = jsx;
@@ -30,11 +31,11 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
     public int Position => pos;
     public int End => end;
     public SyntaxKind Kind { get; private set; }
-    public TextSlice Value { get; private set; } = "";
+    public Utf8String Value { get; private set; }
     public TokenFlags Flags { get; private set; }
     public List<Diagnostic> Diagnostics { get; } = [];
     public List<CommentDirective> CommentDirectives { get; } = [];
-    public ReadOnlySpan<char> TokenText => input.AsSpan().Slice(TokenStart, pos - TokenStart);
+    public ReadOnlySpan<byte> TokenText => input.AsSpan().Slice(TokenStart, pos - TokenStart);
     public bool HasPrecedingLineBreak => (Flags & TokenFlags.PrecedingLineBreak) != 0;
 
     private int Char(int offset = 0) => pos + offset < end ? input.AsSpan()[pos + offset] : -1;
@@ -46,18 +47,18 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
             width = 0;
             return -1;
         }
-        ReadOnlySpan<char> characters = input.AsSpan();
-        char ch = characters[pos];
-        if (char.IsHighSurrogate(ch) && pos + 1 < end && char.IsLowSurrogate(characters[pos + 1]))
+        if (input[pos] < 128)
         {
-            width = 2;
-            return char.ConvertToUtf32(ch, characters[pos + 1]);
+            width = 1;
+            return input[pos];
         }
+        if (Rune.DecodeFromUtf8(input.AsSpan(pos, end - pos), out var rune, out width) == OperationStatus.Done)
+            return rune.Value;
         width = 1;
-        return ch;
+        return 0xFFFD;
     }
 
-    private void Error(DiagnosticMessage message, int? start = null, int length = 0, params TextSlice[] arguments) =>
+    private void Error(DiagnosticMessage message, int? start = null, int length = 0, params Utf8String[] arguments) =>
             Diagnostics.Add(new(message, start ?? pos, length, arguments));
 
     public ScannerState Mark() =>
@@ -83,7 +84,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         pos = FullStart = TokenStart = position;
         Kind = SyntaxKind.Unknown;
         Flags = 0;
-        Value = "";
+        Value = Utf8String.Empty;
     }
 
     public void SetTextRange(int start, int end)
@@ -109,22 +110,22 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         while (true)
         {
             TokenStart = pos;
-            int ch = Char();
+            int ch = CodePoint(out int charWidth);
             if (ch < 0)
                 return Kind = SyntaxKind.EndOfFile;
             if (IsWhiteSpace(ch))
             {
-                pos++;
+                pos += charWidth;
                 if (SkipTrivia || ch == 0x85)
                     continue;
-                while (IsWhiteSpace(Char()))
-                    pos++;
+                while (IsWhiteSpace(CodePoint(out charWidth)))
+                    pos += charWidth;
                 return Kind = SyntaxKind.WhitespaceTrivia;
             }
             if (IsLineBreak(ch))
             {
                 Flags |= TokenFlags.PrecedingLineBreak;
-                pos++;
+                pos += charWidth;
                 if (SkipTrivia || ch is 0x2028 or 0x2029)
                     continue;
                 if (ch == '\r' && Char() == '\n')
@@ -140,35 +141,36 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
                 int lastLine = TokenStart;
                 while (pos < end)
                 {
-                    int next = input.AsSpan().Slice(pos, end - pos).IndexOfAny(multi ? "*\r\n\u2028\u2029" : "\r\n\u2028\u2029");
+                    int next = input.AsSpan().Slice(pos, end - pos).IndexOfAny(CommentStops);
                     if (next < 0)
                     {
                         pos = end;
                         break;
                     }
                     pos += next;
-                    if (!multi)
+                    int commentPoint = CodePoint(out int commentWidth);
+                    if (!multi && IsLineBreak(commentPoint))
                         break;
-                    if (Char() == '*' && Char(1) == '/')
+                    if (multi && Char() == '*' && Char(1) == '/')
                     {
                         pos += 2;
                         closed = true;
                         break;
                     }
-                    if (IsLineBreak(Char()))
+                    if (IsLineBreak(commentPoint))
                     {
                         Flags |= TokenFlags.PrecedingLineBreak;
-                        lastLine = pos + 1;
+                        lastLine = pos + commentWidth;
                     }
-                    pos++;
+                    pos += commentWidth;
                 }
                 if (doc)
                 {
                     Flags |= TokenFlags.PrecedingJSDocComment;
-                    ReadOnlySpan<char> comment = input.AsSpan().Slice(TokenStart, pos - TokenStart);
-                    if (HasTag(comment, "deprecated"))
+                    ReadOnlySpan<byte> comment = input.AsSpan().Slice(TokenStart, pos - TokenStart);
+                    if (HasTag(comment, "deprecated"u8))
                         Flags |= TokenFlags.PrecedingJSDocWithDeprecated;
-                    if (HasTag(comment, "see") || HasTag(comment, "link") || HasTag(comment, "linkcode") || HasTag(comment, "linkplain"))
+                    if (HasTag(comment, "see"u8) || HasTag(comment, "link"u8) || HasTag(comment, "linkcode"u8) || HasTag(comment, "linkplain"u8))
                         Flags |= TokenFlags.PrecedingJSDocWithSeeOrLink;
                 }
                 ProcessDirective(multi ? lastLine : TokenStart, pos, multi);
@@ -195,8 +197,8 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
                     pos += 2;
                     return Kind = SyntaxKind.Unknown;
                 }
-                int nextLine = input.AsSpan().Slice(pos, end - pos).IndexOfAny("\r\n\u2028\u2029");
-                pos = nextLine < 0 ? end : pos + nextLine;
+                while (pos < end && !IsLineBreak(CodePoint(out charWidth)))
+                    pos += charWidth;
                 continue;
             }
             if (ch is '\'' or '"')
@@ -214,7 +216,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
                 if (!ScanIdentifier(true, false, out _))
                 {
                     Error(Messages.Invalid_character, pos - 1, 1);
-                    Value = "#";
+                    Value = Utf8Literals.Hash;
                 }
                 return Kind = SyntaxKind.PrivateIdentifier;
             }
@@ -264,16 +266,16 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         }
     }
 
-    private static bool HasTag(ReadOnlySpan<char> text, ReadOnlySpan<char> name)
+    private static bool HasTag(ReadOnlySpan<byte> text, ReadOnlySpan<byte> name)
     {
         while (true)
         {
-            int at = text.IndexOf('@');
+            int at = text.IndexOf((byte)'@');
             if (at < 0)
                 return false;
             text = text[(at + 1)..];
-            if (text.StartsWith(name, StringComparison.Ordinal)
-                && (text.Length == name.Length || text[name.Length] is ' ' or '\t' or '\r' or '\n' or '}' or '*'))
+            if (text.StartsWith(name)
+                && (text.Length == name.Length || (int)text[name.Length] is ' ' or '\t' or '\r' or '\n' or '}' or '*'))
                 return true;
         }
     }
@@ -282,29 +284,29 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
     {
         int at = multiline ? start : start + 2;
         if (multiline)
-            while (at < end && text[at] is ' ' or '\t')
+            while (at < end && (int)text[at] is ' ' or '\t')
                 at++;
         while (at < end && (text[at] == '/' || multiline && text[at] == '*'))
             at++;
-        while (at < end && text[at] is ' ' or '\t')
+        while (at < end && (int)text[at] is ' ' or '\t')
             at++;
-        ReadOnlySpan<char> tail = input.AsSpan().Slice(at, end - at);
-        if (tail.StartsWith("@ts-expect-error", StringComparison.Ordinal))
+        ReadOnlySpan<byte> tail = input.AsSpan().Slice(at, end - at);
+        if (tail.StartsWith("@ts-expect-error"u8))
             CommentDirectives.Add(new(start, end, true));
-        else if (tail.StartsWith("@ts-ignore", StringComparison.Ordinal))
+        else if (tail.StartsWith("@ts-ignore"u8))
             CommentDirectives.Add(new(start, end, false));
     }
 
-    private bool IsConflictMarker(int at) => at + 7 < end && (at == 0 || IsLineBreak(text[at - 1])) &&
+    private bool IsConflictMarker(int at) => at + 7 < end && (at == 0 || IsLineBreak(Wtf8.DecodeLast(text.Span[..at], out _))) &&
             input.AsSpan().Slice(at, 7).IndexOfAnyExcept(text[at]) < 0 && (text[at] == '=' || text[at + 7] == ' ');
 
     private void ScanConflictMarker()
     {
         Error(Messages.Merge_conflict_marker_encountered, pos, 7);
-        char first = text[pos];
+        int first = text[pos];
         if (first is '<' or '>')
-            while (pos < end && !IsLineBreak(Char()))
-                pos++;
+            while (pos < end && !IsLineBreak(CodePoint(out int width)))
+                pos += width;
         else
             while (pos < end)
             {
@@ -319,7 +321,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         identifierKind = SyntaxKind.Unknown;
         int start = pos;
         int ch = CodePoint(out int width);
-        StringBuilder? builder = null;
+        Utf8StringBuilder? builder = null;
         if (ch == '\\')
         {
             int escaped = IdentifierEscape(true);
@@ -357,7 +359,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         if (builder is null)
         {
             int valueStart = privateName ? start - 1 : start;
-            ReadOnlySpan<char> valueText = input.AsSpan().Slice(valueStart, pos - valueStart);
+            ReadOnlySpan<byte> valueText = input.AsSpan().Slice(valueStart, pos - valueStart);
             identifierKind = IdentifierKind(valueText);
             if (identifierKind != SyntaxKind.Identifier)
                 Value = TokenFacts.Text(identifierKind);
@@ -367,9 +369,9 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         else
         {
             builder.Append(input.AsSpan().Slice(part, pos - part));
-            Value = TextSlice.FromBuilder(builder);
+            Value = Utf8String.FromBuilder(builder);
             if (privateName)
-                Value = TextSlice.Concat("#", Value);
+                Value = Utf8String.Concat("#"u8, Value);
             identifierKind = IdentifierKind(Value);
         }
         return true;
@@ -389,30 +391,21 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         return -1;
     }
 
-    private static void AppendCodePoint(StringBuilder builder, int point)
-    {
-        if (point <= 0xFFFF)
-            builder.Append((char)point);
-        else
-        {
-            Span<char> pair = stackalloc char[2];
-            builder.Append(pair[..new Rune(point).EncodeToUtf16(pair)]);
-        }
-    }
+    private static void AppendCodePoint(Utf8StringBuilder builder, int point) => builder.AppendCodePoint(point);
 
-    private TextSlice ScanString(bool jsxAttribute)
+    private Utf8String ScanString(bool jsxAttribute)
     {
         int quote = Char();
         if (quote == '\'')
             Flags |= TokenFlags.SingleQuote;
         int start = ++pos;
-        int closing = input.AsSpan().Slice(start, end - start).IndexOf((char)quote);
-        if (closing >= 0 && (jsxAttribute || input.AsSpan().Slice(start, closing).IndexOfAny('\\', '\r', '\n') < 0))
+        int closing = input.AsSpan().Slice(start, end - start).IndexOf((byte)quote);
+        if (closing >= 0 && (jsxAttribute || input.AsSpan().Slice(start, closing).IndexOfAny((byte)'\\', (byte)'\r', (byte)'\n') < 0))
         {
             pos += closing + 1;
             return text.Memory.Slice(start, closing);
         }
-        var result = new StringBuilder();
+        var result = new Utf8StringBuilder();
         while (true)
         {
             int ch = Char();
@@ -438,22 +431,22 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
             else
                 pos++;
         }
-        return TextSlice.FromBuilder(result);
+        return Utf8String.FromBuilder(result);
     }
 
     private SyntaxKind ScanTemplate(bool reportEscapeErrors)
     {
         bool head = Char() == '`';
         int start = ++pos;
-        StringBuilder? result = null;
+        Utf8StringBuilder? result = null;
         while (true)
         {
-            int next = input.AsSpan().Slice(pos, end - pos).IndexOfAny("`$\\\r");
+            int next = input.AsSpan().Slice(pos, end - pos).IndexOfAny("`$\\\r"u8);
             pos = next < 0 ? end : pos + next;
             int ch = Char();
             if (ch < 0 || ch == '`')
             {
-                ReadOnlySpan<char> tail = input.AsSpan().Slice(start, pos - start);
+                ReadOnlySpan<byte> tail = input.AsSpan().Slice(start, pos - start);
                 if (ch == '`')
                     pos++;
                 else
@@ -461,14 +454,14 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
                     Flags |= TokenFlags.Unterminated;
                     Error(Messages.Unterminated_template_literal);
                 }
-                Value = result is null ? text.Memory.Slice(start, tail.Length) : TextSlice.FromBuilder(result.Append(tail));
+                Value = result is null ? text.Memory.Slice(start, tail.Length) : Utf8String.FromBuilder(result.Append(tail));
                 return head ? SyntaxKind.NoSubstitutionTemplateLiteral : SyntaxKind.TemplateTail;
             }
             if (ch == '$' && Char(1) == '{')
             {
-                ReadOnlySpan<char> tail = input.AsSpan().Slice(start, pos - start);
+                ReadOnlySpan<byte> tail = input.AsSpan().Slice(start, pos - start);
                 pos += 2;
-                Value = result is null ? text.Memory.Slice(start, tail.Length) : TextSlice.FromBuilder(result.Append(tail));
+                Value = result is null ? text.Memory.Slice(start, tail.Length) : Utf8String.FromBuilder(result.Append(tail));
                 return head ? SyntaxKind.TemplateHead : SyntaxKind.TemplateMiddle;
             }
             if (ch == '\\')
@@ -484,7 +477,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
                 pos++;
                 if (Char() == '\n')
                     pos++;
-                result.Append('\n');
+                result.Append((byte)'\n');
                 start = pos;
                 continue;
             }
@@ -492,7 +485,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         }
     }
 
-    private void Escape(StringBuilder result, bool reportErrors)
+    private void Escape(Utf8StringBuilder result, bool reportErrors)
     {
         int start = pos++;
         int ch = Char();
@@ -505,7 +498,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         switch (ch)
         {
             case '0' when !IsDigit(Char()):
-                result.Append('\0');
+                result.Append((byte)'\0');
                 return;
             case >= '0' and <= '7':
                 if (ch <= '3' && Char() is >= '0' and <= '7')
@@ -519,14 +512,14 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
                     return;
                 }
                 int octal = 0;
-                foreach (char digit in input.AsSpan().Slice(start + 1, pos - start - 1))
+                foreach (byte digit in input.AsSpan().Slice(start + 1, pos - start - 1))
                     octal = octal * 8 + digit - '0';
                 Error(
                     Messages.Octal_escape_sequences_are_not_allowed_Use_the_syntax_0,
                     start,
                     pos - start,
-                    TextSlice.Concat("\\x", octal.ToString("x2", CultureInfo.InvariantCulture)));
-                result.Append((char)octal);
+                    Utf8String.Concat("\\x"u8, Utf8String.Format(octal, "x2")));
+                result.AppendCodePoint(octal);
                 return;
             case '8' or '9':
                 Flags |= TokenFlags.ContainsInvalidEscape;
@@ -536,25 +529,25 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
                     return;
                 }
                 Error(Messages.Escape_sequence_0_is_not_allowed, start, pos - start, text[start..pos]);
-                result.Append((char)ch);
+                result.AppendCodePoint(ch);
                 return;
             case 'b':
-                result.Append('\b');
+                result.Append((byte)'\b');
                 return;
             case 't':
-                result.Append('\t');
+                result.Append((byte)'\t');
                 return;
             case 'n':
-                result.Append('\n');
+                result.Append((byte)'\n');
                 return;
             case 'v':
-                result.Append('\v');
+                result.Append((byte)'\v');
                 return;
             case 'f':
-                result.Append('\f');
+                result.Append((byte)'\f');
                 return;
             case 'r':
-                result.Append('\r');
+                result.Append((byte)'\r');
                 return;
             case 'u':
                 pos = start;
@@ -562,7 +555,22 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
                 if (point < 0)
                     result.Append(input.AsSpan().Slice(start, pos - start));
                 else
+                {
+                    if (point is >= 0xD800 and <= 0xDBFF && Char() == '\\' && Char(1) == 'u')
+                    {
+                        int savedPosition = pos;
+                        TokenFlags savedFlags = Flags;
+                        int low = UnicodeEscape(false);
+                        if (low is >= 0xDC00 and <= 0xDFFF)
+                            point = 0x10000 + (point - 0xD800 << 10) + low - 0xDC00;
+                        else
+                        {
+                            pos = savedPosition;
+                            Flags = savedFlags;
+                        }
+                    }
                     AppendCodePoint(result, point);
+                }
                 return;
             case 'x':
                 int value = 0;
@@ -583,7 +591,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
                     pos++;
                 }
                 Flags |= TokenFlags.HexEscape;
-                result.Append((char)value);
+                result.AppendCodePoint(value);
                 return;
             case '\r':
                 if (Char() == '\n')
@@ -592,9 +600,16 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
             case '\n' or 0x2028 or 0x2029:
                 return;
             default:
-                result.Append((char)ch);
-                if (char.IsHighSurrogate((char)ch) && Char() is >= 0xDC00 and <= 0xDFFF)
-                    result.Append(text[pos++]);
+                if (ch >= 128)
+                {
+                    pos--;
+                    int escapedPoint = CodePoint(out int width);
+                    pos += width;
+                    if (!IsLineBreak(escapedPoint))
+                        result.AppendCodePoint(escapedPoint);
+                }
+                else
+                    result.Append((byte)ch);
                 return;
         }
     }
@@ -655,7 +670,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         return (int)value;
     }
 
-    private ReadOnlySpan<char> Digits(int radix, bool separators, bool decimalFragment = false)
+    private ReadOnlySpan<byte> Digits(int radix, bool separators, bool decimalFragment = false)
     {
         int start = pos;
         bool allowed = false, previousSeparator = false;
@@ -698,12 +713,12 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
                 Flags |= TokenFlags.ContainsInvalidSeparator;
             Error(Messages.Numeric_separators_are_not_allowed_here, pos - 1, 1);
         }
-        ReadOnlySpan<char> digits = input.AsSpan().Slice(start, pos - start);
+        ReadOnlySpan<byte> digits = input.AsSpan().Slice(start, pos - start);
         if (separatorsCount == 0)
             return digits;
-        char[] result = new char[digits.Length - separatorsCount];
+        byte[] result = new byte[digits.Length - separatorsCount];
         int written = 0;
-        foreach (char digit in digits)
+        foreach (byte digit in digits)
             if (digit != '_')
                 result[written++] = digit;
         return result;
@@ -716,14 +731,14 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         {
             int radix = Char(1) is 'x' or 'X' ? 16 : Char(1) is 'o' or 'O' ? 8 : 2;
             pos += 2;
-            ReadOnlySpan<char> digits = Digits(radix, true);
+            ReadOnlySpan<byte> digits = Digits(radix, true);
             if (digits.Length == 0)
             {
                 Error(
                     radix == 16
                         ? Messages.Hexadecimal_digit_expected
                         : radix == 8 ? Messages.Octal_digit_expected : Messages.Binary_digit_expected);
-                digits = "0";
+                digits = "0"u8;
             }
             Flags |= radix == 16 ? TokenFlags.HexSpecifier : radix == 8 ? TokenFlags.OctalSpecifier : TokenFlags.BinarySpecifier;
             // The leading zero makes the BCL's signed hexadecimal/binary grammar unsigned.
@@ -733,20 +748,20 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
                 pos++;
                 if (radix == 16)
                 {
-                    char[] value = new char[checked(digits.Length + 3)];
-                    "0x".AsSpan().CopyTo(value);
-                    digits.ToLowerInvariant(value.AsSpan(2, digits.Length));
-                    value[^1] = 'n';
+                    byte[] value = new byte[checked(digits.Length + 3)];
+                    "0x"u8.CopyTo(value);
+                    Ascii.ToLower(digits, value.AsSpan(2, digits.Length), out _);
+                    value[^1] = (byte)'n';
                     Value = new(value);
                 }
                 else
-                    Value = TextSlice.Concat(TextSlice.Format(integer), "n");
+                    Value = Utf8String.Concat(Utf8String.Format(integer), "n"u8);
                 return SyntaxKind.BigIntLiteral;
             }
             Value = NumberText((double)integer);
             return SyntaxKind.NumericLiteral;
         }
-        ReadOnlySpan<char> fixedPart;
+        ReadOnlySpan<byte> fixedPart;
         if (Char() == '0')
         {
             pos++;
@@ -769,7 +784,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
                 }
                 fixedPart = input.AsSpan().Slice(digitsStart, pos - digitsStart);
                 if (fixedPart.Length == 0)
-                    fixedPart = "0";
+                    fixedPart = "0"u8;
                 else if (!octal)
                     Flags |= TokenFlags.ContainsLeadingZero;
                 else
@@ -778,12 +793,12 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
                     Value = NumberText((double)integer);
                     Flags |= TokenFlags.Octal;
                     bool minus = Kind == SyntaxKind.MinusToken;
-                    ReadOnlySpan<char> octalText = fixedPart.TrimStart('0');
+                    ReadOnlySpan<byte> octalText = fixedPart.TrimStart((byte)'0');
                     Error(
                         Messages.Octal_literals_are_not_allowed_Use_the_syntax_0,
                         minus ? start - 1 : start,
                         pos - start + (minus ? 1 : 0),
-                        TextSlice.Concat(minus ? "-0o" : "0o", octalText.Length == 0 ? "0" : octalText));
+                        Utf8String.Concat(minus ? "-0o"u8 : "0o"u8, octalText.Length == 0 ? "0"u8 : octalText));
                     return SyntaxKind.NumericLiteral;
                 }
             }
@@ -791,7 +806,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         else
             fixedPart = Digits(10, true, true);
         int fixedEnd = pos;
-        ReadOnlySpan<char> fraction = "", exponent = "";
+        ReadOnlySpan<byte> fraction = [], exponent = [];
         if (Char() == '.')
         {
             pos++;
@@ -805,20 +820,20 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
             if (Char() is '+' or '-')
                 pos++;
             int digitsStart = pos;
-            ReadOnlySpan<char> digits = Digits(10, true, true);
+            ReadOnlySpan<byte> digits = Digits(10, true, true);
             if (digits.Length == 0)
                 Error(Messages.Digit_expected);
             else
             {
                 exponent = (Flags & TokenFlags.ContainsSeparator) == 0
                     ? input.AsSpan().Slice(end, pos - end)
-                    : TextSlice.Concat(input.AsSpan().Slice(end, digitsStart - end), digits);
+                    : Utf8String.Concat(input.AsSpan().Slice(end, digitsStart - end), digits);
                 end = pos;
             }
         }
-        ReadOnlySpan<char> raw = (Flags & TokenFlags.ContainsSeparator) == 0
+        ReadOnlySpan<byte> raw = (Flags & TokenFlags.ContainsSeparator) == 0
             ? input.AsSpan().Slice(start, end - start)
-            : TextSlice.Concat(fixedPart, fraction.Length != 0 ? TextSlice.Concat(".", fraction) : "", exponent);
+            : Utf8String.Concat(fixedPart, fraction.Length != 0 ? Utf8String.Concat("."u8, fraction).Span : [], exponent);
         if ((Flags & TokenFlags.ContainsLeadingZero) != 0)
         {
             Error(Messages.Decimals_with_leading_zeros_are_not_allowed, start, pos - start);
@@ -829,7 +844,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         if (fixedEnd == pos && Char() == 'n')
         {
             pos++;
-            Value = TextSlice.Concat(raw, "n");
+            Value = Utf8String.Concat(raw, "n"u8);
             result = SyntaxKind.BigIntLiteral;
         }
         else
@@ -838,11 +853,11 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         if (IsIdentifierStart(CodePoint(out _)))
         {
             int idStart = pos;
-            TextSlice saved = Value;
+            Utf8String saved = Value;
             ScanIdentifier(false, false, out _);
-            TextSlice identifier = Value;
+            Utf8String identifier = Value;
             Value = saved;
-            if (result != SyntaxKind.BigIntLiteral && identifier == "n")
+            if (result != SyntaxKind.BigIntLiteral && identifier == Utf8Literals.N)
             {
                 if ((Flags & TokenFlags.Scientific) != 0)
                 {
@@ -861,16 +876,16 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         return result;
     }
 
-    private static BigInteger RadixInteger(ReadOnlySpan<char> digits, int radix)
+    private static BigInteger RadixInteger(ReadOnlySpan<byte> digits, int radix)
     {
         if (radix == 8)
             return OctalInteger(digits);
-        char[]? rented = null;
+        byte[]? rented = null;
         int length = checked(digits.Length + 1);
-        Span<char> buffer = length <= 256 ? stackalloc char[256] : rented = ArrayPool<char>.Shared.Rent(length);
+        Span<byte> buffer = length <= 256 ? stackalloc byte[256] : rented = ArrayPool<byte>.Shared.Rent(length);
         try
         {
-            buffer[0] = '0';
+            buffer[0] = (byte)'0';
             digits.CopyTo(buffer[1..]);
             return BigInteger.Parse(buffer[..length],
                 radix == 16 ? NumberStyles.AllowHexSpecifier : NumberStyles.AllowBinarySpecifier, CultureInfo.InvariantCulture);
@@ -878,11 +893,11 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         finally
         {
             if (rented is not null)
-                ArrayPool<char>.Shared.Return(rented);
+                ArrayPool<byte>.Shared.Return(rented);
         }
     }
 
-    private static BigInteger OctalInteger(ReadOnlySpan<char> digits)
+    private static BigInteger OctalInteger(ReadOnlySpan<byte> digits)
     {
         // BigInteger.Parse has no octal mode. Pack three bits per digit, then let
         // the BCL construct the integer; repeated big-integer multiplication is quadratic.
@@ -897,7 +912,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
             for (int i = digits.Length - 1; i >= 0; i--, bit += 3)
             {
                 int index = checked((int)(bit >> 3));
-                int value = (digits[i] - '0') << (int)(bit & 7);
+                int value = digits[i] - '0' << (int)(bit & 7);
                 bytes[index] |= (byte)value;
                 if (index + 1 < bytes.Length)
                     bytes[index + 1] |= (byte)(value >> 8);

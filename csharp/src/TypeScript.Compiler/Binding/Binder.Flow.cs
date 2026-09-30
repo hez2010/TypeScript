@@ -142,8 +142,8 @@ public sealed partial class Binder
                     BlockMember(statement, SymbolFlags.TypeAlias, SymbolFlags.TypeAliasExcludes);
             if (result.CommonJSModuleIndicator is not null)
             {
-                CommonJSVariable("module");
-                CommonJSVariable("exports");
+                CommonJSVariable(Utf8Literals.Module);
+                CommonJSVariable(Utf8Literals.Exports);
             }
         }
         if (node == file && result.IsModule || AmbientModule(node))

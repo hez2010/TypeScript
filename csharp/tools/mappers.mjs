@@ -18,7 +18,7 @@ const option = (key, fallback) => process.argv.includes(key) ? process.argv[proc
 const go = option("--go", "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe"), dotnet = option("--dotnet", process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet");
 const reference = JSON.parse(await readFile(path.join(output, "reference.json"), "utf8")), source = path.join(output, reference.sourceRelativePath, "tsc");
 const oracle = path.join(output, "mappers-oracle.exe"), managed = process.argv.includes("--managed"), native = path.join(output, "phase3-native");
-const candidate = managed ? dotnet : path.join(native, "TypeScript.Compatibility.exe"), dll = path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll");
+const candidate = managed ? dotnet : option("--candidate", path.join(native, "TypeScript.Compatibility.exe")), dll = path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll");
 const args = [...managed ? [dll] : [], "--mapper-codec-lines"];
 await mkdir(path.join(source, "cmd/mappers-probe"), { recursive: true });
 await copyFile(path.join(root, "csharp/oracle/mappers/main.go"), path.join(source, "cmd/mappers-probe/main.go"));
@@ -35,8 +35,8 @@ if (!process.argv.includes("--no-build")) {
 let cases = [];
 for (const options of [{}, { target: "esnext", module: "nodenext", strict: true, jsx: "react-jsx", moduleResolution: "nodenext" }, { target: "es2015", module: "preserve", noEmit: false, checkJs: false, maxNodeModuleJsDepth: 0, checkers: 0 }, { outDir: "日本語/😀", rootDirs: ["src", "other"], paths: { "alias/*": ["src/*"] }, types: [], lib: ["es2015"] }, { paths: { "😀/*": ["日本語/😀/*"], 'quoted"key': ["a\nb"] }, types: ["😀"], outDir: 'dir"😀' }]) for (const declared of [[], Object.keys(options), ["strict", "target", "jsx", "module", "moduleResolution"], ["target", "target", "missing"]]) for (const mapperOptions of [undefined, null, {}, { language: "日本語😀", ampersand: "<&>" }]) for (const dynamic of [false, true]) cases.push({ operation: "identity", name: "mapper", version: "1.2", configIdentity: "config-日本語", options, declared, mapperOptions, dynamic });
 for (const original of ["", "x", "日本語😀", "a\n😀b"]) {
-    for (const encoding of ["utf-8", "utf-16"]) {
-        const length = encoding === "utf-8" ? Buffer.byteLength(original) : original.length;
+    for (const encoding of ["utf-8"]) {
+        const length = Buffer.byteLength(original);
         const base = { operation: "decode", original, encoding, source: "fixture" };
         for (let start = -1; start <= length + 1; start++) {
             for (let end = start; end <= length + 1; end++) {
@@ -78,7 +78,7 @@ for (let i = 0; i < cases.length; i++) {
     }
 }
 await json(path.join(output, "mappers-failures.json"), differences);
-const summary = { timestamp: new Date().toISOString(), referenceRevision, managed, cases: cases.length, passed: cases.length - differences.length, failed: differences.length, inputSha256: sha256(JSON.stringify(cases)), oracleSha256: sha256(await readFile(oracle)), candidateSha256: sha256(await readFile(managed ? dll : candidate)) };
+const summary = { timestamp: new Date().toISOString(), referenceRevision, managed, positionEncoding: "utf-8", cases: cases.length, passed: cases.length - differences.length, failed: differences.length, inputSha256: sha256(JSON.stringify(cases)), oracleSha256: sha256(await readFile(oracle)), candidateSha256: sha256(await readFile(managed ? dll : candidate)) };
 await json(path.join(output, "mappers-summary.json"), summary);
 if (option("--record")) await json(path.join(root, `csharp/compatibility/evidence/${option("--record")}.json`), summary);
 console.log(summary);

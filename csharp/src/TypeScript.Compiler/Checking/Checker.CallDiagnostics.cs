@@ -18,9 +18,9 @@ internal sealed partial class Checker
     {
         var location = property.ValueDeclaration is JsxAttributeNode attribute
             && SemanticSyntax.Source(attribute) == SemanticSyntax.Source(node) ? attribute.Name! : node;
-        TextSlice name = TypeDisplay.SymbolName(property), targetText = await TypeDisplay.GetAsync(errorTarget, cancellation);
+        Utf8String name = TypeDisplay.SymbolName(property), targetText = await TypeDisplay.GetAsync(errorTarget, cancellation);
         var properties = await Properties.GetAsync(errorTarget, cancellation);
-        TextSlice? jsxName = TextSlice.FromNullable(name == "class" ? "className" : name == "for" ? "htmlFor" : null);
+        Utf8String? jsxName = name == Utf8Literals.Class ? Utf8String.Copy("className"u8) : name == Utf8Literals.For ? Utf8String.Copy("htmlFor"u8) : null;
         var suggestion = (jsxName is null ? null : properties.FirstOrDefault(p => p.Name == jsxName))
             ?? await SymbolSuggestions.FindAsync(name, properties, SymbolFlags.Value, cancellation);
         var detail = CheckerDiagnostic.Create(
@@ -38,7 +38,7 @@ internal sealed partial class Checker
         RelationError(location, diagnostic);
     }
 
-    private void RelationError(SyntaxNode node, DiagnosticCode code, params TextSlice[] arguments)
+    private void RelationError(SyntaxNode node, DiagnosticCode code, params Utf8String[] arguments)
         => RelationError(node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments));
 
     private void RelationError(SyntaxNode node, Diagnostic diagnostic)
@@ -74,7 +74,7 @@ internal sealed partial class Checker
         else if ((property?.Declarations.FirstOrDefault() ?? target.Symbol?.Declarations.FirstOrDefault()) is { } declaration
             && !DefaultLibrary(declaration))
         {
-            TextSlice name = MappedMembers.PropertyName(key);
+            Utf8String name = MappedMembers.PropertyName(key);
             if (name.Length == 0 || (key.Flags & TypeFlags.UniqueESSymbol) != 0)
                 name = await TypeDisplay.GetAsync(key, cancellation);
             note = CheckerDiagnostic.Create(declaration, Messages.The_expected_type_comes_from_property_0_which_is_declared_here_on_type_1,
@@ -193,7 +193,7 @@ internal sealed partial class Checker
         }
     }
 
-    private static TextSlice CountText(int count) => TextSlice.Format(count);
+    private static Utf8String CountText(int count) => Utf8String.Format(count);
 
     private static SyntaxNode CallErrorNode(SyntaxNode node) => node is CallExpressionNode call
         ? call.Expression is PropertyAccessExpressionNode access ? access.Name! : call.Expression! : node;
@@ -229,9 +229,9 @@ internal sealed partial class Checker
                 above = Math.Min(above, max);
             rest |= await Parameters.HasRestAsync(signature, cancellation);
         }
-        TextSlice range = TextSlice.Concat(CountText(minimum), (!rest && minimum < maximum ? TextSlice.Concat("-", CountText(maximum)) : ""));
+        Utf8String range = Utf8String.Concat(CountText(minimum), !rest && minimum < maximum ? Utf8String.Concat("-"u8, CountText(maximum)) : ""u8);
         var node = CallErrorNode(state.Node);
-        bool promise = !rest && range == "1" && count == 0 && PromiseResolveArity(state.Node, cancellation);
+        bool promise = !rest && range == Utf8Literals.One && count == 0 && PromiseResolveArity(state.Node, cancellation);
         if (promise && (state.Node.Flags & NodeFlags.JavaScriptFile) != 0)
         {
             Error(node, DiagnosticCode.Expected1ArgumentButGot0NewPromiseNeedsAJSDocHintToProduceAResolveThatCanBeCalledWithoutArguments);
@@ -298,7 +298,7 @@ internal sealed partial class Checker
         if (symbol?.ValueDeclaration is not ParameterDeclarationNode { Parent: FunctionExpressionNode or ArrowFunctionNode } declaration
             || declaration.Parent?.Parent is not NewExpressionNode { Expression: IdentifierNode constructor })
             return false;
-        var promise = program.Symbols.Lookup(program.Symbols.Globals, "Promise", SymbolFlags.Value);
+        var promise = program.Symbols.Lookup(program.Symbols.Globals, Utf8Literals.Promise, SymbolFlags.Value);
         return promise is not null && resolver.Resolve(constructor, constructor.Text, SymbolFlags.Value) == promise;
     }
 
@@ -306,11 +306,11 @@ internal sealed partial class Checker
     {
         int count = state.TypeArguments.Count;
         DiagnosticCode code = DiagnosticCode.Expected0TypeArgumentsButGot1;
-        TextSlice[] arguments;
+        Utf8String[] arguments;
         if (signatures.Count == 1)
         {
             int minimum = Checking.CallSignatures.MinimumTypes(signatures[0]), maximum = signatures[0].TypeParameters.Count;
-            arguments = [TextSlice.Concat(CountText(minimum), (minimum < maximum ? TextSlice.Concat("-", CountText(maximum)) : "")), CountText(count)];
+            arguments = [Utf8String.Concat(CountText(minimum), minimum < maximum ? Utf8String.Concat("-"u8, CountText(maximum)) : ""u8), CountText(count)];
         }
         else
         {

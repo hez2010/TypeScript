@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Globalization;
 using System.Text;
 using TypeScript.Compiler.Storage;
@@ -9,12 +10,12 @@ namespace TypeScript.Compiler.Syntax;
 // without pretending that returning original source is tree printing.
 public static class SlicePrinter
 {
-    private readonly record struct Item(NodeId Node, string? Text);
+    private readonly record struct Item(NodeId Node, Utf8String? Text);
 
-    public static string Print<TStore>(SliceFile<TStore> file, CancellationToken cancellation = default) where TStore : INodeStore
+    public static Utf8String Print<TStore>(SliceFile<TStore> file, CancellationToken cancellation = default) where TStore : INodeStore
     {
-        using var profile = Diagnostics.NativeProfile.Enter("TypeScript.Print");
-        var output = new StringBuilder();
+        using var profile = Diagnostics.NativeProfile.Enter(Utf8Literals.TypeScriptPrint);
+        var output = new Utf8StringBuilder();
         var stack = new Stack<Item>();
         stack.Push(new(file.Root, null));
         while (stack.TryPop(out Item item))
@@ -37,48 +38,48 @@ public static class SlicePrinter
                     Sequence(N(store.Get<SourceFileData>(id).Statements));
                     break;
                 case SyntaxKind.NodeList:
-                    Nodes(store.Get<NodeListData>(id).Nodes, "\n");
+                    Nodes(store.Get<NodeListData>(id).Nodes, Utf8Literals.LineFeed);
                     break;
                 case SyntaxKind.TypeAliasDeclaration:
                     var alias = store.Get<TypeAliasDeclarationData>(id);
-                    Sequence(T(alias.Modifiers.IsNull ? "" : "export "), T("type "), N(alias.Name), T(" = "), N(alias.Type), T(";"));
+                    Sequence(T(alias.Modifiers.IsNull ? Utf8String.Empty : Utf8Literals.ExportPrefix), T(Utf8Literals.TypePrefix), N(alias.Name), T(Utf8Literals.AssignmentSeparator), N(alias.Type), T(Utf8Literals.Semicolon));
                     break;
                 case SyntaxKind.ImportDeclaration:
                     var import = store.Get<ImportDeclarationData>(id);
-                    Sequence(T("import "), N(import.ImportClause), T(" from "), N(import.ModuleSpecifier), T(";"));
+                    Sequence(T(Utf8Literals.ImportPrefix), N(import.ImportClause), T(Utf8Literals.From), N(import.ModuleSpecifier), T(Utf8Literals.Semicolon));
                     break;
                 case SyntaxKind.ImportClause:
                     var clause = store.Get<ImportClauseData>(id);
-                    Sequence(T(clause.PhaseModifier == SyntaxKind.TypeKeyword ? "type " : ""), N(clause.NamedBindings));
+                    Sequence(T(clause.PhaseModifier == SyntaxKind.TypeKeyword ? Utf8Literals.TypePrefix : Utf8String.Empty), N(clause.NamedBindings));
                     break;
                 case SyntaxKind.NamedImports:
-                    stack.Push(T(" }"));
-                    Nodes(store.Get<NodeListData>(store.Get<NamedImportsData>(id).Elements).Nodes, ", ");
-                    stack.Push(T("{ "));
+                    stack.Push(T(Utf8Literals.SpaceCloseBrace));
+                    Nodes(store.Get<NodeListData>(store.Get<NamedImportsData>(id).Elements).Nodes, Utf8Literals.CommaSpace);
+                    stack.Push(T(Utf8Literals.OpenBraceSpace));
                     break;
                 case SyntaxKind.ImportSpecifier:
                     var specifier = store.Get<ImportSpecifierData>(id);
                     Sequence(
-                        T(specifier.IsTypeOnly ? "type " : ""),
+                        T(specifier.IsTypeOnly ? Utf8Literals.TypePrefix : Utf8String.Empty),
                         N(specifier.PropertyName),
-                        T(specifier.PropertyName.IsNull ? "" : " as "),
+                        T(specifier.PropertyName.IsNull ? Utf8String.Empty : Utf8Literals.As),
                         N(specifier.Name));
                     break;
                 case SyntaxKind.VariableStatement:
                     var variable = store.Get<VariableStatementData>(id);
-                    Sequence(T(variable.Modifiers.IsNull ? "" : "export "), N(variable.DeclarationList), T(";"));
+                    Sequence(T(variable.Modifiers.IsNull ? Utf8String.Empty : Utf8Literals.ExportPrefix), N(variable.DeclarationList), T(Utf8Literals.Semicolon));
                     break;
                 case SyntaxKind.VariableDeclarationList:
-                    Nodes(store.Get<NodeListData>(store.Get<VariableDeclarationListData>(id).Declarations).Nodes, ", ");
-                    stack.Push(T((store.Header(id).Flags & 2) != 0 ? "const " : (store.Header(id).Flags & 1) != 0 ? "let " : "var "));
+                    Nodes(store.Get<NodeListData>(store.Get<VariableDeclarationListData>(id).Declarations).Nodes, Utf8Literals.CommaSpace);
+                    stack.Push(T((store.Header(id).Flags & 2) != 0 ? Utf8Literals.ConstPrefix : (store.Header(id).Flags & 1) != 0 ? Utf8Literals.LetPrefix : Utf8Literals.Var));
                     break;
                 case SyntaxKind.VariableDeclaration:
                     var declaration = store.Get<VariableDeclarationData>(id);
                     Sequence(
                         N(declaration.Name),
-                        T(declaration.Type.IsNull ? "" : ": "),
+                        T(declaration.Type.IsNull ? Utf8String.Empty : Utf8Literals.ColonSpace),
                         N(declaration.Type),
-                        T(declaration.Initializer.IsNull ? "" : " = "),
+                        T(declaration.Initializer.IsNull ? Utf8String.Empty : Utf8Literals.AssignmentSeparator),
                         N(declaration.Initializer));
                     break;
                 case SyntaxKind.Identifier:
@@ -97,14 +98,14 @@ public static class SlicePrinter
                     Sequence(N(store.Get<TypeReferenceNodeData>(id).TypeName));
                     break;
                 case SyntaxKind.ParenthesizedType:
-                    Sequence(T("("), N(store.Get<ParenthesizedTypeNodeData>(id).Type), T(")"));
+                    Sequence(T(Utf8Literals.OpenParen), N(store.Get<ParenthesizedTypeNodeData>(id).Type), T(Utf8Literals.CloseParen));
                     break;
                 case SyntaxKind.UnionType:
-                    Nodes(store.Get<NodeListData>(store.Get<UnionTypeNodeData>(id).Types).Nodes, " | ");
+                    Nodes(store.Get<NodeListData>(store.Get<UnionTypeNodeData>(id).Types).Nodes, Utf8Literals.UnionSeparator);
                     break;
                 case SyntaxKind.PrefixUnaryExpression:
                     var unary = store.Get<PrefixUnaryExpressionData>(id);
-                    Sequence(T(unary.Operator == SyntaxKind.MinusToken ? "-" : "+"), N(unary.Operand));
+                    Sequence(T(unary.Operator == SyntaxKind.MinusToken ? Utf8Literals.Dash : Utf8Literals.Plus), N(unary.Operand));
                     break;
                 case SyntaxKind.EndOfFile:
                     break;
@@ -116,16 +117,16 @@ public static class SlicePrinter
                     break;
             }
         }
-        return output.ToString();
+        return output.ToUtf8String();
 
         static Item N(NodeId id) => new(id, null);
-        static Item T(string text) => new(default, text);
+        static Item T(Utf8String text) => new(default, text);
         void Sequence(params ReadOnlySpan<Item> items)
         {
             for (int i = items.Length - 1; i >= 0; i--)
                 stack.Push(items[i]);
         }
-        void Nodes(NodeId[] nodes, string separator)
+        void Nodes(NodeId[] nodes, Utf8String separator)
         {
             for (int i = nodes.Length - 1; i >= 0; i--)
             {
@@ -134,22 +135,21 @@ public static class SlicePrinter
                 stack.Push(N(nodes[i]));
             }
         }
-        void String(string value)
+        void String(Utf8String value)
         {
-            output.Append('"');
+            output.Append((byte)'"');
             for (int i = 0; i < value.Length; i++)
             {
-                char ch = value[i];
+                int ch = Wtf8.Decode(value.Span[i..], out int width);
+                i += width - 1;
                 if (ch is '"' or '\\')
-                    output.Append('\\').Append(ch);
-                else if (char.IsHighSurrogate(ch) && i + 1 < value.Length && char.IsLowSurrogate(value[i + 1]))
-                    output.Append(ch).Append(value[++i]);
-                else if (ch < 32 || char.IsSurrogate(ch))
-                    output.Append("\\u").Append(((int)ch).ToString("x4", CultureInfo.InvariantCulture));
+                    output.Append((byte)'\\').AppendCodePoint(ch);
+                else if (ch < 32 || ch is >= 0xD800 and <= 0xDFFF)
+                    output.Append("\\u"u8).Append(Utf8String.Format(ch, "x4"));
                 else
-                    output.Append(ch);
+                    output.AppendCodePoint(ch);
             }
-            output.Append('"');
+            output.Append((byte)'"');
         }
     }
 }

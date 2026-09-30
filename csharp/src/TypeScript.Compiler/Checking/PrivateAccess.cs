@@ -38,7 +38,7 @@ internal sealed class PrivateAccess(TypeContext context, CheckerSymbols symbols,
         for (var container = ContainingClass(name); container is not null; container = DeclarationOrder.ContainingClass(container))
         {
             var owner = symbols.Binding(container)!.Get(container)!.Value.Symbol!;
-            TextSlice key = Name(owner, name.Text);
+            Utf8String key = Name(owner, name.Text);
             lexical = owner.Members.GetValueOrDefault(key) ?? owner.Exports.GetValueOrDefault(key);
             if (lexical is not null)
                 break;
@@ -117,8 +117,8 @@ internal sealed class PrivateAccess(TypeContext context, CheckerSymbols symbols,
         return false;
     }
 
-    internal static TextSlice Name(Symbol owner, TextSlice description) =>
-TextSlice.ConcatMany(Symbol.InternalPrefix + "#", TextSlice.Format(owner.Id), "@", description);
+    internal static Utf8String Name(Symbol owner, Utf8String description) =>
+Utf8String.ConcatMany(Symbol.InternalPrivatePrefix, Utf8String.Format(owner.Id), Utf8Literals.At, description);
 
     internal static SyntaxNode? ContainingClass(SyntaxNode node)
     {

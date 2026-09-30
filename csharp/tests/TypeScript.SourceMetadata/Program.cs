@@ -3,6 +3,7 @@ using System.Text.Json;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Syntax;
 using TypeScript.Compiler.Text;
+using TypeScript.Compiler.Configuration;
 
 if (args is ["--native-check"])
 {
@@ -15,11 +16,11 @@ while (Console.ReadLine() is { } line)
 {
     using JsonDocument document = JsonDocument.Parse(line);
     JsonElement request = document.RootElement;
-    var source = new SourceText(request.GetProperty("text").GetBytesFromBase64());
-    bool Flag(string key) => request.TryGetProperty(key, out var value) && value.GetBoolean();
-    string name = request.TryGetProperty("fileName", out var fileName) ? fileName.GetString()! : "/test.ts";
-    SourceFileNode file = Parser.ParseSourceFile(new(name, ForceExternalModule: Flag("force"), JsxExternalModule: Flag("jsx")), source);
-    if (request.TryGetProperty("mode", out var documentationMode) && documentationMode.GetString() == "documentation")
+    var source = new SourceText(request.GetProperty("text"u8).GetBytesFromBase64());
+    bool Flag(Utf8String key) => request.TryGetProperty(key, out var value) && value.GetBoolean();
+    Utf8String name = request.TryGetProperty("fileName"u8, out var fileName) ? JsonStrings.GetString(fileName)! : "/test.ts"u8;
+    SourceFileNode file = Parser.ParseSourceFile(new(name, ForceExternalModule: Flag("force"u8), JsxExternalModule: Flag("jsx"u8)), source);
+    if (request.TryGetProperty("mode"u8, out var documentationMode) && JsonStrings.GetString(documentationMode) == "documentation"u8)
     {
         using var docs = new MemoryStream();
         using (var writer = new Utf8JsonWriter(docs))
@@ -33,8 +34,8 @@ while (Console.ReadLine() is { } line)
                     continue;
                 writer.WriteStartArray();
                 writer.WriteNumberValue((int)host.Kind);
-                writer.WriteNumberValue(source.ToUtf16Position(host.Pos));
-                writer.WriteNumberValue(source.ToUtf16Position(host.End));
+                writer.WriteNumberValue(host.Pos);
+                writer.WriteNumberValue(host.End);
                 writer.WriteStartArray();
                 foreach (JSDocNode comment in comments)
                 {
@@ -51,12 +52,12 @@ while (Console.ReadLine() is { } line)
                                 throw new InvalidDataException("Documentation child has a different parent");
                         writer.WriteStartArray();
                         writer.WriteNumberValue((int)node.Kind);
-                        writer.WriteNumberValue(source.ToUtf16Position(node.Pos));
-                        writer.WriteNumberValue(source.ToUtf16Position(node.End));
+                        writer.WriteNumberValue(node.Pos);
+                        writer.WriteNumberValue(node.End);
                         writer.WriteNumberValue((uint)node.Flags);
                         writer.WriteNumberValue(node.ChildCount);
                         AstScalarProperties.Write(writer, node);
-                        AstScalarProperties.WriteLists(writer, node, source.ToUtf16Position);
+                        AstScalarProperties.WriteLists(writer, node, static value => value);
                         writer.WriteEndArray();
                     }
                     writer.WriteEndArray();
@@ -70,9 +71,9 @@ while (Console.ReadLine() is { } line)
             {
                 writer.WriteStartArray();
                 writer.WriteNumberValue((int)diagnostic.Code);
-                writer.WriteNumberValue(source.ToUtf16Position(diagnostic.Start));
+                writer.WriteNumberValue(diagnostic.Start);
                 writer.WriteNumberValue(
-                    source.ToUtf16Position(diagnostic.Start + diagnostic.Length) - source.ToUtf16Position(diagnostic.Start));
+                    (diagnostic.Start + diagnostic.Length) - diagnostic.Start);
                 writer.WriteEndArray();
             }
             writer.WriteEndArray();
@@ -81,7 +82,7 @@ while (Console.ReadLine() is { } line)
         Console.WriteLine(Encoding.UTF8.GetString(docs.GetBuffer().AsSpan(0, (int)docs.Length)));
         continue;
     }
-    if (request.TryGetProperty("mode", out var mode) && mode.GetString() == "parse")
+    if (request.TryGetProperty("mode"u8, out var mode) && JsonStrings.GetString(mode) == "parse"u8)
     {
         using var tree = new MemoryStream();
         using (var writer = new Utf8JsonWriter(tree))
@@ -90,7 +91,7 @@ while (Console.ReadLine() is { } line)
             writer.WriteStartArray();
             foreach (SyntaxNode node in file.DescendantsAndSelf())
             {
-                TextSlice value = node switch
+                Utf8String value = node switch
                 {
                     IdentifierNode n => n.Text,
                     PrivateIdentifierNode n => n.Text,
@@ -103,17 +104,17 @@ while (Console.ReadLine() is { } line)
                     TemplateMiddleNode n => n.Text,
                     TemplateTailNode n => n.Text,
                     JsxTextNode n => n.Text,
-                    _ => "",
+                    _ => ""u8,
                 };
                 writer.WriteStartArray();
                 writer.WriteNumberValue((int)node.Kind);
-                writer.WriteNumberValue(source.ToUtf16Position(node.Pos));
-                writer.WriteNumberValue(source.ToUtf16Position(node.End));
+                writer.WriteNumberValue(node.Pos);
+                writer.WriteNumberValue(node.End);
                 writer.WriteNumberValue((uint)node.Flags);
-                writer.WriteBase64StringValue(Wtf8.Encode(value));
+                writer.WriteBase64StringValue((value).Span.ToArray());
                 writer.WriteNumberValue(node.ChildCount);
                 AstScalarProperties.Write(writer, node);
-                AstScalarProperties.WriteLists(writer, node, source.ToUtf16Position);
+                AstScalarProperties.WriteLists(writer, node, static value => value);
                 writer.WriteEndArray();
             }
             writer.WriteEndArray();
@@ -122,9 +123,9 @@ while (Console.ReadLine() is { } line)
             {
                 writer.WriteStartArray();
                 writer.WriteNumberValue((int)diagnostic.Code);
-                writer.WriteNumberValue(source.ToUtf16Position(diagnostic.Start));
+                writer.WriteNumberValue(diagnostic.Start);
                 writer.WriteNumberValue(
-                    source.ToUtf16Position(diagnostic.Start + diagnostic.Length) - source.ToUtf16Position(diagnostic.Start));
+                    (diagnostic.Start + diagnostic.Length) - diagnostic.Start);
                 writer.WriteEndArray();
             }
             writer.WriteEndArray();
@@ -133,9 +134,9 @@ while (Console.ReadLine() is { } line)
             {
                 writer.WriteStartArray();
                 writer.WriteNumberValue((int)diagnostic.Code);
-                writer.WriteNumberValue(source.ToUtf16Position(diagnostic.Start));
+                writer.WriteNumberValue(diagnostic.Start);
                 writer.WriteNumberValue(
-                    source.ToUtf16Position(diagnostic.Start + diagnostic.Length) - source.ToUtf16Position(diagnostic.Start));
+                    (diagnostic.Start + diagnostic.Length) - diagnostic.Start);
                 writer.WriteEndArray();
             }
             writer.WriteEndArray();
@@ -144,7 +145,7 @@ while (Console.ReadLine() is { } line)
         Console.WriteLine(Encoding.UTF8.GetString(tree.GetBuffer().AsSpan(0, (int)tree.Length)));
         continue;
     }
-    if (Flag("clone"))
+    if (Flag("clone"u8))
         file = file.DeepClone<SourceFileNode>();
     if (file.ExternalModuleIndicator is { } indicator && !file.DescendantsAndSelf().Contains(indicator))
         throw new InvalidDataException("External-module indicator belongs to a different tree");
@@ -159,7 +160,7 @@ while (Console.ReadLine() is { } line)
     using var buffer = new MemoryStream();
     using (var writer = new Utf8JsonWriter(buffer))
     {
-        void Position(int pos) => writer.WriteNumberValue(source.ToUtf16Position(pos));
+        void Position(int pos) => writer.WriteNumberValue(pos);
         void References(IReadOnlyList<FileReference> references)
         {
             writer.WriteStartArray();
@@ -188,7 +189,7 @@ while (Console.ReadLine() is { } line)
                         StringLiteralNode n => n.Text,
                         NoSubstitutionTemplateLiteralNode n => n.Text,
                         IdentifierNode n => n.Text,
-                        _ => ""
+                        _ => Utf8String.Empty
                     });
                 Position(node.Pos);
                 Position(node.End);
@@ -207,7 +208,7 @@ while (Console.ReadLine() is { } line)
             Position(pragma.Range.End);
             writer.WriteBooleanValue(pragma.Range.HasTrailingNewLine);
             writer.WriteStartArray();
-            foreach (var arg in pragma.Arguments.Values.OrderBy(arg => arg.Name, StringComparer.Ordinal))
+            foreach (var arg in pragma.Arguments.Values.OrderBy(arg => arg.Name, Utf8StringComparer.Ordinal))
             {
                 writer.WriteStartArray();
                 writer.WriteStringValue(arg.Name);
@@ -250,14 +251,14 @@ while (Console.ReadLine() is { } line)
             writer.WriteNumberValue((int)diagnostic.Code);
             Position(diagnostic.Start);
             writer.WriteNumberValue(
-                source.ToUtf16Position(diagnostic.Start + diagnostic.Length) - source.ToUtf16Position(diagnostic.Start));
+                (diagnostic.Start + diagnostic.Length) - diagnostic.Start);
             writer.WriteEndArray();
         }
         writer.WriteEndArray();
         Nodes(file.Imports);
         Nodes(file.ModuleAugmentations);
         writer.WriteStartArray();
-        foreach (string module in file.AmbientModuleNames)
+        foreach (Utf8String module in file.AmbientModuleNames)
             writer.WriteStringValue(module);
         writer.WriteEndArray();
         writer.WriteStartArray();
@@ -265,11 +266,17 @@ while (Console.ReadLine() is { } line)
         {
             writer.WriteStartArray();
             writer.WriteStringValue(dependency.Path);
-            writer.WriteStringValue(dependency.Name);
+            if (dependency.Name is { } dependencyName)
+                writer.WriteStringValue(dependencyName.Span);
+            else
+                writer.WriteNullValue();
             writer.WriteEndArray();
         }
         writer.WriteEndArray();
-        writer.WriteStringValue(file.ModuleName);
+        if (file.ModuleName is { } moduleName)
+            writer.WriteStringValue(moduleName.Span);
+        else
+            writer.WriteNullValue();
         writer.WriteBooleanValue(file.HasNoDefaultLib);
         writer.WriteEndArray();
     }

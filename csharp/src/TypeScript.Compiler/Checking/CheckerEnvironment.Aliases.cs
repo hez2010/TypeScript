@@ -24,7 +24,7 @@ internal sealed partial class CheckerEnvironment
 
     public DiagnosticMessage CannotFindName(IdentifierNode name) => ReferenceSymbols.MissingName(name);
 
-    public ValueTask<IReadOnlyDictionary<TextSlice, Symbol>> ExportsAsync(Symbol symbol, CancellationToken cancellation)
+    public ValueTask<IReadOnlyDictionary<Utf8String, Symbol>> ExportsAsync(Symbol symbol, CancellationToken cancellation)
     {
         if (SemanticChecker is { } checker)
             return checker.ExportsAsync(symbol, cancellation);
@@ -62,7 +62,7 @@ internal sealed partial class CheckerEnvironment
                 attributes is null ? null : await checker.ImportAttributesExpressionAsync(attributes, cancellation), cancellation);
         if (attributes is not null)
             throw new InvalidOperationException("Checker requires import attribute evaluation");
-        TextSlice? name = AliasTargets.Text(specifier) ?? (specifier as NoSubstitutionTemplateLiteralNode)?.Text;
+        Utf8String? name = AliasTargets.Text(specifier) ?? (specifier as NoSubstitutionTemplateLiteralNode)?.Text;
         if (name is null)
             return null;
         var file = Symbols.Binding(location)!.SourceFile;
@@ -70,7 +70,7 @@ internal sealed partial class CheckerEnvironment
         var result = reference?.Resolution.IsResolved == true
             ? Symbols.Program.GetFile(reference.Resolution.FileName)?.Binding.Symbol
             : null;
-        result ??= Symbols.PatternAugmentations.GetValueOrDefault(name.Value) ?? Symbols.Globals.GetValueOrDefault(TextSlice.Concat("\"", name.Value, "\""));
+        result ??= Symbols.PatternAugmentations.GetValueOrDefault(name.Value) ?? Symbols.Globals.GetValueOrDefault(Utf8String.Concat("\""u8, name.Value, "\""u8));
         if (result is null && reference?.Resolution.IsResolved == true)
             AliasDiagnostic(DiagnosticCode.File0IsNotAModule, specifier!);
         else if (result is null)
@@ -91,7 +91,7 @@ internal sealed partial class CheckerEnvironment
             || module.Declarations.OfType<SourceFileNode>().Any(f => f.ScriptKind is ScriptKind.JS or ScriptKind.JSX))
             throw new InvalidOperationException("Checker requires ES module wrapper/type evaluation");
         if (specifier.Parent is ImportDeclarationNode { ImportClause.NamedBindings: NamespaceImportNode }
-            && target.Exports.TryGetValue("default", out var defaultExport)
+            && target.Exports.TryGetValue(Utf8Literals.Default, out var defaultExport)
             && ((defaultExport.Flags & S.Value) != 0 || (defaultExport.Flags & S.Alias) != 0
                 && (await Aliases.FlagsAsync(
                     defaultExport,
@@ -115,10 +115,10 @@ internal sealed partial class CheckerEnvironment
     {
         if (SemanticChecker is { } checker)
             return await checker.ModuleDefaultAsync(module, declaration, dontResolveAlias, cancellation).ConfigureAwait(false);
-        if (module.Exports.ContainsKey("export=") || Symbols.Program.Configuration.Options.AllowSyntheticDefaultImports == true)
+        if (module.Exports.ContainsKey(Utf8Literals.ExportEquals) || Symbols.Program.Configuration.Options.AllowSyntheticDefaultImports == true)
             throw new InvalidOperationException("Checker requires synthetic default interop");
         var result = await Aliases.SymbolAsync(
-            module.Exports.GetValueOrDefault("default"),
+            module.Exports.GetValueOrDefault(Utf8Literals.Default),
             dontResolveAlias,
             cancellation).ConfigureAwait(false);
         if (result is null)
@@ -146,7 +146,7 @@ internal sealed partial class CheckerEnvironment
         var target = await AliasTargets.EsModuleAsync(module, specifier, moduleSpecifier!, cancellation).ConfigureAwait(false);
         if (target is null)
             return null;
-        if (SemanticChecker is null && module.Exports.ContainsKey("export="))
+        if (SemanticChecker is null && module.Exports.ContainsKey(Utf8Literals.ExportEquals))
             throw new InvalidOperationException("Checker requires export-assignment member types");
         var nameNode = specifier switch
         {
@@ -168,7 +168,7 @@ internal sealed partial class CheckerEnvironment
                 dontResolveAlias,
                 cancellation).ConfigureAwait(false);
         var result = Symbols.Merger.GetMergedSymbol(
-            await ModuleExports.ExportAsync(target, (name).Value, specifier, dontResolveAlias, cancellation).ConfigureAwait(false));
+            await ModuleExports.ExportAsync(target, name.Value, specifier, dontResolveAlias, cancellation).ConfigureAwait(false));
         if (result is null)
             await MissingModuleMemberAsync(module, target, specifier, nameNode!, cancellation).ConfigureAwait(false);
         return result;
@@ -183,7 +183,7 @@ internal sealed partial class CheckerEnvironment
     {
         if (Symbols.Program.Configuration.Options.NoCheck == true)
             return;
-        TextSlice name = AliasTargets.Text(nameNode) ?? SyntaxNameText.Get(nameNode);
+        Utf8String name = AliasTargets.Text(nameNode) ?? SyntaxNameText.Get(nameNode);
         var suggestion = nameNode is IdentifierNode ? await new SymbolSuggestions(
             Aliases,
             new(Symbols.Program.SourceFiles.Select(f => f.Syntax)))
@@ -192,22 +192,22 @@ internal sealed partial class CheckerEnvironment
                 (await ModuleExports.ResolveAsync(target, cancellation).ConfigureAwait(false)).Values,
                 S.ModuleMember,
                 cancellation).ConfigureAwait(false) : null;
-        TextSlice moduleName = SemanticChecker is { } checker
+        Utf8String moduleName = SemanticChecker is { } checker
             ? await checker.FullyQualifiedNameAsync(module, specifier, cancellation) : module.Name;
-        TextSlice declarationName = CheckerDiagnostic.DeclarationName(nameNode);
+        Utf8String declarationName = CheckerDiagnostic.DeclarationName(nameNode);
         DiagnosticCode code = suggestion is not null
             ? DiagnosticCode.X0HasNoExportedMemberNamed1DidYouMean2
-            : module.Exports.ContainsKey("default")
+            : module.Exports.ContainsKey(Utf8Literals.Default)
                 ? DiagnosticCode.Module0HasNoExportedMember1DidYouMeanToUseImport1From0Instead
                 : DiagnosticCode.Module0HasNoExportedMember1;
-        TextSlice[] arguments = suggestion is null ? [moduleName, declarationName] : [moduleName, declarationName, suggestion.Name];
+        Utf8String[] arguments = suggestion is null ? [moduleName, declarationName] : [moduleName, declarationName, suggestion.Name];
         var related = new List<Diagnostic>();
         if (suggestion?.ValueDeclaration is { } suggestedDeclaration)
             related.Add(CheckerDiagnostic.Create(suggestedDeclaration, Messages.X_0_is_declared_here, suggestion.Name));
         if (code == DiagnosticCode.Module0HasNoExportedMember1 && module.ValueDeclaration is { } declaration
             && Symbols.Binding(declaration)?.Get(declaration)?.Locals.GetValueOrDefault(name) is { } local)
         {
-            if (module.Exports.TryGetValue("export=", out var assignment))
+            if (module.Exports.TryGetValue(Utf8Literals.ExportEquals, out var assignment))
             {
                 if (await SameReferenceAsync(assignment, local))
                 {
@@ -236,7 +236,7 @@ internal sealed partial class CheckerEnvironment
                         related.Count == 0 ? Messages.X_0_is_declared_here : Messages.X_and_here, declarationName));
             }
         }
-        if (reported.Add((nameNode, code, "")))
+        if (reported.Add((nameNode, code, Utf8String.Empty)))
         {
             Diagnostics.Add(code);
             DiagnosticFiles.Add((nameNode, CheckerDiagnostic.Create(nameNode, DiagnosticLocalization.GetMessage(code), arguments) with
@@ -273,13 +273,13 @@ internal sealed partial class CheckerEnvironment
 
     public bool UsesRequireModuleExports => Symbols.Program.Configuration.Options.Module is ModuleKind.Node20 or ModuleKind.NodeNext;
 
-    public ValueTask<Symbol?> ExportOfModuleAsync(Symbol module, TextSlice name, SyntaxNode declaration, CancellationToken cancellation)
+    public ValueTask<Symbol?> ExportOfModuleAsync(Symbol module, Utf8String name, SyntaxNode declaration, CancellationToken cancellation)
         => ModuleExports.ExportAsync(module, name, declaration, true, cancellation);
 
     public ValueTask<Symbol?> ExportStarModuleAsync(ExportDeclarationNode declaration, CancellationToken cancellation)
         => ExternalModuleAsync(declaration, declaration.ModuleSpecifier, declaration.Attributes, cancellation);
 
-    public void AmbiguousExport(ExportDeclarationNode declaration, TextSlice earlierSpecifierText, TextSlice name)
+    public void AmbiguousExport(ExportDeclarationNode declaration, Utf8String earlierSpecifierText, Utf8String name)
         => Error(
             declaration,
             Messages.Module_0_has_already_exported_a_member_named_1_Consider_explicitly_re_exporting_to_resolve_the_ambiguity,
@@ -287,7 +287,7 @@ internal sealed partial class CheckerEnvironment
 
     internal void AliasDiagnostic(DiagnosticCode code, SyntaxNode node)
     {
-        if (reported.Add((node, code, "")))
+        if (reported.Add((node, code, Utf8String.Empty)))
             AddDiagnostic(node, code);
     }
 }

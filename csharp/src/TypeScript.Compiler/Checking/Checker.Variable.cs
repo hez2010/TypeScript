@@ -25,7 +25,7 @@ internal sealed partial class Checker : IVariableTypeHost
         CancellationToken cancellation)
     {
         var name = SemanticSyntax.Name(node)!;
-        TextSlice text = CheckerDiagnostic.DeclarationName(name);
+        Utf8String text = CheckerDiagnostic.DeclarationName(name);
         var diagnostic = CheckerDiagnostic.Create(name, DiagnosticLocalization.GetMessage(
             node is PropertyDeclarationNode or PropertySignatureDeclarationNode
                 ? DiagnosticCode.SubsequentPropertyDeclarationsMustHaveTheSameTypeProperty0MustBeOfType1ButHereHasType2
@@ -93,7 +93,7 @@ internal sealed partial class Checker : IVariableTypeHost
             || container is BlockNode { Parent: IFunctionSignature };
         if (!sharedScope)
         {
-            TextSlice text = TypeDisplay.SymbolName(local);
+            Utf8String text = TypeDisplay.SymbolName(local);
             Error(node, DiagnosticCode.CannotInitializeOuterScopedVariable0InTheSameScopeAsBlockScopedDeclaration1, text, text);
         }
     }
@@ -170,7 +170,7 @@ internal sealed partial class Checker : IVariableTypeHost
         var index = await Keys.GetAsync(await Facts.GetAsync(expression, TypeFacts.IsUndefinedOrNull, cancellation) != 0
             ? await Facts.NonNullableAsync(expression, cancellation) : expression, cancellation: cancellation);
         if ((index.Flags & (TypeFlags.TypeParameter | TypeFlags.Index)) != 0
-            && await program.Globals.AliasAsync("Extract", 2, Declared, cancellation) is { } extract)
+            && await program.Globals.AliasAsync(Utf8Literals.Extract, 2, Declared, cancellation) is { } extract)
             return await References.AliasInstantiationAsync(extract, [index, context.StringType], cancellation: cancellation);
         return context.StringType;
     }
@@ -185,8 +185,8 @@ internal sealed partial class Checker : IVariableTypeHost
 
     public async ValueTask<Type> SymbolConstructorPropertyAsync(SyntaxNode declaration, Type type, CancellationToken cancellation)
     {
-        if (declaration.Parent is InterfaceDeclarationNode { Name.Text.Span: "SymbolConstructor" } parent
-            && program.Symbols.Declaration(parent) == (await program.Globals.GetAsync("SymbolConstructor", 0, false, cancellation)).Symbol)
+        if (declaration.Parent is InterfaceDeclarationNode { Name.Text.Span: var matchedText } parent && matchedText.SequenceEqual("SymbolConstructor"u8)
+            && program.Symbols.Declaration(parent) == (await program.Globals.GetAsync(Utf8Literals.SymbolConstructor, 0, false, cancellation)).Symbol)
             return Nodes.UniqueSymbol(declaration);
         return type;
     }
@@ -202,21 +202,20 @@ internal sealed partial class Checker : IVariableTypeHost
         if ((declaration.Flags & NodeFlags.JavaScriptFile) != 0 && SemanticSyntax.Source(declaration)?.CheckJsDirective?.Enabled != true
             && program.Symbols.Program.Configuration.Options.CheckJs != true)
             return;
-        TextSlice typeText = await TypeDisplay.GetAsync(await Widening.GetAsync(type, cancellation), cancellation);
+        Utf8String typeText = await TypeDisplay.GetAsync(await Widening.GetAsync(type, cancellation), cancellation);
         DiagnosticCode code;
         if (declaration is ParameterDeclarationNode parameter)
         {
             if (parameter.Parent is FunctionTypeNode or MethodSignatureDeclarationNode or CallSignatureDeclarationNode
                 && parameter.Name is IdentifierNode name)
             {
-                bool keyword = name.Text.Span is "any" or "unknown" or "string" or "number" or "boolean" or "bigint" or "symbol" or "object"
-                    or "never" or "void" or "undefined";
+                bool keyword = name.Text.Span.SequenceEqual("any"u8) || name.Text.Span.SequenceEqual("unknown"u8) || name.Text.Span.SequenceEqual("string"u8) || name.Text.Span.SequenceEqual("number"u8) || name.Text.Span.SequenceEqual("boolean"u8) || name.Text.Span.SequenceEqual("bigint"u8) || name.Text.Span.SequenceEqual("symbol"u8) || name.Text.Span.SequenceEqual("object"u8) || name.Text.Span.SequenceEqual("never"u8) || name.Text.Span.SequenceEqual("void"u8) || name.Text.Span.SequenceEqual("undefined"u8);
                 if (keyword || await program.EntityNames.ResolveAsync(name, SymbolFlags.Type, true, cancellation: cancellation) is not null)
                 {
                     code = DiagnosticCode.ParameterHasANameButNoTypeDidYouMean0Colon1;
                     int index = Signatures.Parameters(parameter.Parent!)?.IndexOf(parameter) ?? -1;
-                    Report(TextSlice.Concat("arg", TextSlice.Format(index)),
-                        TextSlice.Concat(CheckerDiagnostic.DeclarationName(name), (parameter.DotDotDotToken is null ? "" : "[]")));
+                    Report(Utf8String.Concat("arg"u8, Utf8String.Format(index)),
+                        Utf8String.Concat(CheckerDiagnostic.DeclarationName(name), parameter.DotDotDotToken is null ? ""u8 : "[]"u8));
                     return;
                 }
             }
@@ -267,14 +266,14 @@ internal sealed partial class Checker : IVariableTypeHost
             ElementAccessExpressionNode element => element.ArgumentExpression,
             _ => binary.Left
         } : null);
-        TextSlice nameText = declarationName is null ? "" : CheckerDiagnostic.DeclarationName(declarationName);
+        Utf8String nameText = declarationName is null ? Utf8String.Empty : CheckerDiagnostic.DeclarationName(declarationName);
         Report(
             code is DiagnosticCode.FunctionExpressionWhichLacksReturnTypeAnnotationImplicitlyHasAn0ReturnType
                 or DiagnosticCode.ThisOverloadImplicitlyReturnsTheType0BecauseItLacksAReturnTypeAnnotation
                 or DiagnosticCode.GeneratorImplicitlyHasYieldType0ConsiderSupplyingAReturnTypeAnnotation
                 ? [typeText]
                 : [nameText, typeText]);
-        void Report(params TextSlice[] arguments)
+        void Report(params Utf8String[] arguments)
         {
             if (NoImplicitAny)
                 Error(declaration, code, arguments);

@@ -22,7 +22,7 @@ internal sealed partial class Checker : ITypeInferenceHost, IInferredConstraintH
     public ValueTask<Type> CovariantInferenceAsync(InferenceInfo inference, Signature signature, CancellationToken cancellation)
             => Inference.CovariantAsync(inference, signature, cancellation);
 
-    public ValueTask<Symbol?> ObjectPropertyAsync(Type type, TextSlice name, CancellationToken cancellation)
+    public ValueTask<Symbol?> ObjectPropertyAsync(Type type, Utf8String name, CancellationToken cancellation)
             => Properties.ObjectPropertyAsync(type, name, cancellation);
 
     public async ValueTask<Type> EnumBaseAsync(Type type, CancellationToken cancellation)
@@ -107,11 +107,11 @@ internal sealed partial class Checker : ITypeInferenceHost, IInferredConstraintH
     public ValueTask<Type> EmptyInferenceObjectAsync(Type type, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
-        var members = new Dictionary<TextSlice, Symbol>();
+        var members = new Dictionary<Utf8String, Symbol>();
         foreach (var part in type is UnionType union ? union.Types : (IReadOnlyList<Type>)[type])
-            if (part is LiteralType { Value: TextSlice })
+            if (part is LiteralType { Value: Utf8String })
             {
-                TextSlice name = MappedMembers.PropertyName(part);
+                Utf8String name = MappedMembers.PropertyName(part);
                 var property = new Symbol(SymbolFlags.Property | SymbolFlags.Transient, name);
                 links.Values.Get(property).ResolvedType = context.AnyType;
                 if (part.Symbol is { } symbol)

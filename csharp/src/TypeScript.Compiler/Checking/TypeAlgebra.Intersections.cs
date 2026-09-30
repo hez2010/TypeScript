@@ -119,7 +119,7 @@ internal sealed partial class TypeAlgebra
             for (int i = 0; i < types.Count; i++)
                 if ((types[i].Flags & F.Nullable) == 0)
                     propagated |= types[i].ObjectFlags;
-            result = context.NewIntersectionType(CollectionsMarshal.AsSpan(set), objectFlags | (propagated & O.PropagatingFlags));
+            result = context.NewIntersectionType(CollectionsMarshal.AsSpan(set), objectFlags | propagated & O.PropagatingFlags);
             result.Alias = alias;
         }
         else if (IntersectPrimitiveUnions(set))

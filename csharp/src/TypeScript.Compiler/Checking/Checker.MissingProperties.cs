@@ -82,9 +82,9 @@ internal sealed partial class Checker
             if (SemanticSyntax.Source(node) != file || (links.Nodes.Get(node).Flags & NodeCheckFlags.TypeChecked) != 0)
                 continue;
             links.Nodes.Get(node).Flags |= NodeCheckFlags.TypeChecked;
-            TextSlice name = SyntaxNameText.Get(node);
-            TextSlice displayedName = CheckerDiagnostic.DeclarationName(node);
-            TextSlice receiver = await TypeDisplay.GetAsync(await Views.ReducedAsync(type, cancellation), cancellation);
+            Utf8String name = SyntaxNameText.Get(node);
+            Utf8String displayedName = CheckerDiagnostic.DeclarationName(node);
+            Utf8String receiver = await TypeDisplay.GetAsync(await Views.ReducedAsync(type, cancellation), cancellation);
             Diagnostic? chain = null;
             if (node is not PrivateIdentifierNode && type is UnionType union && (type.Flags & TypeFlags.Primitive) == 0)
                 foreach (var part in union.Types)
@@ -95,7 +95,7 @@ internal sealed partial class Checker
                             displayedName, await TypeDisplay.GetAsync(await Views.ReducedAsync(part, cancellation), cancellation));
                         break;
                     }
-            Diagnostic Report(DiagnosticCode code, params TextSlice[] arguments) => CheckerDiagnostic.Create(
+            Diagnostic Report(DiagnosticCode code, params Utf8String[] arguments) => CheckerDiagnostic.Create(
                 node,
                 DiagnosticLocalization.GetMessage(code),
                 arguments)
@@ -107,7 +107,7 @@ internal sealed partial class Checker
                     DiagnosticCode.Property0DoesNotExistOnType1DidYouMeanToAccessTheStaticMember2Instead,
                     displayedName,
                     receiver,
-                    TextSlice.Concat(receiver, ".", displayedName));
+                    Utf8String.Concat(receiver, "."u8, displayedName));
             else if (await Awaited.OfPromiseAsync(type, cancellation: cancellation).ConfigureAwait(false) is { } promised
                 && await Properties.PropertyAsync(promised, name, cancellation: cancellation).ConfigureAwait(false) is not null)
                 diagnostic = Report(DiagnosticCode.Property0DoesNotExistOnType1, displayedName, receiver) with
@@ -195,7 +195,7 @@ internal sealed partial class Checker
 
     private async ValueTask<bool> EmptyDomTypeAsync(Type type, CancellationToken cancellation)
     {
-        if (program.Symbols.Program.Configuration.Options.Lib?.Any(l => l is "dom" or "lib.dom.d.ts") == true)
+        if (program.Symbols.Program.Configuration.Options.Lib?.Any(l => (l == "dom"u8 || l == "lib.dom.d.ts"u8)) == true)
             return false;
         var pending = new Stack<Type>();
         pending.Push(type);
@@ -209,9 +209,9 @@ internal sealed partial class Checker
             }
             if (current.Symbol is not { } symbol)
                 return false;
-            ReadOnlySpan<char> name = symbol.Name.Span;
-            if (name is not ("EventTarget" or "Node" or "Element")
-                && !(name.StartsWith("HTML", StringComparison.Ordinal) && name.EndsWith("Element", StringComparison.Ordinal)))
+            ReadOnlySpan<byte> name = symbol.Name.Span;
+            if (!(name.SequenceEqual("EventTarget"u8) || name.SequenceEqual("Node"u8) || name.SequenceEqual("Element"u8))
+                && !(name.StartsWith("HTML"u8, StringComparison.Ordinal) && name.EndsWith("Element"u8, StringComparison.Ordinal)))
                 return false;
         }
         return await Views.EmptyObjectAsync(type, cancellation).ConfigureAwait(false);

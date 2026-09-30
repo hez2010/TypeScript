@@ -48,22 +48,22 @@ internal static class CheckerConstraintTests
         Check(constraints.DefaultAsync(current).GetAwaiter().GetResult() == context.StringType);
         Check(current.ResolvedDefaultType == context.StringType);
 
-        var defaultNode = new TypeReferenceNode { TypeName = new IdentifierNode { Text = "Default" } };
-        var declaration = new TypeParameterDeclarationNode { Name = new IdentifierNode { Text = "T" }, DefaultType = defaultNode };
-        var symbol = new Symbol(SymbolFlags.TypeParameter, "T");
+        var defaultNode = new TypeReferenceNode { TypeName = new IdentifierNode { Text = "Default"u8 } };
+        var declaration = new TypeParameterDeclarationNode { Name = new IdentifierNode { Text = "T"u8 }, DefaultType = defaultNode };
+        var symbol = new Symbol(SymbolFlags.TypeParameter, "T"u8);
         symbol.DeclarationList = symbol.DeclarationList.Add(declaration);
         var parameter = context.NewTypeParameter(symbol);
         host.Nodes[defaultNode] = _ => constraints.ResolvedDefaultAsync(parameter);
         Check(constraints.DefaultAsync(parameter).GetAwaiter().GetResult() is null);
         Check(parameter.ResolvedDefaultType == context.CircularConstraintType);
 
-        var cancelNode = new TypeReferenceNode { TypeName = new IdentifierNode { Text = "Canceled" } };
+        var cancelNode = new TypeReferenceNode { TypeName = new IdentifierNode { Text = "Canceled"u8 } };
         var canceledDeclaration = new TypeParameterDeclarationNode
         {
-            Name = new IdentifierNode { Text = "Canceled" },
+            Name = new IdentifierNode { Text = "Canceled"u8 },
             DefaultType = cancelNode
         };
-        var canceledSymbol = new Symbol(SymbolFlags.TypeParameter, "Canceled");
+        var canceledSymbol = new Symbol(SymbolFlags.TypeParameter, "Canceled"u8);
         canceledSymbol.DeclarationList = canceledSymbol.DeclarationList.Add(canceledDeclaration);
         var canceled = context.NewTypeParameter(canceledSymbol);
         host.Nodes[cancelNode] = _ => throw new OperationCanceledException();
@@ -100,7 +100,7 @@ internal static class CheckerConstraintTests
             access = context.NewIndexedAccessType(access, context.NumberType, 0);
         Check(
             recursion.IdentityAsync(access).GetAwaiter().GetResult() == recursion.IdentityAsync(context.StringType).GetAwaiter().GetResult());
-        var sameSymbol = new Symbol(SymbolFlags.Interface, "I");
+        var sameSymbol = new Symbol(SymbolFlags.Interface, "I"u8);
         var older = context.NewObjectType(ObjectFlags.Interface, sameSymbol);
         var newer = context.NewObjectType(ObjectFlags.Interface, sameSymbol);
         Check(recursion.IsDeeplyNestedAsync(older, [older, newer, older, newer], 4).GetAwaiter().GetResult() == false);

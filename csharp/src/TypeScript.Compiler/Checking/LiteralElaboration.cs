@@ -88,7 +88,7 @@ internal sealed class LiteralElaboration(TypeContext context, CheckerSymbols sym
                 if (element.Kind == SyntaxKind.OmittedExpression || await arrays.TupleLikeAsync(target, cancellation).ConfigureAwait(false)
                     && await properties.PropertyAsync(
                         target,
-                        TextSlice.Format(i),
+                        Utf8String.Format(i),
                         cancellation: cancellation).ConfigureAwait(false) is null)
                     continue;
                 var check = CallResolution.EffectiveNode(element);
@@ -128,7 +128,7 @@ internal sealed class LiteralElaboration(TypeContext context, CheckerSymbols sym
             {
                 bool suggestAsync = false;
                 if (!SemanticSyntax.HasModifier(arrow, SyntaxKind.AsyncKeyword)
-                    && await properties.PropertyAsync(sourceReturn, "then", cancellation: cancellation).ConfigureAwait(false) is null)
+                    && await properties.PropertyAsync(sourceReturn, Utf8Literals.Then, cancellation: cancellation).ConfigureAwait(false) is null)
                     suggestAsync = await relations.RelatedAsync(
                         await host.PromiseResultAsync(node, sourceReturn, false, cancellation).ConfigureAwait(false),
                         targetReturn,
@@ -178,7 +178,7 @@ internal sealed class LiteralElaboration(TypeContext context, CheckerSymbols sym
                 cancellation).ConfigureAwait(false);
             return true;
         }
-        TextSlice name = MappedMembers.PropertyName(key);
+        Utf8String name = MappedMembers.PropertyName(key);
         var targetProperty = await properties.PropertyAsync(target, name, cancellation: cancellation).ConfigureAwait(false);
         var sourceProperty = await properties.PropertyAsync(source, name, cancellation: cancellation).ConfigureAwait(false);
         bool targetOptional = targetProperty is not null && (targetProperty.Flags & SymbolFlags.Optional) != 0;

@@ -200,7 +200,28 @@ for (const [index, difference] of semanticDifferences.entries()) {
     difference.inputSha256 = sha256(Buffer.from(difference.source));
     difference.reproduction = "node csharp/tools/metadata.mjs --fuzz 0";
 }
-const approvedDifferences = JSON.parse(await readFile(path.join(root, "csharp/tests/fixtures/metadata/semantic-differences.json"), "utf8"));
+// Historical fixtures use the reference's UTF-16 reporting coordinates. Adapt
+// their numeric offsets to the byte-coordinate contract without changing text.
+function byteMetadata(value, source) {
+    const result = structuredClone(value);
+    const position = offset => offset < 0 ? offset : Buffer.byteLength(source.slice(0, offset));
+    const range = (row, start, end) => { row[start] = position(row[start]); row[end] = position(row[end]); };
+    for (const pragma of result[0]) {
+        range(pragma, 2, 3);
+        for (const argument of pragma[5]) range(argument, 2, 3);
+    }
+    for (const references of result.slice(1, 4)) for (const reference of references) range(reference, 1, 2);
+    for (const item of result.slice(4, 6)) if (item !== null) range(item, 1, 2);
+    for (const diagnostic of result[6]) {
+        const end = position(diagnostic[1] + diagnostic[2]);
+        diagnostic[1] = position(diagnostic[1]);
+        diagnostic[2] = end - diagnostic[1];
+    }
+    for (const nodes of result.slice(7, 9)) for (const node of nodes) range(node, 2, 3);
+    return result;
+}
+const approvedDifferences = JSON.parse(await readFile(path.join(root, "csharp/tests/fixtures/metadata/semantic-differences.json"), "utf8"))
+    .map(difference => ({ ...difference, go: byteMetadata(difference.go, difference.source), candidate: byteMetadata(difference.candidate, difference.source) }));
 assert.deepEqual(semanticDifferences, approvedDifferences, "A documented metadata difference changed; inspect both outputs before updating its exact fixture");
 await writeFile(path.join(output, "metadata-semantic-differences.json"), JSON.stringify(semanticDifferences, null, 2));
 // Clones must retain references to their own AST, including forced source files.

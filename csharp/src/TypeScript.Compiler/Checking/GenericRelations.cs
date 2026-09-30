@@ -94,7 +94,7 @@ internal sealed class GenericRelations(TypeContext context, TypeAlgebra algebra,
             {
                 var known = new List<Type>();
                 for (int i = 0; i < tuple.FixedLength; i++)
-                    known.Add(context.GetStringLiteralType(TextSlice.Format(i)));
+                    known.Add(context.GetStringLiteralType(Utf8String.Format(i)));
                 known.Add(await keys.GetAsync(arrayTarget(tuple.IsReadonly), cancellation: cancellation).ConfigureAwait(false));
                 var result = await operation.CompareAsync(source,
                     await algebra.UnionAsync(known, cancellation: cancellation).ConfigureAwait(false),

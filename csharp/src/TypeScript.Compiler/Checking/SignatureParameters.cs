@@ -199,7 +199,7 @@ internal sealed class SignatureParameters(TypeContext context, TypeAlgebra algeb
         return null;
     }
 
-    internal async ValueTask<TextSlice> NameAsync(Signature signature, int position, CancellationToken cancellation = default)
+    internal async ValueTask<Utf8String> NameAsync(Signature signature, int position, CancellationToken cancellation = default)
     {
         RequireOwned(signature);
         cancellation.ThrowIfCancellationRequested();
@@ -214,16 +214,16 @@ internal sealed class SignatureParameters(TypeContext context, TypeAlgebra algeb
             : parameter.Name;
     }
 
-    internal static TextSlice Label(TupleElementInfo element, Symbol? rest, int index)
+    internal static Utf8String Label(TupleElementInfo element, Symbol? rest, int index)
     {
         if (element.LabeledDeclaration is { } declaration)
             return ((IdentifierNode)((INamedNode)declaration).Name!).Text;
         if (rest?.ValueDeclaration is ParameterDeclarationNode parameter)
             return BindingLabel(parameter, index, element.Flags);
-        return TextSlice.Concat((rest?.Name ?? "arg"), "_", TextSlice.Format(index));
+        return Utf8String.Concat(rest?.Name ?? "arg"u8, "_"u8, Utf8String.Format(index));
     }
 
-    private static TextSlice BindingLabel(SyntaxNode node, int index, ElementFlags flags)
+    private static Utf8String BindingLabel(SyntaxNode node, int index, ElementFlags flags)
     {
         while (true)
         {
@@ -232,8 +232,8 @@ internal sealed class SignatureParameters(TypeContext context, TypeAlgebra algeb
             if (name is IdentifierNode identifier)
                 return rest ? (flags & ElementFlags.Variable) != 0
                     ? identifier.Text
-                    : TextSlice.Concat(identifier.Text, "_", TextSlice.Format(index))
-                    : (flags & ElementFlags.Fixed) != 0 ? identifier.Text : TextSlice.Concat(identifier.Text, "_n");
+                    : Utf8String.Concat(identifier.Text, "_"u8, Utf8String.Format(index))
+                    : (flags & ElementFlags.Fixed) != 0 ? identifier.Text : Utf8String.Concat(identifier.Text, "_n"u8);
             if (rest && name is BindingPatternNode { Kind: SyntaxKind.ArrayBindingPattern, Elements: { } elements })
             {
                 var last = elements.Count == 0 ? null : elements[^1];
@@ -251,7 +251,7 @@ internal sealed class SignatureParameters(TypeContext context, TypeAlgebra algeb
                     continue;
                 }
             }
-            return TextSlice.Concat("arg_", TextSlice.Format(index));
+            return Utf8String.Concat("arg_"u8, Utf8String.Format(index));
         }
     }
 

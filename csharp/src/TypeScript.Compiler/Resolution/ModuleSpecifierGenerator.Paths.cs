@@ -6,22 +6,22 @@ namespace TypeScript.Compiler.Resolution;
 
 internal sealed partial class ModuleSpecifierGenerator
 {
-    internal IReadOnlyList<ModuleSpecifierPath> EachPath(string importingFile, string target, bool preferSymlinks = true,
+    internal IReadOnlyList<ModuleSpecifierPath> EachPath(Utf8String importingFile, Utf8String target, bool preferSymlinks = true,
         CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
-        string reference = host.ProjectOutput(CompilerPath.Resolve(host.CurrentDirectory, target));
-        var names = new List<string>();
+        Utf8String reference = host.ProjectOutput(CompilerPath.Resolve(host.CurrentDirectory, target));
+        var names = new List<Utf8String>();
         if (reference.Length != 0)
             names.Add(reference);
         names.Add(target);
         names.AddRange(host.RedirectTargets(CompilerPath.Resolve(host.CurrentDirectory, target)));
-        string[] targets = names.Select(f => CompilerPath.Resolve(host.CurrentDirectory, f)).ToArray();
+        Utf8String[] targets = names.Select(f => CompilerPath.Resolve(host.CurrentDirectory, f)).ToArray();
         bool filterIgnored = !targets.All(Ignored);
         var result = new List<ModuleSpecifierPath>();
         if (!preferSymlinks)
             AddTargets();
-        foreach (string directory in PackageJsonCache.Ancestors(
+        foreach (Utf8String directory in PackageJsonCache.Ancestors(
             CompilerPath.DirectoryName(CompilerPath.Resolve(host.CurrentDirectory, target))))
         {
             cancellation.ThrowIfCancellationRequested();
@@ -30,15 +30,15 @@ internal sealed partial class ModuleSpecifierGenerator
             {
                 if (StartsWithDirectory(importingFile, directory))
                     break;
-                foreach (string fileName in targets)
+                foreach (Utf8String fileName in targets)
                 {
                     if (!StartsWithDirectory(fileName, directory))
                         continue;
-                    string relative = CompilerPath.Relative(directory, fileName, host.FileSystem.CaseSensitive);
-                    foreach (string link in symlinks)
+                    Utf8String relative = CompilerPath.Relative(directory, fileName, host.FileSystem.CaseSensitive);
+                    foreach (Utf8String link in symlinks)
                     {
                         cancellation.ThrowIfCancellationRequested();
-                        string file = CompilerPath.Resolve(link, relative);
+                        Utf8String file = CompilerPath.Resolve(link, relative);
                         result.Add(new(file, InNodeModules(file), fileName == reference));
                         filterIgnored = true;
                     }
@@ -53,7 +53,7 @@ internal sealed partial class ModuleSpecifierGenerator
 
         void AddTargets()
         {
-            foreach (string file in targets)
+            foreach (Utf8String file in targets)
             {
                 cancellation.ThrowIfCancellationRequested();
                 if (!(filterIgnored && Ignored(file)))
@@ -62,18 +62,18 @@ internal sealed partial class ModuleSpecifierGenerator
         }
     }
 
-    internal IReadOnlyList<ModuleSpecifierPath> AllPaths(string importingFile, string target, CancellationToken cancellation = default)
+    internal IReadOnlyList<ModuleSpecifierPath> AllPaths(Utf8String importingFile, Utf8String target, CancellationToken cancellation = default)
     {
-        var paths = new Dictionary<string, ModuleSpecifierPath>(StringComparer.Ordinal);
+        var paths = new Dictionary<Utf8String, ModuleSpecifierPath>(Utf8StringComparer.Ordinal);
         foreach (var path in EachPath(importingFile, target, true, cancellation))
             paths[path.FileName] = path;
         var result = new List<ModuleSpecifierPath>();
-        foreach (string directory in PackageJsonCache.Ancestors(CompilerPath.DirectoryName(importingFile)))
+        foreach (Utf8String directory in PackageJsonCache.Ancestors(CompilerPath.DirectoryName(importingFile)))
         {
             cancellation.ThrowIfCancellationRequested();
             if (paths.Count == 0)
                 break;
-            string prefix = CompilerPath.EnsureTrailingSeparator(directory);
+            Utf8String prefix = CompilerPath.EnsureTrailingSeparator(directory);
             var nearby = paths.Values.Where(p => p.FileName.StartsWith(prefix, StringComparison.Ordinal)).ToList();
             nearby.Sort(ComparePaths);
             result.AddRange(nearby);
@@ -91,18 +91,18 @@ internal sealed partial class ModuleSpecifierGenerator
         int result = right.IsRedirect.CompareTo(left.IsRedirect);
         if (result != 0)
             return result;
-        result = left.FileName.AsSpan().Count('/').CompareTo(right.FileName.AsSpan().Count('/'));
+        result = left.FileName.AsSpan().Count((byte)'/').CompareTo(right.FileName.AsSpan().Count((byte)'/'));
         if (result != 0)
             return result;
         int aRoot = CompilerPath.RootLength(left.FileName), bRoot = CompilerPath.RootLength(right.FileName);
         result = CompareText(Lower(left.FileName[..aRoot]), Lower(right.FileName[..bRoot]));
         if (result != 0)
             return result;
-        string a = left.FileName[aRoot..], b = right.FileName[bRoot..];
+        Utf8String a = left.FileName[aRoot..], b = right.FileName[bRoot..];
         return host.FileSystem.CaseSensitive ? CompareText(a, b) : CompareText(Lower(a), Lower(b));
     }
 
-    private bool StartsWithDirectory(string file, string directory)
+    private bool StartsWithDirectory(Utf8String file, Utf8String directory)
     {
         if (directory.Length == 0)
             return false;
@@ -111,20 +111,20 @@ internal sealed partial class ModuleSpecifierGenerator
             file = Lower(file, fileName: true);
             directory = Lower(directory, fileName: true);
         }
-        directory = directory.TrimEnd('/', '\\');
-        return file.StartsWith(directory + "/", StringComparison.Ordinal) || file.StartsWith(directory + "\\", StringComparison.Ordinal);
+        directory = directory.TrimEnd((byte)'/', (byte)'\\');
+        return file.StartsWith(directory + "/"u8, StringComparison.Ordinal) || file.StartsWith(directory + "\\"u8, StringComparison.Ordinal);
     }
 
     // Path identity preserves dotted I; path ordering uses ordinary simple lowercase.
-    private static string Lower(string text, bool fileName = false) => !text.AsSpan().ContainsAnyExceptInRange(
-        '\0',
-        '\x7f') ? text.ToLowerInvariant()
-        : string.Concat(GoUnicode.Runes(text).Select(c => char.ConvertFromUtf32(fileName && c == 0x130 ? c : GoUnicode.Lower(c))));
+    private static Utf8String Lower(Utf8String text, bool fileName = false) => !text.AsSpan().ContainsAnyExceptInRange(
+        (byte)'\0',
+        (byte)'\x7f') ? text.ToLowerInvariant()
+        : Utf8String.Concat(GoUnicode.Runes(text).Select(c => Utf8String.FromCodePoint(fileName && c == 0x130 ? c : GoUnicode.Lower(c))));
 
-    private static int CompareText(string a, string b) => Wtf8.Encode(a).AsSpan().SequenceCompareTo(Wtf8.Encode(b));
+    private static int CompareText(Utf8String a, Utf8String b) => a.Span.SequenceCompareTo(b.Span);
 
-    internal static string CanonicalFileName(string path, bool caseSensitive) => caseSensitive ? path : Lower(path, fileName: true);
+    internal static Utf8String CanonicalFileName(Utf8String path, bool caseSensitive) => caseSensitive ? path : Lower(path, fileName: true);
 
-    internal static bool Ignored(string path) => path.Contains("/node_modules/.", StringComparison.Ordinal)
-            || path.Contains("/.git", StringComparison.Ordinal) || path.Contains(".#", StringComparison.Ordinal);
+    internal static bool Ignored(Utf8String path) => path.Contains("/node_modules/."u8, StringComparison.Ordinal)
+            || path.Contains("/.git"u8, StringComparison.Ordinal) || path.Contains(".#"u8, StringComparison.Ordinal);
 }

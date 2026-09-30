@@ -23,7 +23,7 @@ internal interface IExpressionContextHost
 
     ValueTask<Type?> StaticPropertyContextAsync(PropertyDeclarationNode node, ContextFlags flags, CancellationToken cancellation);
 
-    ValueTask<Type?> ContextualPropertyAsync(Type type, TextSlice name, CancellationToken cancellation);
+    ValueTask<Type?> ContextualPropertyAsync(Type type, Utf8String name, CancellationToken cancellation);
 
     ValueTask<Type?> ObjectElementContextAsync(SyntaxNode node, ContextFlags flags, CancellationToken cancellation);
 
@@ -328,7 +328,7 @@ internal sealed class ExpressionContexts(TypeContext context, TypeAlgebra algebr
             if ((firstSpread < 0 || index < firstSpread)
                 && await host.ContextualPropertyAsync(
                     part,
-                    TextSlice.Format(index),
+                    Utf8String.Format(index),
                     cancellation).ConfigureAwait(false) is { } property)
                 return property;
             return await host.IteratedContextAsync(part, cancellation).ConfigureAwait(false);

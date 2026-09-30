@@ -35,10 +35,10 @@ internal static class CheckerStateTests
         var other = new TypeContext(true);
         var parameter = c.NewTypeParameter();
         var target = (InterfaceType)c.NewObjectType(ObjectFlags.Interface | ObjectFlags.Reference);
-        var aliasSymbol = new Symbol(SymbolFlags.TypeAlias, "A");
+        var aliasSymbol = new Symbol(SymbolFlags.TypeAlias, "A"u8);
         Reject(() => c.CreateTypeReference(target, [other.StringType]));
         Reject(() => c.CreateTypeReference((InterfaceType)other.NewObjectType(ObjectFlags.Interface), []));
-        Reject(() => c.GetFreshLiteralType(other.GetStringLiteralType("x")));
+        Reject(() => c.GetFreshLiteralType(other.GetStringLiteralType("x"u8)));
         Reject(() => c.NewIntersectionType([c.StringType, other.NumberType]));
         Reject(() => c.GetSubstitutionType(c.StringType, other.NumberType));
         Reject(() => c.CreateAlias(aliasSymbol, [other.NumberType]));
@@ -55,7 +55,7 @@ internal static class CheckerStateTests
         Check(reference != c.CreateTypeReference(target, [c.NumberType]));
         Check(c.GetIndexTypeForGenericType(parameter) == c.GetIndexTypeForGenericType(parameter, IndexFlags.NoIndexSignatures));
         Check(c.GetIndexTypeForGenericType(parameter) != c.GetIndexTypeForGenericType(parameter, IndexFlags.StringsOnly));
-        var regular = c.GetStringLiteralType("x");
+        var regular = c.GetStringLiteralType("x"u8);
         var fresh = c.GetFreshLiteralType(regular);
         Check(fresh != regular && fresh.RegularType == regular && fresh.FreshType == fresh && regular.FreshType == fresh);
         Check(c.GetFreshLiteralType(fresh) == fresh);
@@ -63,7 +63,7 @@ internal static class CheckerStateTests
         Check(c.GetNumberLiteralType(-0.0) == c.GetNumberLiteralType(0.0));
 
         var links = new CheckerLinks();
-        var symbol = new Symbol(SymbolFlags.Property, "x");
+        var symbol = new Symbol(SymbolFlags.Property, "x"u8);
         Check(!links.Values.Has(symbol) && links.Values.TryGet(symbol) is null && links.Values.Count == 0);
         var value = links.Values.Get(symbol);
         value.ResolvedType = c.NumberType;
@@ -72,7 +72,7 @@ internal static class CheckerStateTests
         Check(secondLinks.Values.Get(symbol).ResolvedType is null);
 
         var signature = c.NewSignature(SignatureFlags.HasRestParameter | SignatureFlags.IsOuterCallChain | SignatureFlags.IsNonInferrable,
-            null, [parameter], symbol, [symbol], c.StringType, new(TypePredicateKind.Identifier, 0, "x", c.StringType), 1);
+            null, [parameter], symbol, [symbol], c.StringType, new(TypePredicateKind.Identifier, 0, "x"u8, c.StringType), 1);
         var cloned = c.CloneSignature(signature);
         Check(cloned.Flags == SignatureFlags.HasRestParameter && cloned.ResolvedReturnType is null && cloned.ResolvedTypePredicate is null);
         Check(cloned.Id != signature.Id && cloned.MinArgumentCount == 1 && cloned.ResolvedMinArgumentCount == -1);
@@ -133,25 +133,25 @@ internal static class CheckerStateTests
         }
         var order = new TypeOrder([]);
         Check(order.Compare(left, right) < 0 && order.Compare(right, left) > 0);
-        Check(TypeOrder.CompareText("\ue000", "😀") < 0 && TypeOrder.CompareText("\ud800", "\ue000") < 0);
-        string[] names = ["", "a", "aa", "ab", "\0", "\u007f", "\u0080", "\u07ff", "\u0800", "\ud7ff",
-            "\ud800", "\ud800a", "\ud800\ud800", "\ud800\udc00", "\ud800\udc01", "\ud800\ue000",
-            "\udbff\udfff", "\udc00", "\udfff", "\ue000", "\uffff", "😀"];
-        foreach (string prefix in new[] { "", new string('x', 128), "😀\ud800" })
-            foreach (string leftName in names)
-                foreach (string rightName in names)
+        Check(TypeOrder.CompareText("\ue000"u8, "😀"u8) < 0 && TypeOrder.CompareText(Utf8String.Copy([0xED, 0xA0, 0x80]), "\ue000"u8) < 0);
+        Utf8String[] names = [""u8, "a"u8, "aa"u8, "ab"u8, "\0"u8, "\u007f"u8, "\u0080"u8, "\u07ff"u8, "\u0800"u8, "\ud7ff"u8,
+            Utf8String.Copy([0xED, 0xA0, 0x80]), Utf8String.Copy([0xED, 0xA0, 0x80, 0x61]), Utf8String.Copy([0xED, 0xA0, 0x80, 0xED, 0xA0, 0x80]), "\ud800\udc00"u8, "\ud800\udc01"u8, Utf8String.Copy([0xED, 0xA0, 0x80, 0xEE, 0x80, 0x80]),
+            "\udbff\udfff"u8, Utf8String.Copy([0xED, 0xB0, 0x80]), Utf8String.Copy([0xED, 0xBF, 0xBF]), "\ue000"u8, "\uffff"u8, "😀"u8];
+        foreach (Utf8String prefix in new Utf8String[] { default, new Utf8String('x', 128), Utf8String.Concat("😀"u8, [0xED, 0xA0, 0x80]) })
+            foreach (Utf8String leftName in names)
+                foreach (Utf8String rightName in names)
                     Check(Math.Sign(TypeOrder.CompareText(prefix + leftName, prefix + rightName))
-                        == Math.Sign(Wtf8.Encode(prefix + leftName).AsSpan().SequenceCompareTo(Wtf8.Encode(prefix + rightName))));
-        Check(TypeOrder.CompareSymbolNames(Symbol.InternalPrefix + "type", "😀") > 0
-            && TypeOrder.CompareSymbolNames(Symbol.InternalPrefix + Symbol.InternalPrefix + "x", "😀") < 0);
+                        == Math.Sign((prefix + leftName).Span.ToArray().AsSpan().SequenceCompareTo((prefix + rightName).Span.ToArray())));
+        Check(TypeOrder.CompareSymbolNames(Symbol.InternalPrefix + "type"u8, "😀"u8) > 0
+            && TypeOrder.CompareSymbolNames("\ue000x"u8, "😀"u8) < 0);
 
         // Symbols in earlier program files sort before source positions in later files.
         var firstFile = new SourceFileNode();
         var lastFile = new SourceFileNode();
         var firstNode = new IdentifierNode { Pos = 100, Parent = firstFile };
         var lastNode = new IdentifierNode { Pos = 1, Parent = lastFile };
-        var firstSymbol = new Symbol(SymbolFlags.Interface, "I");
-        var lastSymbol = new Symbol(SymbolFlags.Interface, "I");
+        var firstSymbol = new Symbol(SymbolFlags.Interface, "I"u8);
+        var lastSymbol = new Symbol(SymbolFlags.Interface, "I"u8);
         firstSymbol.DeclarationList = firstSymbol.DeclarationList.Add(firstNode);
         lastSymbol.DeclarationList = lastSymbol.DeclarationList.Add(lastNode);
         order = new([firstFile, lastFile]);
@@ -190,7 +190,7 @@ internal static class CheckerStateTests
             {
                 entity = group switch
                 {
-                    0 => new Symbol(SymbolFlags.Property, id.ToString()),
+                    0 => new Symbol(SymbolFlags.Property, Utf8String.Format(id)),
                     1 => context.NewSignature(0, null, [], null, [], null, null, 0),
                     2 => new IdentifierNode(),
                     _ => context.NewObjectType(ObjectFlags.Interface | ObjectFlags.Reference)
@@ -202,26 +202,26 @@ internal static class CheckerStateTests
         writer.WriteStartArray();
         foreach (var operation in operations.EnumerateArray())
         {
-            int Read(string key) => operation.TryGetProperty(key, out var value) ? value.GetInt32() : 0;
-            var property = (TypeSystemPropertyName)Read("property");
-            object target = Entity(Read("target"), property);
+            int Read(Utf8String key) => operation.TryGetProperty(key, out var value) ? value.GetInt32() : 0;
+            var property = (TypeSystemPropertyName)Read("property"u8);
+            object target = Entity(Read("target"u8), property);
             int result;
-            switch (operation.GetProperty("op").GetString())
+            switch (JsonStrings.GetString(operation.GetProperty("op"u8)))
             {
-                case "push":
+                case var matchedText when matchedText == "push"u8:
                     result = stack.Push(target, property) ? 1 : 0;
                     break;
-                case "pop":
+                case var matchedText2 when matchedText2 == "pop"u8:
                     result = stack.Pop() ? 1 : 0;
                     break;
-                case "find":
+                case var matchedText3 when matchedText3 == "find"u8:
                     result = stack.FindCycleStart(target, property);
                     break;
-                case "start":
-                    result = stack.ResolutionStart = Read("value");
+                case var matchedText4 when matchedText4 == "start"u8:
+                    result = stack.ResolutionStart = Read("value"u8);
                     break;
-                case "set":
-                    Set(target, property, Read("value") != 0);
+                case var matchedText5 when matchedText5 == "set"u8:
+                    Set(target, property, Read("value"u8) != 0);
                     result = links.HasResolvedProperty(target, property) ? 1 : 0;
                     break;
                 default:
@@ -250,7 +250,7 @@ internal static class CheckerStateTests
                     links.Values.Get((Symbol)target).WriteType = type;
                     break;
                 case TypeSystemPropertyName.AliasTarget:
-                    links.Aliases.Get((Symbol)target).AliasTarget = resolved ? new(SymbolFlags.None, "target") : null;
+                    links.Aliases.Get((Symbol)target).AliasTarget = resolved ? new(SymbolFlags.None, "target"u8) : null;
                     break;
                 case TypeSystemPropertyName.ResolvedTypeArguments:
                     ((TypeReference)target).ResolvedTypeArguments = resolved ? [] : null;

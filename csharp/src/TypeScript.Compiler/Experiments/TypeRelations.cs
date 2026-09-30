@@ -24,7 +24,7 @@ public enum AtomKind
     True,
     False
 }
-public readonly record struct TypeAtom(AtomKind Kind, string? Value = null);
+public readonly record struct TypeAtom(AtomKind Kind, Utf8String? Value = null);
 
 public interface IRelationPolicy
 {
@@ -92,7 +92,7 @@ public static class TypeRelations
     // This representation parser only accepts the syntax needed by the slice.
     // Unsupported grammar throws; it cannot report a false compiler success.
     // Explicit parenthesis depth makes input-shaped nesting independent of stack.
-    public static TypeAtom[] Parse(ReadOnlySpan<char> text, IReadOnlyList<TypeAtom[]> previousAliases)
+    public static TypeAtom[] Parse(ReadOnlySpan<byte> text, IReadOnlyList<TypeAtom[]> previousAliases)
     {
         List<TypeAtom> atoms = [];
         int depth = 0;
@@ -102,7 +102,7 @@ public static class TypeRelations
             text = text.TrimStart();
             if (text.IsEmpty)
                 break;
-            char ch = text[0];
+            int ch = text[0];
             if (ch == '(' && expectType)
             {
                 depth++;
@@ -125,18 +125,18 @@ public static class TypeRelations
                 throw new NotSupportedException("Type slice expects a union separator");
             if (ch is '\'' or '"')
             {
-                int end = text[1..].IndexOf(ch);
-                if (end < 0 || text.Slice(1, end).Contains('\\'))
+                int end = text[1..].IndexOf((byte)ch);
+                if (end < 0 || text.Slice(1, end).Contains((byte)'\\'))
                     throw new NotSupportedException("Escaped/unterminated literals need the full scanner");
-                atoms.Add(new(AtomKind.StringLiteral, text.Slice(1, end).ToString()));
+                atoms.Add(new(AtomKind.StringLiteral, Utf8String.Copy(text.Slice(1, end))));
                 text = text[(end + 2)..];
             }
             else
             {
-                int end = text.IndexOfAny(" |()\t\r\n");
+                int end = text.IndexOfAny(" |()\t\r\n"u8);
                 if (end < 0)
                     end = text.Length;
-                ReadOnlySpan<char> token = text[..end];
+                ReadOnlySpan<byte> token = text[..end];
                 text = text[end..];
                 if (token.Length > 1
                     && token[0] == 'T'
@@ -149,26 +149,26 @@ public static class TypeRelations
                     CultureInfo.InvariantCulture,
                     out double number)
                     && double.IsFinite(number))
-                    atoms.Add(new(AtomKind.NumberLiteral, number == 0 ? "0" : number.ToString("R", CultureInfo.InvariantCulture)));
+                    atoms.Add(new(AtomKind.NumberLiteral, number == 0 ? Utf8Literals.Zero : Utf8String.Format(number, "R")));
                 else
                 {
                     AtomKind kind = token switch
                     {
-                        "any" => AtomKind.Any,
-                        "unknown" => AtomKind.Unknown,
-                        "never" => AtomKind.Never,
-                        "string" => AtomKind.String,
-                        "number" => AtomKind.Number,
-                        "bigint" => AtomKind.BigInt,
-                        "boolean" => AtomKind.Boolean,
-                        "undefined" => AtomKind.Undefined,
-                        "null" => AtomKind.Null,
-                        "void" => AtomKind.Void,
-                        "symbol" => AtomKind.Symbol,
-                        "object" => AtomKind.Object,
-                        "true" => AtomKind.True,
-                        "false" => AtomKind.False,
-                        _ => throw new NotSupportedException($"Unsupported type syntax: {token}"),
+                        _ when token.SequenceEqual("any"u8) => AtomKind.Any,
+                        _ when token.SequenceEqual("unknown"u8) => AtomKind.Unknown,
+                        _ when token.SequenceEqual("never"u8) => AtomKind.Never,
+                        _ when token.SequenceEqual("string"u8) => AtomKind.String,
+                        _ when token.SequenceEqual("number"u8) => AtomKind.Number,
+                        _ when token.SequenceEqual("bigint"u8) => AtomKind.BigInt,
+                        _ when token.SequenceEqual("boolean"u8) => AtomKind.Boolean,
+                        _ when token.SequenceEqual("undefined"u8) => AtomKind.Undefined,
+                        _ when token.SequenceEqual("null"u8) => AtomKind.Null,
+                        _ when token.SequenceEqual("void"u8) => AtomKind.Void,
+                        _ when token.SequenceEqual("symbol"u8) => AtomKind.Symbol,
+                        _ when token.SequenceEqual("object"u8) => AtomKind.Object,
+                        _ when token.SequenceEqual("true"u8) => AtomKind.True,
+                        _ when token.SequenceEqual("false"u8) => AtomKind.False,
+                        _ => throw new NotSupportedException($"Unsupported type syntax: {Utf8String.Copy(token)}"),
                     };
                     if (kind == AtomKind.Boolean)
                         atoms.AddRange([new(AtomKind.True), new(AtomKind.False)]);

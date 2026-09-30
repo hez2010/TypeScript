@@ -12,8 +12,8 @@ using TypeScript.Compiler.Text;
 
 namespace TypeScript.Compiler.Mapping;
 
-public sealed record MapperOptionDiagnostic(ContentMapper Mapper, JsonElement[] Path, string Source, DiagnosticCode Code, string Message);
-public readonly record struct MapperTiming(string Mapper, string Operation, long Count, TimeSpan Duration);
+public sealed record MapperOptionDiagnostic(ContentMapper Mapper, JsonElement[] Path, Utf8String Source, DiagnosticCode Code, Utf8String Message);
+public readonly record struct MapperTiming(Utf8String Mapper, Utf8String Operation, long Count, TimeSpan Duration);
 
 /// <summary>Owns lazily started mapper processes and retained project configurations.</summary>
 public sealed class ContentMapperHost : IAsyncDisposable
@@ -25,17 +25,17 @@ public sealed class ContentMapperHost : IAsyncDisposable
         internal int References;
     }
 
-    internal sealed class ProjectEntry(ContentMapper mapper, CompilerOptions options, string config, string handle, ProcessEntry process)
+    internal sealed class ProjectEntry(ContentMapper mapper, CompilerOptions options, Utf8String config, Utf8String handle, ProcessEntry process)
     {
         internal readonly ContentMapper Mapper = mapper;
         internal readonly CompilerOptions Options = options;
-        internal readonly string Config = config, Handle = handle;
+        internal readonly Utf8String Config = config, Handle = handle;
         internal readonly ProcessEntry Process = process;
         internal readonly SemaphoreSlim Gate = new(1, 1);
         internal volatile bool Opened, Closed;
         internal Task? Opening;
-        internal string ConfigIdentity = "";
-        internal string[] WatchedFiles = [];
+        internal Utf8String ConfigIdentity = default;
+        internal Utf8String[] WatchedFiles = [];
         internal MapperOptionDiagnostic[] Diagnostics = [];
     }
 
@@ -48,15 +48,15 @@ public sealed class ContentMapperHost : IAsyncDisposable
 
     private readonly SemaphoreSlim gate = new(1, 1);
     private readonly CancellationTokenSource lifetime = new();
-    private readonly Dictionary<string, ProcessEntry> processes = new(StringComparer.Ordinal);
+    private readonly Dictionary<Utf8String, ProcessEntry> processes = new(Utf8StringComparer.Ordinal);
     private readonly Dictionary<ParsedConfig, ProjectLease> projects = new(ReferenceEqualityComparer.Instance);
-    private readonly Dictionary<(string Mapper, string Operation), (long Count, long Ticks)> timings = [];
-    private readonly Action<string>? log;
-    private string locale;
+    private readonly Dictionary<(Utf8String Mapper, Utf8String Operation), (long Count, long Ticks)> timings = [];
+    private readonly Action<Utf8String>? log;
+    private Utf8String locale;
     private long nextProject;
     private bool closed;
 
-    public ContentMapperHost(string locale = "", Action<string>? log = null)
+    public ContentMapperHost(Utf8String locale = default, Action<Utf8String>? log = null)
     {
         this.locale = locale;
         this.log = log;
@@ -80,11 +80,11 @@ public sealed class ContentMapperHost : IAsyncDisposable
             var entries = new List<ProjectEntry>();
             foreach (var mapper in config.ContentMappers)
             {
-                string identity = Identity(mapper);
+                Utf8String identity = Identity(mapper);
                 if (!processes.TryGetValue(identity, out var process))
                     processes[identity] = process = new(mapper);
                 process.References++;
-                entries.Add(new(mapper, options, config.FileName, identity + ":" + nextProject++, process));
+                entries.Add(new(mapper, options, config.FileName, identity + Utf8Literals.Colon + nextProject++, process));
             }
             var lease = new ProjectLease(config, entries.ToArray());
             projects.Add(config, lease);
@@ -96,21 +96,20 @@ public sealed class ContentMapperHost : IAsyncDisposable
         }
     }
 
-    public static string Identity(ContentMapper mapper) => mapper.Name + (mapper.Version.Length == 0 ? "" : "@" + mapper.Version);
+    public static Utf8String Identity(ContentMapper mapper) => mapper.Name + (mapper.Version.Length == 0 ? Utf8String.Empty : Utf8Literals.At + mapper.Version);
 
     internal static byte[] DeclaredOptions(ContentMapper mapper, CompilerOptions options)
         => SerializeOptions(options, mapper.CompilerOptions is { ValueKind: JsonValueKind.Array } names
             ? names.EnumerateArray().Select(JsonStrings.GetString) : [], true);
 
-    private static byte[] SerializeOptions(CompilerOptions options, IEnumerable<string> names, bool declaredOnly)
+    private static byte[] SerializeOptions(CompilerOptions options, IEnumerable<Utf8String> names, bool declaredOnly)
     {
         using var stream = new MemoryStream();
-        var namePatches = new List<(int Start, int End, string Name)>();
         using (var writer = new Utf8JsonWriter(stream, new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping }))
         {
             writer.WriteStartObject();
-            var seen = new HashSet<string>(StringComparer.Ordinal);
-            foreach (string key in names)
+            var seen = new HashSet<Utf8String>(Utf8StringComparer.Ordinal);
+            foreach (Utf8String key in names)
             {
                 if (!seen.Add(key))
                     continue;
@@ -126,45 +125,32 @@ public sealed class ContentMapperHost : IAsyncDisposable
                 writer.WritePropertyName(key);
                 if (definition?.Kind == OptionKind.Enum && value.ValueKind == JsonValueKind.String)
                     writer.WriteRawValue(
-                        OptionDefinitions.EnumValueJson(definition.ValueIdentity(JsonStrings.GetString(value)) ?? value.GetRawText()));
+                        OptionDefinitions.EnumValueJson(definition.ValueIdentity(JsonStrings.GetString(value)) ?? JsonStrings.Raw(value)));
                 else if (definition?.ElementKind == OptionKind.Enum && value.ValueKind == JsonValueKind.Array)
                 {
                     writer.WriteStartArray();
                     foreach (var element in value.EnumerateArray())
                     {
-                        string text = JsonStrings.GetString(element);
+                        Utf8String text = JsonStrings.GetString(element);
                         int index = Array.FindIndex(definition.Values, v => v.Equals(text, StringComparison.OrdinalIgnoreCase));
                         if (index < 0)
-                            WriteCanonical(writer, element, namePatches);
+                            WriteCanonical(writer, element);
                         else
                             writer.WriteRawValue(OptionDefinitions.EnumValueJson(definition.ValueIdentities[index]));
                     }
                     writer.WriteEndArray();
                 }
                 else
-                    WriteCanonical(writer, value, namePatches);
+                    WriteCanonical(writer, value);
             }
             writer.WriteEndObject();
         }
-        if (namePatches.Count == 0)
-            return stream.ToArray();
-        byte[] bytes = stream.ToArray();
-        using var patched = new MemoryStream();
-        int previous = 0;
-        foreach (var patch in namePatches)
-        {
-            int start = bytes[patch.Start] == ',' ? patch.Start + 1 : patch.Start;
-            patched.Write(bytes.AsSpan(previous, start - previous));
-            patched.Write(ProtocolString(patch.Name));
-            previous = patch.End;
-        }
-        patched.Write(bytes.AsSpan(previous));
-        return patched.ToArray();
+        return stream.ToArray();
     }
 
-    private static void WriteCanonical(Utf8JsonWriter writer, JsonElement value, List<(int Start, int End, string Name)> namePatches)
+    private static void WriteCanonical(Utf8JsonWriter writer, JsonElement value)
     {
-        var pending = new Stack<(JsonElement Value, string? Name, bool Close)>();
+        var pending = new Stack<(JsonElement Value, Utf8String? Name, bool Close)>();
         pending.Push((value, null, false));
         while (pending.TryPop(out var item))
         {
@@ -176,13 +162,8 @@ public sealed class ContentMapperHost : IAsyncDisposable
                     writer.WriteEndArray();
                 continue;
             }
-            if (item.Name is not null)
-            {
-                int start = checked((int)(writer.BytesCommitted + writer.BytesPending));
-                writer.WritePropertyName(item.Name);
-                if (item.Name.Any(char.IsSurrogate))
-                    namePatches.Add((start, checked((int)(writer.BytesCommitted + writer.BytesPending)) - 1, item.Name));
-            }
+            if (item.Name is { } name)
+                JsonStrings.WriteEncodedName(writer, ProtocolString(name).AsSpan()[1..^1]);
             switch (item.Value.ValueKind)
             {
                 case JsonValueKind.Object:
@@ -213,43 +194,42 @@ public sealed class ContentMapperHost : IAsyncDisposable
         }
     }
 
-    private static byte[] ProtocolString(string value)
+    private static byte[] ProtocolString(Utf8String value)
     {
         // System.Text.Json escapes supplementary scalars even with its relaxed encoder.
         // Mapper fingerprints use Go's compact UTF-8 JSON spelling, so those bytes must remain literal.
-        var text = new StringBuilder(value.Length + 2).Append('"');
+        var text = new Utf8StringBuilder(value.Length + 2).Append((byte)'"');
         for (int i = 0; i < value.Length; i++)
         {
-            char c = value[i];
-            string? escape = c switch
+            int c = Wtf8.Decode(value.Span[i..], out int width);
+            i += width - 1;
+            ReadOnlySpan<byte> escape = c switch
             {
-                '"' => "\\\"",
-                '\\' => "\\\\",
-                '\b' => "\\b",
-                '\f' => "\\f",
-                '\n' => "\\n",
-                '\r' => "\\r",
-                '\t' => "\\t",
-                _ => null
+                '"' => "\\\""u8,
+                '\\' => "\\\\"u8,
+                '\b' => "\\b"u8,
+                '\f' => "\\f"u8,
+                '\n' => "\\n"u8,
+                '\r' => "\\r"u8,
+                '\t' => "\\t"u8,
+                _ => default
             };
-            if (escape is not null)
+            if (!escape.IsEmpty)
                 text.Append(escape);
-            else if (char.IsHighSurrogate(c) && i + 1 < value.Length && char.IsLowSurrogate(value[i + 1]))
-                text.Append(c).Append(value[++i]);
-            else if (c < ' ' || char.IsSurrogate(c))
-                text.Append("\\u").Append(((int)c).ToString("x4", System.Globalization.CultureInfo.InvariantCulture));
+            else if (c < ' ' || c is >= 0xD800 and <= 0xDFFF)
+                text.Append("\\u"u8).Append(Utf8String.Format(c, "x4"));
             else
-                text.Append(c);
+                text.AppendCodePoint(c);
         }
-        return Encoding.UTF8.GetBytes(text.Append('"').ToString());
+        return text.Append((byte)'"').WrittenSpan.ToArray();
     }
 
-    internal static string TransformIdentity(ProjectEntry entry)
+    internal static Utf8String TransformIdentity(ProjectEntry entry)
     {
         using var stream = new MemoryStream();
-        string identity = Identity(entry.Mapper);
-        byte[] rawOptions = entry.Mapper.Options is { } options ? Encoding.UTF8.GetBytes(options.GetRawText()) : [];
-        stream.Write(Encoding.UTF8.GetBytes(identity));
+        Utf8String identity = Identity(entry.Mapper);
+        ReadOnlySpan<byte> rawOptions = entry.Mapper.Options is { } options ? JsonStrings.Raw(options).Span : [];
+        stream.Write(identity.Span);
         stream.WriteByte(0);
         stream.Write(rawOptions);
         stream.WriteByte(0);
@@ -258,19 +238,21 @@ public sealed class ContentMapperHost : IAsyncDisposable
         if (entry.Mapper.DynamicConfig)
         {
             stream.SetLength(0);
-            stream.Write(Encoding.UTF8.GetBytes(identity));
+            stream.Write(identity.Span);
             stream.WriteByte(0);
             stream.Write(rawOptions);
             stream.WriteByte(0);
-            stream.Write(Encoding.UTF8.GetBytes(entry.ConfigIdentity));
+            stream.Write(entry.ConfigIdentity.Span);
             stream.WriteByte(0);
             stream.Write(hash);
             hash = XxHash128.Hash(stream.GetBuffer().AsSpan(0, (int)stream.Length));
         }
-        return identity + ":" + Convert.ToHexStringLower(hash);
+        Span<byte> hexadecimal = stackalloc byte[hash.Length * 2];
+        Convert.TryToHexStringLower(hash, hexadecimal, out _);
+        return Utf8String.Concat(identity, ":"u8, hexadecimal);
     }
 
-    private void Record(ContentMapper mapper, string operation, long started)
+    private void Record(ContentMapper mapper, Utf8String operation, long started)
     {
         lock (timings)
         {
@@ -283,7 +265,7 @@ public sealed class ContentMapperHost : IAsyncDisposable
     public IReadOnlyList<MapperTiming> Timings()
     {
         lock (timings)
-            return timings.OrderBy(e => e.Key.Mapper, StringComparer.Ordinal).ThenBy(e => e.Key.Operation, StringComparer.Ordinal)
+            return timings.OrderBy(e => e.Key.Mapper, Utf8StringComparer.Ordinal).ThenBy(e => e.Key.Operation, Utf8StringComparer.Ordinal)
             .Select(
                 e => new MapperTiming(
                     e.Key.Mapper,
@@ -292,7 +274,7 @@ public sealed class ContentMapperHost : IAsyncDisposable
                     TimeSpan.FromSeconds((double)e.Value.Ticks / Stopwatch.Frequency))).ToArray();
     }
 
-    private async Task<MapperProcess> Start(ProcessEntry entry, string locale)
+    private async Task<MapperProcess> Start(ProcessEntry entry, Utf8String locale)
     {
         long time = Stopwatch.GetTimestamp();
         try
@@ -301,7 +283,7 @@ public sealed class ContentMapperHost : IAsyncDisposable
         }
         finally
         {
-            Record(entry.Mapper, "initialize", time);
+            Record(entry.Mapper, Utf8Literals.Initialize, time);
         }
     }
 
@@ -342,22 +324,22 @@ public sealed class ContentMapperHost : IAsyncDisposable
                     long start = Stopwatch.GetTimestamp();
                     try
                     {
-                        var result = await connection.Call("openProject", writer =>
+                        var result = await connection.Call(Utf8Literals.OpenProject, writer =>
                         {
-                            writer.WriteString("configFileName", entry.Config);
-                            writer.WriteString("projectHandle", entry.Handle);
+                            writer.WriteString("configFileName"u8, entry.Config);
+                            writer.WriteString("projectHandle"u8, entry.Handle);
                             if (entry.Mapper.Options is { } options)
                             {
-                                writer.WritePropertyName("options");
+                                writer.WritePropertyName("options"u8);
                                 JsonStrings.WriteValue(writer, options);
                             }
-                            writer.WritePropertyName("compilerOptions");
+                            writer.WritePropertyName("compilerOptions"u8);
                             writer.WriteRawValue(SerializeOptions(entry.Options, entry.Options.Values.Keys, false));
                         }, lifetime.Token).ConfigureAwait(false);
-                        string identity = result.TryGetProperty("configIdentity", out var rawIdentity)
+                        Utf8String identity = result.TryGetProperty("configIdentity"u8, out var rawIdentity)
                             ? JsonStrings.GetString(rawIdentity)
-                            : "";
-                        string[] watched = result.TryGetProperty("watchedFiles", out var files)
+                            : Utf8String.Empty;
+                        Utf8String[] watched = result.TryGetProperty("watchedFiles"u8, out var files)
                             ? files.EnumerateArray().Select(JsonStrings.GetString).ToArray()
                             : [];
                         if (entry.Mapper.DynamicConfig && identity.Length == 0)
@@ -367,10 +349,10 @@ public sealed class ContentMapperHost : IAsyncDisposable
                         if (watched.Any(f => !CompilerPath.IsAbsolute(f)))
                             throw new InvalidDataException("Mapper watch dependencies must be absolute paths");
                         var diagnostics = new List<MapperOptionDiagnostic>();
-                        if (result.TryGetProperty("optionDiagnostics", out var errors))
+                        if (result.TryGetProperty("optionDiagnostics"u8, out var errors))
                             foreach (var diagnostic in errors.EnumerateArray())
                             {
-                                JsonElement[] path = diagnostic.GetProperty("path").EnumerateArray().Select(p => p.Clone()).ToArray();
+                                JsonElement[] path = diagnostic.GetProperty("path"u8).EnumerateArray().Select(p => p.Clone()).ToArray();
                                 if (path.Any(
                                     p => p.ValueKind != JsonValueKind.String
                                         && (p.ValueKind != JsonValueKind.Number || !p.TryGetInt32(out int index) || index < 0)))
@@ -380,8 +362,8 @@ public sealed class ContentMapperHost : IAsyncDisposable
                                         entry.Mapper,
                                         path,
                                         connection.DiagnosticSource,
-                                        (DiagnosticCode)diagnostic.GetProperty("code").GetInt32(),
-                                        JsonStrings.GetString(diagnostic.GetProperty("messageText"))));
+                                        (DiagnosticCode)diagnostic.GetProperty("code"u8).GetInt32(),
+                                        JsonStrings.GetString(diagnostic.GetProperty("messageText"u8))));
                             }
                         entry.ConfigIdentity = identity;
                         entry.WatchedFiles = watched;
@@ -392,11 +374,11 @@ public sealed class ContentMapperHost : IAsyncDisposable
                         or KeyNotFoundException
                         || e is OperationCanceledException && !lifetime.IsCancellationRequested)
                     {
-                        throw new MapperException(MapperFailure.Project, "Mapper openProject failed", e);
+                        throw new MapperException(MapperFailure.Project, Utf8Literals.MapperOpenProjectFailed, e);
                     }
                     finally
                     {
-                        Record(entry.Mapper, "openProject", start);
+                        Record(entry.Mapper, Utf8Literals.OpenProject, start);
                     }
                 }
             }
@@ -410,9 +392,9 @@ public sealed class ContentMapperHost : IAsyncDisposable
         }
     }
 
-    internal async ValueTask<(MapperResult Result, string Identity)> Transform(
+    internal async ValueTask<(MapperResult Result, Utf8String Identity)> Transform(
         ProjectEntry entry,
-        string fileName,
+        Utf8String fileName,
         SourceText content,
         CancellationToken cancellation)
     {
@@ -424,25 +406,24 @@ public sealed class ContentMapperHost : IAsyncDisposable
             JsonElement raw;
             try
             {
-                raw = await connection.Call("transform", writer =>
+                raw = await connection.Call(Utf8Literals.Transform, writer =>
                 {
-                    writer.WriteString("fileName", fileName);
-                    writer.WritePropertyName("content");
+                    writer.WriteString("fileName"u8, fileName);
+                    writer.WritePropertyName("content"u8);
                     JsonStrings.WriteString(writer, content.Text.Span);
-                    writer.WriteString("projectHandle", entry.Handle);
+                    writer.WriteString("projectHandle"u8, entry.Handle);
                 }, linked.Token).ConfigureAwait(false);
             }
             catch (Exception e) when (e is IOException or JsonException or InvalidOperationException
                 || e is OperationCanceledException && !linked.IsCancellationRequested)
             {
-                throw new MapperException(MapperFailure.Request, "Mapper transform request failed", e);
+                throw new MapperException(MapperFailure.Request, Utf8Literals.MapperTransformRequestFailed, e);
             }
             try
             {
                 return (MapperOutputDecoder.Decode(
                     raw,
                     content,
-                    connection.PositionEncoding,
                     connection.DiagnosticSource), TransformIdentity(entry));
             }
             catch (MappingException)
@@ -452,12 +433,12 @@ public sealed class ContentMapperHost : IAsyncDisposable
             catch (Exception e) when (e is IOException or InvalidDataException or JsonException or InvalidOperationException
                 or KeyNotFoundException or OverflowException or FormatException)
             {
-                throw new MapperException(MapperFailure.Response, "Mapper returned an invalid transform", e);
+                throw new MapperException(MapperFailure.Response, Utf8Literals.MapperReturnedAnInvalidTransform, e);
             }
         }
         finally
         {
-            Record(entry.Mapper, "transform", start);
+            Record(entry.Mapper, Utf8Literals.Transform, start);
             entry.Gate.Release();
         }
     }
@@ -482,13 +463,13 @@ public sealed class ContentMapperHost : IAsyncDisposable
             try
             {
                 await process.Result.Call(
-                    "closeProject",
-                    w => w.WriteString("projectHandle", entry.Handle),
+                    Utf8Literals.CloseProject,
+                    w => w.WriteString("projectHandle"u8, entry.Handle),
                     cancellation).ConfigureAwait(false);
             }
             finally
             {
-                Record(entry.Mapper, "closeProject", start);
+                Record(entry.Mapper, Utf8Literals.CloseProject, start);
             }
         }
     }
@@ -580,7 +561,7 @@ public sealed class ContentMapperHost : IAsyncDisposable
         entry.Process = null;
     }
 
-    public async ValueTask SetLocaleAsync(string locale, CancellationToken cancellation = default)
+    public async ValueTask SetLocaleAsync(Utf8String locale, CancellationToken cancellation = default)
     {
         await gate.WaitAsync(cancellation).ConfigureAwait(false);
         var held = new List<ProjectEntry>();
@@ -672,7 +653,7 @@ public sealed class ContentMapperProject : IAsyncDisposable
             mapper)) ?? throw new ArgumentException("Mapper is not in this project", nameof(mapper));
     }
 
-    public async ValueTask<string> IdentityAsync(ContentMapper mapper, CancellationToken cancellation = default)
+    public async ValueTask<Utf8String> IdentityAsync(ContentMapper mapper, CancellationToken cancellation = default)
     {
         var entry = Entry(mapper);
         if (!mapper.DynamicConfig)
@@ -688,17 +669,17 @@ public sealed class ContentMapperProject : IAsyncDisposable
         }
     }
 
-    public async ValueTask<IReadOnlyList<string>> IdentitiesAsync(CancellationToken cancellation = default)
+    public async ValueTask<IReadOnlyList<Utf8String>> IdentitiesAsync(CancellationToken cancellation = default)
     {
-        var values = new List<string>();
+        var values = new List<Utf8String>();
         foreach (var entry in lease.Entries)
             values.Add(await IdentityAsync(entry.Mapper, cancellation).ConfigureAwait(false));
         return values;
     }
 
-    public async ValueTask<IReadOnlyList<string>> WatchedFilesAsync(CancellationToken cancellation = default)
+    public async ValueTask<IReadOnlyList<Utf8String>> WatchedFilesAsync(CancellationToken cancellation = default)
     {
-        var files = new SortedSet<string>(StringComparer.Ordinal);
+        var files = new SortedSet<Utf8String>(Utf8StringComparer.Ordinal);
         foreach (var entry in lease.Entries)
             if (entry.Mapper.DynamicConfig)
             {
@@ -721,7 +702,7 @@ public sealed class ContentMapperProject : IAsyncDisposable
 
     public async ValueTask<MapperResult> TransformAsync(
         ContentMapper mapper,
-        string fileName,
+        Utf8String fileName,
         SourceText content,
         CancellationToken cancellation = default) =>
             (await host.Transform(Entry(mapper), fileName, content, cancellation).ConfigureAwait(false)).Result;

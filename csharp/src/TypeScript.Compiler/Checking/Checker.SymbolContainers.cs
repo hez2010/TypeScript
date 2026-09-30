@@ -83,7 +83,7 @@ internal sealed partial class Checker
                 && assignment.Left is PropertyAccessExpressionNode or ElementAccessExpressionNode
                 && FlowReferences.Receiver(assignment.Left) is { } receiver && EntityExpression(receiver))
             {
-                if (ModuleExportsAccess(assignment.Left) || receiver is IdentifierNode { Text.Span: "exports" })
+                if (ModuleExportsAccess(assignment.Left) || receiver is IdentifierNode { Text.Span: var matchedText } && matchedText.SequenceEqual("exports"u8))
                     Add(program.Symbols.Declaration(SemanticSyntax.Source(declaration)!));
                 else
                 {
@@ -256,7 +256,7 @@ internal sealed partial class Checker
     private async ValueTask<Symbol?> ExportEqualsContainerAsync(SyntaxNode declaration, Symbol container, CancellationToken cancellation)
     {
         var file = ExternalModuleContainer(declaration);
-        return file?.Exports.GetValueOrDefault("export=") is { } exported
+        return file?.Exports.GetValueOrDefault(Utf8Literals.ExportEquals) is { } exported
             && await SameSymbolReferenceAsync(exported, container, cancellation)
             ? file : null;
     }
@@ -272,7 +272,7 @@ internal sealed partial class Checker
     {
         if (container == program.Symbols.Parent(symbol))
             return symbol;
-        if (container.Exports.GetValueOrDefault("export=") is { } exported
+        if (container.Exports.GetValueOrDefault(Utf8Literals.ExportEquals) is { } exported
             && await SameSymbolReferenceAsync(exported, symbol, cancellation))
             return container;
         var exports = await ExportsAsync(container, cancellation);

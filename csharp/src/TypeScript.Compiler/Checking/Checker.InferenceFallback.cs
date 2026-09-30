@@ -131,7 +131,7 @@ internal sealed partial class Checker
                 PushFunction(node);
                 continue;
             }
-            if (!PrimitiveInferenceExpression(node) && node is not IdentifierNode { Text.Span: "undefined" }
+            if (!PrimitiveInferenceExpression(node) && !(node is IdentifierNode { Text.Span: var matchedText } && matchedText.SequenceEqual("undefined"u8))
                 && node.Kind != SyntaxKind.OmittedExpression && (node is not TemplateExpressionNode || ReusableConstArray(node)))
                 state.Tracker.ReportInferenceFallback(!returnType && ConstantEvaluator.EntityName(node)
                     && QuerySyntax.Declaration(node.Parent) ? node.Parent! : node);
@@ -161,8 +161,6 @@ internal sealed partial class Checker
     {
         while (node is ParenthesizedExpressionNode parentheses)
             node = parentheses.Expression!;
-        return !PrimitiveInferenceExpression(node) && node is not (IdentifierNode { Text.Span: "undefined" }
-            or ArrayLiteralExpressionNode or ObjectLiteralExpressionNode or FunctionExpressionNode or ArrowFunctionNode
-            or AsExpressionNode or TypeAssertionNode or ClassExpressionNode or TemplateExpressionNode);
+        return !PrimitiveInferenceExpression(node) && !(node is IdentifierNode { Text.Span: var matchedText2 } && matchedText2.SequenceEqual("undefined"u8) || node is ArrayLiteralExpressionNode || node is ObjectLiteralExpressionNode || node is FunctionExpressionNode || node is ArrowFunctionNode || node is AsExpressionNode || node is TypeAssertionNode || node is ClassExpressionNode || node is TemplateExpressionNode);
     }
 }

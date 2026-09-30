@@ -14,11 +14,11 @@ public sealed class SliceWorkspace<TStore>(Func<TStore> createStore) : IDisposab
     private SliceProject<TStore>? current;
     private bool disposed;
 
-    public void Update(IReadOnlyDictionary<string, byte[]> inputs, CancellationToken cancellation = default)
+    public void Update(IReadOnlyDictionary<Utf8String, byte[]> inputs, CancellationToken cancellation = default)
     {
         SliceProject<TStore>? previous = Volatile.Read(ref current);
         List<SliceFile<TStore>> files = [];
-        foreach (var input in inputs.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+        foreach (var input in inputs.OrderBy(pair => pair.Key, Utf8StringComparer.Ordinal))
         {
             cancellation.ThrowIfCancellationRequested();
             if (previous?.Files.TryGetValue(input.Key, out var shared) == true && shared.Text.AsSpan().SequenceEqual(input.Value))
@@ -56,7 +56,7 @@ public sealed class SliceWorkspace<TStore>(Func<TStore> createStore) : IDisposab
         private SliceProject<TStore>? owner = project;
         public SliceProject<TStore> Project => Volatile.Read(ref owner) ?? throw new ObjectDisposedException(nameof(SnapshotLease));
 
-        public SliceNodeHandle<TStore> Root(string name) => new(Project.Files[name], Project.Files[name].Root);
+        public SliceNodeHandle<TStore> Root(Utf8String name) => new(Project.Files[name], Project.Files[name].Root);
 
         public NodeHeader Read(SliceNodeHandle<TStore> handle)
         {

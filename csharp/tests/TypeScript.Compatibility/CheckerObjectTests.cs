@@ -23,15 +23,15 @@ internal static class CheckerObjectTests
         var algebra = new TypeAlgebra(context, new([]), relations);
         var host = new InstantiationFixtureHost(context, algebra, links, relations);
         var scope = new FunctionDeclarationNode();
-        var declaration = new TypeParameterDeclarationNode { Name = new IdentifierNode { Text = "T" }, Parent = scope };
-        var symbol = new Symbol(SymbolFlags.TypeParameter, "T");
+        var declaration = new TypeParameterDeclarationNode { Name = new IdentifierNode { Text = "T"u8 }, Parent = scope };
+        var symbol = new Symbol(SymbolFlags.TypeParameter, "T"u8);
         symbol.DeclarationList = symbol.DeclarationList.Add(declaration);
         var t = context.NewTypeParameter(symbol);
-        var u = context.NewTypeParameter(new(SymbolFlags.TypeParameter, "U"));
-        var reference = new TypeReferenceNode { TypeName = new IdentifierNode { Text = "T" }, Parent = scope };
+        var u = context.NewTypeParameter(new(SymbolFlags.TypeParameter, "U"u8));
+        var reference = new TypeReferenceNode { TypeName = new IdentifierNode { Text = "T"u8 }, Parent = scope };
         host.ReferenceSymbols[reference] = symbol;
         Check(await host.Objects.PossiblyReferencedAsync(t, reference));
-        var unrelated = new TypeReferenceNode { TypeName = new IdentifierNode { Text = "Other" }, Parent = scope };
+        var unrelated = new TypeReferenceNode { TypeName = new IdentifierNode { Text = "Other"u8 }, Parent = scope };
         host.ReferenceSymbols[unrelated] = null;
         Check(!await host.Objects.PossiblyReferencedAsync(t, unrelated));
         Check(await host.Objects.PossiblyReferencedAsync(u, unrelated));
@@ -45,7 +45,7 @@ internal static class CheckerObjectTests
         Check(!await host.Objects.PossiblyReferencedAsync(t, new TokenNode(SyntaxKind.NumberKeyword) { Parent = conditional }));
 
         var classDeclaration = new ClassDeclarationNode { Parent = scope };
-        var classSymbol = new Symbol(SymbolFlags.Class, "C");
+        var classSymbol = new Symbol(SymbolFlags.Class, "C"u8);
         classSymbol.DeclarationList = classSymbol.DeclarationList.Add(classDeclaration);
         var thisType = context.NewTypeParameter(classSymbol);
         thisType.IsThisType = true;
@@ -61,9 +61,9 @@ internal static class CheckerObjectTests
         method.Parameters = new([new ParameterDeclarationNode { Type = reference }], -1, -1);
         Check(await host.Objects.PossiblyReferencedAsync(t, method));
 
-        var identifier = new IdentifierNode { Text = "value" };
+        var identifier = new IdentifierNode { Text = "value"u8 };
         var query = new TypeQueryNode { ExprName = identifier, Parent = scope };
-        var value = new Symbol(SymbolFlags.BlockScopedVariable, "value");
+        var value = new Symbol(SymbolFlags.BlockScopedVariable, "value"u8);
         value.DeclarationList = value.DeclarationList.Add(new VariableDeclarationNode { Parent = scope });
         host.ValueSymbols[identifier] = value;
         Check(await host.Objects.PossiblyReferencedAsync(t, query));
@@ -72,7 +72,7 @@ internal static class CheckerObjectTests
         query.TypeArguments = new([reference], -1, -1);
         Check(await host.Objects.PossiblyReferencedAsync(t, query));
         query.TypeArguments = null;
-        query.ExprName = new IdentifierNode { Text = "this" };
+        query.ExprName = new IdentifierNode { Text = "this"u8 };
         Check(await host.Objects.PossiblyReferencedAsync(t, query));
 
         SyntaxNode deep = reference;
@@ -86,12 +86,12 @@ internal static class CheckerObjectTests
         Check(await host.Objects.PossiblyReferencedAsync(t, reference));
         SyntaxNode name = identifier;
         for (int i = 0; i < 20_000; i++)
-            name = new QualifiedNameNode { Left = name, Right = new IdentifierNode { Text = "member" } };
+            name = new QualifiedNameNode { Left = name, Right = new IdentifierNode { Text = "member"u8 } };
         query.ExprName = name;
         Check(!await host.Objects.PossiblyReferencedAsync(t, query));
 
         var objectDeclaration = new TypeLiteralNode { Members = new([reference], -1, -1), Parent = scope };
-        var objectSymbol = new Symbol(SymbolFlags.TypeLiteral, "Object");
+        var objectSymbol = new Symbol(SymbolFlags.TypeLiteral, "Object"u8);
         objectSymbol.DeclarationList = objectSymbol.DeclarationList.Add(objectDeclaration);
         var target = context.NewObjectType(ObjectFlags.Anonymous, objectSymbol);
         host.OuterParameters[objectDeclaration] = new Type[] { t, u };
@@ -102,7 +102,7 @@ internal static class CheckerObjectTests
         Check(links.TypeNodes.Get(objectDeclaration).OuterTypeParameters!.SequenceEqual([t, u]));
         Check(await host.Objects.InstantiateAsync(target, map) == instance);
         Check(await host.Objects.InstantiateAsync(target, TypeMapper.Create([t, u], [t, u])) == target);
-        var alias = context.CreateAlias(new(SymbolFlags.TypeAlias, "Alias"), [u]);
+        var alias = context.CreateAlias(new(SymbolFlags.TypeAlias, "Alias"u8), [u]);
         var aliased = (ObjectType)await host.Objects.InstantiateAsync(target, map, alias);
         Check(aliased != instance && aliased.Alias == alias);
         var second = (ObjectType)await host.Objects.InstantiateAsync(aliased, TypeMapper.Create([u], [context.NumberType]));
@@ -110,7 +110,7 @@ internal static class CheckerObjectTests
         Check(second.Alias!.TypeArguments[0] == context.NumberType);
 
         var unusedNode = new TypeLiteralNode { Members = new([number], -1, -1), Parent = scope };
-        var unusedSymbol = new Symbol(SymbolFlags.TypeLiteral, "Unused");
+        var unusedSymbol = new Symbol(SymbolFlags.TypeLiteral, "Unused"u8);
         unusedSymbol.DeclarationList = unusedSymbol.DeclarationList.Add(unusedNode);
         var unused = context.NewObjectType(ObjectFlags.Anonymous, unusedSymbol);
         var parameters = new Type[] { t };
@@ -119,16 +119,16 @@ internal static class CheckerObjectTests
         Check(links.TypeNodes.Get(unusedNode).OuterTypeParameters!.Count == 0);
 
         var snapshotNode = new TypeLiteralNode { Parent = scope };
-        var snapshotSymbol = new Symbol(SymbolFlags.TypeLiteral, "Snapshot");
+        var snapshotSymbol = new Symbol(SymbolFlags.TypeLiteral, "Snapshot"u8);
         snapshotSymbol.DeclarationList = snapshotSymbol.DeclarationList.Add(snapshotNode);
         var snapshot = context.NewObjectType(ObjectFlags.Anonymous, snapshotSymbol);
-        snapshot.Alias = context.CreateAlias(new(SymbolFlags.TypeAlias, "Captured"), [t]);
+        snapshot.Alias = context.CreateAlias(new(SymbolFlags.TypeAlias, "Captured"u8), [t]);
         host.OuterParameters[snapshotNode] = parameters;
         await host.Objects.InstantiateAsync(snapshot, map);
         parameters[0] = u;
         Check(links.TypeNodes.Get(snapshotNode).OuterTypeParameters!.SequenceEqual([t]));
 
-        var mapped = (MappedType)context.NewObjectType(ObjectFlags.Mapped, new(SymbolFlags.TypeLiteral, "Mapped"));
+        var mapped = (MappedType)context.NewObjectType(ObjectFlags.Mapped, new(SymbolFlags.TypeLiteral, "Mapped"u8));
         mapped.Declaration = new MappedTypeNode();
         mapped.TypeParameter = t;
         mapped.Alias = alias;

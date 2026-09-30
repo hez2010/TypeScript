@@ -33,7 +33,7 @@ internal sealed partial class Checker
         await CheckFunctionDeclarationAsync(node, cancellation).ConfigureAwait(false);
         await CheckFunctionOverloadsAsync(node, cancellation).ConfigureAwait(false);
         await CheckMethodNameAsync(node, cancellation);
-        if (node.Name is IdentifierNode { Text.Span: "constructor" } && node.AsteriskToken is not null)
+        if (node.Name is IdentifierNode { Text.Span: var matchedText } && matchedText.SequenceEqual("constructor"u8) && node.AsteriskToken is not null)
             Error(node.Name, DiagnosticCode.ClassConstructorMayNotBeAGenerator);
         await CheckSourceElementAsync(node.Body, cancellation).ConfigureAwait(false);
         await CheckFunctionPathsAsync(node, cancellation).ConfigureAwait(false);
@@ -60,7 +60,7 @@ internal sealed partial class Checker
             AccessorGrammar(node);
         await CheckFunctionDeclarationAsync(node, cancellation).ConfigureAwait(false);
         var name = SemanticSyntax.Name(node)!;
-        if (name is IdentifierNode { Text.Span: "constructor" } && SemanticSyntax.ClassLike(node.Parent))
+        if (name is IdentifierNode { Text.Span: var matchedText2 } && matchedText2.SequenceEqual("constructor"u8) && SemanticSyntax.ClassLike(node.Parent))
             Error(name, DiagnosticCode.ClassConstructorMayNotBeAnAccessor);
         await CheckMethodNameAsync(node, cancellation);
         var flags = node.Flags | (program.Symbols.Binding(node)?.Get(node)?.Flags ?? 0);
@@ -102,7 +102,7 @@ internal sealed partial class Checker
             return;
         if (MappedMemberGrammar(node))
             return;
-        if (node.Name is StringLiteralNode { Text.Span: "constructor" })
+        if (node.Name is StringLiteralNode { Text.Span: var matchedText3 } && matchedText3.SequenceEqual("constructor"u8))
         {
             Error(node.Name, DiagnosticCode.ClassesMayNotHaveAFieldNamedConstructor);
             return;
@@ -143,7 +143,7 @@ internal sealed partial class Checker
         if ((node.Flags & NodeFlags.Ambient) == 0 && node.Parent is not TypeLiteralNode and not InterfaceDeclarationNode && body is null
             && !SemanticSyntax.HasModifier(node, SyntaxKind.AbstractKeyword))
         {
-            Error(node, CheckerDiagnostic.Create(node, Messages.X_0_expected, "{") with { Start = node.End - 1, Length = 1 });
+            Error(node, CheckerDiagnostic.Create(node, Messages.X_0_expected, Utf8Literals.OpenBrace) with { Start = node.End - 1, Length = 1 });
             return;
         }
         if (body is not null)
@@ -167,7 +167,7 @@ internal sealed partial class Checker
         }
         bool getter = node is GetAccessorDeclarationNode;
         var parameters = signature.Parameters!;
-        bool receiver = parameters.FirstOrDefault() is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: "this" } };
+        bool receiver = parameters.FirstOrDefault() is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: var matchedText4 } } && matchedText4.SequenceEqual("this"u8);
         if (parameters.Count != (getter ? 0 : 1) && !(receiver && parameters.Count == (getter ? 1 : 2)))
         {
             Error(name, getter ? DiagnosticCode.AGetAccessorCannotHaveParameters : DiagnosticCode.ASetAccessorMustHaveExactlyOneParameter);
@@ -194,7 +194,7 @@ internal sealed partial class Checker
 
     private async ValueTask CheckClassOverridesAsync(SyntaxNode node, InterfaceType type, Type baseType, CancellationToken cancellation)
     {
-        var missing = new List<TextSlice>();
+        var missing = new List<Utf8String>();
         foreach (var inherited in await Properties.GetAsync(baseType, cancellation).ConfigureAwait(false))
         {
             var original = OriginalProperty(inherited);
@@ -302,8 +302,8 @@ internal sealed partial class Checker
         if (missing.Count != 0)
         {
             bool expression = node is ClassExpressionNode;
-            TextSlice baseName = await TypeDisplay.GetAsync(baseType, cancellation);
-            var arguments = new List<TextSlice>();
+            Utf8String baseName = await TypeDisplay.GetAsync(baseType, cancellation);
+            var arguments = new List<Utf8String>();
             if (!expression)
                 arguments.Add(await TypeDisplay.GetAsync(type, cancellation));
             if (missing.Count == 1)
@@ -311,9 +311,9 @@ internal sealed partial class Checker
             else
             {
                 arguments.Add(baseName);
-                arguments.Add(TextSlice.Join(", ", (missing.Count > 5 ? missing.Take(4) : missing).Select(name => TextSlice.Concat("'", name, "'"))));
+                arguments.Add(Utf8String.Join(", "u8, (missing.Count > 5 ? missing.Take(4) : missing).Select(name => Utf8String.Concat("'"u8, name, "'"u8))));
                 if (missing.Count > 5)
-                    arguments.Add(TextSlice.Format((missing.Count - 4)));
+                    arguments.Add(Utf8String.Format(missing.Count - 4));
             }
             Error(node, expression
                 ? missing.Count == 1
@@ -343,7 +343,7 @@ internal sealed partial class Checker
                 bool isJs = (node.Flags & NodeFlags.JavaScriptFile) != 0;
                 if (!hasOverride && program.Symbols.Program.Configuration.Options.NoImplicitOverride != true)
                     continue;
-                if (hasOverride && symbol.Name == Symbol.InternalPrefix + "computed")
+                if (hasOverride && symbol.Name == Symbol.InternalComputed)
                 {
                     Error(
                         member,

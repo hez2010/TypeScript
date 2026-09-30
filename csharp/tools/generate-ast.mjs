@@ -14,7 +14,7 @@ const schema = JSON.parse(input);
 const definitions = schema.nodes.definitions;
 const names = new Set(Object.keys(definitions));
 const kinds = new Set(schema.kinds.elements.map(k => typeof k === "string" ? k : k.name).filter(Boolean));
-const scalar = new Map([["string", "TextSlice"], ["bool", "bool"], ["NodeFlags", "NodeFlags"], ["TokenFlags", "TokenFlags"], ["ImportPhaseModifierSyntaxKind", "SyntaxKind"], ["TKind", "SyntaxKind"], ["any", "object?"]]);
+const scalar = new Map([["string", "Utf8String"], ["bool", "bool"], ["NodeFlags", "NodeFlags"], ["TokenFlags", "TokenFlags"], ["ImportPhaseModifierSyntaxKind", "SyntaxKind"], ["TKind", "SyntaxKind"], ["any", "object?"]]);
 const upper = s => s[0].toUpperCase() + s.slice(1);
 const classNameOf = name => name.endsWith("Node") ? name : name + "Node";
 function inherited(base, fields = new Map()) {
@@ -39,7 +39,7 @@ function bindingFields(definition, kind, options, name) {
         || hasKind("ClassDeclaration", "ClassExpression", "EnumDeclaration", "ObjectLiteralExpression", "TypeLiteral",
             "JsxAttributes", "InterfaceDeclaration", "ModuleDeclaration", "TypeAliasDeclaration", "JSTypeAliasDeclaration",
             "MappedType", "ConditionalType", "ClassStaticBlockDeclaration", "IndexSignature"))
-        fields.push(["Locals", "Dictionary<TextSlice, Symbol>?"], ["LocalsView", "IReadOnlyDictionary<TextSlice, Symbol>?"]);
+        fields.push(["Locals", "SymbolTable?"]);
     if (bases.has("FunctionLikeWithBodyBase") || hasKind("ClassStaticBlockDeclaration") || name === "CaseOrDefaultClause")
         fields.push(["EndFlow", "FlowNode?"]);
     if (bases.has("FunctionLikeWithBodyBase") || hasKind("ClassStaticBlockDeclaration")) fields.push(["ReturnFlow", "FlowNode?"]);
@@ -51,7 +51,7 @@ function members(definition) {
     return (definition.members ?? []).map(field => ({ ...fields.get(field.name), ...field })).filter(m => m.name !== "Kind" && !m.goOnly && !m.noGo);
 }
 function type(m) {
-    if (m.list === "raw") return m.type === "string" ? "TextSlice[]" : "SyntaxNode[]";
+    if (m.list === "raw") return m.type === "string" ? "Utf8String[]" : "SyntaxNode[]";
     if (m.list) return "NodeList?";
     if (Array.isArray(m.type) && m.type.every(t => t.startsWith("SyntaxKind."))) return "SyntaxKind";
     if (scalar.has(m.type)) return scalar.get(m.type);
@@ -144,12 +144,12 @@ for (const [name, definition] of Object.entries(definitions)) {
         for (const field of scalarFields) {
             const property = upper(field.name), cs = `n.${property}`, go = `n.${field.name}`;
             const t = type(field);
-            if (t === "TextSlice[]") {
-                scalarLines.push(`                writer.WriteStartArray("${property}");`, `                foreach (TextSlice value in ${cs}) writer.WriteBase64StringValue(Wtf8.Encode(value));`, "                writer.WriteEndArray();");
+            if (t === "Utf8String[]") {
+                scalarLines.push(`                writer.WriteStartArray("${property}");`, `                foreach (Utf8String value in ${cs}) writer.WriteBase64StringValue(value.Span);`, "                writer.WriteEndArray();");
                 goScalars.push(`\t\t${field.name} := make([]string, len(${go}))`, `\t\tfor i, value := range ${go} {`, `\t\t\t${field.name}[i] = base64.StdEncoding.EncodeToString([]byte(value))`, "\t\t}", `\t\tresult["${property}"] = ${field.name}`);
             }
-            else if (t === "TextSlice") {
-                scalarLines.push(`                writer.WriteBase64String("${property}", Wtf8.Encode(${cs}));`);
+            else if (t === "Utf8String") {
+                scalarLines.push(`                writer.WriteBase64String("${property}", ${cs}.Span);`);
                 goScalars.push(`\t\tresult["${property}"] = base64.StdEncoding.EncodeToString([]byte(${go}))`);
             }
             else if (t === "bool") {
@@ -185,7 +185,7 @@ for (const [name, definition] of Object.entries(definitions)) {
     for (const m of fields) {
         if (m.name === "Flags") continue;
         const t = type(m);
-        lines.push(`    public ${t} ${upper(m.name)} { get; set; }${t === "TextSlice" ? ' = "";' : t.endsWith("[]") ? " = [];" : ""}`);
+        lines.push(`    public ${t} ${upper(m.name)} { get; set; }${t.endsWith("[]") ? " = [];" : ""}`);
     }
     const binding = bindingFields(definition, kind, options, name);
     for (const [property, fieldType] of binding)
@@ -231,13 +231,6 @@ for (const [name, definition] of Object.entries(definitions)) {
         lines.push(m.list === "raw" ? `        ${n} = Array.ConvertAll(${n}, n => copies[n]);` : m.list ? `        if (${n} is not null) ${n} = ${n}.Map(copies);` : `        if (${n} is not null) ${n} = (${type(m).replace("?", "")})copies[${n}];`);
     }
     for (const m of fields.filter(m => type(m).endsWith("[]") && !isChild(m))) lines.push(`        ${upper(m.name)} = (${type(m)})${upper(m.name)}.Clone();`);
-    lines.push("    }", "    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)", "    {", "        base.ConvertPositions(source, pending);");
-    for (const m of children.filter(m => m.list && m.list !== "raw")) lines.push(`        ${upper(m.name)}?.ConvertPositions(source);`);
-    for (const m of visitChildren.toReversed()) {
-        const n = upper(m.name);
-        if (m.list) lines.push(`        if (${n} is { } list${n})`, `            for (int i = list${n}.${m.list === "raw" ? "Length" : "Count"} - 1; i >= 0; i--) pending.Push(list${n}[i]);`);
-        else lines.push(`        if (${m.condition ? m.condition + " && " : ""}${n} is { } ${m.local ?? "child" + n}) pending.Push(${m.local ?? "child" + n});`);
-    }
     lines.push("    }", "}", "");
     // Escaping every parameter also covers C# keywords such as 'operator' and 'event'.
     const args = fields.map(m => "@" + (m.name[0].toLowerCase() + m.name.slice(1)));

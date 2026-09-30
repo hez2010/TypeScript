@@ -43,8 +43,8 @@ internal sealed class PropertyInitialization(TypeContext context, Checker checke
 
     internal async ValueTask<Type?> InferInAsync(Symbol property, SyntaxNode container, CancellationToken cancellation)
     {
-        SyntaxNode name = property.Name.Span.StartsWith(Symbol.InternalPrefix + "#", StringComparison.Ordinal)
-            ? new PrivateIdentifierNode { Text = property.Name[(property.Name.Span.IndexOf('@') + 1)..] } : new IdentifierNode { Text = property.Name };
+        SyntaxNode name = property.Name.Span.StartsWith(Symbol.InternalPrivatePrefix, StringComparison.Ordinal)
+            ? new PrivateIdentifierNode { Text = property.Name[(property.Name.Span.IndexOf((byte)'@') + 1)..] } : new IdentifierNode { Text = property.Name };
         var reference = Reference(name, container);
         var type = await FlowAsync(
             reference,

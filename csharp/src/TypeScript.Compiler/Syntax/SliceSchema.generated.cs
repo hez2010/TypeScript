@@ -15,7 +15,7 @@ public readonly record struct SourceFileData(NodeId Statements, NodeId EndOfFile
     };
 }
 
-public readonly record struct IdentifierData(string Text) : INodePayload<IdentifierData>
+public readonly record struct IdentifierData(Utf8String Text) : INodePayload<IdentifierData>
 {
     public static int Tag => 2;
     public int ChildSlots => 0;
@@ -45,7 +45,7 @@ public readonly record struct TokenData() : INodePayload<TokenData>
     };
 }
 
-public readonly record struct StringLiteralData(string Text, uint TokenFlags) : INodePayload<StringLiteralData>
+public readonly record struct StringLiteralData(Utf8String Text, uint TokenFlags) : INodePayload<StringLiteralData>
 {
     public static int Tag => 5;
     public int ChildSlots => 0;
@@ -55,7 +55,7 @@ public readonly record struct StringLiteralData(string Text, uint TokenFlags) : 
     };
 }
 
-public readonly record struct NumericLiteralData(string Text, uint TokenFlags) : INodePayload<NumericLiteralData>
+public readonly record struct NumericLiteralData(Utf8String Text, uint TokenFlags) : INodePayload<NumericLiteralData>
 {
     public static int Tag => 6;
     public int ChildSlots => 0;
@@ -224,94 +224,8 @@ public readonly record struct PrefixUnaryExpressionData(SyntaxKind Operator, Nod
 public static class SliceSchema
 {
     public const int PayloadCount = 21;
-    public static string KeywordText(SyntaxKind kind) => kind switch
-    {
-        SyntaxKind.BreakKeyword => "break",
-        SyntaxKind.CaseKeyword => "case",
-        SyntaxKind.CatchKeyword => "catch",
-        SyntaxKind.ClassKeyword => "class",
-        SyntaxKind.ConstKeyword => "const",
-        SyntaxKind.ContinueKeyword => "continue",
-        SyntaxKind.DebuggerKeyword => "debugger",
-        SyntaxKind.DefaultKeyword => "default",
-        SyntaxKind.DeleteKeyword => "delete",
-        SyntaxKind.DoKeyword => "do",
-        SyntaxKind.ElseKeyword => "else",
-        SyntaxKind.EnumKeyword => "enum",
-        SyntaxKind.ExportKeyword => "export",
-        SyntaxKind.ExtendsKeyword => "extends",
-        SyntaxKind.FalseKeyword => "false",
-        SyntaxKind.FinallyKeyword => "finally",
-        SyntaxKind.ForKeyword => "for",
-        SyntaxKind.FunctionKeyword => "function",
-        SyntaxKind.IfKeyword => "if",
-        SyntaxKind.ImportKeyword => "import",
-        SyntaxKind.InKeyword => "in",
-        SyntaxKind.InstanceOfKeyword => "instanceof",
-        SyntaxKind.NewKeyword => "new",
-        SyntaxKind.NullKeyword => "null",
-        SyntaxKind.ReturnKeyword => "return",
-        SyntaxKind.SuperKeyword => "super",
-        SyntaxKind.SwitchKeyword => "switch",
-        SyntaxKind.ThisKeyword => "this",
-        SyntaxKind.ThrowKeyword => "throw",
-        SyntaxKind.TrueKeyword => "true",
-        SyntaxKind.TryKeyword => "try",
-        SyntaxKind.TypeOfKeyword => "typeof",
-        SyntaxKind.VarKeyword => "var",
-        SyntaxKind.VoidKeyword => "void",
-        SyntaxKind.WhileKeyword => "while",
-        SyntaxKind.WithKeyword => "with",
-        SyntaxKind.ImplementsKeyword => "implements",
-        SyntaxKind.InterfaceKeyword => "interface",
-        SyntaxKind.LetKeyword => "let",
-        SyntaxKind.PackageKeyword => "package",
-        SyntaxKind.PrivateKeyword => "private",
-        SyntaxKind.ProtectedKeyword => "protected",
-        SyntaxKind.PublicKeyword => "public",
-        SyntaxKind.StaticKeyword => "static",
-        SyntaxKind.YieldKeyword => "yield",
-        SyntaxKind.AbstractKeyword => "abstract",
-        SyntaxKind.AccessorKeyword => "accessor",
-        SyntaxKind.AsKeyword => "as",
-        SyntaxKind.AssertsKeyword => "asserts",
-        SyntaxKind.AssertKeyword => "assert",
-        SyntaxKind.AnyKeyword => "any",
-        SyntaxKind.AsyncKeyword => "async",
-        SyntaxKind.AwaitKeyword => "await",
-        SyntaxKind.BooleanKeyword => "boolean",
-        SyntaxKind.ConstructorKeyword => "constructor",
-        SyntaxKind.DeclareKeyword => "declare",
-        SyntaxKind.GetKeyword => "get",
-        SyntaxKind.ImmediateKeyword => "immediate",
-        SyntaxKind.InferKeyword => "infer",
-        SyntaxKind.IntrinsicKeyword => "intrinsic",
-        SyntaxKind.IsKeyword => "is",
-        SyntaxKind.KeyOfKeyword => "keyof",
-        SyntaxKind.ModuleKeyword => "module",
-        SyntaxKind.NamespaceKeyword => "namespace",
-        SyntaxKind.NeverKeyword => "never",
-        SyntaxKind.OutKeyword => "out",
-        SyntaxKind.ReadonlyKeyword => "readonly",
-        SyntaxKind.RequireKeyword => "require",
-        SyntaxKind.NumberKeyword => "number",
-        SyntaxKind.ObjectKeyword => "object",
-        SyntaxKind.SatisfiesKeyword => "satisfies",
-        SyntaxKind.SetKeyword => "set",
-        SyntaxKind.StringKeyword => "string",
-        SyntaxKind.SymbolKeyword => "symbol",
-        SyntaxKind.TypeKeyword => "type",
-        SyntaxKind.UndefinedKeyword => "undefined",
-        SyntaxKind.UniqueKeyword => "unique",
-        SyntaxKind.UnknownKeyword => "unknown",
-        SyntaxKind.UsingKeyword => "using",
-        SyntaxKind.FromKeyword => "from",
-        SyntaxKind.GlobalKeyword => "global",
-        SyntaxKind.BigIntKeyword => "bigint",
-        SyntaxKind.OverrideKeyword => "override",
-        SyntaxKind.OfKeyword => "of",
-        _ => throw new InvalidDataException("Expected keyword"),
-    };
+    public static Utf8String KeywordText(SyntaxKind kind) => kind is >= SyntaxKind.FirstKeyword and <= SyntaxKind.LastKeyword
+        ? TokenFacts.Text(kind) : throw new InvalidDataException("Expected keyword");
     public static int ChildSlots<TStore>(TStore store, NodeId id) where TStore : INodeStore => store.Tag(id) switch
     {
         1 => store.Get<SourceFileData>(id).ChildSlots,

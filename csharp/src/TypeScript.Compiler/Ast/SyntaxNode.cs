@@ -57,15 +57,10 @@ public abstract class SyntaxNode(SyntaxKind kind)
         get => null;
         set { if (value is not null) throw new InvalidOperationException($"{Kind} has no ReturnFlow binding slot"); }
     }
-    internal virtual Dictionary<TextSlice, Symbol>? BindingLocals
+    internal virtual SymbolTable? BindingLocals
     {
         get => null;
         set { if (value is not null) throw new InvalidOperationException($"{Kind} has no Locals binding slot"); }
-    }
-    internal virtual IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView
-    {
-        get => null;
-        set { if (value is not null) throw new InvalidOperationException($"{Kind} has no LocalsView binding slot"); }
     }
 
     internal virtual void ClearBindingState()
@@ -84,18 +79,6 @@ public abstract class SyntaxNode(SyntaxKind kind)
         var clone = (SyntaxNode)MemberwiseClone();
         clone.ClearBindingState();
         return clone;
-    }
-
-    internal virtual void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
-    {
-        (Pos, End) = source.ToByteRange(Pos, End);
-    }
-
-    internal void ConvertTreePositions(SourceText source, Stack<SyntaxNode> pending)
-    {
-        pending.Push(this);
-        while (pending.TryPop(out var node))
-            node.ConvertPositions(source, pending);
     }
 
     public IEnumerable<SyntaxNode> DescendantsAndSelf()
@@ -171,10 +154,6 @@ public sealed class NodeList(SyntaxNode[] nodes, int pos = -1, int end = -1, boo
     internal NodeList Map(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies) =>
         new(Array.ConvertAll(nodes, n => copies[n]), Pos, End, IsMissing);
 
-    internal void ConvertPositions(SourceText source)
-    {
-        (Pos, End) = source.ToByteRange(Pos, End);
-    }
 }
 
 public sealed partial class NodeFactory

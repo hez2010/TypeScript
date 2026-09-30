@@ -22,31 +22,28 @@ internal static class CheckerSymbolChainTests
             checks++;
         }
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        const string source = "import * as Long from './dep'; import {named as Z} from './dep'; import {named as A} from './dep'; "
-            + "import Root=require('./dep'); function shadow(Long:number,Z:number,A:number){return Root.named;} "
-            + "function globalShadow(globalValue:string){return globalThis.globalValue;} "
-            + "const cls=class Self<T>{method(value:T){return Self;}};";
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        options.SetRaw("noLib"u8, "true"u8);
+        Utf8String source = Utf8String.Concat(Utf8String.Concat("import * as Long from './dep'; import {named as Z} from './dep'; import {named as A} from './dep'; "u8, "import Root=require('./dep'); function shadow(Long:number,Z:number,A:number){return Root.named;} "u8, "function globalShadow(globalValue:string){return globalThis.globalValue;} "u8), "const cls=class Self<T>{method(value:T){return Self;}};"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
         {
-            ["/project/main.ts"] = Wtf8.Encode(source),
-            ["/project/dep.ts"] = Wtf8.Encode("export const named=1;"),
-            ["/project/global.d.ts"] = Wtf8.Encode("declare const globalValue:number;")
-        }), "/project", new("/project/tsconfig.json", options, ["/project/global.d.ts", "/project/main.ts"], [], [], []));
+            ["/project/main.ts"u8] = source.Span.ToArray(),
+            ["/project/dep.ts"u8] = Wtf8.Encode("export const named=1;"),
+            ["/project/global.d.ts"u8] = Wtf8.Encode("declare const globalValue:number;")
+        }), "/project"u8, new("/project/tsconfig.json"u8, options, ["/project/global.d.ts"u8, "/project/main.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
-        var file = program.GetFile("/project/main.ts")!.Syntax;
+        var file = program.GetFile("/project/main.ts"u8)!.Syntax;
         var nodes = file.DescendantsAndSelf().ToArray();
-        var target = checker.Symbols.Declaration(program.GetFile("/project/dep.ts")!.Syntax)!.Exports["named"];
+        var target = checker.Symbols.Declaration(program.GetFile("/project/dep.ts"u8)!.Syntax)!.Exports["named"u8];
         var chain = await checker.GetAccessibleSymbolChainAsync(target, file, SymbolFlags.Value);
-        Check(chain is [var shortest] && shortest.Name == "Z");
+        Check(chain is [var shortest] && shortest.Name == "Z"u8);
         Check(await checker.GetAccessibleSymbolChainAsync(target, file, SymbolFlags.Value) == chain);
         var external = await checker.GetAccessibleSymbolChainAsync(target, file, SymbolFlags.Value, true);
-        Check(external is [var root, var member] && root.Name == "Root" && member == target);
-        var shadow = nodes.OfType<FunctionDeclarationNode>().Single(n => n.Name?.Text == "shadow");
+        Check(external is [var root, var member] && root.Name == "Root"u8 && member == target);
+        var shadow = nodes.OfType<FunctionDeclarationNode>().Single(n => n.Name?.Text == "shadow"u8);
         var qualified = await checker.GetAccessibleSymbolChainAsync(target, shadow.Body!, SymbolFlags.Value);
-        Check(qualified is [var qualifier, var property] && qualifier.Name == "Root" && property == target);
-        var globalShadow = nodes.OfType<FunctionDeclarationNode>().Single(n => n.Name?.Text == "globalShadow");
-        var global = checker.Symbols.Globals["globalValue"];
+        Check(qualified is [var qualifier, var property] && qualifier.Name == "Root"u8 && property == target);
+        var globalShadow = nodes.OfType<FunctionDeclarationNode>().Single(n => n.Name?.Text == "globalShadow"u8);
+        var global = checker.Symbols.Globals["globalValue"u8];
         var globalChain = await checker.GetAccessibleSymbolChainAsync(global, globalShadow.Body!, SymbolFlags.Value);
         Check(
             globalChain is [var globalThis, var globalMember] && globalThis == checker.Symbols.GlobalThisSymbol && globalMember == global);
@@ -65,7 +62,7 @@ internal static class CheckerSymbolChainTests
         {
             checks++;
         }
-        Check((await checker.GetAccessibleSymbolChainAsync(target, file, SymbolFlags.Value))![0].Name == "Z");
+        Check((await checker.GetAccessibleSymbolChainAsync(target, file, SymbolFlags.Value))![0].Name == "Z"u8);
         var retry = await program.CreateCheckerAsync();
         retry.BeforeSymbolChainTable = _ =>
         {
@@ -88,7 +85,7 @@ internal static class CheckerSymbolChainTests
         Check(retry.AccessibleChainCacheCount == 0 && retry.SymbolTableAliasCacheCount == 0);
         Check(
             await retry.GetAccessibleSymbolChainAsync(target, shadow.Body!, SymbolFlags.Value) is [var recovered, ..]
-                && recovered.Name == "Root");
+                && recovered.Name == "Root"u8);
         var cancelled = await program.CreateCheckerAsync();
         using var stop = new CancellationTokenSource();
         int visits = 0;
@@ -114,7 +111,7 @@ internal static class CheckerSymbolChainTests
             cancelled.BeforeSymbolChainTable = null;
         }
         Check(cancelled.AccessibleChainCacheCount == 0 && cancelled.SymbolTableAliasCacheCount == 0);
-        Check(await cancelled.GetAccessibleSymbolChainAsync(target, file, SymbolFlags.Value) is [var retried] && retried.Name == "Z");
+        Check(await cancelled.GetAccessibleSymbolChainAsync(target, file, SymbolFlags.Value) is [var retried] && retried.Name == "Z"u8);
         try
         {
             await checker.GetAccessibleSymbolChainAsync(target, new BlockNode(), SymbolFlags.Value);
@@ -127,7 +124,7 @@ internal static class CheckerSymbolChainTests
         SyntaxNode deep = file;
         for (int i = 0; i < 20_000; i++)
             deep = new BlockNode { Parent = deep };
-        Check(await checker.GetAccessibleSymbolChainAsync(target, deep, SymbolFlags.Value) is [var deepAlias] && deepAlias.Name == "Z");
+        Check(await checker.GetAccessibleSymbolChainAsync(target, deep, SymbolFlags.Value) is [var deepAlias] && deepAlias.Name == "Z"u8);
         return checks;
     }
 
@@ -137,19 +134,19 @@ internal static class CheckerSymbolChainTests
         var seen = new HashSet<Symbol>();
         var targets = new List<Symbol>();
         foreach (var node in nodes)
-            if (SemanticSyntax.Source(node)?.FileName != "/project/globals.d.ts" && QuerySyntax.Declaration(node)
+            if (SemanticSyntax.Source(node)?.FileName != "/project/globals.d.ts"u8 && QuerySyntax.Declaration(node)
                 && checker.Symbols.Declaration(node) is { } symbol && seen.Add(symbol))
                 targets.Add(symbol);
-        if (checker.Symbols.Globals.TryGetValue("globalValue", out var global))
+        if (checker.Symbols.Globals.TryGetValue("globalValue"u8, out var global))
             targets.Add(global);
         var locations = new List<SyntaxNode?> { null };
         locations.AddRange(
             nodes.Where(
-            n => SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main.", StringComparison.Ordinal) == true
-            && (n is SourceFileNode or BlockNode or ModuleDeclarationNode or ClassDeclarationNode or ClassExpressionNode
+            n => SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main."u8, StringComparison.Ordinal) == true
+            && n is SourceFileNode or BlockNode or ModuleDeclarationNode or ClassDeclarationNode or ClassExpressionNode
                 or InterfaceDeclarationNode
-                or FunctionDeclarationNode or FunctionExpressionNode or ArrowFunctionNode)));
-        writer.WriteStartArray("symbolChainQueries");
+                or FunctionDeclarationNode or FunctionExpressionNode or ArrowFunctionNode));
+        writer.WriteStartArray("symbolChainQueries"u8);
         foreach (var location in locations)
             foreach (var target in targets)
                 foreach (var meaning in new[] { SymbolFlags.Value, SymbolFlags.Type, SymbolFlags.Namespace })

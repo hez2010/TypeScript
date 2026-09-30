@@ -216,7 +216,7 @@ internal sealed partial class Checker
             }
             else if (elements.Count == 0)
                 Error(clause, new Diagnostic(DiagnosticLocalization.GetMessage(DiagnosticCode.X0ListCannotBeEmpty), elements.Pos, 0,
-                    [clause.Token == K.ExtendsKeyword ? "extends" : "implements"])
+                    [clause.Token == K.ExtendsKeyword ? Utf8Literals.ExtendsKeyword : Utf8Literals.Implements])
                 { FileName = file.FileName });
             else
                 foreach (var element in elements)
@@ -300,7 +300,7 @@ internal sealed partial class Checker
                 postfix
                     ? DiagnosticCode.X0AtTheEndOfATypeIsNotValidTypeScriptSyntaxDidYouMeanToWrite1
                     : DiagnosticCode.X0AtTheStartOfATypeIsNotValidTypeScriptSyntaxDidYouMeanToWrite1,
-                node is JSDocNullableTypeNode ? "?" : "!",
+                node is JSDocNullableTypeNode ? Utf8Literals.QuestionMark : Utf8Literals.Exclamation,
                 await TypeDisplay.GetAsync(type, cancellation));
         }
         else
@@ -314,14 +314,14 @@ internal sealed partial class Checker
         if (node.Operator == K.ReadonlyKeyword)
         {
             if (node.Type is not (ArrayTypeNode or TupleTypeNode))
-                ErrorOnFirstToken(node, DiagnosticCode.XReadonlyTypeModifierIsOnlyPermittedOnArrayAndTupleLiteralTypes, "symbol");
+                ErrorOnFirstToken(node, DiagnosticCode.XReadonlyTypeModifierIsOnlyPermittedOnArrayAndTupleLiteralTypes, Utf8Literals.SymbolKeyword);
             return;
         }
         if (node.Operator != K.UniqueKeyword)
             return;
         if (node.Type?.Kind != K.SymbolKeyword)
         {
-            Error(node.Type ?? node, DiagnosticCode.X0Expected, "symbol");
+            Error(node.Type ?? node, DiagnosticCode.X0Expected, Utf8Literals.SymbolKeyword);
             return;
         }
         var parent = node.Parent;

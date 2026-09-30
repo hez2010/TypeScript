@@ -14,7 +14,7 @@ internal interface IExplicitValueHost
 
     ValueTask<Type?> IteratedTypeAsync(ForInOrOfStatementNode node, Type expression, CancellationToken cancellation);
 
-    TextSlice PrivatePropertyName(Symbol symbol, PrivateIdentifierNode name);
+    Utf8String PrivatePropertyName(Symbol symbol, PrivateIdentifierNode name);
 
     void MissingExplicitAnnotation(Symbol symbol, SyntaxNode declaration);
 }
@@ -55,8 +55,8 @@ internal sealed class ExplicitValueTypes(CheckerLinks links, CheckerSymbols symb
         };
         for (int i = accesses.Count - 1; type is not null && i >= 0; i--)
         {
-            TextSlice? name = accesses[i] is PrivateIdentifierNode privateName
-                ? type.Symbol is { } symbol ? host.PrivatePropertyName(symbol, privateName) : (TextSlice?)null : SyntaxNameText.Get(accesses[i]);
+            Utf8String? name = accesses[i] is PrivateIdentifierNode privateName
+                ? type.Symbol is { } symbol ? host.PrivatePropertyName(symbol, privateName) : (Utf8String?)null : SyntaxNameText.Get(accesses[i]);
             var property = name is null
                 ? null
                 : await properties.PropertyAsync(type, name.Value, cancellation: cancellation).ConfigureAwait(false);

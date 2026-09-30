@@ -28,7 +28,7 @@ internal interface IFlowTypeHost : IFlowGraphHost
 
     ValueTask<bool> ContainsAsync(SyntaxNode source, SyntaxNode target, bool optionalChain, CancellationToken cancellation);
 
-    ValueTask<TextSlice?> ReferenceKeyAsync(FlowState state, CancellationToken cancellation);
+    ValueTask<Utf8String?> ReferenceKeyAsync(FlowState state, CancellationToken cancellation);
 
     ValueTask<Type> InitialOrAssignedAsync(SyntaxNode node, SyntaxNode reference, CancellationToken cancellation);
 
@@ -68,7 +68,7 @@ internal sealed class FlowState
     internal Type Declared { get; set; } = null!;
     internal Type Initial { get; set; } = null!;
     internal SyntaxNode? Container { get; set; }
-    internal TextSlice? Key { get; set; }
+    internal Utf8String? Key { get; set; }
     internal bool KeyComputed { get; set; }
     internal int Depth { get; set; }
     internal int SharedStart { get; set; }
@@ -80,8 +80,8 @@ internal sealed partial class FlowTypes(TypeContext context, TypeAlgebra algebra
 {
     private readonly List<(FlowNode Node, FlowType Type)> shared = [];
     private readonly Stack<FlowState> freeStates = [];
-    private readonly Dictionary<(FlowNode Node, TextSlice Key), Type> loops = [];
-    private List<((FlowNode Node, TextSlice Key) Key, List<Type> Types)> loopStack = [];
+    private readonly Dictionary<(FlowNode Node, Utf8String Key), Type> loops = [];
+    private List<((FlowNode Node, Utf8String Key) Key, List<Type> Types)> loopStack = [];
     internal Dictionary<SyntaxNode, Type>? ExpressionCache { get; private set; }
     internal FlowReachability Reachability { get; } = new(host);
     internal bool AnalysisDisabled { get; set; }

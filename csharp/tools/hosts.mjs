@@ -116,16 +116,7 @@ for (let i = 0; i < cases.length; i++) {
     catch {
         const difference = { name: cases[i].name, input: cases[i], expected: expected[i], actual: actual[i] };
         const c = cases[i];
-        // Named policy: TypeScript UTF-16 glob character units. The original TS matcher
-        // uses regular expressions without /u; the Go vfsmatch specification permits
-        // scalar matching as an alternative. Check precisely these supplementary-plane
-        // '?' fixtures against an independent JavaScript regular expression.
-        if (c.mode === "glob" && ["src/?.ts", "src/??.ts"].includes(c.path) && c.other === "/project/src/😀.ts") {
-            const expression = "^/project/" + c.path.replaceAll(".", "\\.").replaceAll("?", ".") + "$";
-            assert.equal(actual[i], new RegExp(expression).test(c.other));
-            permittedDifferences.push({ ...difference, policy: "TypeScript UTF-16 glob character units" });
-        }
-        else if (c.name === 'schema-config:plugins:["entry"]' && actual[i].options.plugins?.length === 0) {
+        if (c.name === 'schema-config:plugins:["entry"]' && actual[i].options.plugins?.length === 0) {
             // An invalid plugin entry is diagnosed, and the retained empty list has no
             // plugin to execute. Go currently has no Plugins field on CompilerOptions.
             assert.deepEqual({ ...actual[i], options: Object.fromEntries(Object.entries(actual[i].options).filter(([key]) => key !== "plugins")) }, expected[i]);
@@ -153,7 +144,6 @@ for (let i = 0; i < cases.length; i++) {
     }
 }
 const rationales = {
-    "TypeScript UTF-16 glob character units": "The original TypeScript matcher uses regular expressions without the Unicode flag; BCL FileSystemName has the same UTF-16 '?' units. The reference vfsmatch/MATCHING_ALGORITHM.md section 9 explicitly allows its scalar-based matching to differ. Each permitted output is independently asserted against a JavaScript regular expression without /u.",
     "Retain an empty validated plugin list": "The invalid plugin string is rejected with diagnostic 5024 by both implementations. C# retains the resulting empty list; Go core.CompilerOptions has no Plugins field. An empty plugin list and an absent plugin list request no plugin execution. Only that field differs; every remaining result field is asserted equal.",
     "Malformed JSON recovery diagnostic choice": "The exact malformed input '{ this is not json' is rejected by both implementations; options, discovered files, references and compileOnSave agree. C# retains located parser recovery diagnostics while Go's entry points collect different parser/conversion diagnostics. HostTests separately asserts the candidate diagnostics refer to the malformed file and bounded source positions. This policy covers only the four enumerated direct/inherited case-sensitive/case-insensitive instances of this input.",
     "Preserve TypeScript numeric option semantics": "TypeScript's maxNodeModuleJsDepth is a Number-valued option. Independent TypeScript 6.0.3 config parsing accepts the fixture and produces the same fractional/large/infinite value as C#. C# preserves valid JSON numeric spelling and exposes Number(), avoiding the Go backend's truncation or unchecked float-to-int overflow. Other parsed configuration fields are asserted equal. Raw JSON outputs below are authoritative for nonfinite and beyond-safe-integer values.",

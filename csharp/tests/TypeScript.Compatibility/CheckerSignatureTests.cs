@@ -22,25 +22,25 @@ internal static class CheckerSignatureTests
                 throw new InvalidOperationException($"Signature assertion {checks + 1}");
             checks++;
         }
-        const string source = "interface Array<T>{length:number;[n:number]:T} interface ReadonlyArray<T>{readonly length:number;readonly [n:number]:T} type A=(x:string,y:void)=>number; type R=(...args:[first:string,second?:number])=>void; type V=(head:string,...args:[first:number,...rest:boolean[]])=>void; type C=<T=string>(x:T)=>T; type D=<U=number>(x:U)=>U; type L=(this:boolean,x:string,y:number)=>void; type M=(this:number,x:number,y:string)=>void; type X=(...args:[string,number])=>void; type Y=(...args:[number,string])=>void; type Z=(...args:[boolean,boolean])=>void; function f(x:string='',y?:number):void {} interface Base{(x:string):string} interface One extends Base{} interface Two extends Base{}";
+        Utf8String source = "interface Array<T>{length:number;[n:number]:T} interface ReadonlyArray<T>{readonly length:number;readonly [n:number]:T} type A=(x:string,y:void)=>number; type R=(...args:[first:string,second?:number])=>void; type V=(head:string,...args:[first:number,...rest:boolean[]])=>void; type C=<T=string>(x:T)=>T; type D=<U=number>(x:U)=>U; type L=(this:boolean,x:string,y:number)=>void; type M=(this:number,x:number,y:string)=>void; type X=(...args:[string,number])=>void; type Y=(...args:[number,string])=>void; type Z=(...args:[boolean,boolean])=>void; function f(x:string='',y?:number):void {} interface Base{(x:string):string} interface One extends Base{} interface Two extends Base{}"u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
         var program = await CompilerProgram.CreateAsync(
-            new MemoryFileSystem(new Dictionary<string, byte[]> { ["/project/main.ts"] = Wtf8.Encode(source) }),
-            "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+            new MemoryFileSystem(new Dictionary<Utf8String, byte[]> { ["/project/main.ts"u8] = source.Span.ToArray() }),
+            "/project"u8, new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
         var scope = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
         var host = new Checker(context, links, scope);
-        async Task<Signature> Get(string name)
+        async Task<Signature> Get(Utf8String name)
         {
             var type = (ObjectType)await host.Declared.GetAsync(symbols.Globals[name]);
             await host.Members.ResolveAsync(type);
             return type.CallSignatures.Single();
         }
-        var a = await Get("A");
+        var a = await Get("A"u8);
         Check(await host.Parameters.CountAsync(a) == 2 && a.ResolvedMinArgumentCount == -1);
         host.BeforeNode = _ => throw new OperationCanceledException();
         try
@@ -56,40 +56,40 @@ internal static class CheckerSignatureTests
         host.BeforeNode = null;
         Check(await host.Parameters.MinimumAsync(a) == 1 && a.ResolvedMinArgumentCount == 1);
         Check(await host.Parameters.MinimumAsync(a, voidIsRequired: true) == 2 && a.ResolvedMinArgumentCount == 1);
-        var f = (await host.Signatures.OfSymbolAsync(symbols.Globals["f"])).Single();
+        var f = (await host.Signatures.OfSymbolAsync(symbols.Globals["f"u8])).Single();
         Check(await host.Values.GetAsync(f.Parameters[0]) == context.StringType);
         Check(
             await host.Parameters.ParameterAsync(f.Parameters[0]) is UnionType optional && optional.Types.Contains(context.UndefinedType));
         Check(await host.Values.GetAsync(f.Parameters[0]) == context.StringType);
 
-        var r = await Get("R");
+        var r = await Get("R"u8);
         Check(
             await host.Parameters.CountAsync(r) == 2
                 && await host.Parameters.MinimumAsync(r) == 1
                 && !await host.Parameters.HasRestAsync(r));
         Check(await host.Parameters.TryAtAsync(r, 2) is null && await host.Parameters.AtAsync(r, 2) == context.AnyType);
-        Check(await host.Parameters.NameAsync(r, 0) == "first" && await host.Parameters.NameAsync(r, 1) == "second");
+        Check(await host.Parameters.NameAsync(r, 0) == "first"u8 && await host.Parameters.NameAsync(r, 1) == "second"u8);
         var sliced = (TypeReference)await host.Parameters.RestAtAsync(r, 1, true);
         Check(sliced.Target is TupleType { IsReadonly: true, FixedLength: 1 } && await host.Parameters.EffectiveRestAsync(r) is null);
-        var v = await Get("V");
+        var v = await Get("V"u8);
         Check(
             await host.Parameters.CountAsync(v) == 3
                 && await host.Parameters.MinimumAsync(v) == 2
                 && await host.Parameters.HasRestAsync(v));
         Check(await host.Parameters.AtAsync(v, 5) == context.BooleanType);
-        Check(await host.Parameters.NameAsync(v, 2) == "rest");
+        Check(await host.Parameters.NameAsync(v, 2) == "rest"u8);
         Check(await host.Parameters.EffectiveRestAsync(v) is TypeReference array && host.Instantiation.IsArrayType(array));
 
-        var c = await Get("C");
-        var d = await Get("D");
+        var c = await Get("C"u8);
+        var d = await Get("D"u8);
         Check(await host.SignatureComparison.CompareAsync(c, d) == Ternary.False);
         Check(await host.SignatureComparison.TypeParametersAsync(c.TypeParameters, d.TypeParameters));
         var combined = (await host.SignatureComposition.UnionAsync([[c], [d]])).Single();
         Check(combined.TypeParameters[0] == c.TypeParameters[0] && combined.Composite is { IsUnion: true, Signatures.Count: 2 });
         Check(await host.Signatures.ReturnAsync(combined) == c.TypeParameters[0]);
 
-        var left = await Get("L");
-        var right = await Get("M");
+        var left = await Get("L"u8);
+        var right = await Get("M"u8);
         foreach (var signature in new[] { left, right })
         {
             foreach (var parameter in signature.Parameters)
@@ -117,7 +117,7 @@ internal static class CheckerSignatureTests
         Check(await host.SignatureComparison.CompareAsync(left, right) == Ternary.Maybe);
         host.CompareTypes = null;
 
-        var inputs = new[] { await Get("X"), await Get("Y"), await Get("Z") };
+        var inputs = new[] { await Get("X"u8), await Get("Y"u8), await Get("Z"u8) };
         foreach (var signature in inputs)
         {
             await host.Parameters.MinimumAsync(signature);
@@ -147,12 +147,12 @@ internal static class CheckerSignatureTests
             (await host.SignatureComposition.UnionAsync(
                 inputs.Select(s => (IReadOnlyList<Signature>)new[] { s }).ToArray())).Single().Composite?.Signatures.Count == 3);
 
-        var one = (ObjectType)await host.Declared.GetAsync(symbols.Globals["One"]);
-        var two = (ObjectType)await host.Declared.GetAsync(symbols.Globals["Two"]);
+        var one = (ObjectType)await host.Declared.GetAsync(symbols.Globals["One"u8]);
+        var two = (ObjectType)await host.Declared.GetAsync(symbols.Globals["Two"u8]);
         await host.Members.ResolveAsync(one);
         await host.Members.ResolveAsync(two);
         Check(ReferenceEquals(one.CallSignatures, two.CallSignatures));
-        var parameterSymbol = new Symbol(SymbolFlags.FunctionScopedVariable | SymbolFlags.Transient, "x");
+        var parameterSymbol = new Symbol(SymbolFlags.FunctionScopedVariable | SymbolFlags.Transient, "x"u8);
         links.Values.Get(parameterSymbol).ResolvedType = context.NumberType;
         var js = context.NewSignature(
             SignatureFlags.IsUntypedSignatureInJSFile,
@@ -166,14 +166,14 @@ internal static class CheckerSignatureTests
         Check(await host.Parameters.MinimumAsync(js) == 0 && js.ResolvedMinArgumentCount == -1);
         Check(await host.Parameters.MinimumAsync(js, strongUntypedJs: true) == 1 && js.ResolvedMinArgumentCount == 1);
         Check(await host.Parameters.MinimumAsync(js, voidIsRequired: true) == 0);
-        var restAny = new Symbol(SymbolFlags.FunctionScopedVariable | SymbolFlags.Transient, "args");
+        var restAny = new Symbol(SymbolFlags.FunctionScopedVariable | SymbolFlags.Transient, "args"u8);
         links.Values.Get(restAny).ResolvedType = context.AnyType;
         var anySignature = context.NewSignature(SignatureFlags.HasRestParameter, null, [], null, [restAny], context.VoidType, null, 0);
         Check(await host.Parameters.EffectiveRestAsync(anySignature) == host.AnyArray);
         Check(await host.Parameters.RestOrAnyAsync(anySignature, 0) == context.AnyType);
         Check(await host.Parameters.RestAtAsync(anySignature, 3) == host.AnyArray);
 
-        SyntaxNode name = new IdentifierNode { Text = "tail" };
+        SyntaxNode name = new IdentifierNode { Text = "tail"u8 };
         for (int i = 0; i < 20_000; i++)
             name = new BindingPatternNode(SyntaxKind.ArrayBindingPattern)
             {
@@ -181,8 +181,8 @@ internal static class CheckerSignatureTests
                 [new BindingElementNode { DotDotDotToken = new TokenNode(SyntaxKind.DotDotDotToken), Name = name }])
             };
         var declaration = new ParameterDeclarationNode { DotDotDotToken = new TokenNode(SyntaxKind.DotDotDotToken), Name = name };
-        var restSymbol = new Symbol(SymbolFlags.FunctionScopedVariable, "args") { ValueDeclaration = declaration };
-        Check(SignatureParameters.Label(new(ElementFlags.Rest), restSymbol, 0) == "tail");
+        var restSymbol = new Symbol(SymbolFlags.FunctionScopedVariable, "args"u8) { ValueDeclaration = declaration };
+        Check(SignatureParameters.Label(new(ElementFlags.Rest), restSymbol, 0) == "tail"u8);
         try
         {
             await host.SignatureComparison.CompareAsync(new TypeContext().NewSignature(0, null, [], null, [], null, null, 0), a);
@@ -229,7 +229,7 @@ internal static class CheckerSignatureTests
 
     private static async Task<int> OverloadDiagnosticSafety()
     {
-        string source = "\n" + """
+        Utf8String source = Utf8String.Concat("\n"u8, Utf8String.FromString("""
             interface Array<T> { length: number; [n: number]: T; }
             function pick(value: number): number;
             function pick(value: string): string;
@@ -254,37 +254,36 @@ internal static class CheckerSignatureTests
             declare function receiver(this: { a: number }, value: string): void;
             declare function receiver(this: { a: string }, value: number): void;
             receiver(123);
-            """.Replace("\r\n", "\n", StringComparison.Ordinal) + "\n";
-        // Pinned-reference argument errors, overload wrappers and related declarations.
-        const string reference = """
+            """.Replace("\r\n", "\n", StringComparison.Ordinal)), "\n"u8);
+        Utf8String reference = """
             [{"arguments":[],"category":1,"chain":[{"arguments":[],"category":1,"chain":[{"arguments":["boolean","string"],"category":1,"chain":[],"code":2345,"file":"/project/main.ts","key":"Argument_of_type_0_is_not_assignable_to_parameter_of_type_1_2345","length":4,"related":[],"start":194}],"code":2770,"file":"/project/main.ts","key":"The_last_overload_gave_the_following_error_2770","length":4,"related":[],"start":194}],"code":2769,"file":"/project/main.ts","key":"No_overload_matches_this_call_2769","length":4,"related":[{"arguments":[],"category":1,"chain":[],"code":2771,"file":"/project/main.ts","key":"The_last_overload_is_declared_here_2771","length":4,"related":[],"start":103},{"arguments":[],"category":1,"chain":[],"code":2793,"file":"/project/main.ts","key":"The_call_would_have_succeeded_against_this_implementation_but_implementation_signatures_of_overloads_2793","length":4,"related":[],"start":141}],"start":194},{"arguments":[],"category":1,"chain":[{"arguments":[],"category":1,"chain":[{"arguments":["number","string"],"category":1,"chain":[],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":1,"related":[{"arguments":["b","{ b: string; }"],"category":3,"chain":[],"code":6500,"file":"/project/main.ts","key":"The_expected_type_comes_from_property_0_which_is_declared_here_on_type_1_6500","length":1,"related":[],"start":291}],"start":328}],"code":2770,"file":"/project/main.ts","key":"The_last_overload_gave_the_following_error_2770","length":1,"related":[{"arguments":["b","{ b: string; }"],"category":3,"chain":[],"code":6500,"file":"/project/main.ts","key":"The_expected_type_comes_from_property_0_which_is_declared_here_on_type_1_6500","length":1,"related":[],"start":291}],"start":328}],"code":2769,"file":"/project/main.ts","key":"No_overload_matches_this_call_2769","length":1,"related":[{"arguments":["b","{ b: string; }"],"category":3,"chain":[],"code":6500,"file":"/project/main.ts","key":"The_expected_type_comes_from_property_0_which_is_declared_here_on_type_1_6500","length":1,"related":[],"start":291},{"arguments":[],"category":1,"chain":[],"code":2771,"file":"/project/main.ts","key":"The_last_overload_is_declared_here_2771","length":8,"related":[],"start":273}],"start":328},{"arguments":["number","string"],"category":1,"chain":[],"code":2345,"file":"/project/main.ts","key":"Argument_of_type_0_is_not_assignable_to_parameter_of_type_1_2345","length":3,"related":[{"arguments":[],"category":1,"chain":[],"code":2793,"file":"/project/main.ts","key":"The_call_would_have_succeeded_against_this_implementation_but_implementation_signatures_of_overloads_2793","length":4,"related":[],"start":382}],"start":413},{"arguments":[],"category":1,"chain":[{"arguments":[],"category":1,"chain":[{"arguments":["{ data: { name: boolean; }; }","{ data: { name: number; }; }"],"category":1,"chain":[{"arguments":["data.name"],"category":1,"chain":[{"arguments":["boolean","number"],"category":1,"chain":[],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":4,"related":[],"start":607}],"code":2200,"file":"/project/main.ts","key":"The_types_of_0_are_incompatible_between_these_types_2200","length":4,"related":[],"start":607}],"code":2345,"file":"/project/main.ts","key":"Argument_of_type_0_is_not_assignable_to_parameter_of_type_1_2345","length":4,"related":[],"start":607}],"code":2770,"file":"/project/main.ts","key":"The_last_overload_gave_the_following_error_2770","length":4,"related":[],"start":607}],"code":2769,"file":"/project/main.ts","key":"No_overload_matches_this_call_2769","length":4,"related":[{"arguments":[],"category":1,"chain":[],"code":2771,"file":"/project/main.ts","key":"The_last_overload_is_declared_here_2771","length":6,"related":[],"start":502}],"start":607},{"arguments":[],"category":1,"chain":[{"arguments":[],"category":1,"chain":[{"arguments":["boolean","number"],"category":1,"chain":[],"code":2345,"file":"/project/main.ts","key":"Argument_of_type_0_is_not_assignable_to_parameter_of_type_1_2345","length":4,"related":[],"start":771}],"code":2770,"file":"/project/main.ts","key":"The_last_overload_gave_the_following_error_2770","length":4,"related":[],"start":771}],"code":2769,"file":"/project/main.ts","key":"No_overload_matches_this_call_2769","length":4,"related":[{"arguments":[],"category":1,"chain":[],"code":2771,"file":"/project/main.ts","key":"The_last_overload_is_declared_here_2771","length":7,"related":[],"start":672},{"arguments":[],"category":1,"chain":[],"code":2793,"file":"/project/main.ts","key":"The_call_would_have_succeeded_against_this_implementation_but_implementation_signatures_of_overloads_2793","length":7,"related":[],"start":721}],"start":771},{"arguments":["number","string"],"category":1,"chain":[],"code":2345,"file":"/project/main.ts","key":"Argument_of_type_0_is_not_assignable_to_parameter_of_type_1_2345","length":3,"related":[],"start":837},{"arguments":[],"category":1,"chain":[{"arguments":[],"category":1,"chain":[{"arguments":["void","{ a: string; }"],"category":1,"chain":[],"code":2684,"file":"/project/main.ts","key":"The_this_context_of_type_0_is_not_assignable_to_method_s_this_of_type_1_2684","length":13,"related":[],"start":981}],"code":2770,"file":"/project/main.ts","key":"The_last_overload_gave_the_following_error_2770","length":13,"related":[],"start":981}],"code":2769,"file":"/project/main.ts","key":"No_overload_matches_this_call_2769","length":13,"related":[{"arguments":[],"category":1,"chain":[],"code":2771,"file":"/project/main.ts","key":"The_last_overload_is_declared_here_2771","length":8,"related":[],"start":929}],"start":981}]
-            """;
+            """u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        options.SetRaw("noErrorTruncation", "true");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        options.SetRaw("noErrorTruncation"u8, "true"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/main.ts"u8] = source.Span.ToArray() }), "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
         await checker.CheckProgramAsync();
-        var file = program.GetFile("/project/main.ts")!.Syntax;
+        var file = program.GetFile("/project/main.ts"u8)!.Syntax;
         using var stream = new MemoryStream();
         using (var writer = new System.Text.Json.Utf8JsonWriter(stream))
             CheckerCorpusTests.WriteDiagnostics(writer, checker.DetailedDiagnosticsForFile(file).OrderBy(d => d.Start));
         using var actual = System.Text.Json.JsonDocument.Parse(stream.ToArray());
-        using var expected = System.Text.Json.JsonDocument.Parse(reference);
+        using var expected = System.Text.Json.JsonDocument.Parse(reference.Memory);
         if (actual.RootElement.GetArrayLength() != expected.RootElement.GetArrayLength())
             throw new InvalidOperationException("Overload diagnostic count");
         for (int i = 0; i < actual.RootElement.GetArrayLength(); i++)
             if (!System.Text.Json.JsonElement.DeepEquals(actual.RootElement[i], expected.RootElement[i]))
-                throw new InvalidOperationException($"Overload diagnostic {i}: {actual.RootElement[i].GetRawText()}");
+                throw new InvalidOperationException($"Overload diagnostic {i}: {JsonStrings.Raw(actual.RootElement[i])}");
         return actual.RootElement.GetArrayLength();
     }
 
     private static async Task<int> CallArityDiagnosticSafety()
     {
-        string source = "\n" + """
+        Utf8String source = Utf8String.Concat("\n"u8, Utf8String.FromString("""
             interface Array<T> { length: number; [n: number]: T; }
             declare function range(a: number, b?: string): void;
             range(); range(1, '', true, false);
@@ -311,37 +310,36 @@ internal static class CheckerSignatureTests
             interface PromiseConstructor { new <T>(executor: (resolve: (value: T) => void) => void): Promise<T>; }
             declare var Promise: PromiseConstructor;
             new Promise(resolve => { resolve(); });
-            """.Replace("\r\n", "\n", StringComparison.Ordinal) + "\n";
-        // Counts, spans and related parameters are captured from the pinned checker.
-        const string reference = """
+            """.Replace("\r\n", "\n", StringComparison.Ordinal)), "\n"u8);
+        Utf8String reference = """
             [{"arguments":["1-2","0"],"category":1,"chain":[],"code":2554,"file":"/project/main.ts","key":"Expected_0_arguments_but_got_1_2554","length":5,"related":[{"arguments":["a"],"category":3,"chain":[],"code":6210,"file":"/project/main.ts","key":"An_argument_for_0_was_not_provided_6210","length":9,"related":[],"start":79}],"start":109},{"arguments":["1-2","4"],"category":1,"chain":[],"code":2554,"file":"/project/main.ts","key":"Expected_0_arguments_but_got_1_2554","length":11,"related":[],"start":131},{"arguments":["1","0"],"category":1,"chain":[],"code":2554,"file":"/project/main.ts","key":"Expected_0_arguments_but_got_1_2554","length":6,"related":[{"arguments":["a"],"category":3,"chain":[],"code":6210,"file":"/project/main.ts","key":"An_argument_for_0_was_not_provided_6210","length":9,"related":[],"start":176}],"start":203},{"arguments":["1","0"],"category":1,"chain":[],"code":2554,"file":"/project/main.ts","key":"Expected_0_arguments_but_got_1_2554","length":8,"related":[{"arguments":["value"],"category":3,"chain":[],"code":6210,"file":"/project/main.ts","key":"An_argument_for_0_was_not_provided_6210","length":13,"related":[],"start":249}],"start":271},{"arguments":["1","0"],"category":1,"chain":[],"code":2554,"file":"/project/main.ts","key":"Expected_0_arguments_but_got_1_2554","length":7,"related":[{"arguments":[],"category":3,"chain":[],"code":6211,"file":"/project/main.ts","key":"An_argument_matching_this_binding_pattern_was_not_provided_6211","length":20,"related":[],"start":308}],"start":337},{"arguments":["2","0"],"category":1,"chain":[],"code":2554,"file":"/project/main.ts","key":"Expected_0_arguments_but_got_1_2554","length":4,"related":[{"arguments":["items"],"category":1,"chain":[],"code":6236,"file":"/project/main.ts","key":"Arguments_for_the_rest_parameter_0_were_not_provided_6236","length":26,"related":[],"start":370}],"start":405},{"arguments":["1","0"],"category":1,"chain":[],"code":2555,"file":"/project/main.ts","key":"Expected_at_least_0_arguments_but_got_1_2555","length":9,"related":[{"arguments":["a"],"category":3,"chain":[],"code":6210,"file":"/project/main.ts","key":"An_argument_for_0_was_not_provided_6210","length":9,"related":[],"start":440}],"start":478},{"arguments":["2","1","3"],"category":1,"chain":[],"code":2575,"file":"/project/main.ts","key":"No_overload_expects_0_arguments_but_overloads_do_exist_that_expect_either_1_or_2_arguments_2575","length":8,"related":[],"start":601},{"arguments":["1-2","3"],"category":1,"chain":[],"code":2558,"file":"/project/main.ts","key":"Expected_0_type_arguments_but_got_1_2558","length":23,"related":[],"start":674},{"arguments":["0","1"],"category":1,"chain":[],"code":2558,"file":"/project/main.ts","key":"Expected_0_type_arguments_but_got_1_2558","length":6,"related":[],"start":708},{"arguments":["2","1","3"],"category":1,"chain":[],"code":2743,"file":"/project/main.ts","key":"No_overload_expects_0_type_arguments_but_overloads_do_exist_that_expect_either_1_or_2_type_arguments_2743","length":14,"related":[],"start":823},{"arguments":["1","0"],"category":1,"chain":[],"code":2794,"file":"/project/main.ts","key":"Expected_0_arguments_but_got_1_Did_you_forget_to_include_void_in_your_type_argument_to_Promise_2794","length":7,"related":[{"arguments":["value"],"category":3,"chain":[],"code":6210,"file":"/project/main.ts","key":"An_argument_for_0_was_not_provided_6210","length":8,"related":[],"start":969}],"start":1078}]
-            """;
+            """u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        options.SetRaw("noErrorTruncation", "true");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        options.SetRaw("noErrorTruncation"u8, "true"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/main.ts"u8] = source.Span.ToArray() }), "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
         await checker.CheckProgramAsync();
-        var file = program.GetFile("/project/main.ts")!.Syntax;
+        var file = program.GetFile("/project/main.ts"u8)!.Syntax;
         using var stream = new MemoryStream();
         using (var writer = new System.Text.Json.Utf8JsonWriter(stream))
             CheckerCorpusTests.WriteDiagnostics(writer, checker.DetailedDiagnosticsForFile(file).OrderBy(d => d.Start));
         using var actual = System.Text.Json.JsonDocument.Parse(stream.ToArray());
-        using var expected = System.Text.Json.JsonDocument.Parse(reference);
+        using var expected = System.Text.Json.JsonDocument.Parse(reference.Memory);
         if (actual.RootElement.GetArrayLength() != expected.RootElement.GetArrayLength())
             throw new InvalidOperationException("Call arity diagnostic count");
         for (int i = 0; i < actual.RootElement.GetArrayLength(); i++)
             if (!System.Text.Json.JsonElement.DeepEquals(actual.RootElement[i], expected.RootElement[i]))
-                throw new InvalidOperationException($"Call arity diagnostic {i}: {actual.RootElement[i].GetRawText()}");
+                throw new InvalidOperationException($"Call arity diagnostic {i}: {JsonStrings.Raw(actual.RootElement[i])}");
         return actual.RootElement.GetArrayLength();
     }
 
     private static async Task<int> SignatureDiagnosticSafety()
     {
-        string source = "\n" + """
+        Utf8String source = Utf8String.Concat("\n"u8, Utf8String.FromString("""
             interface Array<T> { length: number; [n: number]: T; }
             declare const parameterSource: (s: string) => void;
             const parameterTarget: (n: number) => void = parameterSource;
@@ -370,37 +368,36 @@ internal static class CheckerSignatureTests
             const identifierGuard: (x: unknown) => x is { value: number } = thisGuard;
             declare const secondGuard: (x: unknown, y: unknown) => y is string;
             const firstGuard: (a: unknown, b: unknown) => a is string = secondGuard;
-            """.Replace("\r\n", "\n", StringComparison.Ordinal) + "\n";
-        // Complete diagnostics from the pinned checker, including overload order and predicates.
-        const string reference = """
+            """.Replace("\r\n", "\n", StringComparison.Ordinal)), "\n"u8);
+        Utf8String reference = """
             [{"arguments":["(s: string) => void","(n: number) => void"],"category":1,"chain":[{"arguments":["s","n"],"category":1,"chain":[{"arguments":["number","string"],"category":1,"chain":[],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":15,"related":[],"start":114}],"code":2328,"file":"/project/main.ts","key":"Types_of_parameters_0_and_1_are_incompatible_2328","length":15,"related":[],"start":114}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":15,"related":[],"start":114},{"arguments":["(a: number, b: number) => void","(a: number) => void"],"category":1,"chain":[{"arguments":["2","1"],"category":1,"chain":[],"code":2849,"file":"/project/main.ts","key":"Target_signature_provides_too_few_arguments_Expected_0_or_more_but_got_1_2849","length":11,"related":[],"start":235}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":11,"related":[],"start":235},{"arguments":["() => number","() => string"],"category":1,"chain":[{"arguments":["number","string"],"category":1,"chain":[],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":12,"related":[],"start":331}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":12,"related":[],"start":331},{"arguments":["{ method(): number; }","{ method(): string; }"],"category":1,"chain":[{"arguments":["method()"],"category":1,"chain":[{"arguments":["number","string"],"category":1,"chain":[],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":12,"related":[],"start":430}],"code":2201,"file":"/project/main.ts","key":"The_types_returned_by_0_are_incompatible_between_these_types_2201","length":12,"related":[],"start":430}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":12,"related":[],"start":430},{"arguments":["(cb: (n: number) => void) => void","(cb: (s: string) => void) => void"],"category":1,"chain":[{"arguments":["cb","cb"],"category":1,"chain":[{"arguments":["s","n"],"category":1,"chain":[{"arguments":["number","string"],"category":1,"chain":[],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":14,"related":[],"start":552}],"code":2328,"file":"/project/main.ts","key":"Types_of_parameters_0_and_1_are_incompatible_2328","length":14,"related":[],"start":552}],"code":2328,"file":"/project/main.ts","key":"Types_of_parameters_0_and_1_are_incompatible_2328","length":14,"related":[],"start":552}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":14,"related":[],"start":552},{"arguments":["(this: { x: number; }) => void","(this: { x: string; }) => void"],"category":1,"chain":[{"arguments":[],"category":1,"chain":[{"arguments":["{ x: string; }","{ x: number; }"],"category":1,"chain":[{"arguments":["x"],"category":1,"chain":[{"arguments":["string","number"],"category":1,"chain":[],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":10,"related":[],"start":683}],"code":2326,"file":"/project/main.ts","key":"Types_of_property_0_are_incompatible_2326","length":10,"related":[],"start":683}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":10,"related":[],"start":683}],"code":2685,"file":"/project/main.ts","key":"The_this_types_of_each_signature_are_incompatible_2685","length":10,"related":[],"start":683}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":10,"related":[],"start":683},{"arguments":["{ (s: string): void; (n: number): void; }","(b: boolean) => void"],"category":1,"chain":[{"arguments":["s","b"],"category":1,"chain":[{"arguments":["boolean","string"],"category":1,"chain":[],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":14,"related":[],"start":813}],"code":2328,"file":"/project/main.ts","key":"Types_of_parameters_0_and_1_are_incompatible_2328","length":14,"related":[],"start":813}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":14,"related":[],"start":813},{"arguments":["{}","(x: number) => void"],"category":1,"chain":[{"arguments":["{}","(x: number): void"],"category":1,"chain":[],"code":2658,"file":"/project/main.ts","key":"Type_0_provides_no_match_for_the_signature_1_2658","length":6,"related":[],"start":952}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":6,"related":[],"start":952},{"arguments":["abstract new () => {}","new () => {}"],"category":1,"chain":[{"arguments":[],"category":1,"chain":[],"code":2517,"file":"/project/main.ts","key":"Cannot_assign_an_abstract_constructor_type_to_a_non_abstract_constructor_type_2517","length":14,"related":[],"start":1048}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":14,"related":[],"start":1048},{"arguments":["(x: unknown) => x is number","(x: unknown) => x is string"],"category":1,"chain":[{"arguments":["x is number","x is string"],"category":1,"chain":[{"arguments":["number","string"],"category":1,"chain":[],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":11,"related":[],"start":1157}],"code":1226,"file":"/project/main.ts","key":"Type_predicate_0_is_not_assignable_to_1_1226","length":11,"related":[],"start":1157}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":11,"related":[],"start":1157},{"arguments":["(x: unknown) => boolean","(x: unknown) => x is string"],"category":1,"chain":[{"arguments":["(x: unknown): boolean"],"category":1,"chain":[],"code":1224,"file":"/project/main.ts","key":"Signature_0_must_be_a_type_predicate_1224","length":15,"related":[],"start":1273}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":15,"related":[],"start":1273},{"arguments":["(this: any) => this is { value: number; }","(x: unknown) => x is { value: number; }"],"category":1,"chain":[{"arguments":["this is { value: number; }","x is { value: number; }"],"category":1,"chain":[{"arguments":[],"category":1,"chain":[],"code":2518,"file":"/project/main.ts","key":"A_this_based_type_guard_is_not_compatible_with_a_parameter_based_type_guard_2518","length":15,"related":[],"start":1408}],"code":1226,"file":"/project/main.ts","key":"Type_predicate_0_is_not_assignable_to_1_1226","length":15,"related":[],"start":1408}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":15,"related":[],"start":1408},{"arguments":["(x: unknown, y: unknown) => y is string","(a: unknown, b: unknown) => a is string"],"category":1,"chain":[{"arguments":["y is string","a is string"],"category":1,"chain":[{"arguments":["y","a"],"category":1,"chain":[],"code":1227,"file":"/project/main.ts","key":"Parameter_0_is_not_in_the_same_position_as_parameter_1_1227","length":10,"related":[],"start":1551}],"code":1226,"file":"/project/main.ts","key":"Type_predicate_0_is_not_assignable_to_1_1226","length":10,"related":[],"start":1551}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":10,"related":[],"start":1551}]
-            """;
+            """u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        options.SetRaw("noErrorTruncation", "true");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        options.SetRaw("noErrorTruncation"u8, "true"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/main.ts"u8] = source.Span.ToArray() }), "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
         await checker.CheckProgramAsync();
-        var file = program.GetFile("/project/main.ts")!.Syntax;
+        var file = program.GetFile("/project/main.ts"u8)!.Syntax;
         using var stream = new MemoryStream();
         using (var writer = new System.Text.Json.Utf8JsonWriter(stream))
             CheckerCorpusTests.WriteDiagnostics(writer, checker.DetailedDiagnosticsForFile(file).OrderBy(d => d.Start));
         using var actual = System.Text.Json.JsonDocument.Parse(stream.ToArray());
-        using var expected = System.Text.Json.JsonDocument.Parse(reference);
+        using var expected = System.Text.Json.JsonDocument.Parse(reference.Memory);
         if (actual.RootElement.GetArrayLength() != expected.RootElement.GetArrayLength())
             throw new InvalidOperationException("Signature diagnostic count");
         int checks = 0;
         for (int i = 0; i < actual.RootElement.GetArrayLength(); i++)
         {
             if (!System.Text.Json.JsonElement.DeepEquals(actual.RootElement[i], expected.RootElement[i]))
-                throw new InvalidOperationException($"Signature diagnostic {i}: {actual.RootElement[i].GetRawText()}");
+                throw new InvalidOperationException($"Signature diagnostic {i}: {JsonStrings.Raw(actual.RootElement[i])}");
             checks++;
         }
         var successful = file.DescendantsAndSelf().OfType<VariableDeclarationNode>()
-            .Single(d => d.Name is IdentifierNode { Text: { Span: "overloadSuccess" } });
+            .Single(d => (d.Name is IdentifierNode { Text: { Span: var matchedText } } && matchedText.SequenceEqual("overloadSuccess"u8)));
         if (checker.DetailedDiagnosticsForFile(file).Any(d => d.Start >= successful.Pos && d.Start < successful.End))
             throw new InvalidOperationException("Successful overload retained trial failures");
         return checks + 1;
@@ -408,19 +405,19 @@ internal static class CheckerSignatureTests
 
     private static async Task<int> PredicateSafety()
     {
-        const string source = """
+        Utf8String source = """
             interface Array<T> { length: number; [n: number]: T; }
             type Invalid = asserts value;
             function wrong(value: number): value is string { return true; }
             function rest(...values: unknown[]): values is string[] { return true; }
             function binding({ value }: { value: unknown }): value is string { return true; }
             function missing(value: unknown): absent is string { return true; }
-            """;
+            """u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/main.ts"u8] = source.Span.ToArray() }), "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
         await checker.CheckProgramAsync();
         var codes = checker.DiagnosticCodesForFile(program.SourceFiles[0].Syntax);
@@ -438,7 +435,7 @@ internal static class CheckerSignatureTests
 
     private static async Task<int> VarianceSafety()
     {
-        const string source = """
+        Utf8String source = """
             interface Consumer<out T> { consume: (value: T) => void; }
             interface Producer<in T> { value: T; }
             interface Both<in out T> { value: T; consume: (value: T) => void; }
@@ -450,15 +447,15 @@ internal static class CheckerSignatureTests
             interface ValidConsumer<in T> { consume: (value: T) => void; }
             interface ValidProducer<out T> { value: T; }
             class InvalidMember { in value = 0; out other = 0; }
-            """;
+            """u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/main.ts"u8] = source.Span.ToArray() }), "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
-        var file = program.GetFile("/project/main.ts")!.Syntax;
+        var file = program.GetFile("/project/main.ts"u8)!.Syntax;
         await checker.CheckSourceFileAsync(file);
         var codes = checker.DiagnosticCodesForFile(file);
         if (!codes.SequenceEqual(
@@ -481,15 +478,15 @@ internal static class CheckerSignatureTests
 
     private static async Task<int> DecoratorSafety()
     {
-        const string library = """
+        Utf8String library = """
             interface Array<T> { length: number; [n: number]: T; }
             interface ReadonlyArray<T> { readonly length: number; readonly [n: number]: T; }
             interface TypedPropertyDescriptor<T> { value?: T; get?: () => T; set?: (value: T) => void; }
             interface ClassDecoratorContext<T> { kind: 'class'; name: string | undefined; }
             interface ClassMethodDecoratorContext<This, Value> { kind: 'method'; name: string | symbol; static: boolean; private: boolean; }
             interface ClassFieldDecoratorContext<This, Value> { kind: 'field'; name: string | symbol; static: boolean; private: boolean; value: Value; }
-            """;
-        const string standard = """
+            """u8;
+        Utf8String standard = """
             declare function classDecorator<T extends new (...args: any[]) => any>(value: T, context: ClassDecoratorContext<T>): T;
             declare const provider: { tag: true; decorate<T>(this: { tag: true }, value: T, context: any): T; };
             declare function staticOnly(value: undefined, context: ClassFieldDecoratorContext<any, number> & { name: 'count'; static: true; private: false }): void;
@@ -501,22 +498,22 @@ internal static class CheckerSignatureTests
                 @wrong value = 1;
                 @replacement replaced() { return 1; }
             }
-            """;
-        const string legacy = """
+            """u8;
+        Utf8String legacy = """
             declare function methodDecorator(target: object, key: string, descriptor: TypedPropertyDescriptor<() => number>): void;
             declare function parameterDecorator(target: object, key: string | undefined, index: 0): void;
             class C {
                 constructor(@parameterDecorator value: number) { }
                 @methodDecorator method() { return 1; }
             }
-            """;
-        const string metadata = """
+            """u8;
+        Utf8String metadata = """
             import { C, I } from './types';
             declare function decorator(...args: any[]): void;
             class D { @decorator classValue!: C; @decorator interfaceValue!: I; }
-            """;
+            """u8;
         int checks = 0;
-        foreach (var (source, old, emit, expected) in new (string, bool, bool, DiagnosticCode[])[]
+        foreach (var (source, old, emit, expected) in new (Utf8String, bool, bool, DiagnosticCode[])[]
             {
                 (standard, false, false,
                     [
@@ -528,21 +525,21 @@ internal static class CheckerSignatureTests
             })
         {
             var options = new CompilerOptions();
-            options.SetRaw("noLib", "true");
-            options.SetRaw("strict", "true");
-            options.SetRaw("target", "\"es2022\"");
-            options.SetRaw("module", "\"esnext\"");
-            options.SetRaw("isolatedModules", "true");
-            options.SetRaw("experimentalDecorators", old ? "true" : "false");
-            options.SetRaw("emitDecoratorMetadata", emit ? "true" : "false");
-            var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+            options.SetRaw("noLib"u8, "true"u8);
+            options.SetRaw("strict"u8, "true"u8);
+            options.SetRaw("target"u8, "\"es2022\""u8);
+            options.SetRaw("module"u8, "\"esnext\""u8);
+            options.SetRaw("isolatedModules"u8, "true"u8);
+            options.SetRaw("experimentalDecorators"u8, old ? Utf8String.Copy("true"u8) : Utf8String.Copy("false"u8));
+            options.SetRaw("emitDecoratorMetadata"u8, emit ? Utf8String.Copy("true"u8) : Utf8String.Copy("false"u8));
+            var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
             {
-                ["/project/main.ts"] = Wtf8.Encode(source),
-                ["/project/globals.d.ts"] = Wtf8.Encode(library),
-                ["/project/types.ts"] = Wtf8.Encode("export class C { value = 1; } export interface I { value: number; }")
-            }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts", "/project/globals.d.ts"], [], [], []));
+                ["/project/main.ts"u8] = source.Span.ToArray(),
+                ["/project/globals.d.ts"u8] = library.Span.ToArray(),
+                ["/project/types.ts"u8] = Wtf8.Encode("export class C { value = 1; } export interface I { value: number; }")
+            }), "/project"u8, new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8, "/project/globals.d.ts"u8], [], [], []));
             var checker = await program.CreateCheckerAsync();
-            var file = program.GetFile("/project/main.ts")!.Syntax;
+            var file = program.GetFile("/project/main.ts"u8)!.Syntax;
             var nodes = file.DescendantsAndSelf().ToArray();
             var parents = nodes.Select(n => n.Parent).ToArray();
             await checker.CheckSourceFileAsync(file);
@@ -554,7 +551,7 @@ internal static class CheckerSignatureTests
             checks += 2;
             if (emit)
             {
-                var import = nodes.OfType<ImportSpecifierNode>().Single(n => n.Name!.Text == "C");
+                var import = nodes.OfType<ImportSpecifierNode>().Single(n => n.Name!.Text == "C"u8);
                 if (!checker.Links.Aliases.Get(checker.Symbols.Declaration(import)!).Referenced)
                     throw new InvalidOperationException("Decorator metadata did not retain the value import");
                 checks++;
@@ -572,7 +569,7 @@ internal static class CheckerSignatureTests
                 throw new InvalidOperationException($"Documentation signature assertion {checks + 1}");
             checks++;
         }
-        const string source = """
+        Utf8String source = """
             /** @type {(value:number, optional?:string)=>boolean} */
             function typed(value, optional) { return true; }
             /**
@@ -581,15 +578,15 @@ internal static class CheckerSignatureTests
              * @returns {T}
              */
             function identity(value) { return value; }
-            """;
+            """u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("allowJs", "true");
-        options.SetRaw("checkJs", "true");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("allowJs"u8, "true"u8);
+        options.SetRaw("checkJs"u8, "true"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
         {
-            ["/project/main.js"] = Wtf8.Encode(source)
-        }), "/project", new("/project/tsconfig.json", options, ["/project/main.js"], [], [], []));
+            ["/project/main.js"u8] = source.Span.ToArray()
+        }), "/project"u8, new("/project/tsconfig.json"u8, options, ["/project/main.js"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
         var functions = program.SourceFiles[0].Syntax.Statements!.OfType<FunctionDeclarationNode>().ToArray();
         var typed = (await checker.FullSignatureAsync(functions[0], default))!;
@@ -614,10 +611,10 @@ internal static class CheckerSignatureTests
         var independent = await program.CreateCheckerAsync();
         var independentSignature = (await independent.FullSignatureAsync(functions[0], default))!;
         Check(independentSignature != typed && independentSignature.Context != typed.Context);
-        var inheritedDocumentationProgram = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        var inheritedDocumentationProgram = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
         {
-            ["/project/docs.js"] = Wtf8.Encode("/** @param {number} missing */\nconst f = /** prose */ function(value) {};")
-        }), "/project", new("/project/tsconfig.json", options, ["/project/docs.js"], [], [], []));
+            ["/project/docs.js"u8] = Wtf8.Encode("/** @param {number} missing */\nconst f = /** prose */ function(value) {};")
+        }), "/project"u8, new("/project/tsconfig.json"u8, options, ["/project/docs.js"u8], [], [], []));
         var inheritedDocumentationChecker = await inheritedDocumentationProgram.CreateCheckerAsync();
         await inheritedDocumentationChecker.CheckProgramAsync();
         Check(
@@ -636,37 +633,37 @@ internal static class CheckerSignatureTests
                 throw new InvalidOperationException($"Iteration assertion {checks + 1}");
             checks++;
         }
-        const string source = "interface Array<T>{length:number;[n:number]:T} interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T} interface SymbolConstructor{readonly iterator:unique symbol} declare const Symbol:SymbolConstructor; interface Iterable<T,R=any,N=any>{[Symbol.iterator]():Iterator<T,R,N>} interface Iterator<T,R=any,N=any>{next(value:N):{done:false;value:T}|{done:true;value:R}} interface Generator<T,R,N> extends Iterable<T,R,N>,Iterator<T,R,N>{} declare const values:Iterable<number,string,boolean>; interface Invalid{[Symbol.iterator]():{next?:()=>{value:number}}} type Yielded={done:false;value:number}; type Returned={done:true;value:string};";
+        Utf8String source = "interface Array<T>{length:number;[n:number]:T} interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T} interface SymbolConstructor{readonly iterator:unique symbol} declare const Symbol:SymbolConstructor; interface Iterable<T,R=any,N=any>{[Symbol.iterator]():Iterator<T,R,N>} interface Iterator<T,R=any,N=any>{next(value:N):{done:false;value:T}|{done:true;value:R}} interface Generator<T,R,N> extends Iterable<T,R,N>,Iterator<T,R,N>{} declare const values:Iterable<number,string,boolean>; interface Invalid{[Symbol.iterator]():{next?:()=>{value:number}}} type Yielded={done:false;value:number}; type Returned={done:true;value:string};"u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
         var program = await CompilerProgram.CreateAsync(
-            new MemoryFileSystem(new Dictionary<string, byte[]> { ["/project/main.ts"] = Wtf8.Encode(source) }),
-            "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+            new MemoryFileSystem(new Dictionary<Utf8String, byte[]> { ["/project/main.ts"u8] = source.Span.ToArray() }),
+            "/project"u8, new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
         var scope = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
         var host = new Checker(context, links, scope);
-        var values = await host.Values.GetAsync(symbols.Globals["values"]);
+        var values = await host.Values.GetAsync(symbols.Globals["values"u8]);
         var result = await host.Iterators.IterableAsync(values, IterationUse.Spread);
         Check(result == new IterationTypes(context.NumberType, context.StringType, context.BooleanType));
         int cached = host.Iterators.CacheCount;
         Check(await host.Iterators.IterableAsync(values, IterationUse.Destructuring) == result && host.Iterators.CacheCount == cached);
-        var node = symbols.Globals["values"].ValueDeclaration!;
+        var node = symbols.Globals["values"u8].ValueDeclaration!;
         Check(await host.Iteration.CheckAsync(IterationUse.Spread, values, context.UndefinedType, node) == context.NumberType);
         Check(
             host.Diagnostics.Contains(
                 DiagnosticCode.CannotIterateValueBecauseTheNextMethodOfItsIteratorExpectsType1ButArraySpreadWillAlwaysSend0));
-        var invalid = await host.Declared.GetAsync(symbols.Globals["Invalid"]);
+        var invalid = await host.Declared.GetAsync(symbols.Globals["Invalid"u8]);
         Check(!(await host.Iterators.IterableAsync(invalid, IterationUse.Spread)).HasTypes);
         cached = host.Iterators.CacheCount;
         Check(!(await host.Iterators.IterableAsync(invalid, IterationUse.Spread, node)).HasTypes);
         Check(
             host.Iterators.CacheCount == cached
                 && host.DeferredIterationDiagnostics.Single().Related.Single().Code == DiagnosticCode.AnIteratorMustHaveANextMethod);
-        var yielded = await host.Declared.GetAsync(symbols.Globals["Yielded"]);
-        var returned = await host.Declared.GetAsync(symbols.Globals["Returned"]);
+        var yielded = await host.Declared.GetAsync(symbols.Globals["Yielded"u8]);
+        var returned = await host.Declared.GetAsync(symbols.Globals["Returned"u8]);
         Check(await host.Iterators.ResultAsync(yielded) == new IterationTypes(context.NumberType, context.VoidType, null));
         Check(await host.Iterators.ResultAsync(returned) == new IterationTypes(null, context.StringType, null));
         Check(
@@ -719,7 +716,7 @@ internal static class CheckerSignatureTests
         host.BeforeIterationGlobal = null;
         Check(host.Iterators.CacheCount == cached);
         Check((await host.Iterators.IterableAsync(other, IterationUse.Spread)).Yield == context.BigIntType);
-        SyntaxNode body = new YieldExpressionNode { Expression = new NumericLiteralNode { Text = "1" } };
+        SyntaxNode body = new YieldExpressionNode { Expression = new NumericLiteralNode { Text = "1"u8 } };
         var leaf = body;
         for (int i = 0; i < 20000; i++)
             body = new ParenthesizedExpressionNode { Expression = body };
@@ -736,13 +733,13 @@ internal static class CheckerSignatureTests
                 throw new InvalidOperationException($"Call assertion {checks + 1}");
             checks++;
         }
-        const string source = "interface Array<T>{length:number;[n:number]:T} interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T} declare function f(value:number):number; f(1); f('bad'); declare function map<T,U>(value:T,callback:(value:T)=>U):U; map(1,value=>value+1);";
+        Utf8String source = "interface Array<T>{length:number;[n:number]:T} interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T} declare function f(value:number):number; f(1); f('bad'); declare function map<T,U>(value:T,callback:(value:T)=>U):U; map(1,value=>value+1);"u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
         var program = await CompilerProgram.CreateAsync(
-            new MemoryFileSystem(new Dictionary<string, byte[]> { ["/project/main.ts"] = Wtf8.Encode(source) }),
-            "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+            new MemoryFileSystem(new Dictionary<Utf8String, byte[]> { ["/project/main.ts"u8] = source.Span.ToArray() }),
+            "/project"u8, new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
         var scope = new CheckerEnvironment(context, links);
@@ -869,13 +866,13 @@ internal static class CheckerSignatureTests
                 throw new InvalidOperationException($"Function assertion {checks + 1}");
             checks++;
         }
-        const string source = "interface Array<T>{length:number;[n:number]:T} interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T} type NumberFunction=(value:number)=>number; type StringFunction=(value:string)=>string; type GenericFunction=<T>(value:T)=>T; const f=value=>value; const generic=value=>value; const predicate=(value:string|number)=>typeof value==='string';";
+        Utf8String source = "interface Array<T>{length:number;[n:number]:T} interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T} type NumberFunction=(value:number)=>number; type StringFunction=(value:string)=>string; type GenericFunction=<T>(value:T)=>T; const f=value=>value; const generic=value=>value; const predicate=(value:string|number)=>typeof value==='string';"u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
         var program = await CompilerProgram.CreateAsync(
-            new MemoryFileSystem(new Dictionary<string, byte[]> { ["/project/main.ts"] = Wtf8.Encode(source) }),
-            "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+            new MemoryFileSystem(new Dictionary<Utf8String, byte[]> { ["/project/main.ts"u8] = source.Span.ToArray() }),
+            "/project"u8, new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
         var scope = new CheckerEnvironment(context, links);
@@ -883,9 +880,9 @@ internal static class CheckerSignatureTests
         var host = new Checker(context, links, scope);
         var nodes = program.SourceFiles[0].Syntax.DescendantsAndSelf().ToArray();
         var arrows = nodes.OfType<ArrowFunctionNode>().ToArray();
-        var number = await host.Declared.GetAsync(symbols.Globals["NumberFunction"]);
-        var text = await host.Declared.GetAsync(symbols.Globals["StringFunction"]);
-        var generic = await host.Declared.GetAsync(symbols.Globals["GenericFunction"]);
+        var number = await host.Declared.GetAsync(symbols.Globals["NumberFunction"u8]);
+        var text = await host.Declared.GetAsync(symbols.Globals["StringFunction"u8]);
+        var generic = await host.Declared.GetAsync(symbols.Globals["GenericFunction"u8]);
         var signature = await host.Signatures.FromDeclarationAsync(arrows[0]);
         using (var cancellation = new CancellationTokenSource())
         {
@@ -939,7 +936,7 @@ internal static class CheckerSignatureTests
         {
             checks++;
         }
-        var returnStatement = new ReturnStatementNode { Expression = new NumericLiteralNode { Text = "1" } };
+        var returnStatement = new ReturnStatementNode { Expression = new NumericLiteralNode { Text = "1"u8 } };
         SyntaxNode body = returnStatement;
         for (int i = 0; i < 20_000; i++)
             body = new BlockNode { Statements = new NodeList([body]) };

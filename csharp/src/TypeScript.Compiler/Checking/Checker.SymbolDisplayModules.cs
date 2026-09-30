@@ -8,14 +8,14 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
-    private async ValueTask<TextSlice> DisplayModuleSpecifierAsync(
+    private async ValueTask<Utf8String> DisplayModuleSpecifierAsync(
         Symbol symbol,
         SymbolDisplayContext state,
         CancellationToken cancellation,
         ReferenceResolutionMode overrideMode = 0)
     {
         var key = (symbol, overrideMode);
-        if (state.Modules.TryGetValue(key, out TextSlice cached))
+        if (state.Modules.TryGetValue(key, out Utf8String cached))
             return cached;
         var file = symbol.Declarations.OfType<SourceFileNode>().FirstOrDefault();
         if (file is null)
@@ -37,7 +37,7 @@ internal sealed partial class Checker
                     declaration,
                     n => n is ModuleDeclarationNode { Name: StringLiteralNode }) is ModuleDeclarationNode
                     { Name: StringLiteralNode ambient, Parent: SourceFileNode } container
-                    && program.Symbols.Declaration(container)?.Exports.GetValueOrDefault("export=") is { } exported
+                    && program.Symbols.Declaration(container)?.Exports.GetValueOrDefault(Utf8Literals.ExportEquals) is { } exported
                     && await SameSymbolReferenceAsync(exported, symbol, cancellation))
                     return state.Modules[key] = ambient.Text;
         }
@@ -50,7 +50,7 @@ internal sealed partial class Checker
         var original = DisplayOriginalSpecifier(state.Enclosing!);
         var mode = overrideMode != 0 ? overrideMode : program.Symbols.Program.ResolutionModeForUsage(enclosingFile, original);
         var result = program.Symbols.Program.GetModuleSpecifiers(enclosingFile, file.FileName,
-            new(Relative: "project-relative", Ending: mode == ReferenceResolutionMode.Import ? "js" : ""),
+            new(Relative: Utf8Literals.ProjectRelative, Ending: mode == ReferenceResolutionMode.Import ? Utf8Literals.JsFormat : Utf8String.Empty),
             mode: overrideMode,
             cancellation: cancellation);
         return state.Modules[key] = result.Specifiers.Count != 0 ? result.Specifiers[0]

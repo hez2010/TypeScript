@@ -25,7 +25,7 @@ internal sealed partial class Checker : IBindingPatternHost, IExpressionContextH
     public ValueTask<bool> LateIndexTypeAsync(Type type, CancellationToken cancellation) =>
         AssignableAsync(type, context.StringNumberSymbolType, cancellation);
 
-    public ValueTask<IReadOnlyDictionary<TextSlice, Symbol>> ModuleExportsAsync(Symbol symbol, CancellationToken cancellation) =>
+    public ValueTask<IReadOnlyDictionary<Utf8String, Symbol>> ModuleExportsAsync(Symbol symbol, CancellationToken cancellation) =>
         program.ModuleExports.ResolveAsync(symbol, cancellation);
 
     public ValueTask<Type> ObjectMethodAsync(MethodDeclarationNode node, CheckMode mode, CancellationToken cancellation) =>
@@ -64,7 +64,7 @@ internal sealed partial class Checker : IBindingPatternHost, IExpressionContextH
 
     public async ValueTask<Type> IterableOfAsync(Type element, CancellationToken cancellation)
     {
-        var target = await program.Globals.GetAsync("Iterable", 3, true, cancellation);
+        var target = await program.Globals.GetAsync(Utf8Literals.Iterable, 3, true, cancellation);
         return target == context.EmptyGenericType ? context.EmptyObjectType
             : context.CreateTypeReference((InterfaceType)target, [element, context.VoidType, context.UndefinedType]);
     }
@@ -141,7 +141,7 @@ internal sealed partial class Checker : IBindingPatternHost, IExpressionContextH
     {
         if (node is not ObjectLiteralExpressionNode || node.Parent is not PropertyAssignmentNode property || property.Initializer != node
             || property.Name is not IdentifierNode and not StringLiteralNode and not NoSubstitutionTemplateLiteralNode
-            || SyntaxNameText.Get(property.Name) != "with" || property.Parent is not ObjectLiteralExpressionNode options)
+            || SyntaxNameText.Get(property.Name) != Utf8Literals.With || property.Parent is not ObjectLiteralExpressionNode options)
             return false;
         var call = DeclarationOrder.Ancestor(
             options,

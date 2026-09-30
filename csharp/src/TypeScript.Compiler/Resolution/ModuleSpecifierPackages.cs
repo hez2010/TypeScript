@@ -12,28 +12,28 @@ internal enum PackageSpecifierMatch
     Pattern
 }
 
-internal sealed partial class ModuleSpecifierPackages(IFileSystem fileSystem, CompilerOptions options, string currentDirectory,
-    string commonSourceDirectory, IReadOnlyList<string>? contentMapperExtensions = null, SemanticVersion? compilerVersion = null)
+internal sealed partial class ModuleSpecifierPackages(IFileSystem fileSystem, CompilerOptions options, Utf8String currentDirectory,
+    Utf8String commonSourceDirectory, IReadOnlyList<Utf8String>? contentMapperExtensions = null, SemanticVersion? compilerVersion = null)
 {
     private readonly PackageJsonCache packages = new(fileSystem, currentDirectory);
-    private readonly SemanticVersion version = compilerVersion ?? new(7, 1, 0, "dev");
+    private readonly SemanticVersion version = compilerVersion ?? new(7, 1, 0, Utf8Literals.Dev);
     private StringComparison Comparison => fileSystem.CaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 
-    internal string FromExports(string target, string directory, string name, JsonElement exports, IReadOnlyList<string> conditions,
+    internal Utf8String FromExports(Utf8String target, Utf8String directory, Utf8String name, JsonElement exports, IReadOnlyList<Utf8String> conditions,
         CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
         if (PackageJson.MapKind(exports) == PackageMapKind.Subpaths)
             foreach (var mapping in PackageJson.Properties(exports))
             {
-                string subName = CompilerPath.Normalize(CompilerPath.Combine(name, mapping.Name));
+                Utf8String subName = CompilerPath.Normalize(CompilerPath.Combine(name, JsonStrings.GetName(mapping)));
                 var result = FromMap(
                     target,
                     directory,
                     subName,
                     mapping.Value,
                     conditions,
-                    MatchMode(mapping.Name),
+                    MatchMode(JsonStrings.GetName(mapping)),
                     false,
                     false,
                     cancellation);
@@ -43,14 +43,14 @@ internal sealed partial class ModuleSpecifierPackages(IFileSystem fileSystem, Co
         return FromMap(target, directory, name, exports, conditions, PackageSpecifierMatch.Exact, false, false, cancellation);
     }
 
-    internal string FromImports(string target, string sourceDirectory, ReferenceResolutionMode importMode, bool preferTypeScript,
+    internal Utf8String FromImports(Utf8String target, Utf8String sourceDirectory, ReferenceResolutionMode importMode, bool preferTypeScript,
         CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
         if (options.ResolvePackageJsonImports == false)
-            return "";
+            return Utf8String.Empty;
         PackageJson? package = null;
-        foreach (string directory in PackageJsonCache.Ancestors(CompilerPath.Resolve(currentDirectory, sourceDirectory)))
+        foreach (Utf8String directory in PackageJsonCache.Ancestors(CompilerPath.Resolve(currentDirectory, sourceDirectory)))
         {
             cancellation.ThrowIfCancellationRequested();
             if (packages.Get(directory).Contents is { } found)
@@ -59,17 +59,17 @@ internal sealed partial class ModuleSpecifierPackages(IFileSystem fileSystem, Co
                 break;
             }
         }
-        if (package?.Get("imports") is not { ValueKind: JsonValueKind.Object } imports)
-            return "";
+        if (package?.Get(Utf8Literals.Imports) is not { ValueKind: JsonValueKind.Object } imports)
+            return Utf8String.Empty;
         var conditions = Conditions(importMode);
         foreach (var entry in PackageJson.Properties(imports))
         {
-            string key = entry.Name;
-            if (key is "#" or "#/" || !key.StartsWith('#'))
+            Utf8String key = JsonStrings.GetName(entry);
+            if (key == "#"u8 || key == "#/"u8 || !key.StartsWith((byte)'#'))
                 continue;
-            if (key.StartsWith("#/", StringComparison.Ordinal) && ResolutionKind() == "node16")
+            if (key.StartsWith("#/"u8, StringComparison.Ordinal) && ResolutionKind() == Utf8Literals.Node16Option)
                 continue;
-            string result = FromMap(
+            Utf8String result = FromMap(
                 target,
                 package.Directory,
                 key,
@@ -82,28 +82,28 @@ internal sealed partial class ModuleSpecifierPackages(IFileSystem fileSystem, Co
             if (result.Length != 0)
                 return result;
         }
-        return "";
+        return Utf8String.Empty;
     }
 
-    internal string[] Conditions(ReferenceResolutionMode mode)
+    internal Utf8String[] Conditions(ReferenceResolutionMode mode)
     {
-        string resolution = ResolutionKind();
-        return [mode == ReferenceResolutionMode.Import || mode == 0 && resolution == "bundler" ? "import" : "require",
-            .. options.NoDtsResolution != true ? new[] { "types" } : [],
-            .. resolution != "bundler" ? new[] { "node" } : [], .. options.CustomConditions ?? []];
+        Utf8String resolution = ResolutionKind();
+        return [mode == ReferenceResolutionMode.Import || mode == 0 && resolution == Utf8Literals.Bundler ? Utf8Literals.ImportKeyword : Utf8Literals.RequireKeyword,
+            .. options.NoDtsResolution != true ? new Utf8String[]{ Utf8Literals.Types } : [],
+            .. resolution != Utf8Literals.Bundler ? new Utf8String[]{ Utf8Literals.Node } : [], .. options.CustomConditions ?? []];
     }
 
-    private string ResolutionKind() => options.EmitModuleResolutionKind switch
+    private Utf8String ResolutionKind() => options.EmitModuleResolutionKind switch
     {
-        ModuleResolutionKind.Node16 => "node16",
-        ModuleResolutionKind.NodeNext => "nodenext",
-        _ => "bundler"
+        ModuleResolutionKind.Node16 => Utf8Literals.Node16Option,
+        ModuleResolutionKind.NodeNext => Utf8Literals.Nodenext,
+        _ => Utf8Literals.Bundler
     };
 
-    private static PackageSpecifierMatch MatchMode(string key) => key.EndsWith('/') ? PackageSpecifierMatch.Directory
-        : key.Contains('*') ? PackageSpecifierMatch.Pattern : PackageSpecifierMatch.Exact;
+    private static PackageSpecifierMatch MatchMode(Utf8String key) => key.EndsWith((byte)'/') ? PackageSpecifierMatch.Directory
+        : key.Contains((byte)'*') ? PackageSpecifierMatch.Pattern : PackageSpecifierMatch.Exact;
 
-    internal string FromMap(string target, string directory, string name, JsonElement map, IReadOnlyList<string> conditions,
+    internal Utf8String FromMap(Utf8String target, Utf8String directory, Utf8String name, JsonElement map, IReadOnlyList<Utf8String> conditions,
         PackageSpecifierMatch mode, bool imports, bool preferTypeScript, CancellationToken cancellation = default)
     {
         var pending = new Stack<JsonElement>();
@@ -121,40 +121,40 @@ internal sealed partial class ModuleSpecifierPackages(IFileSystem fileSystem, Co
                     var entries = PackageJson.Properties(value).ToArray();
                     for (int i = entries.Length - 1; i >= 0; i--)
                     {
-                        string key = entries[i].Name;
-                        if (key == "default" || conditions.Contains(key)
-                            || conditions.Contains("types") && key.StartsWith("types@", StringComparison.Ordinal)
+                        Utf8String key = JsonStrings.GetName(entries[i]);
+                        if (key == Utf8Literals.Default || conditions.Contains(key)
+                            || conditions.Contains(Utf8Literals.Types) && key.StartsWith("types@"u8, StringComparison.Ordinal)
                                 && VersionRange.Parse(key[6..])?.Test(version) == true)
                             pending.Push(entries[i].Value);
                     }
                     break;
                 case JsonValueKind.String:
-                    string result = MatchTarget(target, directory, name, JsonStrings.GetString(value), mode, imports, preferTypeScript);
+                    Utf8String result = MatchTarget(target, directory, name, JsonStrings.GetString(value), mode, imports, preferTypeScript);
                     if (result.Length != 0)
                         return result;
                     break;
             }
         }
-        return "";
+        return Utf8String.Empty;
     }
 
-    private string MatchTarget(string target, string directory, string name, string value, PackageSpecifierMatch mode,
+    private Utf8String MatchTarget(Utf8String target, Utf8String directory, Utf8String name, Utf8String value, PackageSpecifierMatch mode,
         bool imports, bool preferTypeScript)
     {
-        string output = imports ? OutputFile(target, false) : "";
-        string declaration = imports ? OutputFile(target, true) : "";
-        string pattern = CompilerPath.Normalize(CompilerPath.Combine(directory, value));
-        string extension = ModuleSpecifierPaths.Extension(target);
-        string swapped = extension is ".ts" or ".tsx" or ".d.ts" or ".mts" or ".d.mts" or ".cts" or ".d.cts"
-            ? ModuleSpecifierPaths.WithoutExtension(target) + ModuleSpecifierPaths.JavaScriptFileExtension(target, options) : "";
+        Utf8String output = imports ? OutputFile(target, false) : Utf8String.Empty;
+        Utf8String declaration = imports ? OutputFile(target, true) : Utf8String.Empty;
+        Utf8String pattern = CompilerPath.Normalize(CompilerPath.Combine(directory, value));
+        Utf8String extension = ModuleSpecifierPaths.Extension(target);
+        Utf8String swapped = (extension == ".ts"u8 || extension == ".tsx"u8 || extension == ".d.ts"u8 || extension == ".mts"u8 || extension == ".d.mts"u8 || extension == ".cts"u8 || extension == ".d.cts"u8)
+            ? ModuleSpecifierPaths.WithoutExtension(target) + ModuleSpecifierPaths.JavaScriptFileExtension(target, options) : Utf8String.Empty;
         bool typed = preferTypeScript && !CompilerPath.IsDeclarationFile(target)
-            && (target.EndsWith(".ts", StringComparison.Ordinal) || target.EndsWith(".tsx", StringComparison.Ordinal)
-            || target.EndsWith(".mts", StringComparison.Ordinal) || target.EndsWith(".cts", StringComparison.Ordinal));
+            && (target.EndsWith(".ts"u8, StringComparison.Ordinal) || target.EndsWith(".tsx"u8, StringComparison.Ordinal)
+            || target.EndsWith(".mts"u8, StringComparison.Ordinal) || target.EndsWith(".cts"u8, StringComparison.Ordinal));
         switch (mode)
         {
             case PackageSpecifierMatch.Exact:
                 return swapped.Length != 0 && Equal(swapped, pattern) || Equal(target, pattern)
-                    || output.Length != 0 && Equal(output, pattern) || declaration.Length != 0 && Equal(declaration, pattern) ? name : "";
+                    || output.Length != 0 && Equal(output, pattern) || declaration.Length != 0 && Equal(declaration, pattern) ? name : Utf8String.Empty;
             case PackageSpecifierMatch.Directory:
                 if (typed && Contains(target, pattern))
                     return DirectoryName(target, true);
@@ -170,10 +170,10 @@ internal sealed partial class ModuleSpecifierPackages(IFileSystem fileSystem, Co
                         ChangeExtension(
                             Relative(pattern, declaration),
                             ModuleSpecifierPaths.JavaScriptFileExtension(declaration, options)));
-                return "";
+                return Utf8String.Empty;
             case PackageSpecifierMatch.Pattern:
-                int star = pattern.IndexOf('*');
-                string prefix = star < 0 ? pattern : pattern[..star], suffix = star < 0 ? "" : pattern[(star + 1)..];
+                int star = pattern.IndexOf((byte)'*');
+                Utf8String prefix = star < 0 ? pattern : pattern[..star], suffix = star < 0 ? Utf8String.Empty : pattern[(star + 1)..];
                 if (typed && Matches(target))
                     return Substitute(target);
                 if (swapped.Length != 0 && Matches(swapped))
@@ -184,75 +184,75 @@ internal sealed partial class ModuleSpecifierPackages(IFileSystem fileSystem, Co
                     return Substitute(output);
                 if (declaration.Length != 0 && Matches(declaration))
                     return ChangeFullExtension(Substitute(declaration), ModuleSpecifierPaths.JavaScriptFileExtension(declaration, options));
-                return "";
-                bool Matches(string path) => path.Length >= prefix.Length + suffix.Length
+                return Utf8String.Empty;
+                bool Matches(Utf8String path) => path.Length >= prefix.Length + suffix.Length
                     && path.StartsWith(prefix, Comparison) && path.EndsWith(suffix, Comparison);
-                string Substitute(string path)
+                Utf8String Substitute(Utf8String path)
                 {
-                    string replacement = path[prefix.Length..(path.Length - suffix.Length)];
-                    int index = name.IndexOf('*');
+                    Utf8String replacement = path[prefix.Length..(path.Length - suffix.Length)];
+                    int index = name.IndexOf((byte)'*');
                     return index < 0 ? name : name[..index] + replacement + name[(index + 1)..];
                 }
             default:
                 throw new ArgumentOutOfRangeException(nameof(mode));
         }
-        string DirectoryName(string path, bool includeValue) => includeValue
+        Utf8String DirectoryName(Utf8String path, bool includeValue) => includeValue
             ? CompilerPath.Normalize(CompilerPath.Combine(name, value, Relative(pattern, path)))
             : CompilerPath.Combine(name, Relative(pattern, path));
     }
 
-    private bool Equal(string first, string second) => CompilerPath.Resolve(currentDirectory, first)
+    private bool Equal(Utf8String first, Utf8String second) => CompilerPath.Resolve(currentDirectory, first)
         .Equals(CompilerPath.Resolve(currentDirectory, second), Comparison);
 
-    private bool Contains(string directory, string path) => CompilerPath.Contains(CompilerPath.Resolve(currentDirectory, directory),
+    private bool Contains(Utf8String directory, Utf8String path) => CompilerPath.Contains(CompilerPath.Resolve(currentDirectory, directory),
             CompilerPath.Resolve(currentDirectory, path), fileSystem.CaseSensitive);
 
-    private string Relative(string directory, string path) => CompilerPath.Relative(CompilerPath.Resolve(currentDirectory, directory),
+    private Utf8String Relative(Utf8String directory, Utf8String path) => CompilerPath.Relative(CompilerPath.Resolve(currentDirectory, directory),
             CompilerPath.Resolve(currentDirectory, path), fileSystem.CaseSensitive);
 
-    internal string OutputFile(string source, bool declaration)
+    internal Utf8String OutputFile(Utf8String source, bool declaration)
     {
-        string directory = declaration
-            ? options.DeclarationDir ?? options.OutDir ?? ""
-            : options.OutDir ?? "";
-        string path = directory.Length == 0 ? source : CompilerPath.Resolve(CompilerPath.Resolve(currentDirectory, directory),
+        Utf8String directory = declaration
+            ? options.DeclarationDir ?? options.OutDir ?? Utf8String.Empty
+            : options.OutDir ?? Utf8String.Empty;
+        Utf8String path = directory.Length == 0 ? source : CompilerPath.Resolve(CompilerPath.Resolve(currentDirectory, directory),
             Relative(commonSourceDirectory, source));
         if (!declaration)
         {
-            string outputExtension = source.EndsWith(".json", StringComparison.Ordinal) ? ".json"
+            Utf8String outputExtension = source.EndsWith(".json"u8, StringComparison.Ordinal) ? Utf8Literals.Json
                 : options.Jsx == JsxEmit.Preserve
-                    && (source.EndsWith(".jsx", StringComparison.Ordinal) || source.EndsWith(".tsx", StringComparison.Ordinal)) ? ".jsx"
-                : source.EndsWith(".mts", StringComparison.Ordinal) || source.EndsWith(".mjs", StringComparison.Ordinal) ? ".mjs"
-                : source.EndsWith(".cts", StringComparison.Ordinal) || source.EndsWith(".cjs", StringComparison.Ordinal) ? ".cjs" : ".js";
+                    && (source.EndsWith(".jsx"u8, StringComparison.Ordinal) || source.EndsWith(".tsx"u8, StringComparison.Ordinal)) ? Utf8Literals.Jsx
+                : source.EndsWith(".mts"u8, StringComparison.Ordinal) || source.EndsWith(".mjs"u8, StringComparison.Ordinal) ? Utf8Literals.Mjs
+                : source.EndsWith(".cts"u8, StringComparison.Ordinal) || source.EndsWith(".cjs"u8, StringComparison.Ordinal) ? Utf8Literals.Cjs : Utf8Literals.Js;
             return ChangeExtension(path, outputExtension);
         }
         var mapped = contentMapperExtensions?.Where(e => path.EndsWith(
             e,
             StringComparison.Ordinal)).OrderByDescending(e => e.Length).FirstOrDefault();
-        if (mapped is not null)
-            return path[..^mapped.Length] + ".d" + mapped + ".ts";
-        string bare = ModuleSpecifierPaths.WithoutExtension(path);
+        if (mapped is { } mappedExtension && !mappedExtension.IsEmpty)
+            return path[..^mappedExtension.Length] + Utf8Literals.D + mappedExtension + Utf8Literals.Ts;
+        Utf8String bare = ModuleSpecifierPaths.WithoutExtension(path);
         if (bare == path)
             bare = path[..(path.Length - CompilerPath.Extension(path).Length)];
-        string extension = path.EndsWith(".mts", StringComparison.Ordinal) || path.EndsWith(".mjs", StringComparison.Ordinal) ? ".d.mts"
-            : path.EndsWith(".cts", StringComparison.Ordinal) || path.EndsWith(".cjs", StringComparison.Ordinal) ? ".d.cts"
-            : path.EndsWith(".ts", StringComparison.Ordinal) || path.EndsWith(".tsx", StringComparison.Ordinal)
-                || path.EndsWith(".js", StringComparison.Ordinal) || path.EndsWith(".jsx", StringComparison.Ordinal) ? ".d.ts"
-            : CompilerPath.Extension(path) is { Length: > 0 } other ? ".d" + other + ".ts" : ".d.ts";
+        Utf8String extension = path.EndsWith(".mts"u8, StringComparison.Ordinal) || path.EndsWith(".mjs"u8, StringComparison.Ordinal) ? Utf8Literals.DMts
+            : path.EndsWith(".cts"u8, StringComparison.Ordinal) || path.EndsWith(".cjs"u8, StringComparison.Ordinal) ? Utf8Literals.DCts
+            : path.EndsWith(".ts"u8, StringComparison.Ordinal) || path.EndsWith(".tsx"u8, StringComparison.Ordinal)
+                || path.EndsWith(".js"u8, StringComparison.Ordinal) || path.EndsWith(".jsx"u8, StringComparison.Ordinal) ? Utf8Literals.DTs
+            : CompilerPath.Extension(path) is { Length: > 0 } other ? Utf8Literals.D + other + Utf8Literals.Ts : Utf8Literals.DTs;
         return bare + extension;
     }
 
-    private static string ChangeExtension(string path, string extension)
+    private static Utf8String ChangeExtension(Utf8String path, Utf8String extension)
     {
-        string current = ModuleSpecifierPaths.Extension(path);
+        Utf8String current = ModuleSpecifierPaths.Extension(path);
         return current.Length == 0 ? path : path[..^current.Length] + extension;
     }
 
-    private static string ChangeFullExtension(string path, string extension)
+    private static Utf8String ChangeFullExtension(Utf8String path, Utf8String extension)
     {
         if (CompilerPath.IsDeclarationFile(path))
         {
-            int marker = path.LastIndexOf(".d.", StringComparison.Ordinal);
+            int marker = path.LastIndexOf(".d."u8, StringComparison.Ordinal);
             if (marker >= 0)
                 return path[..marker] + extension;
         }

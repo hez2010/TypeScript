@@ -32,19 +32,19 @@ internal sealed partial class Checker
                 await CheckJsxOpeningAsync(fragment.OpeningFragment!, cancellation);
                 var file = SemanticSyntax.Source(node)!;
                 var options = program.Symbols.Program.Configuration.Options;
-                if (JsxMode is 2 or 4 or 5 && (options.JsxFactory is not null || JsxPragma(file, "jsx") is not null)
-                    && options.JsxFragmentFactory is null && JsxPragma(file, "jsxfrag") is null)
+                if (JsxMode is 2 or 4 or 5 && (options.JsxFactory is not null || JsxPragma(file, Utf8Literals.JsxKeyword) is not null)
+                    && options.JsxFragmentFactory is null && JsxPragma(file, Utf8Literals.Jsxfrag) is null)
                     Error(
                         node,
                         options.JsxFactory is not null
                             ? DiagnosticCode.TheJsxFragmentFactoryCompilerOptionMustBeProvidedToUseJSXFragmentsWithTheJsxFactoryCompilerOption
                             : DiagnosticCode.AnJsxFragPragmaIsRequiredWhenUsingAnJsxPragmaWithJSXFragments);
                 await JsxChildrenAsync(node, 0, cancellation);
-                var elementType = await JsxTypeAsync("Element", node, cancellation);
+                var elementType = await JsxTypeAsync(Utf8Literals.Element, node, cancellation);
                 return elementType == context.ErrorType ? context.AnyType : elementType;
             default:
                 DeferExpression(node);
-                return await JsxTypeAsync("Element", node, cancellation);
+                return await JsxTypeAsync(Utf8Literals.Element, node, cancellation);
         }
     }
 
@@ -76,7 +76,7 @@ internal sealed partial class Checker
             return;
         Type? constraint = null;
         if (await JsxNamespaceAsync(node, cancellation) is { } ns
-            && program.Symbols.Lookup(ns.Exports, "ElementType", SymbolFlags.Type) is { } elementSymbol)
+            && program.Symbols.Lookup(ns.Exports, Utf8Literals.ElementType, SymbolFlags.Type) is { } elementSymbol)
             constraint = await JsxInstantiateAsync(elementSymbol, [], node, cancellation);
         Type checkedType;
         DiagnosticCode relationCode = DiagnosticCode.ItsType0IsNotAValidJSXElementType;
@@ -91,8 +91,8 @@ internal sealed partial class Checker
             relationCode = kind == 0
                 ? DiagnosticCode.ItsInstanceType0IsNotAValidJSXElement
                 : kind == 1 ? DiagnosticCode.ItsReturnType0IsNotAValidJSXElement : DiagnosticCode.ItsElementType0IsNotAValidJSXElement;
-            var result = await JsxTypeAsync("Element", node, cancellation);
-            var instance = await JsxTypeAsync("ElementClass", node, cancellation);
+            var result = await JsxTypeAsync(Utf8Literals.Element, node, cancellation);
+            var instance = await JsxTypeAsync(Utf8Literals.ElementClass, node, cancellation);
             var function = await Algebra.UnionAsync([result, context.NullType], cancellation: cancellation);
             constraint = kind == 0 ? instance : kind == 1 ? function
                 : instance == context.ErrorType ? null : await Algebra.UnionAsync([function, instance], cancellation: cancellation);
@@ -116,7 +116,7 @@ internal sealed partial class Checker
         if (tag is JsxNamespacedNameNode name && JsxMode is 2 or 4 or 5 && !IntrinsicJsx(name.Namespace))
             Error(tag, DiagnosticCode.ReactComponentsCannotIncludeJSXNamespaceNames);
         InstantiationGrammar(node, CallArguments.TypeNodes(node));
-        var seen = new HashSet<TextSlice>();
+        var seen = new HashSet<Utf8String>();
         foreach (var attribute in JsxAttributes(node)!.Properties!.OfType<JsxAttributeNode>())
         {
             if (!seen.Add(JsxName(attribute.Name!)))
@@ -136,8 +136,8 @@ internal sealed partial class Checker
     {
         if (await JsxImplicitModuleAsync(node, cancellation) is not null)
             return;
-        TextSlice name = JsxFactoryRoot(JsxFactoryName(node, node is JsxOpeningFragmentNode));
-        if (!(node is JsxOpeningFragmentNode && name == "null"))
+        Utf8String name = JsxFactoryRoot(JsxFactoryName(node, node is JsxOpeningFragmentNode));
+        if (!(node is JsxOpeningFragmentNode && name == Utf8Literals.Null))
         {
             var flags = JsxMode is 1 or 3 ? SymbolFlags.Value & ~SymbolFlags.Enum : SymbolFlags.Value;
             var symbol = program.Symbols.NameResolver(cancellation).Resolve(JsxTag(node) ?? node, name, flags,
@@ -160,7 +160,7 @@ internal sealed partial class Checker
         }
         if (node is JsxOpeningFragmentNode)
         {
-            TextSlice factory = JsxFactoryRoot(JsxFactoryName(node));
+            Utf8String factory = JsxFactoryRoot(JsxFactoryName(node));
             program.Symbols.NameResolver(cancellation).Resolve(
                 node,
                 factory,
@@ -177,8 +177,8 @@ internal sealed partial class Checker
         var file = SemanticSyntax.Source(node)!;
         if (jsxFragmentTypes.TryGetValue(file, out var cached))
             return cached;
-        TextSlice name = JsxFactoryRoot(JsxFactoryName(node, true));
-        if ((JsxMode != 2 && program.Symbols.Program.Configuration.Options.JsxFragmentFactory is null) || name == "null")
+        Utf8String name = JsxFactoryRoot(JsxFactoryName(node, true));
+        if (JsxMode != 2 && program.Symbols.Program.Configuration.Options.JsxFragmentFactory is null || name == Utf8Literals.Null)
             return jsxFragmentTypes[file] = context.AnyType;
         var symbol = await JsxImplicitModuleAsync(node, cancellation);
         symbol ??= program.Symbols.NameResolver(cancellation).Resolve(
@@ -189,12 +189,12 @@ internal sealed partial class Checker
             isUse: true);
         if (symbol is null)
             return jsxFragmentTypes[file] = context.ErrorType;
-        if (symbol.Name == "Fragment")
+        if (symbol.Name == Utf8Literals.Fragment)
             return jsxFragmentTypes[file] = await Values.GetAsync(symbol, cancellation);
         var resolved = (await program.Aliases.SymbolAsync(symbol, cancellation: cancellation))!;
         var fragment = program.Symbols.Lookup(
             await program.ExportsAsync(resolved, cancellation),
-            "Fragment",
+            Utf8Literals.Fragment,
             SymbolFlags.BlockScopedVariable);
         return jsxFragmentTypes[file] = fragment is null ? context.ErrorType : await Values.GetAsync(fragment, cancellation);
     }

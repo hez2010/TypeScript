@@ -154,7 +154,7 @@ public sealed partial class Parser
                 ParameterDeclarationNode parameter;
                 if (tag is JSDocThisTagNode thisTag)
                 {
-                    var name = factory.NewIdentifier("this");
+                    var name = factory.NewIdentifier(Utf8Literals.This);
                     FinishReparse(name, tag);
                     parameter = factory.NewParameterDeclaration(
                         null,
@@ -173,19 +173,19 @@ public sealed partial class Parser
                         nameClone = CloneDocumentationType(parameterName);
                     else
                     {
-                        var replacement = new System.Text.StringBuilder();
+                        var replacement = new Utf8StringBuilder();
                         bool first = true;
                         foreach (var rune in parameterName.Text.Span.EnumerateRunes())
                         {
                             replacement.Append(
                                 (first ? TokenFacts.IsIdentifierStart(rune.Value) : TokenFacts.IsIdentifierPart(rune.Value))
-                                    ? rune.ToString()
-                                    : "_");
+                                    ? Utf8String.Format(rune)
+                                    : Utf8Literals.Underscore);
                             first = false;
                         }
                         if (replacement.Length == 0)
-                            replacement.Append('_').Append(parameters.Count);
-                        nameClone = factory.NewIdentifier(TextSlice.FromBuilder(replacement));
+                            replacement.Append((byte)'_').Append(parameters.Count);
+                        nameClone = factory.NewIdentifier(Utf8String.FromBuilder(replacement));
                         FinishReparse(nameClone, parameterName);
                         nameClone.Flags |= NodeFlags.ReparserTransformedLiteral;
                     }
@@ -455,7 +455,7 @@ public sealed partial class Parser
                     int parameterIndex = 0;
                     foreach (ParameterDeclarationNode parameter in parameters.OfType<ParameterDeclarationNode>())
                     {
-                        if (parameter.Name is IdentifierNode { Text.Span: "this" } || parameter.Name?.Kind == K.ThisKeyword)
+                        if (parameter.Name is IdentifierNode { Text.Span: var matchedText } && matchedText.SequenceEqual("this"u8) || parameter.Name?.Kind == K.ThisKeyword)
                             continue;
                         bool matches = parameter.Name is IdentifierNode parameterName
                             ? parameterTag.Name is IdentifierNode tagName
@@ -477,9 +477,9 @@ public sealed partial class Parser
                     break;
                 case JSDocThisTagNode thisTag when host is IFunctionSignature function:
                     if (function.Parameters is { Count: > 0 } existingParameters
-                        && existingParameters[0] is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: "this" } })
+                        && existingParameters[0] is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: var matchedText2 } } && matchedText2.SequenceEqual("this"u8))
                         break;
-                    var thisName = factory.NewIdentifier("this");
+                    var thisName = factory.NewIdentifier(Utf8Literals.This);
                     FinishReparse(thisName, thisTag.TagName!);
                     var thisParameter = factory.NewParameterDeclaration(
                         null,
@@ -642,7 +642,7 @@ public sealed partial class Parser
         return Finish(cast, expression.Pos, expression.End);
     }
 
-    private static bool ValidDocumentationIdentifier(ReadOnlySpan<char> text)
+    private static bool ValidDocumentationIdentifier(ReadOnlySpan<byte> text)
     {
         bool first = true;
         foreach (var rune in text.EnumerateRunes())
@@ -654,5 +654,5 @@ public sealed partial class Parser
         return !first;
     }
 
-    private static TextSlice NameText(SyntaxNode? node) => SyntaxNameText.Get(node);
+    private static Utf8String NameText(SyntaxNode? node) => SyntaxNameText.Get(node);
 }

@@ -21,7 +21,7 @@ internal interface ICheckerSymbolHost
 
     void MergeConflict(Symbol target, Symbol source, bool namespaceConflict);
 
-    void Error(SyntaxNode? node, DiagnosticMessage message, params TextSlice[] arguments);
+    void Error(SyntaxNode? node, DiagnosticMessage message, params Utf8String[] arguments);
 
     ValueTask InitializeGlobalTypesAsync(CheckerSymbols symbols, CancellationToken cancellation);
 
@@ -33,16 +33,16 @@ internal interface ICheckerSymbolHost
 
     ValueTask<Symbol> ExternalModuleSymbolAsync(Symbol symbol, CancellationToken cancellation);
 
-    ValueTask<IReadOnlyDictionary<TextSlice, Symbol>> ResolvedExportsAsync(Symbol symbol, CancellationToken cancellation);
+    ValueTask<IReadOnlyDictionary<Utf8String, Symbol>> ResolvedExportsAsync(Symbol symbol, CancellationToken cancellation);
 
-    bool InvalidInitializer(SyntaxNode? location, TextSlice name, SyntaxNode declaration, Symbol? result);
+    bool InvalidInitializer(SyntaxNode? location, Utf8String name, SyntaxNode declaration, Symbol? result);
 
-    void FailedResolution(SyntaxNode? location, TextSlice name, S meaning, DiagnosticMessage message);
+    void FailedResolution(SyntaxNode? location, Utf8String name, S meaning, DiagnosticMessage message);
 
     void SuccessfulResolution(SyntaxNode? location, Symbol symbol, S meaning, SyntaxNode? last, SyntaxNode? declaration, bool deferred);
 }
 
-internal readonly record struct PatternModule(TextSlice Pattern, Symbol Symbol);
+internal readonly record struct PatternModule(Utf8String Pattern, Symbol Symbol);
 
 // A checker owns these tables. Program syntax and bindings remain shared and
 // immutable; a canceled initialization is discarded before publication.
@@ -54,20 +54,20 @@ internal sealed class CheckerSymbols
     private readonly Dictionary<long, BoundSourceFile> bindingsById = [];
     private readonly Dictionary<SourceFileNode, BoundSourceFile> sourceBindings = new(ReferenceEqualityComparer.Instance);
     private readonly Dictionary<Symbol, S> references = new(ReferenceEqualityComparer.Instance);
-    private readonly Dictionary<TextSlice, Symbol> globals;
+    private readonly SymbolTable globals;
     private readonly List<PatternModule> patterns = [];
-    private readonly Dictionary<TextSlice, Symbol> patternAugmentations = new();
-    private readonly Dictionary<TextSlice, Symbol> patternTargets = new();
-    internal Symbol UndefinedSymbol { get; } = new(S.Property | S.Transient, "undefined");
-    internal Symbol ArgumentsSymbol { get; } = new(S.Property | S.Transient, "arguments");
-    internal Symbol RequireSymbol { get; } = new(S.Property | S.Transient, "require");
-    internal Symbol UnknownSymbol { get; } = new(S.Property | S.Transient, "unknown");
-    internal Symbol GlobalThisSymbol { get; } = new(S.Module | S.Transient, "globalThis") { CheckFlags = CheckFlags.Readonly };
+    private readonly Dictionary<Utf8String, Symbol> patternAugmentations = new();
+    private readonly Dictionary<Utf8String, Symbol> patternTargets = new();
+    internal Symbol UndefinedSymbol { get; } = new(S.Property | S.Transient, Utf8Literals.Undefined);
+    internal Symbol ArgumentsSymbol { get; } = new(S.Property | S.Transient, Utf8Literals.Arguments);
+    internal Symbol RequireSymbol { get; } = new(S.Property | S.Transient, Utf8Literals.RequireKeyword);
+    internal Symbol UnknownSymbol { get; } = new(S.Property | S.Transient, Utf8Literals.Unknown);
+    internal Symbol GlobalThisSymbol { get; } = new(S.Module | S.Transient, Utf8Literals.GlobalThis) { CheckFlags = CheckFlags.Readonly };
     internal SymbolMerger Merger { get; }
-    internal IReadOnlyDictionary<TextSlice, Symbol> Globals { get; }
+    internal IReadOnlyDictionary<Utf8String, Symbol> Globals { get; }
     internal IReadOnlyList<PatternModule> PatternModules { get; }
-    internal IReadOnlyDictionary<TextSlice, Symbol> PatternAugmentations { get; }
-    internal IReadOnlyDictionary<TextSlice, Symbol> PatternTargets { get; }
+    internal IReadOnlyDictionary<Utf8String, Symbol> PatternAugmentations { get; }
+    internal IReadOnlyDictionary<Utf8String, Symbol> PatternTargets { get; }
     internal CompilerProgram Program => program;
 
     private CheckerSymbols(CompilerProgram program, CheckerLinks links, ICheckerSymbolHost host)
@@ -120,12 +120,11 @@ internal sealed class CheckerSymbols
     internal Symbol? ExportedValue(Symbol? symbol)
         => Merger.GetMergedSymbol(symbol is { ExportSymbol: { } exported } && (symbol.Flags & S.ExportValue) != 0 ? exported : symbol);
 
-    internal Symbol? Lookup(IReadOnlyDictionary<TextSlice, Symbol>? table, TextSlice name, S meaning)
+    internal Symbol? Lookup(IReadOnlyDictionary<Utf8String, Symbol>? table, Utf8String name, S meaning)
     {
         if ((meaning & S.All) == 0)
             return null;
-        TextSlice key = name.Span.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal) ? TextSlice.Concat(Symbol.InternalPrefix, name) : name;
-        var symbol = Merger.GetMergedSymbol(table?.GetValueOrDefault(key));
+        var symbol = Merger.GetMergedSymbol(table?.GetValueOrDefault(name));
         return symbol is not null && ((symbol.Flags & meaning) != 0
             || (symbol.Flags & S.Alias) != 0 && (host.GetSymbolFlags(symbol) & meaning) != 0) ? symbol : null;
     }
@@ -137,7 +136,7 @@ internal sealed class CheckerSymbols
     private NameResolver? nameResolver;
 
     internal NameResolver NameResolver(CancellationToken cancellation = default,
-        Func<IReadOnlyDictionary<TextSlice, Symbol>?, TextSlice, S, Symbol?>? lookup = null)
+        Func<IReadOnlyDictionary<Utf8String, Symbol>?, Utf8String, S, Symbol?>? lookup = null)
     {
         if (lookup is null && nameResolver is { } cached && cached.Cancellation == cancellation)
             return cached;
@@ -171,11 +170,11 @@ internal sealed class CheckerSymbols
             var bound = file.Binding;
             if (!bound.IsModule)
             {
-                if (bound.Locals.TryGetValue("globalThis", out var conflicting))
+                if (bound.Locals.TryGetValue(Utf8Literals.GlobalThis, out var conflicting))
                     foreach (var declaration in conflicting.Declarations)
-                        host.Error(declaration, Messages.Declaration_name_conflicts_with_built_in_global_identifier_0, "globalThis");
+                        host.Error(declaration, Messages.Declaration_name_conflicts_with_built_in_global_identifier_0, Utf8Literals.GlobalThis);
                 foreach (var symbol in bound.Locals.Values)
-                    if ((symbol.Flags & S.Module) != 0 && symbol.Name.Span.StartsWith('"'))
+                    if ((symbol.Flags & S.Module) != 0 && symbol.Name.Span.StartsWith((byte)'"'))
                         ambient.Add(symbol);
                     else
                         await MergeGlobalAsync(symbol, cancellation).ConfigureAwait(false);
@@ -185,8 +184,8 @@ internal sealed class CheckerSymbols
             {
                 if (node.Name is not StringLiteralNode name || file.Syntax.ModuleAugmentations.Contains(name))
                     continue;
-                int star = name.Text.Span.IndexOf('*');
-                if (star >= 0 && name.Text.Span[(star + 1)..].IndexOf('*') < 0 && bound.Get(node)?.Symbol is { } symbol)
+                int star = name.Text.Span.IndexOf((byte)'*');
+                if (star >= 0 && name.Text.Span[(star + 1)..].IndexOf((byte)'*') < 0 && bound.Get(node)?.Symbol is { } symbol)
                     patterns.Add(new(name.Text, symbol));
             }
             if (bound.Symbol is not null)
@@ -197,14 +196,14 @@ internal sealed class CheckerSymbols
             foreach (var name in file.Syntax.ModuleAugmentations)
                 if (GlobalAugmentation(name.Parent))
                     await MergeAugmentationAsync(name, cancellation).ConfigureAwait(false);
-        if (globals.TryGetValue("undefined", out var undefined))
+        if (globals.TryGetValue(Utf8Literals.Undefined, out var undefined))
         {
             foreach (var declaration in undefined.Declarations)
                 if (!TypeDeclaration(declaration))
-                    host.Error(declaration, Messages.Declaration_name_conflicts_with_built_in_global_identifier_0, "undefined");
+                    host.Error(declaration, Messages.Declaration_name_conflicts_with_built_in_global_identifier_0, Utf8Literals.Undefined);
         }
         else
-            globals.Add("undefined", UndefinedSymbol);
+            globals.Add(Utf8Literals.Undefined, UndefinedSymbol);
         await host.InitializeGlobalTypesAsync(this, cancellation).ConfigureAwait(false);
         foreach (var symbol in ambient)
             await MergeGlobalAsync(symbol, cancellation).ConfigureAwait(false);
@@ -216,10 +215,19 @@ internal sealed class CheckerSymbols
         cancellation.ThrowIfCancellationRequested();
     }
 
-    private async ValueTask MergeGlobalAsync(Symbol symbol, CancellationToken cancellation)
-        => globals[symbol.Name] = globals.TryGetValue(symbol.Name, out var existing)
-            ? await Merger.MergeAsync(existing, symbol, cancellation: cancellation).ConfigureAwait(false)
-            : Merger.GetMergedSymbol(symbol)!;
+    private ValueTask MergeGlobalAsync(Symbol symbol, CancellationToken cancellation)
+    {
+        ref var entry = ref globals.GetValueRefOrAddDefault(symbol.Name, out bool exists);
+        if (!exists)
+        {
+            entry = Merger.GetMergedSymbol(symbol)!;
+            return default;
+        }
+        return MergeExistingGlobalAsync(symbol, entry!, cancellation);
+    }
+
+    private async ValueTask MergeExistingGlobalAsync(Symbol symbol, Symbol existing, CancellationToken cancellation)
+        => globals[symbol.Name] = await Merger.MergeAsync(existing, symbol, cancellation: cancellation).ConfigureAwait(false);
 
     private async ValueTask MergePatternsAsync(CancellationToken cancellation)
     {
@@ -281,12 +289,12 @@ internal sealed class CheckerSymbols
         }
         if (patterns.Any(pattern => Merger.GetMergedSymbol(pattern.Symbol) == main))
         {
-            TextSlice text = ((StringLiteralNode)name).Text;
+            Utf8String text = ((StringLiteralNode)name).Text;
             patternAugmentations[text] = await Merger.MergeAsync(augmentation, main, true, cancellation).ConfigureAwait(false);
             patternTargets[text] = main;
             return;
         }
-        if (main.Exports.ContainsKey(Symbol.InternalPrefix + "export") && augmentation.Exports.Count != 0)
+        if (main.Exports.ContainsKey(Symbol.InternalExport) && augmentation.Exports.Count != 0)
         {
             var resolved = await host.ResolvedExportsAsync(main, cancellation).ConfigureAwait(false);
             foreach (var (key, value) in augmentation.Exports)

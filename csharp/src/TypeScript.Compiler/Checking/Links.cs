@@ -78,8 +78,8 @@ internal sealed class ExportTypeLinks
 
 internal sealed class ModuleSymbolLinks
 {
-    internal IReadOnlyDictionary<TextSlice, Symbol>? ResolvedExports { get; set; }
-    internal IReadOnlyDictionary<TextSlice, SyntaxNode>? TypeOnlyExportStars { get; set; }
+    internal IReadOnlyDictionary<Utf8String, Symbol>? ResolvedExports { get; set; }
+    internal IReadOnlyDictionary<Utf8String, SyntaxNode>? TypeOnlyExportStars { get; set; }
 }
 
 internal sealed class TypeAliasLinks

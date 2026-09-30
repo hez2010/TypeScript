@@ -87,13 +87,13 @@ public sealed partial class CompilerOptions
     public bool? AllowUnusedLabels { get; private set; }
     public bool? AssumeChangesOnlyAffectDirectDependencies { get; private set; }
     public bool? CheckJs { get; private set; }
-    public string[]? CustomConditions { get; private set; }
+    public Utf8String[]? CustomConditions { get; private set; }
     public bool? Composite { get; private set; }
     public bool? EmitDeclarationOnly { get; private set; }
     public bool? EmitBOM { get; private set; }
     public bool? EmitDecoratorMetadata { get; private set; }
     public bool? Declaration { get; private set; }
-    public string? DeclarationDir { get; private set; }
+    public Utf8String? DeclarationDir { get; private set; }
     public bool? DeclarationMap { get; private set; }
     public bool? DeduplicatePackages { get; private set; }
     public bool? DisableSizeLimit { get; private set; }
@@ -107,23 +107,23 @@ public sealed partial class CompilerOptions
     public bool? IsolatedModules { get; private set; }
     public bool? IsolatedDeclarations { get; private set; }
     public bool? IgnoreConfig { get; private set; }
-    public string? IgnoreDeprecations { get; private set; }
+    public Utf8String? IgnoreDeprecations { get; private set; }
     public bool? ImportHelpers { get; private set; }
     public bool? InlineSourceMap { get; private set; }
     public bool? InlineSources { get; private set; }
     public bool? Init { get; private set; }
     public bool? Incremental { get; private set; }
     public JsxEmit Jsx { get; private set; }
-    public string? JsxFactory { get; private set; }
-    public string? JsxFragmentFactory { get; private set; }
-    public string? JsxImportSource { get; private set; }
-    public string[]? Lib { get; private set; }
+    public Utf8String? JsxFactory { get; private set; }
+    public Utf8String? JsxFragmentFactory { get; private set; }
+    public Utf8String? JsxImportSource { get; private set; }
+    public Utf8String[]? Lib { get; private set; }
     public bool? LibReplacement { get; private set; }
-    public string? Locale { get; private set; }
-    public string? MapRoot { get; private set; }
+    public Utf8String? Locale { get; private set; }
+    public Utf8String? MapRoot { get; private set; }
     public ModuleKind Module { get; private set; }
     public ModuleResolutionKind ModuleResolution { get; private set; }
-    public string[]? ModuleSuffixes { get; private set; }
+    public Utf8String[]? ModuleSuffixes { get; private set; }
     public ModuleDetectionKind ModuleDetection { get; private set; }
     public NewLineKind NewLine { get; private set; }
     public bool? NoEmit { get; private set; }
@@ -143,19 +143,19 @@ public sealed partial class CompilerOptions
     public bool? NoResolve { get; private set; }
     public bool? NoImplicitOverride { get; private set; }
     public bool? NoUncheckedSideEffectImports { get; private set; }
-    public string? OutDir { get; private set; }
-    public IReadOnlyList<KeyValuePair<string, string[]>>? Paths { get; private set; }
+    public Utf8String? OutDir { get; private set; }
+    public IReadOnlyList<KeyValuePair<Utf8String, Utf8String[]>>? Paths { get; private set; }
     public bool? PreserveConstEnums { get; private set; }
     public bool? PreserveSymlinks { get; private set; }
-    public string? Project { get; private set; }
+    public Utf8String? Project { get; private set; }
     public bool? ResolveJsonModule { get; private set; }
     public bool? ResolvePackageJsonExports { get; private set; }
     public bool? ResolvePackageJsonImports { get; private set; }
     public bool? RemoveComments { get; private set; }
     public bool? RewriteRelativeImportExtensions { get; private set; }
-    public string? ReactNamespace { get; private set; }
-    public string? RootDir { get; private set; }
-    public string[]? RootDirs { get; private set; }
+    public Utf8String? ReactNamespace { get; private set; }
+    public Utf8String? RootDir { get; private set; }
+    public Utf8String[]? RootDirs { get; private set; }
     public bool? SkipLibCheck { get; private set; }
     public bool? StableTypeOrdering { get; private set; }
     public bool? Strict { get; private set; }
@@ -167,30 +167,30 @@ public sealed partial class CompilerOptions
     public bool? StripInternal { get; private set; }
     public bool? SkipDefaultLibCheck { get; private set; }
     public bool? SourceMap { get; private set; }
-    public string? SourceRoot { get; private set; }
+    public Utf8String? SourceRoot { get; private set; }
     public bool? SuppressOutputPathCheck { get; private set; }
     public ScriptTarget Target { get; private set; }
     public bool? TraceResolution { get; private set; }
-    public string? TsBuildInfoFile { get; private set; }
-    public string[]? TypeRoots { get; private set; }
-    public string[]? Types { get; private set; }
+    public Utf8String? TsBuildInfoFile { get; private set; }
+    public Utf8String[]? TypeRoots { get; private set; }
+    public Utf8String[]? Types { get; private set; }
     public bool? UseDefineForClassFields { get; private set; }
     public bool? UseUnknownInCatchVariables { get; private set; }
     public bool? VerbatimModuleSyntax { get; private set; }
     public int? MaxNodeModuleJsDepth { get; private set; }
     public bool? AllowSyntheticDefaultImports { get; private set; }
     public bool? AlwaysStrict { get; private set; }
-    public string? BaseUrl { get; private set; }
+    public Utf8String? BaseUrl { get; private set; }
     public bool? DownlevelIteration { get; private set; }
     public bool? ESModuleInterop { get; private set; }
-    public string? OutFile { get; private set; }
-    public string? ConfigFilePath { get; private set; }
+    public Utf8String? OutFile { get; private set; }
+    public Utf8String? ConfigFilePath { get; private set; }
     public bool? NoDtsResolution { get; private set; }
-    public string? PathsBasePath { get; private set; }
+    public Utf8String? PathsBasePath { get; private set; }
     public bool? Diagnostics { get; private set; }
     public bool? ExtendedDiagnostics { get; private set; }
-    public string? GenerateCpuProfile { get; private set; }
-    public string? GenerateTrace { get; private set; }
+    public Utf8String? GenerateCpuProfile { get; private set; }
+    public Utf8String? GenerateTrace { get; private set; }
     public bool? ListEmittedFiles { get; private set; }
     public bool? ListFiles { get; private set; }
     public bool? ExplainFiles { get; private set; }
@@ -205,148 +205,148 @@ public sealed partial class CompilerOptions
     public bool? Help { get; private set; }
     public bool? All { get; private set; }
     public bool? RunExternalCode { get; private set; }
-    public string? PprofDir { get; private set; }
+    public Utf8String? PprofDir { get; private set; }
     public bool? SingleThreaded { get; private set; }
     public bool? Quiet { get; private set; }
     public int? Checkers { get; private set; }
     public JsonElement[]? Plugins { get; private set; }
 
-    private void AssignTyped(string name, JsonElement value, string? text)
+    private void AssignTyped(Utf8String name, JsonElement value, Utf8String? text)
     {
         switch (name)
         {
-            case "allowJs": AllowJs = ToBoolean(value); break;
-            case "allowArbitraryExtensions": AllowArbitraryExtensions = ToBoolean(value); break;
-            case "allowImportingTsExtensions": AllowImportingTsExtensions = ToBoolean(value); break;
-            case "allowNonTsExtensions": AllowNonTsExtensions = ToBoolean(value); break;
-            case "allowUmdGlobalAccess": AllowUmdGlobalAccess = ToBoolean(value); break;
-            case "allowUnreachableCode": AllowUnreachableCode = ToBoolean(value); break;
-            case "allowUnusedLabels": AllowUnusedLabels = ToBoolean(value); break;
-            case "assumeChangesOnlyAffectDirectDependencies": AssumeChangesOnlyAffectDirectDependencies = ToBoolean(value); break;
-            case "checkJs": CheckJs = ToBoolean(value); break;
-            case "customConditions": CustomConditions = ToStrings(value); break;
-            case "composite": Composite = ToBoolean(value); break;
-            case "emitDeclarationOnly": EmitDeclarationOnly = ToBoolean(value); break;
-            case "emitBOM": EmitBOM = ToBoolean(value); break;
-            case "emitDecoratorMetadata": EmitDecoratorMetadata = ToBoolean(value); break;
-            case "declaration": Declaration = ToBoolean(value); break;
-            case "declarationDir": DeclarationDir = text; break;
-            case "declarationMap": DeclarationMap = ToBoolean(value); break;
-            case "deduplicatePackages": DeduplicatePackages = ToBoolean(value); break;
-            case "disableSizeLimit": DisableSizeLimit = ToBoolean(value); break;
-            case "disableSourceOfProjectReferenceRedirect": DisableSourceOfProjectReferenceRedirect = ToBoolean(value); break;
-            case "disableSolutionSearching": DisableSolutionSearching = ToBoolean(value); break;
-            case "disableReferencedProjectLoad": DisableReferencedProjectLoad = ToBoolean(value); break;
-            case "erasableSyntaxOnly": ErasableSyntaxOnly = ToBoolean(value); break;
-            case "exactOptionalPropertyTypes": ExactOptionalPropertyTypes = ToBoolean(value); break;
-            case "experimentalDecorators": ExperimentalDecorators = ToBoolean(value); break;
-            case "forceConsistentCasingInFileNames": ForceConsistentCasingInFileNames = ToBoolean(value); break;
-            case "isolatedModules": IsolatedModules = ToBoolean(value); break;
-            case "isolatedDeclarations": IsolatedDeclarations = ToBoolean(value); break;
-            case "ignoreConfig": IgnoreConfig = ToBoolean(value); break;
-            case "ignoreDeprecations": IgnoreDeprecations = text; break;
-            case "importHelpers": ImportHelpers = ToBoolean(value); break;
-            case "inlineSourceMap": InlineSourceMap = ToBoolean(value); break;
-            case "inlineSources": InlineSources = ToBoolean(value); break;
-            case "init": Init = ToBoolean(value); break;
-            case "incremental": Incremental = ToBoolean(value); break;
-            case "jsx": Jsx = value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out int numberJsx) ? (JsxEmit)numberJsx : text switch { "preserve" => (JsxEmit)1, "react-native" => (JsxEmit)3, "react-jsx" => (JsxEmit)4, "react-jsxdev" => (JsxEmit)5, "react" => (JsxEmit)2, _ => default }; break;
-            case "jsxFactory": JsxFactory = text; break;
-            case "jsxFragmentFactory": JsxFragmentFactory = text; break;
-            case "jsxImportSource": JsxImportSource = text; break;
-            case "lib": Lib = ToStrings(value); break;
-            case "libReplacement": LibReplacement = ToBoolean(value); break;
-            case "locale": Locale = text; break;
-            case "mapRoot": MapRoot = text; break;
-            case "module": Module = value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out int numberModule) ? (ModuleKind)numberModule : text switch { "commonjs" => (ModuleKind)1, "amd" => (ModuleKind)2, "system" => (ModuleKind)4, "umd" => (ModuleKind)3, "es6" => (ModuleKind)5, "es2015" => (ModuleKind)5, "es2020" => (ModuleKind)6, "es2022" => (ModuleKind)7, "esnext" => (ModuleKind)99, "node16" => (ModuleKind)100, "node18" => (ModuleKind)101, "node20" => (ModuleKind)102, "nodenext" => (ModuleKind)199, "preserve" => (ModuleKind)200, _ => default }; break;
-            case "moduleResolution": ModuleResolution = value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out int numberModuleResolution) ? (ModuleResolutionKind)numberModuleResolution : text switch { "node16" => (ModuleResolutionKind)3, "nodenext" => (ModuleResolutionKind)99, "bundler" => (ModuleResolutionKind)100, "classic" => (ModuleResolutionKind)1, "node" => (ModuleResolutionKind)2, "node10" => (ModuleResolutionKind)2, _ => default }; break;
-            case "moduleSuffixes": ModuleSuffixes = ToStrings(value); break;
-            case "moduleDetection": ModuleDetection = value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out int numberModuleDetection) ? (ModuleDetectionKind)numberModuleDetection : text switch { "auto" => (ModuleDetectionKind)1, "legacy" => (ModuleDetectionKind)2, "force" => (ModuleDetectionKind)3, _ => default }; break;
-            case "newLine": NewLine = value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out int numberNewLine) ? (NewLineKind)numberNewLine : text switch { "crlf" => (NewLineKind)1, "lf" => (NewLineKind)2, _ => default }; break;
-            case "noEmit": NoEmit = ToBoolean(value); break;
-            case "noCheck": NoCheck = ToBoolean(value); break;
-            case "noErrorTruncation": NoErrorTruncation = ToBoolean(value); break;
-            case "noFallthroughCasesInSwitch": NoFallthroughCasesInSwitch = ToBoolean(value); break;
-            case "noImplicitAny": NoImplicitAny = ToBoolean(value); break;
-            case "noImplicitThis": NoImplicitThis = ToBoolean(value); break;
-            case "noImplicitReturns": NoImplicitReturns = ToBoolean(value); break;
-            case "noEmitHelpers": NoEmitHelpers = ToBoolean(value); break;
-            case "noLib": NoLib = ToBoolean(value); break;
-            case "noPropertyAccessFromIndexSignature": NoPropertyAccessFromIndexSignature = ToBoolean(value); break;
-            case "noUncheckedIndexedAccess": NoUncheckedIndexedAccess = ToBoolean(value); break;
-            case "noEmitOnError": NoEmitOnError = ToBoolean(value); break;
-            case "noUnusedLocals": NoUnusedLocals = ToBoolean(value); break;
-            case "noUnusedParameters": NoUnusedParameters = ToBoolean(value); break;
-            case "noResolve": NoResolve = ToBoolean(value); break;
-            case "noImplicitOverride": NoImplicitOverride = ToBoolean(value); break;
-            case "noUncheckedSideEffectImports": NoUncheckedSideEffectImports = ToBoolean(value); break;
-            case "outDir": OutDir = text; break;
-            case "paths": Paths = ParsePaths(value); break;
-            case "preserveConstEnums": PreserveConstEnums = ToBoolean(value); break;
-            case "preserveSymlinks": PreserveSymlinks = ToBoolean(value); break;
-            case "project": Project = text; break;
-            case "resolveJsonModule": ResolveJsonModule = ToBoolean(value); break;
-            case "resolvePackageJsonExports": ResolvePackageJsonExports = ToBoolean(value); break;
-            case "resolvePackageJsonImports": ResolvePackageJsonImports = ToBoolean(value); break;
-            case "removeComments": RemoveComments = ToBoolean(value); break;
-            case "rewriteRelativeImportExtensions": RewriteRelativeImportExtensions = ToBoolean(value); break;
-            case "reactNamespace": ReactNamespace = text; break;
-            case "rootDir": RootDir = text; break;
-            case "rootDirs": RootDirs = ToStrings(value); break;
-            case "skipLibCheck": SkipLibCheck = ToBoolean(value); break;
-            case "stableTypeOrdering": StableTypeOrdering = ToBoolean(value); break;
-            case "strict": Strict = ToBoolean(value); break;
-            case "strictBindCallApply": StrictBindCallApply = ToBoolean(value); break;
-            case "strictBuiltinIteratorReturn": StrictBuiltinIteratorReturn = ToBoolean(value); break;
-            case "strictFunctionTypes": StrictFunctionTypes = ToBoolean(value); break;
-            case "strictNullChecks": StrictNullChecks = ToBoolean(value); break;
-            case "strictPropertyInitialization": StrictPropertyInitialization = ToBoolean(value); break;
-            case "stripInternal": StripInternal = ToBoolean(value); break;
-            case "skipDefaultLibCheck": SkipDefaultLibCheck = ToBoolean(value); break;
-            case "sourceMap": SourceMap = ToBoolean(value); break;
-            case "sourceRoot": SourceRoot = text; break;
-            case "suppressOutputPathCheck": SuppressOutputPathCheck = ToBoolean(value); break;
-            case "target": Target = value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out int numberTarget) ? (ScriptTarget)numberTarget : text switch { "es5" => (ScriptTarget)1, "es6" => (ScriptTarget)2, "es2015" => (ScriptTarget)2, "es2016" => (ScriptTarget)3, "es2017" => (ScriptTarget)4, "es2018" => (ScriptTarget)5, "es2019" => (ScriptTarget)6, "es2020" => (ScriptTarget)7, "es2021" => (ScriptTarget)8, "es2022" => (ScriptTarget)9, "es2023" => (ScriptTarget)10, "es2024" => (ScriptTarget)11, "es2025" => (ScriptTarget)12, "esnext" => (ScriptTarget)99, _ => default }; break;
-            case "traceResolution": TraceResolution = ToBoolean(value); break;
-            case "tsBuildInfoFile": TsBuildInfoFile = text; break;
-            case "typeRoots": TypeRoots = ToStrings(value); break;
-            case "types": Types = ToStrings(value); break;
-            case "useDefineForClassFields": UseDefineForClassFields = ToBoolean(value); break;
-            case "useUnknownInCatchVariables": UseUnknownInCatchVariables = ToBoolean(value); break;
-            case "verbatimModuleSyntax": VerbatimModuleSyntax = ToBoolean(value); break;
-            case "maxNodeModuleJsDepth": MaxNodeModuleJsDepth = value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out int numberMaxNodeModuleJsDepth) ? numberMaxNodeModuleJsDepth : null; break;
-            case "allowSyntheticDefaultImports": AllowSyntheticDefaultImports = ToBoolean(value); break;
-            case "alwaysStrict": AlwaysStrict = ToBoolean(value); break;
-            case "baseUrl": BaseUrl = text; break;
-            case "downlevelIteration": DownlevelIteration = ToBoolean(value); break;
-            case "esModuleInterop": ESModuleInterop = ToBoolean(value); break;
-            case "outFile": OutFile = text; break;
-            case "configFilePath": ConfigFilePath = text; break;
-            case "noDtsResolution": NoDtsResolution = ToBoolean(value); break;
-            case "pathsBasePath": PathsBasePath = text; break;
-            case "diagnostics": Diagnostics = ToBoolean(value); break;
-            case "extendedDiagnostics": ExtendedDiagnostics = ToBoolean(value); break;
-            case "generateCpuProfile": GenerateCpuProfile = text; break;
-            case "generateTrace": GenerateTrace = text; break;
-            case "listEmittedFiles": ListEmittedFiles = ToBoolean(value); break;
-            case "listFiles": ListFiles = ToBoolean(value); break;
-            case "explainFiles": ExplainFiles = ToBoolean(value); break;
-            case "listFilesOnly": ListFilesOnly = ToBoolean(value); break;
-            case "noEmitForJsFiles": NoEmitForJsFiles = ToBoolean(value); break;
-            case "preserveWatchOutput": PreserveWatchOutput = ToBoolean(value); break;
-            case "pretty": Pretty = ToBoolean(value); break;
-            case "version": Version = ToBoolean(value); break;
-            case "watch": Watch = ToBoolean(value); break;
-            case "showConfig": ShowConfig = ToBoolean(value); break;
-            case "build": Build = ToBoolean(value); break;
-            case "help": Help = ToBoolean(value); break;
-            case "all": All = ToBoolean(value); break;
-            case "runExternalCode": RunExternalCode = ToBoolean(value); break;
-            case "pprofDir": PprofDir = text; break;
-            case "singleThreaded": SingleThreaded = ToBoolean(value); break;
-            case "quiet": Quiet = ToBoolean(value); break;
-            case "checkers": Checkers = value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out int numberCheckers) ? numberCheckers : null; break;
-            case "plugins": Plugins = ToObjects(value); break;
+            case var _ when name == "allowJs"u8: AllowJs = ToBoolean(value); break;
+            case var _ when name == "allowArbitraryExtensions"u8: AllowArbitraryExtensions = ToBoolean(value); break;
+            case var _ when name == "allowImportingTsExtensions"u8: AllowImportingTsExtensions = ToBoolean(value); break;
+            case var _ when name == "allowNonTsExtensions"u8: AllowNonTsExtensions = ToBoolean(value); break;
+            case var _ when name == "allowUmdGlobalAccess"u8: AllowUmdGlobalAccess = ToBoolean(value); break;
+            case var _ when name == "allowUnreachableCode"u8: AllowUnreachableCode = ToBoolean(value); break;
+            case var _ when name == "allowUnusedLabels"u8: AllowUnusedLabels = ToBoolean(value); break;
+            case var _ when name == "assumeChangesOnlyAffectDirectDependencies"u8: AssumeChangesOnlyAffectDirectDependencies = ToBoolean(value); break;
+            case var _ when name == "checkJs"u8: CheckJs = ToBoolean(value); break;
+            case var _ when name == "customConditions"u8: CustomConditions = ToStrings(value); break;
+            case var _ when name == "composite"u8: Composite = ToBoolean(value); break;
+            case var _ when name == "emitDeclarationOnly"u8: EmitDeclarationOnly = ToBoolean(value); break;
+            case var _ when name == "emitBOM"u8: EmitBOM = ToBoolean(value); break;
+            case var _ when name == "emitDecoratorMetadata"u8: EmitDecoratorMetadata = ToBoolean(value); break;
+            case var _ when name == "declaration"u8: Declaration = ToBoolean(value); break;
+            case var _ when name == "declarationDir"u8: DeclarationDir = text; break;
+            case var _ when name == "declarationMap"u8: DeclarationMap = ToBoolean(value); break;
+            case var _ when name == "deduplicatePackages"u8: DeduplicatePackages = ToBoolean(value); break;
+            case var _ when name == "disableSizeLimit"u8: DisableSizeLimit = ToBoolean(value); break;
+            case var _ when name == "disableSourceOfProjectReferenceRedirect"u8: DisableSourceOfProjectReferenceRedirect = ToBoolean(value); break;
+            case var _ when name == "disableSolutionSearching"u8: DisableSolutionSearching = ToBoolean(value); break;
+            case var _ when name == "disableReferencedProjectLoad"u8: DisableReferencedProjectLoad = ToBoolean(value); break;
+            case var _ when name == "erasableSyntaxOnly"u8: ErasableSyntaxOnly = ToBoolean(value); break;
+            case var _ when name == "exactOptionalPropertyTypes"u8: ExactOptionalPropertyTypes = ToBoolean(value); break;
+            case var _ when name == "experimentalDecorators"u8: ExperimentalDecorators = ToBoolean(value); break;
+            case var _ when name == "forceConsistentCasingInFileNames"u8: ForceConsistentCasingInFileNames = ToBoolean(value); break;
+            case var _ when name == "isolatedModules"u8: IsolatedModules = ToBoolean(value); break;
+            case var _ when name == "isolatedDeclarations"u8: IsolatedDeclarations = ToBoolean(value); break;
+            case var _ when name == "ignoreConfig"u8: IgnoreConfig = ToBoolean(value); break;
+            case var _ when name == "ignoreDeprecations"u8: IgnoreDeprecations = text; break;
+            case var _ when name == "importHelpers"u8: ImportHelpers = ToBoolean(value); break;
+            case var _ when name == "inlineSourceMap"u8: InlineSourceMap = ToBoolean(value); break;
+            case var _ when name == "inlineSources"u8: InlineSources = ToBoolean(value); break;
+            case var _ when name == "init"u8: Init = ToBoolean(value); break;
+            case var _ when name == "incremental"u8: Incremental = ToBoolean(value); break;
+            case var _ when name == "jsx"u8: Jsx = value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out int numberJsx) ? (JsxEmit)numberJsx : text switch { { } option when option == "preserve"u8 => (JsxEmit)1, { } option when option == "react-native"u8 => (JsxEmit)3, { } option when option == "react-jsx"u8 => (JsxEmit)4, { } option when option == "react-jsxdev"u8 => (JsxEmit)5, { } option when option == "react"u8 => (JsxEmit)2, _ => default }; break;
+            case var _ when name == "jsxFactory"u8: JsxFactory = text; break;
+            case var _ when name == "jsxFragmentFactory"u8: JsxFragmentFactory = text; break;
+            case var _ when name == "jsxImportSource"u8: JsxImportSource = text; break;
+            case var _ when name == "lib"u8: Lib = ToStrings(value); break;
+            case var _ when name == "libReplacement"u8: LibReplacement = ToBoolean(value); break;
+            case var _ when name == "locale"u8: Locale = text; break;
+            case var _ when name == "mapRoot"u8: MapRoot = text; break;
+            case var _ when name == "module"u8: Module = value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out int numberModule) ? (ModuleKind)numberModule : text switch { { } option when option == "commonjs"u8 => (ModuleKind)1, { } option when option == "amd"u8 => (ModuleKind)2, { } option when option == "system"u8 => (ModuleKind)4, { } option when option == "umd"u8 => (ModuleKind)3, { } option when option == "es6"u8 => (ModuleKind)5, { } option when option == "es2015"u8 => (ModuleKind)5, { } option when option == "es2020"u8 => (ModuleKind)6, { } option when option == "es2022"u8 => (ModuleKind)7, { } option when option == "esnext"u8 => (ModuleKind)99, { } option when option == "node16"u8 => (ModuleKind)100, { } option when option == "node18"u8 => (ModuleKind)101, { } option when option == "node20"u8 => (ModuleKind)102, { } option when option == "nodenext"u8 => (ModuleKind)199, { } option when option == "preserve"u8 => (ModuleKind)200, _ => default }; break;
+            case var _ when name == "moduleResolution"u8: ModuleResolution = value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out int numberModuleResolution) ? (ModuleResolutionKind)numberModuleResolution : text switch { { } option when option == "node16"u8 => (ModuleResolutionKind)3, { } option when option == "nodenext"u8 => (ModuleResolutionKind)99, { } option when option == "bundler"u8 => (ModuleResolutionKind)100, { } option when option == "classic"u8 => (ModuleResolutionKind)1, { } option when option == "node"u8 => (ModuleResolutionKind)2, { } option when option == "node10"u8 => (ModuleResolutionKind)2, _ => default }; break;
+            case var _ when name == "moduleSuffixes"u8: ModuleSuffixes = ToStrings(value); break;
+            case var _ when name == "moduleDetection"u8: ModuleDetection = value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out int numberModuleDetection) ? (ModuleDetectionKind)numberModuleDetection : text switch { { } option when option == "auto"u8 => (ModuleDetectionKind)1, { } option when option == "legacy"u8 => (ModuleDetectionKind)2, { } option when option == "force"u8 => (ModuleDetectionKind)3, _ => default }; break;
+            case var _ when name == "newLine"u8: NewLine = value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out int numberNewLine) ? (NewLineKind)numberNewLine : text switch { { } option when option == "crlf"u8 => (NewLineKind)1, { } option when option == "lf"u8 => (NewLineKind)2, _ => default }; break;
+            case var _ when name == "noEmit"u8: NoEmit = ToBoolean(value); break;
+            case var _ when name == "noCheck"u8: NoCheck = ToBoolean(value); break;
+            case var _ when name == "noErrorTruncation"u8: NoErrorTruncation = ToBoolean(value); break;
+            case var _ when name == "noFallthroughCasesInSwitch"u8: NoFallthroughCasesInSwitch = ToBoolean(value); break;
+            case var _ when name == "noImplicitAny"u8: NoImplicitAny = ToBoolean(value); break;
+            case var _ when name == "noImplicitThis"u8: NoImplicitThis = ToBoolean(value); break;
+            case var _ when name == "noImplicitReturns"u8: NoImplicitReturns = ToBoolean(value); break;
+            case var _ when name == "noEmitHelpers"u8: NoEmitHelpers = ToBoolean(value); break;
+            case var _ when name == "noLib"u8: NoLib = ToBoolean(value); break;
+            case var _ when name == "noPropertyAccessFromIndexSignature"u8: NoPropertyAccessFromIndexSignature = ToBoolean(value); break;
+            case var _ when name == "noUncheckedIndexedAccess"u8: NoUncheckedIndexedAccess = ToBoolean(value); break;
+            case var _ when name == "noEmitOnError"u8: NoEmitOnError = ToBoolean(value); break;
+            case var _ when name == "noUnusedLocals"u8: NoUnusedLocals = ToBoolean(value); break;
+            case var _ when name == "noUnusedParameters"u8: NoUnusedParameters = ToBoolean(value); break;
+            case var _ when name == "noResolve"u8: NoResolve = ToBoolean(value); break;
+            case var _ when name == "noImplicitOverride"u8: NoImplicitOverride = ToBoolean(value); break;
+            case var _ when name == "noUncheckedSideEffectImports"u8: NoUncheckedSideEffectImports = ToBoolean(value); break;
+            case var _ when name == "outDir"u8: OutDir = text; break;
+            case var _ when name == "paths"u8: Paths = ParsePaths(value); break;
+            case var _ when name == "preserveConstEnums"u8: PreserveConstEnums = ToBoolean(value); break;
+            case var _ when name == "preserveSymlinks"u8: PreserveSymlinks = ToBoolean(value); break;
+            case var _ when name == "project"u8: Project = text; break;
+            case var _ when name == "resolveJsonModule"u8: ResolveJsonModule = ToBoolean(value); break;
+            case var _ when name == "resolvePackageJsonExports"u8: ResolvePackageJsonExports = ToBoolean(value); break;
+            case var _ when name == "resolvePackageJsonImports"u8: ResolvePackageJsonImports = ToBoolean(value); break;
+            case var _ when name == "removeComments"u8: RemoveComments = ToBoolean(value); break;
+            case var _ when name == "rewriteRelativeImportExtensions"u8: RewriteRelativeImportExtensions = ToBoolean(value); break;
+            case var _ when name == "reactNamespace"u8: ReactNamespace = text; break;
+            case var _ when name == "rootDir"u8: RootDir = text; break;
+            case var _ when name == "rootDirs"u8: RootDirs = ToStrings(value); break;
+            case var _ when name == "skipLibCheck"u8: SkipLibCheck = ToBoolean(value); break;
+            case var _ when name == "stableTypeOrdering"u8: StableTypeOrdering = ToBoolean(value); break;
+            case var _ when name == "strict"u8: Strict = ToBoolean(value); break;
+            case var _ when name == "strictBindCallApply"u8: StrictBindCallApply = ToBoolean(value); break;
+            case var _ when name == "strictBuiltinIteratorReturn"u8: StrictBuiltinIteratorReturn = ToBoolean(value); break;
+            case var _ when name == "strictFunctionTypes"u8: StrictFunctionTypes = ToBoolean(value); break;
+            case var _ when name == "strictNullChecks"u8: StrictNullChecks = ToBoolean(value); break;
+            case var _ when name == "strictPropertyInitialization"u8: StrictPropertyInitialization = ToBoolean(value); break;
+            case var _ when name == "stripInternal"u8: StripInternal = ToBoolean(value); break;
+            case var _ when name == "skipDefaultLibCheck"u8: SkipDefaultLibCheck = ToBoolean(value); break;
+            case var _ when name == "sourceMap"u8: SourceMap = ToBoolean(value); break;
+            case var _ when name == "sourceRoot"u8: SourceRoot = text; break;
+            case var _ when name == "suppressOutputPathCheck"u8: SuppressOutputPathCheck = ToBoolean(value); break;
+            case var _ when name == "target"u8: Target = value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out int numberTarget) ? (ScriptTarget)numberTarget : text switch { { } option when option == "es5"u8 => (ScriptTarget)1, { } option when option == "es6"u8 => (ScriptTarget)2, { } option when option == "es2015"u8 => (ScriptTarget)2, { } option when option == "es2016"u8 => (ScriptTarget)3, { } option when option == "es2017"u8 => (ScriptTarget)4, { } option when option == "es2018"u8 => (ScriptTarget)5, { } option when option == "es2019"u8 => (ScriptTarget)6, { } option when option == "es2020"u8 => (ScriptTarget)7, { } option when option == "es2021"u8 => (ScriptTarget)8, { } option when option == "es2022"u8 => (ScriptTarget)9, { } option when option == "es2023"u8 => (ScriptTarget)10, { } option when option == "es2024"u8 => (ScriptTarget)11, { } option when option == "es2025"u8 => (ScriptTarget)12, { } option when option == "esnext"u8 => (ScriptTarget)99, _ => default }; break;
+            case var _ when name == "traceResolution"u8: TraceResolution = ToBoolean(value); break;
+            case var _ when name == "tsBuildInfoFile"u8: TsBuildInfoFile = text; break;
+            case var _ when name == "typeRoots"u8: TypeRoots = ToStrings(value); break;
+            case var _ when name == "types"u8: Types = ToStrings(value); break;
+            case var _ when name == "useDefineForClassFields"u8: UseDefineForClassFields = ToBoolean(value); break;
+            case var _ when name == "useUnknownInCatchVariables"u8: UseUnknownInCatchVariables = ToBoolean(value); break;
+            case var _ when name == "verbatimModuleSyntax"u8: VerbatimModuleSyntax = ToBoolean(value); break;
+            case var _ when name == "maxNodeModuleJsDepth"u8: MaxNodeModuleJsDepth = value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out int numberMaxNodeModuleJsDepth) ? numberMaxNodeModuleJsDepth : null; break;
+            case var _ when name == "allowSyntheticDefaultImports"u8: AllowSyntheticDefaultImports = ToBoolean(value); break;
+            case var _ when name == "alwaysStrict"u8: AlwaysStrict = ToBoolean(value); break;
+            case var _ when name == "baseUrl"u8: BaseUrl = text; break;
+            case var _ when name == "downlevelIteration"u8: DownlevelIteration = ToBoolean(value); break;
+            case var _ when name == "esModuleInterop"u8: ESModuleInterop = ToBoolean(value); break;
+            case var _ when name == "outFile"u8: OutFile = text; break;
+            case var _ when name == "configFilePath"u8: ConfigFilePath = text; break;
+            case var _ when name == "noDtsResolution"u8: NoDtsResolution = ToBoolean(value); break;
+            case var _ when name == "pathsBasePath"u8: PathsBasePath = text; break;
+            case var _ when name == "diagnostics"u8: Diagnostics = ToBoolean(value); break;
+            case var _ when name == "extendedDiagnostics"u8: ExtendedDiagnostics = ToBoolean(value); break;
+            case var _ when name == "generateCpuProfile"u8: GenerateCpuProfile = text; break;
+            case var _ when name == "generateTrace"u8: GenerateTrace = text; break;
+            case var _ when name == "listEmittedFiles"u8: ListEmittedFiles = ToBoolean(value); break;
+            case var _ when name == "listFiles"u8: ListFiles = ToBoolean(value); break;
+            case var _ when name == "explainFiles"u8: ExplainFiles = ToBoolean(value); break;
+            case var _ when name == "listFilesOnly"u8: ListFilesOnly = ToBoolean(value); break;
+            case var _ when name == "noEmitForJsFiles"u8: NoEmitForJsFiles = ToBoolean(value); break;
+            case var _ when name == "preserveWatchOutput"u8: PreserveWatchOutput = ToBoolean(value); break;
+            case var _ when name == "pretty"u8: Pretty = ToBoolean(value); break;
+            case var _ when name == "version"u8: Version = ToBoolean(value); break;
+            case var _ when name == "watch"u8: Watch = ToBoolean(value); break;
+            case var _ when name == "showConfig"u8: ShowConfig = ToBoolean(value); break;
+            case var _ when name == "build"u8: Build = ToBoolean(value); break;
+            case var _ when name == "help"u8: Help = ToBoolean(value); break;
+            case var _ when name == "all"u8: All = ToBoolean(value); break;
+            case var _ when name == "runExternalCode"u8: RunExternalCode = ToBoolean(value); break;
+            case var _ when name == "pprofDir"u8: PprofDir = text; break;
+            case var _ when name == "singleThreaded"u8: SingleThreaded = ToBoolean(value); break;
+            case var _ when name == "quiet"u8: Quiet = ToBoolean(value); break;
+            case var _ when name == "checkers"u8: Checkers = value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out int numberCheckers) ? numberCheckers : null; break;
+            case var _ when name == "plugins"u8: Plugins = ToObjects(value); break;
         }
     }
 
@@ -357,21 +357,21 @@ public sealed partial class CompilerOptions
         _ => null
     };
 
-    private static string[]? ToStrings(JsonElement value) => value.ValueKind == JsonValueKind.Array
+    private static Utf8String[]? ToStrings(JsonElement value) => value.ValueKind == JsonValueKind.Array
         ? value.EnumerateArray().Where(item => item.ValueKind == JsonValueKind.String).Select(JsonStrings.GetString).ToArray() : null;
 
     private static JsonElement[]? ToObjects(JsonElement value) => value.ValueKind == JsonValueKind.Array
         ? value.EnumerateArray().Where(item => item.ValueKind == JsonValueKind.Object).ToArray() : null;
 
-    internal static IReadOnlyList<KeyValuePair<string, string[]>>? ParsePaths(JsonElement value)
+    internal static IReadOnlyList<KeyValuePair<Utf8String, Utf8String[]>>? ParsePaths(JsonElement value)
     {
         if (value.ValueKind != JsonValueKind.Object) return null;
-        var paths = new List<KeyValuePair<string, string[]>>();
+        var paths = new List<KeyValuePair<Utf8String, Utf8String[]>>();
         foreach (var property in value.EnumerateObject())
         {
-            string name = JsonStrings.GetName(property);
+            Utf8String name = JsonStrings.GetName(property);
             int index = paths.FindIndex(entry => entry.Key == name);
-            var entry = new KeyValuePair<string, string[]>(name, ToStrings(property.Value) ?? []);
+            var entry = new KeyValuePair<Utf8String, Utf8String[]>(name, ToStrings(property.Value) ?? []);
             if (index >= 0) paths[index] = entry; else paths.Add(entry);
         }
         return paths;

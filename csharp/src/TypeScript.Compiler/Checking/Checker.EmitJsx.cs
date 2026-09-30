@@ -21,7 +21,7 @@ internal sealed partial class Checker
             {
                 if (emitLocalJsxFragments.TryGetValue(file, out var cached))
                     return cached;
-                if (JsxPragma(file, "jsxfrag") is { } pragma)
+                if (JsxPragma(file, Utf8Literals.Jsxfrag) is { } pragma)
                 {
                     var parsed = ParseEmitJsxFactory(pragma);
                     if (parsed is not null)
@@ -41,7 +41,7 @@ internal sealed partial class Checker
         return emitJsxFactory;
     }
 
-    private TextSlice CacheEmitJsxFactory(TextSlice name, SourceFileNode? file = null, bool fragment = false)
+    private Utf8String CacheEmitJsxFactory(Utf8String name, SourceFileNode? file = null, bool fragment = false)
     {
         if (file is null ? emitJsxFactory is not null : (fragment ? emitLocalJsxFragments : emitLocalJsxFactories).ContainsKey(file))
             return name;
@@ -49,7 +49,7 @@ internal sealed partial class Checker
             ? ParseEmitJsxFactory(name) : null;
         if (parsed is null && file is null)
         {
-            int dot = name.Span.LastIndexOf('.');
+            int dot = name.Span.LastIndexOf((byte)'.');
             var factory = new NodeFactory();
             parsed = factory.NewQualifiedName(factory.NewIdentifier(name[..dot]), factory.NewIdentifier(name[(dot + 1)..]));
         }
@@ -64,7 +64,7 @@ internal sealed partial class Checker
         return name;
     }
 
-    private static SyntaxNode? ParseEmitJsxFactory(TextSlice name)
+    private static SyntaxNode? ParseEmitJsxFactory(Utf8String name)
     {
         var node = Parser.ParseIsolatedEntityName(name);
         if (node is null)

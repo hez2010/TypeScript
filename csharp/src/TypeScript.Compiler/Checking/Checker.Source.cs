@@ -314,7 +314,7 @@ internal sealed partial class Checker
                                 {
                                     var binding = program.Symbols.Binding(clause)!;
                                     var locals = binding.Get(clause.Block!)?.Locals;
-                                    foreach (TextSlice name in binding.Get(clause)?.Locals.Keys ?? [])
+                                    foreach (Utf8String name in binding.Get(clause)?.Locals.Keys ?? [])
                                         if (locals?.GetValueOrDefault(name) is { ValueDeclaration: { } declaration } symbol
                                             && (symbol.Flags & SymbolFlags.BlockScopedVariable) != 0)
                                             Error(declaration, DiagnosticCode.CannotRedeclareIdentifier0InCatchClause, name);
@@ -335,7 +335,7 @@ internal sealed partial class Checker
                     break;
                 case TypeAliasDeclarationNode alias:
                     if (!AllowsBlockScopedDeclaration(alias.Parent) && SemanticSyntax.Source(alias)?.ParseDiagnostics.Count == 0)
-                        Error(alias, DiagnosticCode.X0DeclarationsCanOnlyBeDeclaredInsideABlock, "type");
+                        Error(alias, DiagnosticCode.X0DeclarationsCanOnlyBeDeclaredInsideABlock, Utf8Literals.Type);
                     RegisterUnused(alias);
                     ExportedDeclaration(alias, false);
                     await CheckMergedExportsAsync(alias, cancellation).ConfigureAwait(false);
@@ -347,8 +347,8 @@ internal sealed partial class Checker
                     if (alias.Type?.Kind == SyntaxKind.IntrinsicKeyword)
                     {
                         int count = alias.TypeParameters?.Count ?? 0;
-                        if (!(count == 0 && alias.Name.Text == "BuiltinIteratorReturn"
-                            || count == 1 && alias.Name.Text.Span is "Uppercase" or "Lowercase" or "Capitalize" or "Uncapitalize" or "NoInfer"))
+                        if (!(count == 0 && alias.Name.Text == Utf8Literals.BuiltinIteratorReturn
+                            || count == 1 && (alias.Name.Text.Span.SequenceEqual("Uppercase"u8) || alias.Name.Text.Span.SequenceEqual("Lowercase"u8) || alias.Name.Text.Span.SequenceEqual("Capitalize"u8) || alias.Name.Text.Span.SequenceEqual("Uncapitalize"u8) || alias.Name.Text.Span.SequenceEqual("NoInfer"u8))))
                             Error(alias.Type, DiagnosticCode.TheIntrinsicKeywordCanOnlyBeUsedToDeclareCompilerProvidedIntrinsicTypes);
                         break;
                     }
@@ -469,7 +469,7 @@ internal sealed partial class Checker
             var marker = node.Name;
             while (marker is BindingPatternNode pattern)
                 marker = pattern.Elements?.OfType<BindingElementNode>().FirstOrDefault(e => e.Name is not null)?.Name;
-            if (marker is IdentifierNode { Text.Span: "__esModule" })
+            if (marker is IdentifierNode { Text.Span: var matchedText } && matchedText.SequenceEqual("__esModule"u8))
                 Error(marker, DiagnosticCode.IdentifierExpectedEsModuleIsReservedAsAnExportedMarkerWhenTransformingECMAScriptModules);
         }
         if ((flags & (NodeFlags.Let | NodeFlags.Const)) != 0)
@@ -477,7 +477,7 @@ internal sealed partial class Checker
             if (node.Name is IdentifierNode identifier)
             {
                 cancellation.ThrowIfCancellationRequested();
-                if (identifier.Text.Span is "let")
+                if (identifier.Text.Span.SequenceEqual("let"u8))
                     Error(identifier, DiagnosticCode.XLetIsNotAllowedToBeUsedAsANameInLetOrConstDeclarations);
             }
             else if (node.Name is { } rootName)
@@ -487,7 +487,7 @@ internal sealed partial class Checker
                 while (names.TryPop(out var name))
                 {
                     cancellation.ThrowIfCancellationRequested();
-                    if (name is IdentifierNode { Text.Span: "let" })
+                    if (name is IdentifierNode { Text.Span: var matchedText2 } && matchedText2.SequenceEqual("let"u8))
                     {
                         Error(name, DiagnosticCode.XLetIsNotAllowedToBeUsedAsANameInLetOrConstDeclarations);
                         continue;
@@ -504,7 +504,7 @@ internal sealed partial class Checker
             Error(
                 node,
                 DiagnosticCode.X0DeclarationsMayNotHaveBindingPatterns,
-                (flags & NodeFlags.BlockScoped) == NodeFlags.AwaitUsing ? "await using" : "using");
+                (flags & NodeFlags.BlockScoped) == NodeFlags.AwaitUsing ? Utf8Literals.AwaitUsing : Utf8Literals.Using);
             return;
         }
         if (node.Parent?.Parent is not ForInOrOfStatementNode)
@@ -518,9 +518,9 @@ internal sealed partial class Checker
                 else if ((flags & NodeFlags.BlockScoped) is NodeFlags.Const or NodeFlags.Using or NodeFlags.AwaitUsing)
                     Error(node, DiagnosticCode.X0DeclarationsMustBeInitialized, (flags & NodeFlags.BlockScoped) switch
                     {
-                        NodeFlags.Const => "const",
-                        NodeFlags.Using => "using",
-                        _ => "await using"
+                        NodeFlags.Const => Utf8Literals.Const,
+                        NodeFlags.Using => Utf8Literals.Using,
+                        _ => Utf8Literals.AwaitUsing
                     });
             }
         }

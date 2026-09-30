@@ -1,34 +1,88 @@
 using System.Globalization;
-using System.Text.RegularExpressions;
+using System.Text;
 
 namespace TypeScript.Compiler.Resolution;
 
 /// <summary>The compiler's extended semver grammar (major-only and major/minor versions are accepted).</summary>
-public sealed partial record SemanticVersion(uint Major, uint Minor = 0, uint Patch = 0, string Prerelease = "", string Build = "")
+public sealed partial record SemanticVersion(uint Major, uint Minor = 0, uint Patch = 0, Utf8String Prerelease = default, Utf8String Build = default)
     : IComparable<SemanticVersion>
 {
-    [GeneratedRegex(@"\A(0|[1-9][0-9]*)(?:\.(0|[1-9][0-9]*)(?:\.(0|[1-9][0-9]*)(?:-([a-z0-9-.]+))?(?:\+([a-z0-9-.]+))?)?)?\z", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
-    private static partial Regex VersionPattern();
+    public static SemanticVersion? Parse(Utf8String text) => TryParse(text, false, out var value, out _) ? value : null;
 
-    [GeneratedRegex(@"\A(?:0|[1-9][0-9]*|[a-z-][a-z0-9-]*)(?:\.(?:0|[1-9][0-9]*|[a-z-][a-z0-9-]*))*\z", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
-    private static partial Regex PrereleasePattern();
-
-    [GeneratedRegex(@"\A[a-z0-9-]+(?:\.[a-z0-9-]+)*\z", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
-    private static partial Regex BuildPattern();
-
-    public static SemanticVersion? Parse(string text)
+    internal static bool TryParse(Utf8String text, bool partial, out SemanticVersion value, out int wildcard)
     {
-        var match = VersionPattern().Match(text);
-        if (!match.Success || !Component(match.Groups[1].ValueSpan, out uint major)
-            || !Component(match.Groups[2].ValueSpan, out uint minor) || !Component(match.Groups[3].ValueSpan, out uint patch))
-            return null;
-        string pre = match.Groups[4].Value, build = match.Groups[5].Value;
-        if (pre.Length != 0 && !PrereleasePattern().IsMatch(pre) || build.Length != 0 && !BuildPattern().IsMatch(build))
-            return null;
-        return new(major, minor, patch, pre, build);
+        value = new(0);
+        wildcard = 3;
+        Span<uint> components = stackalloc uint[3];
+        components.Clear();
+        int at = 0, count = 0;
+        while (count < 3)
+        {
+            int start = at;
+            while (at < text.Length && (int)text[at] is not ('.' or '-' or '+'))
+                at++;
+            var part = text.Span[start..at];
+            if (partial && part.Length == 1 && (int)part[0] is '*' or 'x' or 'X')
+                wildcard = Math.Min(wildcard, count);
+            else if (!Numeric(part) || count < wildcard && !Component(part, out components[count]))
+                return false;
+            count++;
+            if (at == text.Length || text[at] != '.')
+                break;
+            if (count == 3)
+                return false;
+            at++;
+        }
+        wildcard = Math.Min(wildcard, count);
+        Utf8String pre = default, build = default;
+        if (at < text.Length)
+        {
+            if (count != 3)
+                return false;
+            if (text[at] == '-')
+            {
+                int start = ++at;
+                while (at < text.Length && text[at] != '+')
+                    at++;
+                pre = text[start..at];
+                if (pre.IsEmpty || !ValidIdentifiers(pre, !partial, !partial))
+                    return false;
+            }
+            if (at < text.Length && text[at] == '+')
+            {
+                build = text[(at + 1)..];
+                at = text.Length;
+                if (build.IsEmpty || !ValidIdentifiers(build, !partial, false))
+                    return false;
+            }
+            if (at != text.Length)
+                return false;
+        }
+        value = new(components[0], components[1], components[2], pre, build);
+        return true;
     }
 
-    internal static bool Component(ReadOnlySpan<char> text, out uint value)
+    private static bool ValidIdentifiers(Utf8String text, bool nonempty, bool prerelease)
+    {
+        foreach (var part in text.Split((byte)'.'))
+        {
+            if (part.IsEmpty)
+            { if (nonempty) return false; else continue; }
+            if (prerelease && Utf8Ascii.IsDigit(part[0]) && !Numeric(part))
+                return false;
+            ReadOnlySpan<byte> remaining = part;
+            while (!remaining.IsEmpty)
+            {
+                int point = Wtf8.Decode(remaining, out int width);
+                if (!Utf8Ascii.IsLetterOrDigit(point) && point is not ('-' or 0x17F or 0x212A))
+                    return false;
+                remaining = remaining[width..];
+            }
+        }
+        return true;
+    }
+
+    internal static bool Component(ReadOnlySpan<byte> text, out uint value)
     {
         value = 0;
         return text.Length == 0 || uint.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out value);
@@ -59,14 +113,14 @@ public sealed partial record SemanticVersion(uint Major, uint Minor = 0, uint Pa
             return other.Prerelease.Length == 0 ? 0 : 1;
         if (other.Prerelease.Length == 0)
             return -1;
-        ReadOnlySpan<char> left = Prerelease, right = other.Prerelease;
-        var leftParts = left.Split('.');
-        var rightParts = right.Split('.');
+        ReadOnlySpan<byte> left = Prerelease, right = other.Prerelease;
+        var leftParts = left.Split((byte)'.');
+        var rightParts = right.Split((byte)'.');
         while (leftParts.MoveNext())
         {
             if (!rightParts.MoveNext())
                 return 1;
-            ReadOnlySpan<char> a = left[leftParts.Current], b = right[rightParts.Current];
+            ReadOnlySpan<byte> a = left[leftParts.Current], b = right[rightParts.Current];
             if (a.SequenceEqual(b))
                 continue;
             bool numericA = Numeric(a), numericB = Numeric(b);
@@ -79,112 +133,91 @@ public sealed partial record SemanticVersion(uint Major, uint Minor = 0, uint Pa
         return rightParts.MoveNext() ? -1 : 0;
     }
 
-    private static bool Numeric(ReadOnlySpan<char> text) => text.Length > 0 && (text.Length == 1 || text[0] != '0')
-        && !text.ContainsAnyExceptInRange('0', '9');
+    private static bool Numeric(ReadOnlySpan<byte> text) => text.Length > 0 && (text.Length == 1 || text[0] != '0')
+        && !text.ContainsAnyExceptInRange((byte)'0', (byte)'9');
 
-    public override string ToString() => $"{Major}.{Minor}.{Patch}"
-        + (Prerelease.Length == 0 ? "" : "-" + Prerelease) + (Build.Length == 0 ? "" : "+" + Build);
+    public Utf8String ToUtf8String()
+    {
+        var text = new Utf8StringBuilder().Append(Major).Append((byte)'.').Append(Minor).Append((byte)'.').Append(Patch);
+        if (!Prerelease.IsEmpty)
+            text.Append((byte)'-').Append(Prerelease);
+        if (!Build.IsEmpty)
+            text.Append((byte)'+').Append(Build);
+        return text.ToUtf8String();
+    }
+    public override string ToString() => ToUtf8String().ToString();
 }
 
 public sealed partial class VersionRange
 {
-    private readonly List<List<(string Operator, SemanticVersion Version)>> alternatives;
+    private readonly List<List<(Utf8String Operator, SemanticVersion Version)>> alternatives;
 
-    private VersionRange(List<List<(string, SemanticVersion)>> alternatives) => this.alternatives = alternatives;
+    private VersionRange(List<List<(Utf8String, SemanticVersion)>> alternatives) => this.alternatives = alternatives;
 
-    [GeneratedRegex(@"\A([x*0]|[1-9][0-9]*)(?:\.([x*0]|[1-9][0-9]*)(?:\.([x*0]|[1-9][0-9]*)(?:-([a-z0-9-.]+))?(?:\+([a-z0-9-.]+))?)?)?\z", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
-    private static partial Regex PartialPattern();
+    private static bool Partial(Utf8String text, out SemanticVersion version, out int wildcard)
+        => SemanticVersion.TryParse(text, true, out version, out wildcard);
 
-    [GeneratedRegex(@"\A\s*([a-z0-9-+.*]+)\s+-\s+([a-z0-9-+.*]+)\s*\z", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
-    private static partial Regex HyphenPattern();
-
-    [GeneratedRegex(@"\A(<=|>=|[~^<>=])?\s*([a-z0-9-+.*]+)\z", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
-    private static partial Regex ComparatorPattern();
-
-    [GeneratedRegex(@"[\t\n\f\r ]+")]
-    private static partial Regex Whitespace();
-
-    private static bool Partial(string text, out SemanticVersion version, out int wildcard)
+    public static VersionRange? Parse(Utf8String text)
     {
-        version = new(0);
-        wildcard = 3;
-        var match = PartialPattern().Match(text);
-        if (!match.Success)
-            return false;
-        Span<uint> components = stackalloc uint[3];
-        components.Clear();
-        for (int i = 0; i < 3; i++)
-        {
-            ReadOnlySpan<char> part = match.Groups[i + 1].ValueSpan;
-            if (part is "" or "*" or "x" or "X")
-                wildcard = Math.Min(wildcard, i);
-            if (i < wildcard && !SemanticVersion.Component(part, out components[i]))
-                return false;
-        }
-        version = new(components[0], components[1], components[2], match.Groups[4].Value, match.Groups[5].Value);
-        return true;
-    }
-
-    public static VersionRange? Parse(string text)
-    {
-        List<List<(string, SemanticVersion)>> alternatives = [];
-        foreach (string segment in text.Trim().Split("||", StringSplitOptions.TrimEntries))
+        List<List<(Utf8String, SemanticVersion)>> alternatives = [];
+        foreach (Utf8String segment in text.Trim().Split("||"u8, StringSplitOptions.TrimEntries))
         {
             if (segment.Length == 0)
                 continue;
-            List<(string, SemanticVersion)> comparators = [];
-            var hyphen = HyphenPattern().Match(segment);
-            if (hyphen.Success)
+            List<(Utf8String, SemanticVersion)> comparators = [];
+            var tokens = segment.SplitAny("\t\n\f\r "u8, StringSplitOptions.RemoveEmptyEntries);
+            if (tokens is [var lower, var hyphen, var upper] && hyphen == "-"u8)
             {
-                if (!Partial(hyphen.Groups[1].Value, out var left, out int a)
-                    || !Partial(hyphen.Groups[2].Value, out var right, out int b))
+                if (!Partial(lower, out var left, out int a)
+                    || !Partial(upper, out var right, out int b))
                     return null;
                 if (a != 0)
-                    comparators.Add((">=", left));
+                    comparators.Add((Utf8Literals.GreaterThanOrEqual, left));
                 if (b != 0)
-                    comparators.Add((b < 3 ? "<" : "<=", b < 3 ? right.Increment(b - 1) : right));
+                    comparators.Add((b < 3 ? Utf8Literals.LessThan : Utf8Literals.LessThanOrEqual, b < 3 ? right.Increment(b - 1) : right));
             }
             else
             {
-                foreach (string part in Whitespace().Split(segment))
+                foreach (Utf8String part in tokens)
                 {
-                    var match = ComparatorPattern().Match(part);
-                    if (!match.Success || !Partial(match.Groups[2].Value, out var version, out int wildcard))
+                    int prefix = part.StartsWith("<="u8) || part.StartsWith(">="u8) ? 2
+                        : !part.IsEmpty && (int)part[0] is '~' or '^' or '<' or '>' or '=' ? 1 : 0;
+                    if (!Partial(part[prefix..], out var version, out int wildcard))
                         return null;
-                    string op = match.Groups[1].Value;
+                    Utf8String op = part[..prefix];
                     if (wildcard == 0)
                     {
-                        if (op is "<" or ">")
-                            comparators.Add(("<", new(0, Prerelease: "0")));
+                        if (op == "<"u8 || op == ">"u8)
+                            comparators.Add((Utf8Literals.LessThan, new(0, Prerelease: Utf8Literals.Zero)));
                         continue;
                     }
                     switch (op)
                     {
-                        case "~":
-                        case "^":
-                            int increment = op == "~" ? (wildcard == 1 ? 0 : 1)
+                        case var _ when op == "~"u8:
+                        case var _ when op == "^"u8:
+                            int increment = op == Utf8Literals.Tilde ? (wildcard == 1 ? 0 : 1)
                                 : version.Major > 0 || wildcard == 1 ? 0 : version.Minor > 0 || wildcard == 2 ? 1 : 2;
-                            comparators.Add((">=", version));
-                            comparators.Add(("<", version.Increment(increment)));
+                            comparators.Add((Utf8Literals.GreaterThanOrEqual, version));
+                            comparators.Add((Utf8Literals.LessThan, version.Increment(increment)));
                             break;
-                        case "<":
-                        case ">=":
-                            comparators.Add((op, wildcard < 3 ? version with { Prerelease = "0" } : version));
+                        case var _ when op == "<"u8:
+                        case var _ when op == ">="u8:
+                            comparators.Add((op, wildcard < 3 ? version with { Prerelease = Utf8Literals.Zero } : version));
                             break;
-                        case "<=":
-                        case ">":
+                        case var _ when op == "<="u8:
+                        case var _ when op == ">"u8:
                             comparators.Add(wildcard < 3
-                                ? (op == "<=" ? "<" : ">=", version.Increment(wildcard - 1) with { Prerelease = "0" })
+                                ? (op == Utf8Literals.LessThanOrEqual ? Utf8Literals.LessThan : Utf8Literals.GreaterThanOrEqual, version.Increment(wildcard - 1) with { Prerelease = Utf8Literals.Zero })
                                 : (op, version));
                             break;
-                        case "":
-                        case "=":
+                        case var _ when op == ""u8:
+                        case var _ when op == "="u8:
                             if (wildcard == 3)
-                                comparators.Add(("=", version));
+                                comparators.Add((Utf8Literals.EqualsToken, version));
                             else
                             {
-                                comparators.Add((">=", version with { Prerelease = "0" }));
-                                comparators.Add(("<", version.Increment(wildcard - 1) with { Prerelease = "0" }));
+                                comparators.Add((Utf8Literals.GreaterThanOrEqual, version with { Prerelease = Utf8Literals.Zero }));
+                                comparators.Add((Utf8Literals.LessThan, version.Increment(wildcard - 1) with { Prerelease = Utf8Literals.Zero }));
                             }
                             break;
                         default:
@@ -200,17 +233,18 @@ public sealed partial class VersionRange
     public bool Test(SemanticVersion version) => alternatives.Count == 0 || alternatives.Any(
         alternative => alternative.All(c => c.Operator switch
         {
-            "<" => version.CompareTo(c.Version) < 0,
-            "<=" => version.CompareTo(c.Version) <= 0,
-            "=" => version.CompareTo(c.Version) == 0,
-            ">=" => version.CompareTo(c.Version) >= 0,
-            ">" => version.CompareTo(c.Version) > 0,
+            _ when c.Operator == "<"u8 => version.CompareTo(c.Version) < 0,
+            _ when c.Operator == "<="u8 => version.CompareTo(c.Version) <= 0,
+            _ when c.Operator == "="u8 => version.CompareTo(c.Version) == 0,
+            _ when c.Operator == ">="u8 => version.CompareTo(c.Version) >= 0,
+            _ when c.Operator == ">"u8 => version.CompareTo(c.Version) > 0,
             _ => throw new InvalidOperationException("Unknown version comparator")
         }));
 
-    public override string ToString()
+    public Utf8String ToUtf8String()
     {
-        string result = string.Join(" || ", alternatives.Select(a => string.Join(' ', a.Select(c => c.Operator + c.Version))));
-        return result.Length == 0 ? "*" : result;
+        Utf8String result = Utf8String.Join(" || "u8, alternatives.Select(a => Utf8String.Join((byte)' ', a.Select(c => c.Operator + c.Version.ToUtf8String()))));
+        return result.Length == 0 ? (Utf8String)"*"u8 : result;
     }
+    public override string ToString() => ToUtf8String().ToString();
 }

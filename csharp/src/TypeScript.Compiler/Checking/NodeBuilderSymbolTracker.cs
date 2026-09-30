@@ -10,19 +10,19 @@ internal interface INodeBuilderSymbolTracker
 
     void ReportInaccessibleThisError();
 
-    void ReportPrivateInBaseOfClassExpression(TextSlice propertyName);
+    void ReportPrivateInBaseOfClassExpression(Utf8String propertyName);
 
     void ReportInaccessibleUniqueSymbolError();
 
     void ReportCyclicStructureError();
 
-    void ReportLikelyUnsafeImportRequiredError(TextSlice specifier, TextSlice symbolName);
+    void ReportLikelyUnsafeImportRequiredError(Utf8String specifier, Utf8String symbolName);
 
     void ReportTruncationError();
 
     void ReportNonlocalAugmentation(SourceFileNode containingFile, Symbol parentSymbol, Symbol augmentingSymbol);
 
-    void ReportNonSerializableProperty(TextSlice propertyName);
+    void ReportNonSerializableProperty(Utf8String propertyName);
 
     void ReportInferenceFallback(SyntaxNode node);
 

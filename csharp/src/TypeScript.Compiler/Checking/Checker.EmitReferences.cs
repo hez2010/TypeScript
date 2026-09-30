@@ -77,14 +77,14 @@ internal sealed partial class Checker
         return EmitReferenceResolver(cancellation).GetReferencedMemberValueDeclaration(node);
     }
 
-    internal async ValueTask<TextSlice> GetElementAccessNameForEmitAsync(
+    internal async ValueTask<Utf8String> GetElementAccessNameForEmitAsync(
         ElementAccessExpressionNode node,
         CancellationToken cancellation = default)
     {
         if (!EmitParseNode(node))
-            return "";
+            return Utf8String.Empty;
         using var query = await EnterQueryAsync(node, cancellation);
-        return await AccessNames.GetAsync(node, cancellation) ?? "";
+        return await AccessNames.GetAsync(node, cancellation) ?? Utf8String.Empty;
     }
 
     internal async ValueTask<IReadOnlyList<Symbol>> GetContainerFunctionPropertiesForEmitAsync(SyntaxNode? node,

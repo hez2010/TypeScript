@@ -19,7 +19,7 @@ internal interface ITypePropertyHost
 
     ValueTask<IReadOnlyList<IndexInfo>> IndexesAsync(Type type, CancellationToken cancellation);
 
-    ValueTask<IndexInfo?> ApplicableIndexAsync(Type type, TextSlice name, CancellationToken cancellation);
+    ValueTask<IndexInfo?> ApplicableIndexAsync(Type type, Utf8String name, CancellationToken cancellation);
 
     ValueTask<Type?> TupleRestAsync(TypeReference type, CancellationToken cancellation);
 
@@ -55,7 +55,7 @@ internal sealed class TypeProperties(TypeContext context, CheckerLinks links, Ch
         context.RequireOwned(type);
         if (type.ResolvedProperties is { } cached)
             return cached;
-        var names = new HashSet<TextSlice>();
+        var names = new HashSet<Utf8String>();
         var result = new List<Symbol>();
         foreach (var part in type.Types)
         {
@@ -74,7 +74,7 @@ internal sealed class TypeProperties(TypeContext context, CheckerLinks links, Ch
         return type.ResolvedProperties = result.AsReadOnly();
     }
 
-    internal async ValueTask<Symbol?> PropertyAsync(Type type, TextSlice name, bool skipAugment = false, bool includeTypeOnly = false,
+    internal async ValueTask<Symbol?> PropertyAsync(Type type, Utf8String name, bool skipAugment = false, bool includeTypeOnly = false,
         CancellationToken cancellation = default)
     {
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
@@ -112,7 +112,7 @@ internal sealed class TypeProperties(TypeContext context, CheckerLinks links, Ch
         return type is UnionType union ? await CompositePropertyAsync(union, name, skipAugment, cancellation).ConfigureAwait(false) : null;
     }
 
-    internal async ValueTask<Symbol?> ObjectPropertyAsync(Type type, TextSlice name, CancellationToken cancellation)
+    internal async ValueTask<Symbol?> ObjectPropertyAsync(Type type, Utf8String name, CancellationToken cancellation)
     {
         if (type is not ObjectType obj)
             return null;
@@ -127,14 +127,14 @@ internal sealed class TypeProperties(TypeContext context, CheckerLinks links, Ch
                 excludeTypeOnly: !includeTypeOnly,
                 cancellation: cancellation).ConfigureAwait(false) & S.Value) != 0;
 
-    internal async ValueTask<Symbol?> CompositePropertyAsync(UnionOrIntersectionType type, TextSlice name, bool skipAugment = false,
+    internal async ValueTask<Symbol?> CompositePropertyAsync(UnionOrIntersectionType type, Utf8String name, bool skipAugment = false,
         CancellationToken cancellation = default)
     {
         var property = await CachedPropertyAsync(type, name, skipAugment, cancellation).ConfigureAwait(false);
         return property is not null && (property.CheckFlags & C.ReadPartial) == 0 ? property : null;
     }
 
-    internal async ValueTask<Symbol?> CachedPropertyAsync(UnionOrIntersectionType type, TextSlice name, bool skipAugment = false,
+    internal async ValueTask<Symbol?> CachedPropertyAsync(UnionOrIntersectionType type, Utf8String name, bool skipAugment = false,
         CancellationToken cancellation = default)
     {
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
@@ -148,18 +148,18 @@ internal sealed class TypeProperties(TypeContext context, CheckerLinks links, Ch
         cancellation.ThrowIfCancellationRequested();
         if (property is not null)
         {
-            cache = skipAugment ? type.PropertyCacheWithoutFunctionAugment ??= new(TextSliceComparer.Ordinal)
-                : type.PropertyCache ??= new(TextSliceComparer.Ordinal);
+            cache = skipAugment ? type.PropertyCacheWithoutFunctionAugment ??= new(Utf8StringComparer.Ordinal)
+                : type.PropertyCache ??= new(Utf8StringComparer.Ordinal);
             cache[name] = property;
             if (skipAugment && (property.CheckFlags & C.Partial) == 0)
-                (type.PropertyCache ??= new(TextSliceComparer.Ordinal)).TryAdd(name, property);
+                (type.PropertyCache ??= new(Utf8StringComparer.Ordinal)).TryAdd(name, property);
         }
         return property;
     }
 
     private async ValueTask<Symbol?> CreateAsync(
         UnionOrIntersectionType containingType,
-        TextSlice name,
+        Utf8String name,
         bool skipAugment,
         CancellationToken cancellation)
     {
@@ -217,7 +217,7 @@ internal sealed class TypeProperties(TypeContext context, CheckerLinks links, Ch
             }
             else if (isUnion)
             {
-                var index = name.Span.StartsWith(Symbol.InternalPrefix + "@", StringComparison.Ordinal) ? null
+                var index = name.Span.StartsWith(Symbol.InternalUnique, StringComparison.Ordinal) ? null
                     : await host.ApplicableIndexAsync(type, name, cancellation).ConfigureAwait(false);
                 if (index is not null)
                 {

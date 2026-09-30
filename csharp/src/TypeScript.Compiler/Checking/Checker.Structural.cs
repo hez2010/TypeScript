@@ -228,7 +228,7 @@ internal sealed partial class Checker : IStructuralRelationHost, IObjectRelation
 
     public async ValueTask<Type> NonNullableInstantiationAsync(Type type, CancellationToken cancellation)
     {
-        if (program.Symbols.Globals.TryGetValue("NonNullable", out var symbol) && (symbol.Flags & SymbolFlags.TypeAlias) != 0)
+        if (program.Symbols.Globals.TryGetValue(Utf8Literals.NonNullable, out var symbol) && (symbol.Flags & SymbolFlags.TypeAlias) != 0)
         {
             await Declared.GetAsync(symbol, cancellation);
             if (links.TypeAliases.Get(symbol).TypeParameters?.Count == 1)

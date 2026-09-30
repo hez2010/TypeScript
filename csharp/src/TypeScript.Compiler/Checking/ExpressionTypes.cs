@@ -95,7 +95,7 @@ internal sealed class ExpressionTypes(TypeContext context, TypeAlgebra algebra, 
             case TypeOfExpressionNode typeOf:
                 await CheckAsync(typeOf.Expression!, cancellation: cancellation).ConfigureAwait(false);
                 return typeofType ??= await algebra.UnionAsync(
-                    new[] { "bigint", "boolean", "function", "number", "object", "string", "symbol", "undefined" }
+                    new Utf8String[] { Utf8Literals.Bigint, Utf8Literals.BooleanKeyword, Utf8Literals.Function, Utf8Literals.NumberKeyword, Utf8Literals.Object, Utf8Literals.StringKeyword, Utf8Literals.SymbolKeyword, Utf8Literals.Undefined }
                     .Select(text => context.GetStringLiteralType(text)).ToArray(), cancellation: cancellation).ConfigureAwait(false);
             case VoidExpressionNode:
                 host.DeferExpression(node);
@@ -194,7 +194,7 @@ internal sealed class ExpressionTypes(TypeContext context, TypeAlgebra algebra, 
 
     private async ValueTask<Type> TemplateAsync(TemplateExpressionNode template, CancellationToken cancellation)
     {
-        var texts = new List<TextSlice> { ((TemplateHeadNode)template.Head!).Text };
+        var texts = new List<Utf8String> { ((TemplateHeadNode)template.Head!).Text };
         var types = new List<Type>();
         foreach (var node in template.TemplateSpans!)
         {
@@ -221,23 +221,23 @@ internal sealed class ExpressionTypes(TypeContext context, TypeAlgebra algebra, 
                     : context.StringType);
         }
         if (template.Parent is not TaggedTemplateExpressionNode
-            && (await evaluator.EvaluateAsync(template, template, cancellation).ConfigureAwait(false)).Value is TextSlice value)
+            && (await evaluator.EvaluateAsync(template, template, cancellation).ConfigureAwait(false)).Value is Utf8String value)
             return context.GetFreshLiteralType(context.GetStringLiteralType(value));
         return await host.TemplateContextAsync(template, cancellation).ConfigureAwait(false)
             ? await algebra.TemplateAsync(texts, types, cancellation).ConfigureAwait(false) : context.StringType;
     }
 
-    internal static BigInteger BigInt(TextSlice text)
+    internal static BigInteger BigInt(Utf8String text)
     {
-        var span = text.Span.TrimEnd('n');
+        var span = text.Span.TrimEnd((byte)'n');
         int radix = span.StartsWith(
-            "0x",
-            StringComparison.OrdinalIgnoreCase) ? 16 : span.StartsWith("0b", StringComparison.OrdinalIgnoreCase) ? 2
-            : span.StartsWith("0o", StringComparison.OrdinalIgnoreCase) ? 8 : 10;
+            "0x"u8,
+            StringComparison.OrdinalIgnoreCase) ? 16 : span.StartsWith("0b"u8, StringComparison.OrdinalIgnoreCase) ? 2
+            : span.StartsWith("0o"u8, StringComparison.OrdinalIgnoreCase) ? 8 : 10;
         if (radix == 10)
             return BigInteger.Parse(span, CultureInfo.InvariantCulture);
         BigInteger result = 0;
-        foreach (char ch in span[2..])
+        foreach (int ch in span[2..])
         {
             int digit = ch is >= '0' and <= '9'
                 ? ch - '0'

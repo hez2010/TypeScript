@@ -22,21 +22,21 @@ internal sealed partial class Checker
         bool reportUnresolved = true)
     {
         cancellation.ThrowIfCancellationRequested();
-        TextSlice? moduleName = specifier switch
+        Utf8String? moduleName = specifier switch
         {
             StringLiteralNode text => text.Text,
             NoSubstitutionTemplateLiteralNode template => template.Text,
-            _ => (TextSlice?)null
+            _ => (Utf8String?)null
         };
         if (moduleName is not { } name)
             return null;
-        if (!ignoreErrors && name.Span.StartsWith("@types/", StringComparison.Ordinal))
+        if (!ignoreErrors && name.Span.StartsWith("@types/"u8, StringComparison.Ordinal))
             Error(specifier!, DiagnosticCode.CannotImportTypeDeclarationFilesConsiderImporting0InsteadOf1, name[7..], name);
         var file = program.Symbols.Binding(location)!.SourceFile;
         var reference = program.Symbols.Program.GetFile(file.FileName)!.Resolutions.FirstOrDefault(
             r => resolutionMode is { } mode ? r.Specifier == name && r.Mode == mode
                 : implicitImport ? r.Node is null && r.Specifier == name : r.Node == specifier);
-        var module = program.Symbols.Globals.GetValueOrDefault(TextSlice.Concat("\"", name, "\""));
+        var module = program.Symbols.Globals.GetValueOrDefault(Utf8String.Concat("\""u8, name, "\""u8));
         if (module is null && reference?.Resolution.IsResolved == true
             && !(reference.Resolution.IsArbitraryExtension && !file.IsDeclarationFile
                 && program.Symbols.Program.Configuration.Options.AllowArbitraryExtensions != true))
@@ -51,7 +51,7 @@ internal sealed partial class Checker
             var candidates = new List<(PatternModule Module, Type Type)>();
             foreach (var pattern in program.Symbols.PatternModules)
             {
-                int star = pattern.Pattern.Span.IndexOf('*');
+                int star = pattern.Pattern.Span.IndexOf((byte)'*');
                 if (star < 0 || name.Length < pattern.Pattern.Length - 1
                     || !name.Span.StartsWith(pattern.Pattern.Span.Slice(0, star), StringComparison.Ordinal)
                     || !name.Span.EndsWith(pattern.Pattern.Span.Slice(star + 1), StringComparison.Ordinal))
@@ -77,7 +77,7 @@ internal sealed partial class Checker
             }
             if (best.Count != 0)
             {
-                var pattern = best.MaxBy(p => p.Pattern.Span.IndexOf('*'))!;
+                var pattern = best.MaxBy(p => p.Pattern.Span.IndexOf((byte)'*'))!;
                 var target = program.Symbols.Merger.GetMergedSymbol(pattern.Symbol)!;
                 module = program.Symbols.PatternTargets.GetValueOrDefault(name) == target
                     ? program.Symbols.PatternAugmentations.GetValueOrDefault(name) ?? target : target;
@@ -85,12 +85,12 @@ internal sealed partial class Checker
         }
         if (module is null
             && !ignoreErrors && (reportUnresolved || missingModuleCode == DiagnosticCode.InvalidModuleNameInAugmentationModule0CannotBeFound
-            && reference?.Resolution is { IsResolved: true, Extension: ".js" or ".jsx" or ".mjs" or ".cjs" }))
+            && reference?.Resolution is { IsResolved: true, Extension: var matchedText } && (matchedText == ".js"u8 || matchedText == ".jsx"u8 || matchedText == ".mjs"u8 || matchedText == ".cjs"u8)))
             ReportUnresolvedImport(implicitImport ? location : specifier!, name, file, reference, missingModuleCode);
         return program.Symbols.Merger.GetMergedSymbol(module);
     }
 
-    private void ReportUnresolvedImport(SyntaxNode node, TextSlice name, SourceFileNode file,
+    private void ReportUnresolvedImport(SyntaxNode node, Utf8String name, SourceFileNode file,
         Programs.ModuleReference? reference, DiagnosticCode missingModuleCode)
     {
         bool sideEffect = node.Parent is ImportDeclarationNode { ImportClause: null };
@@ -114,9 +114,9 @@ internal sealed partial class Checker
                     program.Error(node, Messages.File_0_is_not_a_module, resolved.FileName);
                 return;
             }
-            if (JsxMode == 0 && resolved.Extension is ".jsx" or ".tsx")
+            if (JsxMode == 0 && (resolved.Extension == ".jsx"u8 || resolved.Extension == ".tsx"u8))
                 return;
-            if (resolved.Extension is ".js" or ".jsx" or ".mjs" or ".cjs")
+            if (resolved.Extension == ".js"u8 || resolved.Extension == ".jsx"u8 || resolved.Extension == ".mjs"u8 || resolved.Extension == ".cjs"u8)
             {
                 if (missingModuleCode == DiagnosticCode.InvalidModuleNameInAugmentationModule0CannotBeFound)
                     program.Error(
@@ -141,25 +141,25 @@ internal sealed partial class Checker
             }
         }
         bool resolveJson = compiler.Configuration.Options.ResolveJsonModule
-            ?? (compiler.ModuleResolutionKind == "bundler" || ModuleKind is 102 or 199);
-        if (!resolveJson && name.Span.EndsWith(".json", StringComparison.Ordinal))
+            ?? compiler.ModuleResolutionKind == Utf8Literals.Bundler || ModuleKind is 102 or 199;
+        if (!resolveJson && name.Span.EndsWith(".json"u8, StringComparison.Ordinal))
         {
             program.Error(node, Messages.Cannot_find_module_0_Consider_using_resolveJsonModule_to_import_module_with_json_extension, name);
             return;
         }
-        TextSlice normalized = name.Replace('\\', '/');
-        bool relative = normalized.Span is "." or ".." || normalized.Span.StartsWith("./", StringComparison.Ordinal)
-            || normalized.Span.StartsWith("../", StringComparison.Ordinal);
-        if (reference?.Mode == ReferenceResolutionMode.Import && compiler.ModuleResolutionKind is "node16" or "nodenext"
+        Utf8String normalized = name.Replace((byte)'\\', (byte)'/');
+        bool relative = normalized.Span.SequenceEqual("."u8) || normalized.Span.SequenceEqual(".."u8) || normalized.Span.StartsWith("./"u8, StringComparison.Ordinal)
+            || normalized.Span.StartsWith("../"u8, StringComparison.Ordinal);
+        if (reference?.Mode == ReferenceResolutionMode.Import && (compiler.ModuleResolutionKind == "node16"u8 || compiler.ModuleResolutionKind == "nodenext"u8)
             && relative && CompilerPath.Extension(normalized).Length == 0)
         {
-            TextSlice path = CompilerPath.Resolve(CompilerPath.DirectoryName(file.FileName), (name).ToString());
+            Utf8String path = CompilerPath.Resolve(CompilerPath.DirectoryName(file.FileName), name);
             if (SuggestedImportExtension(path) is { Length: > 0 } extension)
             {
                 program.Error(
                     node,
                     Messages.Relative_import_paths_need_explicit_file_extensions_in_ECMAScript_imports_when_moduleResolution_is_node16_or_nodenext_Did_you_mean_0,
-                    TextSlice.Concat(name, extension));
+                    Utf8String.Concat(name, extension));
                 return;
             }
             program.Error(
@@ -171,7 +171,7 @@ internal sealed partial class Checker
             && missingModuleCode == DiagnosticCode.CannotFindModule0OrItsCorrespondingTypeDeclarations
             && node is StringLiteralNode
             && NodeCoreModules.Contains(name))
-            missingModuleCode = compiler.Configuration.Options.Types?.Contains("*", StringComparer.Ordinal) == true
+            missingModuleCode = compiler.Configuration.Options.Types?.Contains(Utf8Literals.Asterisk, Utf8StringComparer.Ordinal) == true
                 ? DiagnosticCode.CannotFindName0DoYouNeedToInstallTypeDefinitionsForNodeTryNpmISaveDevTypesSlashnode
                 : DiagnosticCode.CannotFindName0DoYouNeedToInstallTypeDefinitionsForNodeTryNpmISaveDevTypesSlashnodeAndThenAddNodeToTheTypesFieldInYourTsconfig;
         program.Error(
@@ -183,18 +183,18 @@ internal sealed partial class Checker
             name);
     }
 
-    private Dictionary<TextSlice, bool>? resolvedPackages;
+    private Dictionary<Utf8String, bool>? resolvedPackages;
 
-    private Diagnostic MissingPackageTypes(SyntaxNode node, TextSlice moduleName, ResolvedModule resolved, TextSlice packageName)
+    private Diagnostic MissingPackageTypes(SyntaxNode node, Utf8String moduleName, ResolvedModule resolved, Utf8String packageName)
     {
-        TextSlice mangled = ModuleResolver.Mangle((packageName).ToString());
+        Utf8String mangled = ModuleResolver.Mangle(packageName);
         if (resolved.AlternateResult.Length != 0)
             return CheckerDiagnostic.Create(
                 node,
                 DiagnosticLocalization.GetMessage(
                     DiagnosticCode.ThereAreTypesAt0ButThisResultCouldNotBeResolvedWhenRespectingPackageJsonExportsThe1LibraryMayNeedToUpdateItsPackageJsonOrTypings),
                 resolved.AlternateResult,
-                resolved.AlternateResult.Contains("/node_modules/@types/", StringComparison.Ordinal) ? TextSlice.Concat("@types/", mangled) : packageName);
+                resolved.AlternateResult.Contains("/node_modules/@types/"u8, StringComparison.Ordinal) ? Utf8String.Concat("@types/"u8, mangled) : packageName);
         if (resolvedPackages is null)
         {
             resolvedPackages = new();
@@ -202,9 +202,9 @@ internal sealed partial class Checker
                 foreach (var reference in file.Resolutions)
                     if (!reference.TypeReference && reference.Resolution.PackageId is { Name.Length: > 0 } package)
                         resolvedPackages[package.Name] = resolvedPackages.GetValueOrDefault(package.Name)
-                            || reference.Resolution.Extension == ".d.ts";
+                            || reference.Resolution.Extension == Utf8Literals.DTs;
         }
-        if (resolvedPackages.ContainsKey(TextSlice.Concat("@types/", mangled)))
+        if (resolvedPackages.ContainsKey(Utf8String.Concat("@types/"u8, mangled)))
             return CheckerDiagnostic.Create(
                 node,
                 DiagnosticLocalization.GetMessage(
@@ -226,26 +226,26 @@ internal sealed partial class Checker
             mangled);
     }
 
-    internal TextSlice SuggestedImportExtension(TextSlice path)
+    internal Utf8String SuggestedImportExtension(Utf8String path)
     {
-        foreach (var extension in new[] { ".mts", ".ts", ".cts", ".mjs", ".js", ".cjs", ".tsx", ".jsx", ".json" })
-            if (program.Symbols.Program.FileExists(((TextSlice.Concat(path, extension))).ToString()))
+        foreach (var extension in new Utf8String[] { Utf8Literals.Mts, Utf8Literals.Ts, Utf8Literals.Cts, Utf8Literals.Mjs, Utf8Literals.Js, Utf8Literals.Cjs, Utf8Literals.Tsx, Utf8Literals.Jsx, Utf8Literals.Json })
+            if (program.Symbols.Program.FileExists(Utf8String.Concat(path, extension)))
                 return extension switch
                 {
-                    ".mts" => ".mjs",
-                    ".cts" => ".cjs",
-                    ".ts" => ".js",
-                    ".tsx" => JsxMode == 1 ? ".jsx" : ".js",
+                    _ when extension == ".mts"u8 => Utf8Literals.Mjs,
+                    _ when extension == ".cts"u8 => Utf8Literals.Cjs,
+                    _ when extension == ".ts"u8 => Utf8Literals.Js,
+                    _ when extension == ".tsx"u8 => JsxMode == 1 ? Utf8Literals.Jsx : Utf8Literals.Js,
                     _ => extension
                 };
-        return "";
+        return Utf8String.Empty;
     }
 
-    private void CheckResolvedImport(SyntaxNode location, SyntaxNode specifier, TextSlice name, SourceFileNode source,
+    private void CheckResolvedImport(SyntaxNode location, SyntaxNode specifier, Utf8String name, SourceFileNode source,
         Programs.ModuleReference reference)
     {
         var options = program.Symbols.Program.Configuration.Options;
-        if (JsxMode == 0 && reference.Resolution.Extension is ".tsx" or ".jsx")
+        if (JsxMode == 0 && (reference.Resolution.Extension == ".tsx"u8 || reference.Resolution.Extension == ".jsx"u8))
             Error(specifier, DiagnosticCode.Module0WasResolvedTo1ButJsxIsNotSet, name, reference.Resolution.FileName);
         var import = DeclarationOrder.Ancestor(
             location,
@@ -259,20 +259,20 @@ internal sealed partial class Checker
             CallExpressionNode => true,
             _ => false
         };
-        bool declarationExtension = name.Span.EndsWith(".d.ts", StringComparison.OrdinalIgnoreCase)
-            || name.Span.EndsWith(".d.mts", StringComparison.OrdinalIgnoreCase) || name.Span.EndsWith(".d.cts", StringComparison.OrdinalIgnoreCase);
+        bool declarationExtension = name.Span.EndsWith(".d.ts"u8, StringComparison.OrdinalIgnoreCase)
+            || name.Span.EndsWith(".d.mts"u8, StringComparison.OrdinalIgnoreCase) || name.Span.EndsWith(".d.cts"u8, StringComparison.OrdinalIgnoreCase);
         if (reference.Resolution.UsingTsExtension && emitted)
         {
             if (declarationExtension)
             {
-                TextSlice extension = TypeScriptImportExtension(name);
-                TextSlice suggested = name[..^extension.Length];
+                Utf8String extension = TypeScriptImportExtension(name);
+                Utf8String suggested = name[..^extension.Length];
                 if (ModuleKind is >= 5 and <= 99 || reference.Mode == ReferenceResolutionMode.Import)
                 {
                     bool preferTs = options.AllowImportingTsExtensions == true
                         || options.RewriteRelativeImportExtensions == true;
-                    suggested += extension.Span is ".mts" or ".d.mts" ? preferTs ? ".mts" : ".mjs"
-                        : extension.Span is ".cts" or ".d.cts" ? preferTs ? ".cts" : ".cjs" : preferTs ? ".ts" : ".js";
+                    suggested += (extension.Span.SequenceEqual(".mts"u8) || extension.Span.SequenceEqual(".d.mts"u8)) ? preferTs ? Utf8Literals.Mts : Utf8Literals.Mjs
+                        : (extension.Span.SequenceEqual(".cts"u8) || extension.Span.SequenceEqual(".d.cts"u8)) ? preferTs ? Utf8Literals.Cts : Utf8Literals.Cjs : preferTs ? Utf8Literals.Ts : Utf8Literals.Js;
                 }
                 Error(
                     specifier,
@@ -292,15 +292,15 @@ internal sealed partial class Checker
             && (emitted || import is ImportDeclarationNode { ImportClause: null }))
         {
             var compiler = program.Symbols.Program;
-            bool rewrite = RelativeModulePath(name) && CompilerPath.Extension(name).Span is ".ts" or ".tsx" or ".mts" or ".cts";
+            bool rewrite = RelativeModulePath(name) && CompilerPath.Extension(name).Span is var matchedText4 && (matchedText4.SequenceEqual(".ts"u8) || matchedText4.SequenceEqual(".tsx"u8) || matchedText4.SequenceEqual(".mts"u8) || matchedText4.SequenceEqual(".cts"u8));
             if (!reference.Resolution.UsingTsExtension && rewrite)
             {
-                TextSlice relative = CompilerPath.Relative(CompilerPath.DirectoryName(source.FileName), reference.Resolution.FileName,
+                Utf8String relative = CompilerPath.Relative(CompilerPath.DirectoryName(source.FileName), reference.Resolution.FileName,
                     compiler.UseCaseSensitiveFileNames);
                 Error(
                     specifier,
                     DiagnosticCode.ThisRelativeImportPathIsUnsafeToRewriteBecauseItLooksLikeAFileNameButActuallyResolvesTo0,
-                    RelativeModuleName(relative) ? relative : TextSlice.Concat("./", relative));
+                    RelativeModuleName(relative) ? relative : Utf8String.Concat("./"u8, relative));
             }
             else if (reference.Resolution.UsingTsExtension && !rewrite && compiler.SourceFileMayBeEmitted(target.Syntax))
                 Error(
@@ -312,13 +312,13 @@ internal sealed partial class Checker
                     ?? compiler.ProjectReferences.Outputs.GetValueOrDefault(target.Syntax.FileName)) is { } redirect)
             {
                 var project = redirect.Project;
-                TextSlice otherRoot = project.Options.RootDir ?? (project.Options.Composite == true
+                Utf8String otherRoot = project.Options.RootDir ?? (project.Options.Composite == true
                     ? CompilerPath.DirectoryName(project.FileName) : Programs.ProjectReferences.CommonDirectory(
                         project.FileNames.Where(f => !CompilerPath.IsDeclarationFile(f)), compiler.UseCaseSensitiveFileNames));
-                TextSlice ownRoot = compiler.CommonSourceDirectory;
-                TextSlice roots = CompilerPath.Relative((ownRoot).ToString(), (otherRoot).ToString(), compiler.UseCaseSensitiveFileNames);
-                TextSlice outputs = CompilerPath.Relative(options.OutDir ?? (ownRoot).ToString(),
-                    project.Options.OutDir ?? (otherRoot).ToString(), compiler.UseCaseSensitiveFileNames);
+                Utf8String ownRoot = compiler.CommonSourceDirectory;
+                Utf8String roots = CompilerPath.Relative(ownRoot, otherRoot, compiler.UseCaseSensitiveFileNames);
+                Utf8String outputs = CompilerPath.Relative(options.OutDir ?? ownRoot,
+                    project.Options.OutDir ?? otherRoot, compiler.UseCaseSensitiveFileNames);
                 if (roots != outputs)
                     Error(
                         specifier,
@@ -332,8 +332,8 @@ internal sealed partial class Checker
         var attributes = import is ImportTypeNode importType
             ? importType.Attributes
             : import is null ? null : AliasTargets.Attributes(import);
-        bool mode = attributes?.Attributes?.OfType<ImportAttributeNode>().Any(a => ImportAttributeName(a.Name!) == "resolution-mode"
-            && a.Value is StringLiteralNode { Text.Span: "import" or "require" }) == true;
+        bool mode = attributes?.Attributes?.OfType<ImportAttributeNode>().Any(a => ImportAttributeName(a.Name!) == Utf8Literals.ResolutionMode
+            && a.Value is StringLiteralNode { Text.Span: var matchedText5 } && (matchedText5.SequenceEqual("import"u8) || matchedText5.SequenceEqual("require"u8))) == true;
         if (!sync || mode)
             return;
         DiagnosticCode code = import switch
@@ -346,10 +346,10 @@ internal sealed partial class Checker
         var diagnostic = CheckerDiagnostic.Create(specifier, DiagnosticLocalization.GetMessage(code), name);
         if (code != DiagnosticCode.Module0CannotBeImportedUsingThisConstructTheSpecifierOnlyResolvesToAnESModuleWhichCannotBeImportedWithRequireUseAnECMAScriptImportInstead
             && !source.IsDeclarationFile
-            && CompilerPath.Extension(source.FileName) is ".ts" or ".js" or ".tsx" or ".jsx")
+            && CompilerPath.Extension(source.FileName) is var matchedText6 && (matchedText6 == ".ts"u8 || matchedText6 == ".js"u8 || matchedText6 == ".tsx"u8 || matchedText6 == ".jsx"u8))
         {
             var metadata = program.Symbols.Program.GetFile(source.FileName)!;
-            TextSlice extension = CompilerPath.Extension(source.FileName) switch { ".ts" => ".mts", ".js" => ".mjs", _ => "" };
+            Utf8String extension = CompilerPath.Extension(source.FileName) switch { var matchedText2 when matchedText2 == ".ts"u8 => Utf8Literals.Mts, var matchedText3 when matchedText3 == ".js"u8 => Utf8Literals.Mjs, _ => Utf8String.Empty };
             bool package = metadata.PackageDirectory.Length != 0 && metadata.PackageType.Length == 0;
             DiagnosticCode detailCode = package
                 ? extension.Length != 0
@@ -358,9 +358,9 @@ internal sealed partial class Checker
                 : extension.Length != 0
                     ? DiagnosticCode.ToConvertThisFileToAnECMAScriptModuleChangeItsFileExtensionTo0OrCreateALocalPackageJsonFileWithTypeColonModule
                     : DiagnosticCode.ToConvertThisFileToAnECMAScriptModuleCreateALocalPackageJsonFileWithTypeColonModule;
-            TextSlice[] arguments = package ? extension.Length != 0
-                ? [extension, CompilerPath.Combine(metadata.PackageDirectory, "package.json")]
-                : [CompilerPath.Combine(metadata.PackageDirectory, "package.json")]
+            Utf8String[] arguments = package ? extension.Length != 0
+                ? [extension, CompilerPath.Combine(metadata.PackageDirectory, Utf8Literals.PackageJson)]
+                : [CompilerPath.Combine(metadata.PackageDirectory, Utf8Literals.PackageJson)]
                 : extension.Length != 0 ? [extension] : [];
             diagnostic = diagnostic with
             {
@@ -373,15 +373,15 @@ internal sealed partial class Checker
         Error(specifier, diagnostic);
     }
 
-    private static TextSlice TypeScriptImportExtension(TextSlice name)
+    private static Utf8String TypeScriptImportExtension(Utf8String name)
     {
-        foreach (TextSlice declaration in new[] { ".d.ts", ".d.cts", ".d.mts" })
+        foreach (Utf8String declaration in new Utf8String[] { Utf8Literals.DTs, Utf8Literals.DCts, Utf8Literals.DMts })
             if (name.Span.EndsWith(declaration, StringComparison.Ordinal))
                 return declaration;
-        TextSlice extension = CompilerPath.Extension(name);
-        if (extension.Span is ".ts" or ".tsx" or ".mts" or ".cts")
+        Utf8String extension = CompilerPath.Extension(name);
+        if (extension.Span.SequenceEqual(".ts"u8) || extension.Span.SequenceEqual(".tsx"u8) || extension.Span.SequenceEqual(".mts"u8) || extension.Span.SequenceEqual(".cts"u8))
             return extension;
-        foreach (TextSlice candidate in new[] { ".ts", ".tsx", ".d.ts", ".cts", ".d.cts", ".mts", ".d.mts" })
+        foreach (Utf8String candidate in new Utf8String[] { Utf8Literals.Ts, Utf8Literals.Tsx, Utf8Literals.DTs, Utf8Literals.Cts, Utf8Literals.DCts, Utf8Literals.Mts, Utf8Literals.DMts })
             if (name.Span.Contains(candidate, StringComparison.Ordinal))
                 return candidate;
         return extension;

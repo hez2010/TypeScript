@@ -98,7 +98,7 @@ internal sealed partial class Checker
             inner?.ReportInaccessibleThisError();
         }
 
-        public void ReportPrivateInBaseOfClassExpression(TextSlice propertyName)
+        public void ReportPrivateInBaseOfClassExpression(Utf8String propertyName)
         {
             state.DiagnosticCount++;
             inner?.ReportPrivateInBaseOfClassExpression(propertyName);
@@ -116,7 +116,7 @@ internal sealed partial class Checker
             inner?.ReportCyclicStructureError();
         }
 
-        public void ReportLikelyUnsafeImportRequiredError(TextSlice specifier, TextSlice symbolName)
+        public void ReportLikelyUnsafeImportRequiredError(Utf8String specifier, Utf8String symbolName)
         {
             state.DiagnosticCount++;
             inner?.ReportLikelyUnsafeImportRequiredError(specifier, symbolName);
@@ -134,7 +134,7 @@ internal sealed partial class Checker
             inner?.ReportNonlocalAugmentation(containingFile, parentSymbol, augmentingSymbol);
         }
 
-        public void ReportNonSerializableProperty(TextSlice propertyName)
+        public void ReportNonSerializableProperty(Utf8String propertyName)
         {
             state.DiagnosticCount++;
             inner?.ReportNonSerializableProperty(propertyName);

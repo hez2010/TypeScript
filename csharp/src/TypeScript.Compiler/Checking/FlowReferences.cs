@@ -17,7 +17,7 @@ internal interface IFlowReferenceHost
 
     Symbol UnknownSymbol { get; }
 
-    ValueTask<TextSlice?> AccessNameAsync(SyntaxNode node, CancellationToken cancellation);
+    ValueTask<Utf8String?> AccessNameAsync(SyntaxNode node, CancellationToken cancellation);
 
     ValueTask<bool> ConstantOrUnassignedAsync(Symbol symbol, CancellationToken cancellation);
 }
@@ -123,11 +123,11 @@ internal sealed class FlowReferences(IFlowReferenceHost host)
         return false;
     }
 
-    internal async ValueTask<TextSlice?> KeyAsync(FlowState state, CancellationToken cancellation = default)
+    internal async ValueTask<Utf8String?> KeyAsync(FlowState state, CancellationToken cancellation = default)
     {
-        List<TextSlice> segments = [];
+        List<Utf8String> segments = [];
         var node = state.Reference;
-        TextSlice root;
+        Utf8String root;
         while (true)
         {
             cancellation.ThrowIfCancellationRequested();
@@ -157,40 +157,40 @@ internal sealed class FlowReferences(IFlowReferenceHost host)
                         var indexSymbol = host.ResolveReference(argument, cancellation);
                         if (!await host.ConstantOrUnassignedAsync(indexSymbol, cancellation).ConfigureAwait(false))
                             return null;
-                        segments.Add(TextSlice.Concat(".@", TextSlice.Format(indexSymbol.Id)));
+                        segments.Add(Utf8String.Concat(".@"u8, Utf8String.Format(indexSymbol.Id)));
                     }
                     else
                         return null;
                     node = Receiver(node)!;
                     continue;
                 case BindingPatternNode or FunctionDeclarationNode or FunctionExpressionNode or ArrowFunctionNode or MethodDeclarationNode:
-                    root = TextSlice.ConcatMany("n", NodeId(node), "#", TextSlice.Format(state.Declared.Id));
+                    root = Utf8String.ConcatMany(Utf8Literals.N, NodeId(node), Utf8Literals.Hash, Utf8String.Format(state.Declared.Id));
                     break;
                 default:
                     return null;
             }
             break;
         }
-        var result = new StringBuilder().Append(root.Span);
+        var result = new Utf8StringBuilder().Append(root.Span);
         for (int i = segments.Count - 1; i >= 0; i--)
             result.Append(segments[i].Span);
-        return TextSlice.FromBuilder(result);
+        return Utf8String.FromBuilder(result);
 
-        TextSlice RootKey(Symbol? symbol) => TextSlice.ConcatMany((symbol is null ? "" : "s" + TextSlice.Format(symbol.Id)), ":", TextSlice.Format(state.Declared.Id), (state.Initial == state.Declared ? "" : "=" + TextSlice.Format(state.Initial.Id)), (state.Container is null ? "" : TextSlice.Concat("@", NodeId(state.Container))));
+        Utf8String RootKey(Symbol? symbol) => Utf8String.ConcatMany(symbol is null ? Utf8String.Empty : Utf8Literals.S + Utf8String.Format(symbol.Id), Utf8Literals.Colon, Utf8String.Format(state.Declared.Id), state.Initial == state.Declared ? Utf8String.Empty : Utf8Literals.EqualsToken + Utf8String.Format(state.Initial.Id), state.Container is null ? Utf8String.Empty : Utf8String.Concat("@"u8, NodeId(state.Container)));
     }
 
-    private TextSlice NodeId(SyntaxNode node)
+    private Utf8String NodeId(SyntaxNode node)
     {
         if (!nodeIds.TryGetValue(node, out int id))
             nodeIds.Add(node, id = nodeIds.Count + 1);
-        return TextSlice.Format(id);
+        return Utf8String.Format(id);
     }
 
-    private static TextSlice Property(TextSlice name) => TextSlice.ConcatMany(".", TextSlice.Format(name.Length), ":", name);
+    private static Utf8String Property(Utf8String name) => Utf8String.ConcatMany(Utf8Literals.Dot, Utf8String.Format(name.Length), Utf8Literals.Colon, name);
 
     internal static bool ThisInQuery(SyntaxNode node)
     {
-        if (node is not IdentifierNode { Text.Span: "this" })
+        if (!(node is IdentifierNode { Text.Span: var matchedText } && matchedText.SequenceEqual("this"u8)))
             return false;
         while (node.Parent is QualifiedNameNode qualified && qualified.Left == node)
             node = qualified;

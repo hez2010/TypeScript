@@ -131,7 +131,7 @@ internal static class ReferenceSyntax
                     return true;
                 case SyntaxKind.MetaProperty:
                     return node.Parent is not CallExpressionNode { Expression: MetaPropertyNode meta }
-                        || meta != node || meta.KeywordToken != SyntaxKind.ImportKeyword || meta.Name is not IdentifierNode { Text.Span: "defer" };
+                        || meta != node || meta.KeywordToken != SyntaxKind.ImportKeyword || !(meta.Name is IdentifierNode { Text.Span: var matchedText } && matchedText.SequenceEqual("defer"u8));
                 case SyntaxKind.ExpressionWithTypeArguments:
                     return node.Parent is not HeritageClauseNode;
                 case SyntaxKind.QualifiedName:

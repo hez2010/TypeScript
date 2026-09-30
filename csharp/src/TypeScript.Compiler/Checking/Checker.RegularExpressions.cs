@@ -17,15 +17,15 @@ internal sealed partial class Checker
         if (file is null || file.ParseDiagnostics.Count != 0)
             return;
         var scanner = new Scanner(file.Source, jsx: file.ScriptKind is ScriptKind.JSX or ScriptKind.TSX) { TargetYear = TargetYear };
-        scanner.ResetPosition(file.Source.ToUtf16Position(node.Pos));
+        scanner.ResetPosition(node.Pos);
         scanner.Scan();
         if (scanner.RescanSlashToken(true) != SyntaxKind.RegularExpressionLiteral)
             throw new InvalidOperationException("Regular expression node did not scan as a regular expression");
         int lastIndex = -1;
         foreach (var error in scanner.Diagnostics)
         {
-            int start = file.Source.ToBytePosition(error.Start);
-            int length = file.Source.ToBytePosition(error.Start + error.Length) - start;
+            int start = error.Start;
+            int length = (error.Start + error.Length) - start;
             var diagnostic = error with { Start = start, Length = length, FileName = file.FileName };
             var previous = lastIndex >= 0 ? sourceDiagnostics[lastIndex].Diagnostic : null;
             if (error.Message.Category == DiagnosticCategory.Message && previous?.Start == start && previous.Length == length)

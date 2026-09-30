@@ -53,15 +53,15 @@ internal sealed class ValueExpressionChecks(TypeContext context, CheckerLinks li
     internal async ValueTask<Type> MetaAsync(MetaPropertyNode node, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
-        TextSlice name = ((IdentifierNode)node.Name!).Text;
+        Utf8String name = ((IdentifierNode)node.Name!).Text;
         if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
         {
-            if (node.KeywordToken == SyntaxKind.NewKeyword && name != "target")
+            if (node.KeywordToken == SyntaxKind.NewKeyword && name != Utf8Literals.Target)
                 host.ExpressionError(node.Name!, DiagnosticCode.X0IsNotAValidMetaPropertyForKeyword1DidYouMean2);
-            else if (node.KeywordToken == SyntaxKind.ImportKeyword && name != "meta")
+            else if (node.KeywordToken == SyntaxKind.ImportKeyword && name != Utf8Literals.Meta)
                 host.ExpressionError(
                     node.Name!,
-                    name == "defer"
+                    name == Utf8Literals.Defer
                         ? DiagnosticCode.X0Expected
                         : node.Parent is CallExpressionNode { Expression: var expression } && expression == node
                             ? DiagnosticCode.X0IsNotAValidMetaPropertyForKeywordImportDidYouMeanMetaOrDefer
@@ -83,7 +83,7 @@ internal sealed class ValueExpressionChecks(TypeContext context, CheckerLinks li
         }
         if (node.KeywordToken != SyntaxKind.ImportKeyword)
             throw new InvalidOperationException("Unexpected meta-property keyword");
-        if (name == "defer")
+        if (name == Utf8Literals.Defer)
             return context.ErrorType;
         var options = symbols.Program.Configuration.Options;
         ModuleKind module = options.EmitModule;
@@ -96,7 +96,7 @@ internal sealed class ValueExpressionChecks(TypeContext context, CheckerLinks li
             host.ExpressionError(
                 node,
                 DiagnosticCode.TheImportMetaMetaPropertyIsOnlyAllowedWhenTheModuleOptionIsEs2020Es2022EsnextSystemNode16Node18Node20OrNodenext);
-        return name == "meta" ? await host.ImportMetaTypeAsync(cancellation).ConfigureAwait(false) : context.ErrorType;
+        return name == Utf8Literals.Meta ? await host.ImportMetaTypeAsync(cancellation).ConfigureAwait(false) : context.ErrorType;
     }
 
     internal void ConstEnum(SyntaxNode node, Type type, CancellationToken cancellation = default)

@@ -24,7 +24,7 @@ const source = path.join(output, reference.sourceRelativePath, "tsc");
 const oracle = path.join(output, "resolution-oracle.exe");
 const managed = process.argv.includes("--managed");
 const native = path.join(output, "phase3-native");
-const candidate = managed ? dotnet : path.join(native, "TypeScript.Compatibility.exe");
+const candidate = managed ? dotnet : option("--candidate", path.join(native, "TypeScript.Compatibility.exe"));
 const dll = path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll");
 const args = [...managed ? [dll] : [], "--resolution-lines"];
 await mkdir(path.join(source, "cmd/resolution-probe"), { recursive: true });

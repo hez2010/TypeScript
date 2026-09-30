@@ -170,7 +170,7 @@ internal sealed partial class Checker
                 return;
             }
             if (TargetYear < 2018)
-                await ExternalHelpersAsync(property, ["__rest"], cancellation);
+                await ExternalHelpersAsync(property, [Utf8Literals.Rest], cancellation);
             var excluded = node.Properties.Where(p => p is not SpreadAssignmentNode).Select(p => SemanticSyntax.Name(p)!).ToArray();
             var rest = await Bindings.RestAsync(source, excluded, source.Symbol, cancellation);
             DestructuringTrailingComma(node.Properties, node);

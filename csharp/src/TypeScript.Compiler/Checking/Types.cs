@@ -45,9 +45,9 @@ public sealed class TypeAlias
 
 public sealed class IntrinsicType : Type
 {
-    public TextSlice IntrinsicName { get; }
+    public Utf8String IntrinsicName { get; }
 
-    internal IntrinsicType(TypeContext context, TypeFlags flags, TextSlice name, ObjectFlags objectFlags = 0)
+    internal IntrinsicType(TypeContext context, TypeFlags flags, Utf8String name, ObjectFlags objectFlags = 0)
             : base(context, flags, objectFlags) => IntrinsicName = name;
 }
 
@@ -67,9 +67,9 @@ public sealed class LiteralType : Type
 
 public sealed class UniqueSymbolType : Type
 {
-    public TextSlice Name { get; }
+    public Utf8String Name { get; }
 
-    internal UniqueSymbolType(TypeContext context, Symbol symbol, TextSlice name) : base(context, TypeFlags.UniqueESSymbol)
+    internal UniqueSymbolType(TypeContext context, Symbol symbol, Utf8String name) : base(context, TypeFlags.UniqueESSymbol)
     {
         Symbol = symbol;
         Name = name;
@@ -86,7 +86,7 @@ public abstract class ConstrainedType : Type
 
 public abstract class StructuredType : ConstrainedType
 {
-    public IReadOnlyDictionary<TextSlice, Symbol>? Members { get; internal set; }
+    public IReadOnlyDictionary<Utf8String, Symbol>? Members { get; internal set; }
     public IReadOnlyList<Symbol>? Properties { get; internal set; }
     public IReadOnlyList<Signature> CallSignatures { get; internal set; } = [];
     public IReadOnlyList<Signature> ConstructSignatures { get; internal set; } = [];
@@ -126,7 +126,7 @@ public class InterfaceType : TypeReference
     internal bool DeclaredMembersResolved { get; set; }
     internal Type? ResolvedBaseConstructorType { get; set; }
     internal IReadOnlyList<Type>? ResolvedBaseTypes { get; set; }
-    internal IReadOnlyDictionary<TextSlice, Symbol>? DeclaredMembers { get; set; }
+    internal IReadOnlyDictionary<Utf8String, Symbol>? DeclaredMembers { get; set; }
     internal IReadOnlyList<Signature>? DeclaredCallSignatures { get; set; }
     internal IReadOnlyList<Signature>? DeclaredConstructSignatures { get; set; }
     internal IReadOnlyList<IndexInfo>? DeclaredIndexInfos { get; set; }
@@ -190,8 +190,8 @@ public abstract class UnionOrIntersectionType : StructuredType
     private readonly Type[] types;
     public IReadOnlyList<Type> Types { get; }
     internal ReadOnlySpan<Type> TypesSpan => types;
-    internal Dictionary<TextSlice, Symbol>? PropertyCache { get; set; }
-    internal Dictionary<TextSlice, Symbol>? PropertyCacheWithoutFunctionAugment { get; set; }
+    internal Dictionary<Utf8String, Symbol>? PropertyCache { get; set; }
+    internal Dictionary<Utf8String, Symbol>? PropertyCacheWithoutFunctionAugment { get; set; }
     internal IReadOnlyList<Symbol>? ResolvedProperties { get; set; }
 
     private protected UnionOrIntersectionType(TypeContext context, TypeFlags flags, ObjectFlags objectFlags, ReadOnlySpan<Type> types)
@@ -207,7 +207,7 @@ public sealed class UnionType : UnionOrIntersectionType
     internal Type? ResolvedReducedType { get; set; }
     internal Type? RegularType { get; set; }
     public Type? Origin { get; internal set; }
-    internal TextSlice? KeyPropertyName { get; set; }
+    internal Utf8String? KeyPropertyName { get; set; }
     internal Dictionary<Type, Type>? ConstituentMap { get; set; }
 
     internal UnionType(TypeContext context, ObjectFlags flags, ReadOnlySpan<Type> types)
@@ -268,10 +268,10 @@ public sealed class IndexedAccessType : ConstrainedType
 
 public sealed class TemplateLiteralType : ConstrainedType
 {
-    public IReadOnlyList<TextSlice> Texts { get; }
+    public IReadOnlyList<Utf8String> Texts { get; }
     public IReadOnlyList<Type> Types { get; }
 
-    internal TemplateLiteralType(TypeContext context, ReadOnlySpan<TextSlice> texts, ReadOnlySpan<Type> types)
+    internal TemplateLiteralType(TypeContext context, ReadOnlySpan<Utf8String> texts, ReadOnlySpan<Type> types)
             : base(context, TypeFlags.TemplateLiteral)
     {
         Texts = Array.AsReadOnly(texts.ToArray());
@@ -376,11 +376,11 @@ internal sealed class CompositeSignature(bool isUnion, IReadOnlyList<Signature> 
     internal IReadOnlyList<Signature> Signatures { get; } = signatures;
 }
 
-public sealed class TypePredicate(TypePredicateKind kind, int parameterIndex, TextSlice parameterName, Type? type)
+public sealed class TypePredicate(TypePredicateKind kind, int parameterIndex, Utf8String parameterName, Type? type)
 {
     public TypePredicateKind Kind { get; } = kind;
     public int ParameterIndex { get; } = parameterIndex;
-    public TextSlice ParameterName { get; } = parameterName;
+    public Utf8String ParameterName { get; } = parameterName;
     public Type? Type { get; } = type;
 }
 

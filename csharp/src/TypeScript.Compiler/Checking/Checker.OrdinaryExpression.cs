@@ -12,19 +12,19 @@ internal sealed partial class Checker : ITypeAssertionHost, IInstantiationExpres
     internal InstantiationExpressions InstantiationExpressions { get; }
     internal ValueExpressionChecks ValueExpressions { get; }
     internal TypeDisplay TypeDisplay { get; }
-    internal Dictionary<SyntaxNode, TextSlice> InstantiationErrors { get; } = [];
+    internal Dictionary<SyntaxNode, Utf8String> InstantiationErrors { get; } = [];
     internal Action? BeforeInstantiationDiagnostic { get; set; }
     private Type? importMetaType;
 
     public async ValueTask<Type> ImportMetaTypeAsync(CancellationToken cancellation) =>
-            importMetaType ??= await program.Globals.GetAsync("ImportMeta", 0, true, cancellation);
+            importMetaType ??= await program.Globals.GetAsync(Utf8Literals.ImportMeta, 0, true, cancellation);
 
     public bool ErasableSyntaxOnly => program.Symbols.Program.Configuration.Options.ErasableSyntaxOnly == true;
 
     public async ValueTask InapplicableInstantiationAsync(SyntaxNode node, Type type, CancellationToken cancellation)
     {
         BeforeInstantiationDiagnostic?.Invoke();
-        TextSlice text = await TypeDisplay.GetAsync(type, cancellation);
+        Utf8String text = await TypeDisplay.GetAsync(type, cancellation);
         cancellation.ThrowIfCancellationRequested();
         InstantiationErrors[node] = text;
         ListError(

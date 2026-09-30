@@ -6,7 +6,7 @@ using TypeScript.Compiler.Hosts;
 
 namespace TypeScript.Compiler.Resolution;
 
-internal readonly record struct ModuleSpecifierPath(string FileName, bool IsInNodeModules, bool IsRedirect);
+internal readonly record struct ModuleSpecifierPath(Utf8String FileName, bool IsInNodeModules, bool IsRedirect);
 internal enum ModuleSpecifierKind
 {
     None,
@@ -16,25 +16,25 @@ internal enum ModuleSpecifierKind
     Relative,
     Ambient
 }
-internal readonly record struct ModuleSpecifierResult(IReadOnlyList<string> Specifiers, ModuleSpecifierKind Kind);
-internal sealed record ModuleSpecifierPreferences(string Relative = "shortest", string Ending = "", Func<string, bool>? Excluded = null);
+internal readonly record struct ModuleSpecifierResult(IReadOnlyList<Utf8String> Specifiers, ModuleSpecifierKind Kind);
+internal sealed record ModuleSpecifierPreferences(Utf8String Relative = default, Utf8String Ending = default, Func<Utf8String, bool>? Excluded = null);
 
 internal interface IModuleSpecifierHost
 {
     IFileSystem FileSystem { get; }
-    string CurrentDirectory { get; }
-    string ConfigFileName { get; }
-    string CommonSourceDirectory { get; }
-    string GlobalTypingsCache { get; }
-    IReadOnlyList<string> ContentMapperExtensions { get; }
+    Utf8String CurrentDirectory { get; }
+    Utf8String ConfigFileName { get; }
+    Utf8String CommonSourceDirectory { get; }
+    Utf8String GlobalTypingsCache { get; }
+    IReadOnlyList<Utf8String> ContentMapperExtensions { get; }
 
-    string OriginalSourceFileName(SourceFileNode source);
+    Utf8String OriginalSourceFileName(SourceFileNode source);
 
-    string ProjectOutput(string sourceFileName);
+    Utf8String ProjectOutput(Utf8String sourceFileName);
 
-    IReadOnlyList<string> RedirectTargets(string target);
+    IReadOnlyList<Utf8String> RedirectTargets(Utf8String target);
 
-    IReadOnlyList<string> SymlinkDirectories(string realDirectory);
+    IReadOnlyList<Utf8String> SymlinkDirectories(Utf8String realDirectory);
 
     ResolvedModule? ResolvedImport(SourceFileNode source, SyntaxNode import);
 
@@ -47,7 +47,7 @@ internal sealed partial class ModuleSpecifierGenerator(IModuleSpecifierHost host
         host.CommonSourceDirectory, host.ContentMapperExtensions);
     private readonly PackageJsonCache packageJson = new(host.FileSystem, host.CurrentDirectory);
 
-    internal ModuleSpecifierResult ForFile(SourceFileNode source, string target, ModuleSpecifierPreferences? preferences = null,
+    internal ModuleSpecifierResult ForFile(SourceFileNode source, Utf8String target, ModuleSpecifierPreferences? preferences = null,
         ReferenceResolutionMode overrideMode = 0, bool forAutoImport = false, CancellationToken cancellation = default) =>
         Select(
             AllPaths(host.OriginalSourceFileName(source), target, cancellation),
@@ -77,32 +77,32 @@ internal sealed partial class ModuleSpecifierGenerator(IModuleSpecifierHost host
                 }
             if (existing is null)
                 continue;
-            TextSlice text = existing is StringLiteralNode literal ? literal.Text : ((NoSubstitutionTemplateLiteralNode)existing).Text;
-            if (preferences.Relative == "non-relative" && Relative(text.ToString()))
+            Utf8String text = existing is StringLiteralNode literal ? literal.Text : ((NoSubstitutionTemplateLiteralNode)existing).Text;
+            if (preferences.Relative == Utf8Literals.NonRelative && Relative(text))
                 continue;
             var existingMode = host.ResolutionMode(source, existing);
             if (existingMode != mode && existingMode != 0 && mode != 0)
                 continue;
             if (text.Length != 0)
-                return new(Array.AsReadOnly(new[] { text.ToString() }), ModuleSpecifierKind.None);
+                return new(Array.AsReadOnly(new[] { text }), ModuleSpecifierKind.None);
             break;
         }
 
         bool hasNodeModulesPath = paths.Any(p => p.IsInNodeModules);
-        List<string> mapped = [], redirected = [], nodeModules = [], relative = [];
+        List<Utf8String> mapped = [], redirected = [], nodeModules = [], relative = [];
         foreach (var path in paths)
         {
             cancellation.ThrowIfCancellationRequested();
-            string named = path.IsInNodeModules
+            Utf8String named = path.IsInNodeModules
                 ? packages.FromNodeModules(path.FileName, source, defaultMode, overrideMode, preferences.Ending,
-                    isRedirect: path.IsRedirect, globalTypingsCache: host.GlobalTypingsCache, cancellation: cancellation) : "";
+                    isRedirect: path.IsRedirect, globalTypingsCache: host.GlobalTypingsCache, cancellation: cancellation) : Utf8String.Empty;
             if (named.Length != 0 && !(forAutoImport && Excluded(named, preferences)))
             {
                 nodeModules.Add(named);
                 if (path.IsRedirect)
                     return Result(nodeModules, ModuleSpecifierKind.NodeModules);
             }
-            string local = Local(path.FileName, source, preferences, mode, path.IsRedirect || named.Length != 0, cancellation);
+            Utf8String local = Local(path.FileName, source, preferences, mode, path.IsRedirect || named.Length != 0, cancellation);
             if (local.Length == 0 || forAutoImport && Excluded(local, preferences))
                 continue;
             if (path.IsRedirect)
@@ -118,14 +118,14 @@ internal sealed partial class ModuleSpecifierGenerator(IModuleSpecifierHost host
             : Result(relative, ModuleSpecifierKind.Relative);
     }
 
-    internal string Local(string target, SourceFileNode source, ModuleSpecifierPreferences preferences,
+    internal Utf8String Local(Utf8String target, SourceFileNode source, ModuleSpecifierPreferences preferences,
         ReferenceResolutionMode mode, bool pathsOnly = false, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
         var paths = options.Paths;
         if (pathsOnly && paths is null)
-            return "";
-        string directory = CompilerPath.DirectoryName(source.FileName);
+            return Utf8String.Empty;
+        Utf8String directory = CompilerPath.DirectoryName(source.FileName);
         var endings = ModuleSpecifierPaths.AllowedEndings(
             options,
             source,
@@ -134,7 +134,7 @@ internal sealed partial class ModuleSpecifierGenerator(IModuleSpecifierHost host
             preferences.Ending,
             cancellation: cancellation);
         var roots = options.RootDirs;
-        string relative = roots is { Length: > 0 }
+        Utf8String relative = roots is { Length: > 0 }
             ? ModuleSpecifierPaths.FromRootDirectories(
                 roots,
                 target,
@@ -143,24 +143,24 @@ internal sealed partial class ModuleSpecifierGenerator(IModuleSpecifierHost host
                 options,
                 host.FileSystem,
                 host.CurrentDirectory,
-                cancellation) : "";
+                cancellation) : Utf8String.Empty;
         if (relative.Length == 0)
             relative = ModuleSpecifierPaths.ProcessEnding(ModuleSpecifierPaths.NonModulePath(CompilerPath.Relative(
                 CompilerPath.Resolve(host.CurrentDirectory, directory),
                 CompilerPath.Resolve(host.CurrentDirectory, target),
                 host.FileSystem.CaseSensitive)),
                 endings, options, host.FileSystem, host.CurrentDirectory, cancellation);
-        if (paths is null && options.ResolvePackageJsonImports == false || preferences.Relative == "relative")
-            return pathsOnly ? "" : relative;
+        if (paths is null && options.ResolvePackageJsonImports == false || preferences.Relative == Utf8Literals.Relative)
+            return pathsOnly ? Utf8String.Empty : relative;
 
-        string baseDirectory = CompilerPath.Resolve(host.CurrentDirectory,
-            paths is { Count: > 0 } ? options.PathsBasePath ?? "" : "");
-        string relativeToBase = ModuleSpecifierPaths.RelativeIfSameVolume(target, baseDirectory, host.FileSystem.CaseSensitive);
+        Utf8String baseDirectory = CompilerPath.Resolve(host.CurrentDirectory,
+            paths is { Count: > 0 } ? options.PathsBasePath ?? Utf8String.Empty : Utf8String.Empty);
+        Utf8String relativeToBase = ModuleSpecifierPaths.RelativeIfSameVolume(target, baseDirectory, host.FileSystem.CaseSensitive);
         if (relativeToBase.Length == 0)
-            return pathsOnly ? "" : relative;
+            return pathsOnly ? Utf8String.Empty : relative;
         int ts = Array.IndexOf(endings, ModuleSpecifierEnding.TypeScript), js = Array.IndexOf(endings, ModuleSpecifierEnding.JavaScript);
-        string imports = pathsOnly ? "" : packages.FromImports(target, directory, mode, ts >= 0 && ts < js, cancellation);
-        string mapped = "";
+        Utf8String imports = pathsOnly ? Utf8String.Empty : packages.FromImports(target, directory, mode, ts >= 0 && ts < js, cancellation);
+        Utf8String mapped = default;
         if ((pathsOnly || imports.Length == 0) && paths is { } mappings)
             mapped = ModuleSpecifierPaths.FromPaths(
                 relativeToBase,
@@ -173,24 +173,24 @@ internal sealed partial class ModuleSpecifierGenerator(IModuleSpecifierHost host
                 cancellation);
         if (pathsOnly)
             return mapped;
-        string nonRelative = imports.Length != 0 ? imports : mapped;
+        Utf8String nonRelative = imports.Length != 0 ? imports : mapped;
         if (nonRelative.Length == 0)
             return relative;
         bool relativeExcluded = Excluded(relative, preferences), nonRelativeExcluded = Excluded(nonRelative, preferences);
         if (relativeExcluded != nonRelativeExcluded)
             return relativeExcluded ? nonRelative : relative;
-        if (preferences.Relative == "non-relative" && !Relative(nonRelative))
+        if (preferences.Relative == Utf8Literals.NonRelative && !Relative(nonRelative))
             return nonRelative;
-        if (preferences.Relative == "project-relative" && !Relative(nonRelative))
+        if (preferences.Relative == Utf8Literals.ProjectRelative && !Relative(nonRelative))
         {
-            string projectDirectory = host.ConfigFileName.Length == 0 ? host.CurrentDirectory
+            Utf8String projectDirectory = host.ConfigFileName.Length == 0 ? host.CurrentDirectory
                 : CompilerPath.Resolve(host.CurrentDirectory, CompilerPath.DirectoryName(host.ConfigFileName));
-            string sourceDirectory = CompilerPath.Resolve(host.CurrentDirectory, directory);
-            string modulePath = CompilerPath.Resolve(projectDirectory, target);
+            Utf8String sourceDirectory = CompilerPath.Resolve(host.CurrentDirectory, directory);
+            Utf8String modulePath = CompilerPath.Resolve(projectDirectory, target);
             if (CompilerPath.Contains(projectDirectory, sourceDirectory, host.FileSystem.CaseSensitive)
                 != CompilerPath.Contains(projectDirectory, modulePath, host.FileSystem.CaseSensitive))
                 return nonRelative;
-            string sourcePackage = NearestPackage(
+            Utf8String sourcePackage = NearestPackage(
                 directory,
                 cancellation), targetPackage = NearestPackage(CompilerPath.DirectoryName(modulePath), cancellation);
             if (sourcePackage.Length == 0
@@ -199,40 +199,40 @@ internal sealed partial class ModuleSpecifierGenerator(IModuleSpecifierHost host
                 return nonRelative;
             return relative;
         }
-        return nonRelative.StartsWith("../", StringComparison.Ordinal)
-            || nonRelative == ".."
+        return nonRelative.StartsWith("../"u8, StringComparison.Ordinal)
+            || nonRelative == Utf8Literals.ParentDirectory
             || Components(relative) < Components(nonRelative)
             ? relative : nonRelative;
     }
 
-    private string NearestPackage(string directory, CancellationToken cancellation)
+    private Utf8String NearestPackage(Utf8String directory, CancellationToken cancellation)
     {
-        foreach (string candidate in PackageJsonCache.Ancestors(CompilerPath.Resolve(host.CurrentDirectory, directory)))
+        foreach (Utf8String candidate in PackageJsonCache.Ancestors(CompilerPath.Resolve(host.CurrentDirectory, directory)))
         {
             cancellation.ThrowIfCancellationRequested();
             if (packageJson.Get(candidate).Contents is not null)
                 return candidate;
         }
-        return "";
+        return Utf8String.Empty;
     }
 
-    private bool SamePath(string left, string right)
+    private bool SamePath(Utf8String left, Utf8String right)
     {
         left = CompilerPath.Resolve(host.CurrentDirectory, left);
         right = CompilerPath.Resolve(host.CurrentDirectory, right);
         return host.FileSystem.CaseSensitive ? left == right : Lower(left, fileName: true) == Lower(right, fileName: true);
     }
 
-    private static int Components(string path) => path.AsSpan(path.StartsWith("./", StringComparison.Ordinal) ? 2 : 0).Count('/');
+    private static int Components(Utf8String path) => path.AsSpan(path.StartsWith("./"u8, StringComparison.Ordinal) ? 2 : 0).Count((byte)'/');
 
-    private static bool Relative(string path) =>
-        path is "." or ".." || path.StartsWith("./", StringComparison.Ordinal) || path.StartsWith("../", StringComparison.Ordinal);
+    private static bool Relative(Utf8String path) =>
+        path == "."u8 || path == ".."u8 || path.StartsWith("./"u8, StringComparison.Ordinal) || path.StartsWith("../"u8, StringComparison.Ordinal);
 
-    private static bool InNodeModules(string path) => path.Contains("/node_modules/", StringComparison.Ordinal);
+    private static bool InNodeModules(Utf8String path) => path.Contains("/node_modules/"u8, StringComparison.Ordinal);
 
-    private static bool Excluded(string specifier, ModuleSpecifierPreferences preferences) =>
+    private static bool Excluded(Utf8String specifier, ModuleSpecifierPreferences preferences) =>
         preferences.Excluded?.Invoke(specifier) == true;
 
-    private static ModuleSpecifierResult Result(List<string> specifiers, ModuleSpecifierKind kind) =>
+    private static ModuleSpecifierResult Result(List<Utf8String> specifiers, ModuleSpecifierKind kind) =>
         new(Array.AsReadOnly(specifiers.ToArray()), kind);
 }

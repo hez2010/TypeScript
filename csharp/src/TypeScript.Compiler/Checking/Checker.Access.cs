@@ -170,7 +170,7 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
             };
             bool access = left is PropertyAccessExpressionNode or ElementAccessExpressionNode && BindableStaticName(left, false);
             bool prototype = receiver is PropertyAccessExpressionNode or ElementAccessExpressionNode
-                && BindableStaticName(receiver, false) && SyntaxNameText.Get(name) == "prototype";
+                && BindableStaticName(receiver, false) && SyntaxNameText.Get(name) == Utf8Literals.Prototype;
             return (!access || !prototype) && !BindableStaticName(left, true);
         }
         return SemanticSyntax.ClassLike(declaration.Parent) && declaration is PropertyDeclarationNode
@@ -238,12 +238,12 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
         Type index,
         Type fullIndex,
         ElementAccessExpressionNode node,
-        TextSlice? propertyName,
+        Utf8String? propertyName,
         AccessFlags flags,
         CancellationToken cancellation)
             => ElementErrors.MissingAsync(original, objectType, index, fullIndex, node, propertyName, flags, cancellation);
 
-    public async ValueTask<bool> StaticPropertyAsync(TextSlice name, Type type, CancellationToken cancellation)
+    public async ValueTask<bool> StaticPropertyAsync(Utf8String name, Type type, CancellationToken cancellation)
             => type.Symbol is { } symbol
                 && await Properties.PropertyAsync(
                     await Values.GetAsync(symbol, cancellation),
@@ -251,7 +251,7 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
                     cancellation: cancellation) is { ValueDeclaration: { } declaration }
                 && SemanticSyntax.IsStatic(declaration);
 
-    public async ValueTask<TextSlice?> PropertySuggestionAsync(TextSlice name, Type type, CancellationToken cancellation)
+    public async ValueTask<Utf8String?> PropertySuggestionAsync(Utf8String name, Type type, CancellationToken cancellation)
             =>
                 (await SymbolSuggestions.FindAsync(
                     name,
@@ -259,20 +259,20 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
                     SymbolFlags.Value,
                     cancellation))?.Name;
 
-    public async ValueTask<TextSlice?> IndexSuggestionAsync(
+    public async ValueTask<Utf8String?> IndexSuggestionAsync(
         Type type,
         ElementAccessExpressionNode node,
         Type index,
         CancellationToken cancellation)
     {
-        TextSlice name = ReferenceSyntax.AssignmentTarget(node) is not null ? "set" : "get";
+        Utf8String name = ReferenceSyntax.AssignmentTarget(node) is not null ? Utf8Literals.Set : Utf8Literals.Get;
         if (type is not ObjectType || await Properties.ObjectPropertyAsync(type, name, cancellation) is not { } property)
             return null;
         var signatures = await SignaturesAsync(await Values.GetAsync(property, cancellation), false, cancellation);
         if (signatures is [var signature] && await Parameters.MinimumAsync(signature, cancellation: cancellation) >= 1
             && await AssignableAsync(index, await Parameters.AtAsync(signature, 0, cancellation), cancellation))
         {
-            var parts = new Stack<TextSlice>();
+            var parts = new Stack<Utf8String>();
             SyntaxNode? receiver = node.Expression;
             while (receiver is PropertyAccessExpressionNode access && access.Name is IdentifierNode member)
             {
@@ -282,7 +282,7 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
             if (receiver is not IdentifierNode identifier)
                 return name;
             parts.Push(identifier.Text);
-            return TextSlice.Concat(TextSlice.Join(".", parts), ".", name);
+            return Utf8String.Concat(Utf8String.Join("."u8, parts), "."u8, name);
         }
         return null;
     }
@@ -291,8 +291,8 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
             && program.Symbols.Program.Configuration.Options.CheckJs is null;
 
     public ValueTask PrivateEmitHelpersAsync(SyntaxNode node, bool read, bool write, CancellationToken cancellation)
-            => ExternalHelpersAsync(node, read && write ? ["__classPrivateFieldGet", "__classPrivateFieldSet"]
-                : read ? ["__classPrivateFieldGet"] : write ? ["__classPrivateFieldSet"] : ["__classPrivateFieldIn"], cancellation);
+            => ExternalHelpersAsync(node, read && write ? [Utf8Literals.ClassPrivateFieldGet, Utf8Literals.ClassPrivateFieldSet]
+                : read ? [Utf8Literals.ClassPrivateFieldGet] : write ? [Utf8Literals.ClassPrivateFieldSet] : [Utf8Literals.ClassPrivateFieldIn], cancellation);
 
     public async ValueTask<Type> LiteralNameTypeAsync(SyntaxNode node, CancellationToken cancellation)
     {

@@ -13,10 +13,10 @@ public static class AstScalarProperties
         switch (node)
         {
             case IdentifierNode n:
-                writer.WriteBase64String("Text", Wtf8.Encode(n.Text));
+                writer.WriteBase64String("Text", n.Text.Span);
                 break;
             case PrivateIdentifierNode n:
-                writer.WriteBase64String("Text", Wtf8.Encode(n.Text));
+                writer.WriteBase64String("Text", n.Text.Span);
                 break;
             case BlockNode n:
                 writer.WriteBoolean("MultiLine", n.MultiLine);
@@ -31,24 +31,24 @@ public static class AstScalarProperties
                 writer.WriteBoolean("IsTypeOnly", n.IsTypeOnly);
                 break;
             case StringLiteralNode n:
-                writer.WriteBase64String("Text", Wtf8.Encode(n.Text));
+                writer.WriteBase64String("Text", n.Text.Span);
                 writer.WriteNumber("TokenFlags", (uint)n.TokenFlags);
                 break;
             case NumericLiteralNode n:
-                writer.WriteBase64String("Text", Wtf8.Encode(n.Text));
+                writer.WriteBase64String("Text", n.Text.Span);
                 writer.WriteNumber("TokenFlags", (uint)n.TokenFlags);
                 break;
             case BigIntLiteralNode n:
-                writer.WriteBase64String("Text", Wtf8.Encode(n.Text));
+                writer.WriteBase64String("Text", n.Text.Span);
                 writer.WriteNumber("TokenFlags", (uint)n.TokenFlags);
                 break;
             case RegularExpressionLiteralNode n:
-                writer.WriteBase64String("Text", Wtf8.Encode(n.Text));
+                writer.WriteBase64String("Text", n.Text.Span);
                 writer.WriteNumber("TokenFlags", (uint)n.TokenFlags);
                 break;
             case NoSubstitutionTemplateLiteralNode n:
                 writer.WriteNumber("TemplateFlags", (uint)n.TemplateFlags);
-                writer.WriteBase64String("Text", Wtf8.Encode(n.Text));
+                writer.WriteBase64String("Text", n.Text.Span);
                 break;
             case PrefixUnaryExpressionNode n:
                 writer.WriteNumber("Operator", (int)n.Operator);
@@ -73,19 +73,19 @@ public static class AstScalarProperties
                 writer.WriteNumber("Token", (int)n.Token);
                 break;
             case TemplateHeadNode n:
-                writer.WriteBase64String("RawText", Wtf8.Encode(n.RawText));
+                writer.WriteBase64String("RawText", n.RawText.Span);
                 writer.WriteNumber("TemplateFlags", (uint)n.TemplateFlags);
-                writer.WriteBase64String("Text", Wtf8.Encode(n.Text));
+                writer.WriteBase64String("Text", n.Text.Span);
                 break;
             case TemplateMiddleNode n:
-                writer.WriteBase64String("RawText", Wtf8.Encode(n.RawText));
+                writer.WriteBase64String("RawText", n.RawText.Span);
                 writer.WriteNumber("TemplateFlags", (uint)n.TemplateFlags);
-                writer.WriteBase64String("Text", Wtf8.Encode(n.Text));
+                writer.WriteBase64String("Text", n.Text.Span);
                 break;
             case TemplateTailNode n:
-                writer.WriteBase64String("RawText", Wtf8.Encode(n.RawText));
+                writer.WriteBase64String("RawText", n.RawText.Span);
                 writer.WriteNumber("TemplateFlags", (uint)n.TemplateFlags);
-                writer.WriteBase64String("Text", Wtf8.Encode(n.Text));
+                writer.WriteBase64String("Text", n.Text.Span);
                 break;
             case SyntheticExpressionNode n:
                 writer.WriteBoolean("IsSpread", n.IsSpread);
@@ -94,7 +94,7 @@ public static class AstScalarProperties
                 break;
             case JsxTextNode n:
                 writer.WriteBoolean("ContainsOnlyTriviaWhiteSpaces", n.ContainsOnlyTriviaWhiteSpaces);
-                writer.WriteBase64String("Text", Wtf8.Encode(n.Text));
+                writer.WriteBase64String("Text", n.Text.Span);
                 break;
             case ModuleDeclarationNode n:
                 writer.WriteNumber("Keyword", (int)n.Keyword);
@@ -116,22 +116,22 @@ public static class AstScalarProperties
                 break;
             case JSDocTextNode n:
                 writer.WriteStartArray("Text");
-                foreach (TextSlice value in n.Text) writer.WriteBase64StringValue(Wtf8.Encode(value));
+                foreach (Utf8String value in n.Text) writer.WriteBase64StringValue(value.Span);
                 writer.WriteEndArray();
                 break;
             case JSDocLinkNode n:
                 writer.WriteStartArray("Text");
-                foreach (TextSlice value in n.Text) writer.WriteBase64StringValue(Wtf8.Encode(value));
+                foreach (Utf8String value in n.Text) writer.WriteBase64StringValue(value.Span);
                 writer.WriteEndArray();
                 break;
             case JSDocLinkPlainNode n:
                 writer.WriteStartArray("Text");
-                foreach (TextSlice value in n.Text) writer.WriteBase64StringValue(Wtf8.Encode(value));
+                foreach (Utf8String value in n.Text) writer.WriteBase64StringValue(value.Span);
                 writer.WriteEndArray();
                 break;
             case JSDocLinkCodeNode n:
                 writer.WriteStartArray("Text");
-                foreach (TextSlice value in n.Text) writer.WriteBase64StringValue(Wtf8.Encode(value));
+                foreach (Utf8String value in n.Text) writer.WriteBase64StringValue(value.Span);
                 writer.WriteEndArray();
                 break;
             case JSDocTypeLiteralNode n:

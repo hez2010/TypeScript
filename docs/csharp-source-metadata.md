@@ -1,6 +1,6 @@
 # Source-file metadata in the C# parser
 
-`Parser.SourceMetadata.cs` extracts leading-comment pragmas and records path, types, and library references with exact value ranges, preservation flags, and resolution modes. It retains the final `ts-check`/`ts-nocheck` directive, JSX factory/runtime/import-source pragmas, AMD dependencies and module names, and the no-default-lib declaration. Public metadata ranges use the AST's byte coordinates; extraction operates on the UTF-16 source view.
+`Parser.SourceMetadata.cs` extracts leading-comment pragmas and records path, types, and library references with exact value ranges, preservation flags, and resolution modes. It retains the final `ts-check`/`ts-nocheck` directive, JSX factory/runtime/import-source pragmas, AMD dependencies and module names, and the no-default-lib declaration. Extraction and public metadata ranges use the AST's UTF-8 byte coordinates.
 
 The external-module indicator follows the AST: top-level imports/exports first, then `import.meta`, followed by optional JSX or forced-module detection for non-declaration files. JSON files never acquire a module indicator. Compiler-option policy selects the JSX/force parse options; the parser does not infer package resolution policy itself.
 

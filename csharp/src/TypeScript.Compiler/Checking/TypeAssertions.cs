@@ -35,8 +35,8 @@ internal sealed class TypeAssertions(TypeContext context, TypeAlgebra algebra, T
         var (expression, annotation) = Parts(node);
         if (node is TypeAssertionNode && SemanticSyntax.Source(node) is { ParseDiagnostics.Count: 0 } source)
         {
-            if (source.FileName.EndsWith(".mts", StringComparison.OrdinalIgnoreCase)
-                || source.FileName.EndsWith(".cts", StringComparison.OrdinalIgnoreCase))
+            if (source.FileName.EndsWith(".mts"u8, StringComparison.OrdinalIgnoreCase)
+                || source.FileName.EndsWith(".cts"u8, StringComparison.OrdinalIgnoreCase))
                 host.ExpressionError(node, DiagnosticCode.ThisSyntaxIsReservedInFilesWithTheMtsOrCtsExtensionUseAnAsExpressionInstead);
         }
         if (node is TypeAssertionNode && host.ErasableSyntaxOnly && (node.Flags & NodeFlags.JavaScriptFile) == 0)

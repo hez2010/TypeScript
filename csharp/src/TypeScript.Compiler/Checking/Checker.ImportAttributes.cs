@@ -8,12 +8,12 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
-    private static TextSlice ImportAttributeName(SyntaxNode node) => node switch
+    private static Utf8String ImportAttributeName(SyntaxNode node) => node switch
     {
         IdentifierNode identifier => identifier.Text,
         StringLiteralNode text => text.Text,
         NoSubstitutionTemplateLiteralNode template => template.Text,
-        _ => ""
+        _ => Utf8String.Empty
     };
 
     private readonly Dictionary<Symbol, Type> moduleImportAttributes = [];
@@ -34,7 +34,7 @@ internal sealed partial class Checker
         var data = links.TypeNodes.Get(node);
         if (data.ResolvedType is { } cached)
             return cached;
-        var members = new Dictionary<TextSlice, Symbol>();
+        var members = new Dictionary<Utf8String, Symbol>();
         foreach (ImportAttributeNode attribute in node.Attributes!)
         {
             var property = new Symbol(SymbolFlags.Property | SymbolFlags.Transient, ImportAttributeName(attribute.Name!));
@@ -43,7 +43,7 @@ internal sealed partial class Checker
                 cancellation);
             members[property.Name] = property;
         }
-        var symbol = new Symbol(SymbolFlags.ObjectLiteral | SymbolFlags.Transient, Symbol.InternalPrefix + "importAttributes");
+        var symbol = new Symbol(SymbolFlags.ObjectLiteral | SymbolFlags.Transient, Symbol.InternalImportAttributes);
         var type = context.NewObjectType(
             ObjectFlags.Anonymous | ObjectFlags.MembersResolved | ObjectFlags.ObjectLiteral | ObjectFlags.NonInferrableType,
             symbol);
@@ -72,7 +72,7 @@ internal sealed partial class Checker
     {
         if (node is null)
             return;
-        globalImportAttributes ??= await program.Globals.GetAsync("ImportAttributes", 0, true, cancellation);
+        globalImportAttributes ??= await program.Globals.GetAsync(Utf8Literals.ImportAttributes, 0, true, cancellation);
         if (globalImportAttributes != context.EmptyObjectType)
             await RelationDiagnostics.CheckAsync(await ImportAttributesExpressionAsync(node, cancellation),
                 await Algebra.UnionAsync([globalImportAttributes, context.UndefinedType], cancellation: cancellation),
@@ -81,15 +81,15 @@ internal sealed partial class Checker
         bool typeOnly = declaration is ImportTypeNode
             || declaration is ImportDeclarationNode { ImportClause: { } clause } && SemanticSyntax.TypeOnly(clause)
             || declaration is ExportDeclarationNode { IsTypeOnly: true };
-        var mode = node.Attributes!.OfType<ImportAttributeNode>().FirstOrDefault(a => ImportAttributeName(a.Name!) == "resolution-mode");
+        var mode = node.Attributes!.OfType<ImportAttributeNode>().FirstOrDefault(a => ImportAttributeName(a.Name!) == Utf8Literals.ResolutionMode);
         bool grammar = SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0;
-        TextSlice? modeText = mode?.Value switch
+        Utf8String? modeText = mode?.Value switch
         {
             StringLiteralNode value => value.Text,
             NoSubstitutionTemplateLiteralNode template => template.Text,
-            _ => (TextSlice?)null
+            _ => (Utf8String?)null
         };
-        bool validMode = modeText.GetValueOrDefault().Span is "import" or "require";
+        bool validMode = modeText.GetValueOrDefault().Span is var matchedText && (matchedText.SequenceEqual("import"u8) || matchedText.SequenceEqual("require"u8));
         if (typeOnly)
         {
             if (grammar && modeText is not null && !validMode)
@@ -144,7 +144,7 @@ internal sealed partial class Checker
                     Error(property.Name!, DiagnosticCode.AnImportAttributesPropertyMustHaveAStringLiteralOrIdentifierName);
                     break;
                 }
-                if (ImportAttributeName(property.Name!) == "resolution-mode")
+                if (ImportAttributeName(property.Name!) == Utf8Literals.ResolutionMode)
                 {
                     Error(property.Name!, DiagnosticCode.X0IsNotAValidKeyForAnImportAttributesType, ImportAttributeName(property.Name!));
                     break;
@@ -157,7 +157,7 @@ internal sealed partial class Checker
             }
         }
         await CheckedFunctionTypeAsync(attributes, cancellation);
-        globalImportAttributes ??= await program.Globals.GetAsync("ImportAttributes", 0, true, cancellation);
+        globalImportAttributes ??= await program.Globals.GetAsync(Utf8Literals.ImportAttributes, 0, true, cancellation);
         if (globalImportAttributes != context.EmptyObjectType)
             await RelationDiagnostics.CheckAsync(await Nodes.FromNodeAsync(attributes, cancellation), globalImportAttributes,
                 RelationKind.Assignable, attributes, null, DiagnosticCode.Type0IsNotAssignableToType1, cancellation);

@@ -3,9 +3,9 @@ using TypeScript.Compiler.Storage;
 
 namespace TypeScript.Compiler.Syntax;
 
-public sealed class SliceFile<TStore>(string name, byte[] text, TStore store) where TStore : INodeStore
+public sealed class SliceFile<TStore>(Utf8String name, byte[] text, TStore store) where TStore : INodeStore
 {
-    public string Name { get; } = name;
+    public Utf8String Name { get; } = name;
     public byte[] Text { get; } = text;
     public TStore Store { get; } = store;
     public NodeId Root { get; internal set; }
@@ -48,13 +48,13 @@ public sealed class SliceParser<TStore, TSource> where TStore : INodeStore where
         return true;
     }
 
-    private void Error(DiagnosticCode code, string message) =>
+    private void Error(DiagnosticCode code, Utf8String message) =>
         file.Diagnostics.Add(new(code, token.Start, token.End - token.Start, message));
 
     private void Expect(SyntaxKind kind)
     {
         if (!Eat(kind))
-            Error(DiagnosticCode.X0Expected, $"'{kind}' expected.");
+            Error(DiagnosticCode.X0Expected, Utf8String.ConcatMany(Utf8Literals.SingleQuote, Utf8String.EnumName(kind), Utf8Literals.ExpectedSuffix));
     }
 
     private NodeId Add<T>(SyntaxKind kind, int pos, int end, T payload, uint flags = 0) where T : struct, INodePayload<T> =>
@@ -75,12 +75,12 @@ public sealed class SliceParser<TStore, TSource> where TStore : INodeStore where
         if (!Eat(SyntaxKind.SemicolonToken)
             && token.Kind is not SyntaxKind.EndOfFile and not SyntaxKind.CloseBraceToken
             && !token.LineBreak)
-            Error(DiagnosticCode.X0Expected, "';' expected.");
+            Error(DiagnosticCode.X0Expected, Utf8Literals.SemicolonExpected);
     }
 
     public SliceFile<TStore> Parse()
     {
-        using var profile = Diagnostics.NativeProfile.Enter("TypeScript.Parse");
+        using var profile = Diagnostics.NativeProfile.Enter(Utf8Literals.TypeScriptParse);
         List<NodeId> statements = [];
         while (token.Kind != SyntaxKind.EndOfFile)
         {
@@ -110,7 +110,7 @@ public sealed class SliceParser<TStore, TSource> where TStore : INodeStore where
                 statement = Variables(pos, modifiers);
             else
             {
-                Error(DiagnosticCode.IdentifierExpected, "Unsupported declaration in phase-1 syntax slice.");
+                Error(DiagnosticCode.IdentifierExpected, Utf8Literals.UnsupportedDeclarationInPhase1Syntax);
                 while (token.Kind is not SyntaxKind.SemicolonToken and not SyntaxKind.EndOfFile)
                     Next();
                 Eat(SyntaxKind.SemicolonToken);
@@ -140,8 +140,8 @@ public sealed class SliceParser<TStore, TSource> where TStore : INodeStore where
             Next();
             return Add(SyntaxKind.Identifier, current.Pos, current.End, new IdentifierData(current.Text));
         }
-        Error(DiagnosticCode.IdentifierExpected, "Identifier expected.");
-        return Add(SyntaxKind.Identifier, token.Start, token.Start, new IdentifierData(""));
+        Error(DiagnosticCode.IdentifierExpected, Utf8Literals.IdentifierExpected);
+        return Add(SyntaxKind.Identifier, token.Start, token.Start, new IdentifierData(Utf8String.Empty));
     }
 
     private NodeId Import(int pos, NodeId modifiers)
@@ -178,8 +178,8 @@ public sealed class SliceParser<TStore, TSource> where TStore : INodeStore where
             module = Literal();
         else
         {
-            Error(DiagnosticCode.StringLiteralExpected, "String literal expected.");
-            module = Add(SyntaxKind.StringLiteral, token.Start, token.Start, new StringLiteralData("", 0));
+            Error(DiagnosticCode.StringLiteralExpected, Utf8Literals.StringLiteralExpected);
+            module = Add(SyntaxKind.StringLiteral, token.Start, token.Start, new StringLiteralData(Utf8String.Empty, 0));
         }
         file.Imports.Add(module);
         Semicolon();
@@ -263,8 +263,8 @@ public sealed class SliceParser<TStore, TSource> where TStore : INodeStore where
                 }
                 else
                 {
-                    Error(DiagnosticCode.TypeExpected, "Type expected.");
-                    NodeId missing = Add(SyntaxKind.Identifier, token.Start, token.Start, new IdentifierData(""));
+                    Error(DiagnosticCode.TypeExpected, Utf8Literals.TypeExpected);
+                    NodeId missing = Add(SyntaxKind.Identifier, token.Start, token.Start, new IdentifierData(Utf8String.Empty));
                     node = Add(SyntaxKind.TypeReference, token.Start, token.Start, new TypeReferenceNodeData(missing, default));
                 }
                 frame.Types.Add(node);
@@ -295,7 +295,7 @@ public sealed class SliceParser<TStore, TSource> where TStore : INodeStore where
             var current = token;
             Next();
             if (token.Kind != SyntaxKind.NumericLiteral)
-                Error(DiagnosticCode.ExpressionExpected, "Numeric literal expected in phase-1 unary expression.");
+                Error(DiagnosticCode.ExpressionExpected, Utf8Literals.NumericLiteralExpectedInPhase1);
             NodeId literal = Literal();
             return Add(SyntaxKind.PrefixUnaryExpression, current.Pos, token.Pos, new PrefixUnaryExpressionData(current.Kind, literal));
         }

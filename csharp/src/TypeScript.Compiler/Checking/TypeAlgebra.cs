@@ -21,7 +21,7 @@ internal interface ITypeAlgebraHost
 
     ValueTask<Type> GetTypeOfSymbolAsync(Symbol symbol, CancellationToken cancellation);
 
-    ValueTask<Type?> GetPropertyTypeAsync(Type type, TextSlice name, CancellationToken cancellation);
+    ValueTask<Type?> GetPropertyTypeAsync(Type type, Utf8String name, CancellationToken cancellation);
 
     ValueTask<bool> IsEmptyAnonymousObjectAsync(Type type, CancellationToken cancellation);
 
@@ -31,7 +31,7 @@ internal interface ITypeAlgebraHost
 
     ValueTask<bool> MatchesPatternAsync(Type literal, Type pattern, CancellationToken cancellation);
 
-    void ReportComplexity(TextSlice operation, long size);
+    void ReportComplexity(Utf8String operation, long size);
 }
 
 internal sealed partial class TypeAlgebra(TypeContext context, TypeOrder order, ITypeAlgebraHost host)
@@ -177,11 +177,15 @@ internal sealed partial class TypeAlgebra(TypeContext context, TypeOrder order, 
                 var b = right is null ? source[1] : right.Types[j];
                 int comparison = order.Compare(a, b);
                 Add(comparison <= 0 ? a : b);
-                if (comparison <= 0) i++;
-                if (comparison >= 0) j++;
+                if (comparison <= 0)
+                    i++;
+                if (comparison >= 0)
+                    j++;
             }
-            for (; i < leftCount; i++) Add(left is null ? source[0] : left.Types[i]);
-            for (; j < rightCount; j++) Add(right is null ? source[1] : right.Types[j]);
+            for (; i < leftCount; i++)
+                Add(left is null ? source[0] : left.Types[i]);
+            for (; j < rightCount; j++)
+                Add(right is null ? source[1] : right.Types[j]);
             return (types, includes);
         }
         Type? previous = null;
@@ -363,7 +367,7 @@ internal sealed partial class TypeAlgebra(TypeContext context, TypeOrder order, 
                     long estimated = (long)(count / (length - i)) * length;
                     if (estimated > 1_000_000)
                     {
-                        host.ReportComplexity("removeSubtypes", estimated);
+                        host.ReportComplexity(Utf8Literals.RemoveSubtypes, estimated);
                         return null;
                     }
                 }
@@ -533,7 +537,7 @@ internal sealed partial class TypeAlgebra(TypeContext context, TypeOrder order, 
         long count = CrossProductSize(types);
         if (count < 100_000)
             return true;
-        host.ReportComplexity("crossProduct", count);
+        host.ReportComplexity(Utf8Literals.CrossProduct, count);
         return false;
     }
 }

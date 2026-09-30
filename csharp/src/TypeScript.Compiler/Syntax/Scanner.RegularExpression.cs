@@ -1,4 +1,5 @@
 using TypeScript.Compiler.Text;
+using System.Buffers;
 using System.Globalization;
 using System.Text;
 using TypeScript.Compiler.Diagnostics;
@@ -15,20 +16,21 @@ public sealed partial class Scanner
         int seen = 0;
         for (int i = flagsStart; i < pos;)
         {
-            int width = char.IsHighSurrogate(text[i]) && i + 1 < pos && char.IsLowSurrogate(text[i + 1]) ? 2 : 1;
-            int flag = "dgimsuvy".IndexOf(text[i]);
+            if (Rune.DecodeFromUtf8(text.Span[i..pos], out _, out int width) != OperationStatus.Done)
+                width = 1;
+            int flag = "dgimsuvy"u8.IndexOf(text[i]);
             if (flag < 0)
                 Error(Messages.Unknown_regular_expression_flag, i, width);
-            else if ((seen & (1 << flag)) != 0)
+            else if ((seen & 1 << flag) != 0)
                 Error(Messages.Duplicate_regular_expression_flag, i, width);
-            else if (text[i] is 'u' or 'v' && (seen & 0x60) != 0)
+            else if ((int)text[i] is 'u' or 'v' && (seen & 0x60) != 0)
                 Error(Messages.The_Unicode_u_flag_and_the_Unicode_Sets_v_flag_cannot_be_set_simultaneously, i, width);
             else
             {
                 seen |= 1 << flag;
-                int year = text[i] switch { 's' => 2018, 'd' => 2022, 'v' => 2024, _ => 0 };
+                int year = (int)text[i] switch { 's' => 2018, 'd' => 2022, 'v' => 2024, _ => 0 };
                 if (TargetYear < year)
-                    Error(Messages.This_regular_expression_flag_is_only_available_when_targeting_0_or_later, i, width, TextSlice.Concat("es", TextSlice.Format(year)));
+                    Error(Messages.This_regular_expression_flag_is_only_available_when_targeting_0_or_later, i, width, Utf8String.Concat("es"u8, Utf8String.Format(year)));
             }
             i += width;
         }
@@ -42,11 +44,12 @@ public sealed partial class Scanner
     {
         private readonly int expressionStart = start;
         private int at = start;
+        private int pendingLowSurrogate;
         private int captures;
         private bool hasNamedCaptures;
-        private readonly HashSet<TextSlice> names = new();
-        private readonly Dictionary<TextSlice, int> activeNames = new();
-        private readonly List<(TextSlice Name, int Start, int End)> namedReferences = [];
+        private readonly HashSet<Utf8String> names = new();
+        private readonly Dictionary<Utf8String, int> activeNames = new();
+        private readonly List<(Utf8String Name, int Start, int End)> namedReferences = [];
         private readonly List<(int Number, int Start, int End)> references = [];
         private readonly Stack<Group> groups = new();
 
@@ -54,8 +57,8 @@ public sealed partial class Scanner
         {
             public bool Quantifiable = quantifiable;
             public bool Atom;
-            public HashSet<TextSlice>? Alternative;
-            public HashSet<TextSlice>? Disjunction;
+            public HashSet<Utf8String>? Alternative;
+            public HashSet<Utf8String>? Disjunction;
         }
 
         private int Ch(int offset = 0) => at + offset < end ? scanner.text[at + offset] : -1;
@@ -64,36 +67,28 @@ public sealed partial class Scanner
         {
             int ch = Ch();
             width = ch < 0 ? 0 : 1;
-            if (ch is >= 0xD800 and <= 0xDBFF && Ch(1) is >= 0xDC00 and <= 0xDFFF)
-            {
-                width = 2;
-                return char.ConvertToUtf32((char)ch, (char)Ch(1));
-            }
-            return ch;
+            if (ch < 128)
+                return ch;
+            if (Rune.DecodeFromUtf8(scanner.text.Span[at..end], out var rune, out width) == OperationStatus.Done)
+                return rune.Value;
+            width = 1;
+            return 0xFFFD;
         }
 
-        private void Error(DiagnosticMessage message, int location, int length = 0, params TextSlice[] args)
+        private void Error(DiagnosticMessage message, int location, int length = 0, params Utf8String[] args)
         {
-            int finish = DiagnosticPosition(location + length);
-            location = DiagnosticPosition(location);
-            scanner.Error(message, location, finish - location, args);
+            scanner.Error(message, location, length, args);
         }
-
-        // The reference keeps its UTF-8 cursor at the scalar start between the
-        // high- and low-surrogate visits in non-Unicode regular expressions.
-        private int DiagnosticPosition(int position) => !unicode && position > expressionStart && position < end
-            && char.IsLowSurrogate(scanner.text[position]) && char.IsHighSurrogate(scanner.text[position - 1])
-                ? position - 1 : position;
 
         private void Unexpected(int ch, int location) =>
-            Error(Messages.Unexpected_0_Did_you_mean_to_escape_it_with_backslash, location, 1, TextSlice.Format(((char)ch)));
+            Error(Messages.Unexpected_0_Did_you_mean_to_escape_it_with_backslash, location, 1, Utf8String.FromCodePoint(ch));
 
-        private void Expected(char ch)
+        private void Expected(int ch)
         {
             if (Ch() == ch)
                 at++;
             else
-                Error(Messages.X_0_expected, at, 0, TextSlice.Format(ch));
+                Error(Messages.X_0_expected, at, 0, Utf8String.FromCodePoint(ch));
         }
 
         public void Validate()
@@ -101,7 +96,7 @@ public sealed partial class Scanner
             bool inClass = false;
             for (int i = at; i < end; i++)
             {
-                char ch = scanner.text[i];
+                int ch = scanner.text[i];
                 if (ch == '\\')
                 {
                     i++;
@@ -116,7 +111,7 @@ public sealed partial class Scanner
                     && i + 3 < end
                     && scanner.text[i + 1] == '?'
                     && scanner.text[i + 2] == '<'
-                    && scanner.text[i + 3] is not ('=' or '!'))
+                    && (int)scanner.text[i + 3] is not ('=' or '!'))
                     hasNamedCaptures = true;
             }
             groups.Push(new(false));
@@ -264,7 +259,7 @@ public sealed partial class Scanner
                             Messages.This_backreference_refers_to_a_group_that_does_not_exist_There_are_only_0_capturing_groups_in_this_regular_expression,
                             reference.Start,
                             reference.End - reference.Start,
-                            TextSlice.Format(captures));
+                            Utf8String.Format(captures));
                 }
         }
 
@@ -272,7 +267,7 @@ public sealed partial class Scanner
         {
             if (group.Alternative is null)
                 return;
-            foreach (TextSlice name in group.Alternative)
+            foreach (Utf8String name in group.Alternative)
             {
                 if (--activeNames[name] == 0)
                     activeNames.Remove(name);
@@ -286,7 +281,7 @@ public sealed partial class Scanner
             Group child = groups.Pop();
             Group parent = groups.Peek();
             if (child.Disjunction is not null)
-                foreach (TextSlice name in child.Disjunction)
+                foreach (Utf8String name in child.Disjunction)
                     if (child.Alternative?.Contains(name) != true)
                         activeNames[name] = activeNames.GetValueOrDefault(name) + 1;
             // Transfer the live alternative instead of removing and reinserting
@@ -296,7 +291,7 @@ public sealed partial class Scanner
             parent.Atom = child.Quantifiable;
         }
 
-        private static HashSet<TextSlice>? MergeNames(HashSet<TextSlice>? left, HashSet<TextSlice>? right)
+        private static HashSet<Utf8String>? MergeNames(HashSet<Utf8String>? left, HashSet<Utf8String>? right)
         {
             if (left is null)
                 return right;
@@ -308,7 +303,7 @@ public sealed partial class Scanner
             return left;
         }
 
-        private void AddName(Group group, TextSlice name)
+        private void AddName(Group group, Utf8String name)
         {
             if ((group.Alternative ??= new()).Add(name))
                 activeNames[name] = activeNames.GetValueOrDefault(name) + 1;
@@ -317,7 +312,7 @@ public sealed partial class Scanner
         private void GroupName(bool reference)
         {
             int nameStart = at;
-            StringBuilder? name = null;
+            Utf8StringBuilder? name = null;
             int part = nameStart;
             bool first = true;
             while (at < end)
@@ -333,7 +328,7 @@ public sealed partial class Scanner
                     if (!extended && ch is >= 0xD800 and <= 0xDBFF && Ch() == '\\' && Ch(1) == 'u' && Ch(2) != '{')
                     {
                         int low = UnicodeEscape(false);
-                        ch = low is >= 0xDC00 and <= 0xDFFF ? char.ConvertToUtf32((char)ch, (char)low) : -1;
+                        ch = low is >= 0xDC00 and <= 0xDFFF ? 0x10000 + (ch - 0xD800 << 10) + low - 0xDC00 : -1;
                     }
                 }
                 else
@@ -356,8 +351,8 @@ public sealed partial class Scanner
                 Error(Messages.Expected_a_capturing_group_name, at);
                 return;
             }
-            TextSlice value = name is null ? scanner.text[nameStart..at]
-                : TextSlice.FromBuilder(name.Append(scanner.input.AsSpan().Slice(part, at - part)));
+            Utf8String value = name is null ? scanner.text[nameStart..at]
+                : Utf8String.FromBuilder(name.Append(scanner.input.AsSpan().Slice(part, at - part)));
             if (reference)
                 namedReferences.Add((value, nameStart, at));
             else if (activeNames.ContainsKey(value))
@@ -372,7 +367,7 @@ public sealed partial class Scanner
                         Messages.Duplicate_named_capturing_groups_are_only_available_when_targeting_0_or_later,
                         nameStart,
                         at - nameStart,
-                        "es2025");
+                        Utf8Literals.Es2025);
                 AddName(groups.Peek(), value);
             }
         }
@@ -392,17 +387,17 @@ public sealed partial class Scanner
                     Messages.Regular_expression_pattern_modifiers_are_only_available_when_targeting_0_or_later,
                     flagStart,
                     at - flagStart,
-                    "es2025");
+                    Utf8Literals.Es2025);
         }
 
         private int PatternModifiers(int seen)
         {
             while (IsIdentifierPart(Point(out int width)))
             {
-                int ch = Ch(), flag = "dgimsuvy".IndexOf((char)ch);
+                int ch = Ch(), flag = "dgimsuvy"u8.IndexOf((byte)ch);
                 if (flag < 0)
                     Error(Messages.Unknown_regular_expression_flag, at, width);
-                else if ((seen & (1 << flag)) != 0)
+                else if ((seen & 1 << flag) != 0)
                     Error(Messages.Duplicate_regular_expression_flag, at, width);
                 else if (ch is not ('i' or 'm' or 's'))
                     Error(Messages.This_regular_expression_flag_cannot_be_toggled_within_a_subpattern, at, width);
@@ -413,7 +408,7 @@ public sealed partial class Scanner
             return seen;
         }
 
-        private ReadOnlySpan<char> Digits()
+        private ReadOnlySpan<byte> Digits()
         {
             int digitStart = at;
             while (IsDigit(Ch()))
@@ -424,7 +419,7 @@ public sealed partial class Scanner
         private void Quantifier(Group group)
         {
             int quantifierStart = at++, digitsStart = at;
-            ReadOnlySpan<char> min = Digits();
+            ReadOnlySpan<byte> min = Digits();
             if (!unicode && min.IsEmpty)
             {
                 group.Atom = true;
@@ -433,7 +428,7 @@ public sealed partial class Scanner
             if (Ch() == ',')
             {
                 at++;
-                ReadOnlySpan<char> max = Digits();
+                ReadOnlySpan<byte> max = Digits();
                 if (min.IsEmpty)
                 {
                     if (!max.IsEmpty || Ch() == '}')
@@ -447,8 +442,8 @@ public sealed partial class Scanner
                 }
                 else if (!max.IsEmpty && (unicode || Ch() == '}'))
                 {
-                    min = min.TrimStart('0');
-                    max = max.TrimStart('0');
+                    min = min.TrimStart((byte)'0');
+                    max = max.TrimStart((byte)'0');
                     if (min.Length > max.Length || min.Length == max.Length && min.SequenceCompareTo(max) > 0)
                         Error(Messages.Numbers_out_of_order_in_quantifier, digitsStart, at - digitsStart);
                 }
@@ -564,7 +559,7 @@ public sealed partial class Scanner
                 Error(!atom && ch != '0'
                     ? Messages.Octal_escape_sequences_and_backreferences_are_not_allowed_in_a_character_class_If_this_was_intended_as_an_escape_sequence_use_the_syntax_0_instead
                     : Messages.Octal_escape_sequences_are_not_allowed_Use_the_syntax_0,
-                    escapeStart, at - escapeStart, TextSlice.Concat("\\x", value.ToString("x2", CultureInfo.InvariantCulture)));
+                    escapeStart, at - escapeStart, Utf8String.Concat("\\x"u8, Utf8String.Format(value, "x2")));
                 return value;
             }
             if (ch is '8' or '9')
@@ -591,7 +586,7 @@ public sealed partial class Scanner
                 {
                     int saved = at, low = UnicodeEscape(true);
                     if (low is >= 0xDC00 and <= 0xDFFF)
-                        return char.ConvertToUtf32((char)value, (char)low);
+                        return 0x10000 + (value - 0xD800 << 10) + low - 0xDC00;
                     at = saved;
                 }
                 return value < 0 ? -2 : value;
@@ -659,10 +654,28 @@ public sealed partial class Scanner
 
         private int SourceCharacter()
         {
-            int ch = unicode ? Point(out _) : Ch();
-            if (ch >= 0)
-                at += ch > 0xFFFF ? 2 : 1;
-            return ch;
+            int point = Point(out int width);
+            if (point < 0)
+                return point;
+            if (!unicode)
+            {
+                if (pendingLowSurrogate != 0)
+                {
+                    int low = pendingLowSurrogate;
+                    pendingLowSurrogate = 0;
+                    at += width;
+                    return low;
+                }
+                if (point == 0xFFFD)
+                    return scanner.text[at++];
+                if (point > 0xFFFF)
+                {
+                    pendingLowSurrogate = 0xDC00 + (point - 0x10000 & 0x3FF);
+                    return 0xD800 + (point - 0x10000 >> 10);
+                }
+            }
+            at += width;
+            return point;
         }
 
         private int ClassAtom()
@@ -681,6 +694,7 @@ public sealed partial class Scanner
 
         private void ClassRanges()
         {
+            pendingLowSurrogate = 0;
             if (Ch() == '^')
                 at++;
             while (at < end && Ch() != ']')
@@ -701,7 +715,7 @@ public sealed partial class Scanner
             }
         }
 
-        private ReadOnlySpan<char> Word()
+        private ReadOnlySpan<byte> Word()
         {
             int wordStart = at;
             while (Ch() is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or >= '0' and <= '9' or '_')
@@ -728,7 +742,7 @@ public sealed partial class Scanner
                         Messages.X_0_must_be_followed_by_a_Unicode_property_value_expression_enclosed_in_braces,
                         escapeStart,
                         2,
-                        TextSlice.Format(((char)ch)));
+                        Utf8String.FromCodePoint(ch));
                 else
                 {
                     at--;
@@ -738,27 +752,27 @@ public sealed partial class Scanner
             }
             at++;
             int propertyStart = at;
-            ReadOnlySpan<char> property = Word();
+            ReadOnlySpan<byte> property = Word();
             if (Ch() == '=')
             {
-                RegularExpressionUnicodeProperties.NonBinary.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(property, out string? canonical);
+                RegularExpressionUnicodeProperties.NonBinary.GetAlternateLookup<ReadOnlySpan<byte>>().TryGetValue(property, out Utf8String canonical);
                 if (property.Length == 0)
                     Error(Messages.Expected_a_Unicode_property_name, at);
-                else if (canonical is null)
+                else if (canonical.IsEmpty)
                 {
                     Error(Messages.Unknown_Unicode_property_name, propertyStart, at - propertyStart);
                     Suggest(property, RegularExpressionUnicodeProperties.NonBinary.Keys, propertyStart, at - propertyStart);
                 }
                 int valueStart = ++at;
-                ReadOnlySpan<char> value = Word();
+                ReadOnlySpan<byte> value = Word();
                 if (value.Length == 0)
                     Error(Messages.Expected_a_Unicode_property_value, at);
-                else if (canonical is not null)
+                else if (!canonical.IsEmpty)
                 {
-                    var values = canonical == "General_Category"
+                    var values = canonical == Utf8Literals.GeneralCategory
                         ? RegularExpressionUnicodeProperties.GeneralCategory
                         : RegularExpressionUnicodeProperties.Script;
-                    if (!values.GetAlternateLookup<ReadOnlySpan<char>>().Contains(value))
+                    if (!values.GetAlternateLookup<ReadOnlySpan<byte>>().Contains(value))
                     {
                         Error(Messages.Unknown_Unicode_property_value, valueStart, at - valueStart);
                         Suggest(value, values, valueStart, at - valueStart);
@@ -767,7 +781,7 @@ public sealed partial class Scanner
             }
             else if (property.Length == 0)
                 Error(Messages.Expected_a_Unicode_property_name_or_value, at);
-            else if (RegularExpressionUnicodeProperties.Strings.GetAlternateLookup<ReadOnlySpan<char>>().Contains(property))
+            else if (RegularExpressionUnicodeProperties.Strings.GetAlternateLookup<ReadOnlySpan<byte>>().Contains(property))
             {
                 if (!sets)
                     Error(
@@ -782,8 +796,8 @@ public sealed partial class Scanner
                 else
                     strings = true;
             }
-            else if (!RegularExpressionUnicodeProperties.GeneralCategory.GetAlternateLookup<ReadOnlySpan<char>>().Contains(property)
-                && !RegularExpressionUnicodeProperties.Binary.GetAlternateLookup<ReadOnlySpan<char>>().Contains(property))
+            else if (!RegularExpressionUnicodeProperties.GeneralCategory.GetAlternateLookup<ReadOnlySpan<byte>>().Contains(property)
+                && !RegularExpressionUnicodeProperties.Binary.GetAlternateLookup<ReadOnlySpan<byte>>().Contains(property))
             {
                 Error(Messages.Unknown_Unicode_property_name_or_value, propertyStart, at - propertyStart);
                 Suggest(
@@ -803,10 +817,7 @@ public sealed partial class Scanner
             return true;
         }
 
-        private void Suggest(ReadOnlySpan<char> name, IEnumerable<string> candidates, int location, int length) =>
-            Suggest(name, candidates.Select(static value => (TextSlice)value), location, length);
-
-        private void Suggest(ReadOnlySpan<char> name, IEnumerable<TextSlice> candidates, int location, int length)
+        private void Suggest(ReadOnlySpan<byte> name, IEnumerable<Utf8String> candidates, int location, int length)
         {
             if (RegularExpressionUnicodeProperties.Suggest(name, candidates) is { } suggestion)
                 Error(Messages.Did_you_mean_0, location, length, suggestion);

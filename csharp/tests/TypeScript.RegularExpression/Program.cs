@@ -26,7 +26,7 @@ while (Console.ReadLine() is { } line)
         writer.WriteNumberValue((int)scanner.Kind);
         writer.WriteNumberValue(scanner.Position);
         writer.WriteNumberValue((int)scanner.Flags);
-        writer.WriteBase64StringValue(Wtf8.Encode(scanner.Value));
+        writer.WriteBase64StringValue((scanner.Value).Span.ToArray());
         writer.WriteStartArray();
         foreach (var diagnostic in scanner.Diagnostics)
         {
@@ -35,7 +35,7 @@ while (Console.ReadLine() is { } line)
             writer.WriteNumberValue(diagnostic.Start);
             writer.WriteNumberValue(diagnostic.Length);
             writer.WriteStartArray();
-            foreach (TextSlice argument in diagnostic.Arguments)
+            foreach (Utf8String argument in diagnostic.Arguments)
                 writer.WriteStringValue(argument.Span);
             writer.WriteEndArray();
             writer.WriteEndArray();

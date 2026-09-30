@@ -27,8 +27,8 @@ internal sealed class DiagnosticEqualityComparer(bool relatedInformation = true)
                 return false;
             if (!pair.Chain)
             {
-                if ((a.FileName ?? "") != (b.FileName ?? "") || a.Start != b.Start || a.Length != b.Length
-                    || a.Message.Category != b.Message.Category || (a.Source ?? "") != (b.Source ?? "")
+                if ((a.FileName ?? Utf8String.Empty) != (b.FileName ?? Utf8String.Empty) || a.Start != b.Start || a.Length != b.Length
+                    || a.Message.Category != b.Message.Category || (a.Source ?? Utf8String.Empty) != (b.Source ?? Utf8String.Empty)
                     || Identity(a) != Identity(b) || relatedInformation && a.RelatedInformation.Count != b.RelatedInformation.Count)
                     return false;
                 if (relatedInformation)
@@ -44,14 +44,14 @@ internal sealed class DiagnosticEqualityComparer(bool relatedInformation = true)
     public int GetHashCode(Diagnostic diagnostic)
     {
         var hash = new HashCode();
-        hash.Add(diagnostic.FileName ?? "", StringComparer.Ordinal);
+        hash.Add(diagnostic.FileName ?? Utf8String.Empty, Utf8StringComparer.Ordinal);
         hash.Add(diagnostic.Start);
         hash.Add(diagnostic.Length);
         hash.Add(diagnostic.Code);
         hash.Add(diagnostic.Message.Category);
-        hash.Add(diagnostic.Source ?? "", StringComparer.Ordinal);
-        hash.Add(Identity(diagnostic), StringComparer.Ordinal);
-        foreach (TextSlice argument in diagnostic.Arguments)
+        hash.Add(diagnostic.Source ?? Utf8String.Empty, Utf8StringComparer.Ordinal);
+        hash.Add(Identity(diagnostic), Utf8StringComparer.Ordinal);
+        foreach (Utf8String argument in diagnostic.Arguments)
             hash.Add(argument);
         hash.Add(diagnostic.MessageChain.Count);
         if (relatedInformation)
@@ -59,6 +59,6 @@ internal sealed class DiagnosticEqualityComparer(bool relatedInformation = true)
         return hash.ToHashCode();
     }
 
-    internal static string Identity(Diagnostic diagnostic) =>
+    internal static Utf8String Identity(Diagnostic diagnostic) =>
         diagnostic.Code == DiagnosticCode.Custom ? diagnostic.Message.Text : diagnostic.Message.Key;
 }

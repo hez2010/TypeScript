@@ -154,7 +154,7 @@ internal sealed class MemberAccessibility(CheckerSymbols symbols, CheckerLinks l
         var container = MissingNamePrefixes.ThisContainer(node, false, false);
         Type? type = null;
         if (container is IFunctionSignature { Parameters.Count: > 0 } signature
-            && signature.Parameters[0] is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: "this" }, Type: { } annotation })
+            && signature.Parameters[0] is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: var matchedText }, Type: { } annotation } && matchedText.SequenceEqual("this"u8))
             type = await host.TypeFromNodeAsync(annotation, cancellation).ConfigureAwait(false);
         if (type is TypeParameter parameter)
             type = await constraints.ConstraintAsync(parameter, cancellation).ConfigureAwait(false);

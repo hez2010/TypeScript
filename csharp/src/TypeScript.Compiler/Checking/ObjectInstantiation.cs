@@ -232,7 +232,7 @@ internal sealed class ObjectInstantiation(
                     break;
                 case TypeQueryNode query:
                     var identifier = FirstIdentifier(query.ExprName!, cancellation);
-                    if (identifier.Text == "this")
+                    if (identifier.Text == Utf8Literals.This)
                         return true;
                     var resolved = await host.ResolvedSymbolAsync(identifier, cancellation).ConfigureAwait(false);
                     var declaration = parameter.Symbol!.Declarations[0];

@@ -21,13 +21,13 @@ internal sealed class AlgebraFixtureHost(TypeContext context) : ITypeAlgebraHost
     internal Func<Type, CancellationToken, ValueTask<bool>>? EmptyObjectSource { get; set; }
     internal Func<Type, CancellationToken, ValueTask<IReadOnlyList<Symbol>>>? PropertiesSource { get; set; }
     internal Func<Symbol, CancellationToken, ValueTask<Type>>? SymbolTypeSource { get; set; }
-    internal Func<Type, TextSlice, CancellationToken, ValueTask<Type?>>? PropertyTypeSource { get; set; }
+    internal Func<Type, Utf8String, CancellationToken, ValueTask<Type?>>? PropertyTypeSource { get; set; }
     internal Func<Type, Type, bool, CancellationToken, ValueTask<bool>>? SubtypeSource { get; set; }
 
-    internal Type Shape(string[] names, Type[] types, Symbol? symbol)
+    internal Type Shape(Utf8String[] names, Type[] types, Symbol? symbol)
     {
         var result = context.NewObjectType(O.Anonymous | O.MembersResolved, symbol);
-        var members = new Dictionary<TextSlice, Symbol>();
+        var members = new Dictionary<Utf8String, Symbol>();
         for (int i = 0; i < names.Length; i++)
         {
             var member = new Symbol(SymbolFlags.Property | SymbolFlags.Transient, names[i]);
@@ -35,11 +35,11 @@ internal sealed class AlgebraFixtureHost(TypeContext context) : ITypeAlgebraHost
             propertyTypes.Add(member, types[i]);
         }
         result.Members = members.AsReadOnly();
-        result.Properties = members.OrderBy(p => p.Key, TextSliceComparer.Ordinal).Select(p => p.Value).ToArray();
+        result.Properties = members.OrderBy(p => p.Key, Utf8StringComparer.Ordinal).Select(p => p.Value).ToArray();
         return result;
     }
 
-    public void ReportComplexity(TextSlice operation, long size) =>
+    public void ReportComplexity(Utf8String operation, long size) =>
         Diagnostics.Add(DiagnosticCode.ExpressionProducesAUnionTypeThatIsTooComplexToRepresent);
 
     public ValueTask<Type?> GetBaseConstraintAsync(Type type, CancellationToken cancellation)
@@ -74,7 +74,7 @@ internal sealed class AlgebraFixtureHost(TypeContext context) : ITypeAlgebraHost
     public ValueTask<Type> GetTypeOfSymbolAsync(Symbol symbol, CancellationToken cancellation)
             => SymbolTypeSource is not null ? SymbolTypeSource(symbol, cancellation) : ValueTask.FromResult(propertyTypes[symbol]);
 
-    public ValueTask<Type?> GetPropertyTypeAsync(Type type, TextSlice name, CancellationToken cancellation)
+    public ValueTask<Type?> GetPropertyTypeAsync(Type type, Utf8String name, CancellationToken cancellation)
             => PropertyTypeSource is not null ? PropertyTypeSource(
                 type,
                 name,
@@ -156,7 +156,7 @@ internal sealed class AlgebraFixtureHost(TypeContext context) : ITypeAlgebraHost
             || (source.Flags & F.BooleanLike) != 0 && (target.Flags & F.Boolean) != 0
             || (source.Flags & F.ESSymbolLike) != 0 && (target.Flags & F.ESSymbol) != 0)
             return true;
-        if (source is LiteralType { Value: TextSlice } && target is TemplateLiteralType or StringMappingType)
+        if (source is LiteralType { Value: Utf8String } && target is TemplateLiteralType or StringMappingType)
             return Matches(source, target);
         if (target is ObjectType && Empty(target))
             return (source.Flags & F.DefinitelyNonNullable) != 0 || !context.StrictNullChecks && (source.Flags & F.Unknown) != 0;
@@ -173,7 +173,7 @@ internal sealed class AlgebraFixtureHost(TypeContext context) : ITypeAlgebraHost
 
     private bool Matches(Type literal, Type pattern)
     {
-        if (literal is not LiteralType { Value: TextSlice value })
+        if (literal is not LiteralType { Value: Utf8String value })
             throw new InvalidOperationException("Pattern source is not a string fixture");
         if (pattern == context.NumericStringType)
             return value.Length != 0 && double.IsFinite(TypeScript.Compiler.Semantics.JsNumber.FromString(value));

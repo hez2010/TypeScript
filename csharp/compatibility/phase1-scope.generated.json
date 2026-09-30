@@ -6,16 +6,16 @@
             "EndOfFileToken"
         ],
         "Identifier": [
-            "Text:string"
+            "Text:Utf8String"
         ],
         "KeywordTypeNode": [],
         "Token": [],
         "StringLiteral": [
-            "Text:string",
+            "Text:Utf8String",
             "TokenFlags:uint"
         ],
         "NumericLiteral": [
-            "Text:string",
+            "Text:Utf8String",
             "TokenFlags:uint"
         ],
         "LiteralTypeNode": [

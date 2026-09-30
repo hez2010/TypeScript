@@ -6,7 +6,7 @@ Group and Unicode-set traversal use explicit stacks. Named-group scopes merge sm
 
 ## Focused validation
 
-`csharp/tools/regex.mjs` builds its own `regex-oracle.exe` from the archived reference revision recorded in `built/csharp/reference.json`. It compiles the production scanner files in a separate test project, without rebuilding parser outputs. It compares token kind, end, flags, value, and every diagnostic's code, UTF-16 span, and arguments. Optional corpus extraction uses the Go parser only as a development fixture collector.
+`csharp/tools/regex.mjs` builds its own `regex-oracle.exe` from the archived reference revision recorded in `built/csharp/reference.json`. It compiles the production scanner files in a separate test project, without rebuilding parser outputs. It compares token kind, end, flags, value, and every diagnostic's code, UTF-8 byte span, and arguments. Optional corpus extraction uses the Go parser only as a development fixture collector.
 
 ```powershell
 node csharp/tools/generate-regex.mjs --check
@@ -27,7 +27,7 @@ The compatibility rule is correct TypeScript behavior, not preservation of refer
 
 | Difference | Required C# behavior |
 | --- | --- |
-| Raw supplementary characters in non-Unicode ranges | Character atoms are UTF-16 code units. Range diagnostics can begin on a low surrogate and end between a pair; Go's UTF-8 position conversion instead points at the scalar boundary. |
+| Raw supplementary characters in non-Unicode ranges | Character atoms still follow JavaScript's UTF-16 code-unit semantics. Diagnostic offsets use UTF-8 scalar boundaries, matching Go; the older UTF-16 offset differences are retained only in historical evidence. |
 | Escaped single/double quotes in `u`/`v` | Report an invalid identity escape. Quotes are absent from the allowed Unicode-mode identity escapes. |
 | A trailing unescaped `-` in a `v` class | Report the unexpected hyphen, including during recovery from an unclosed nested class. It cannot form a range without a second character. |
 | Annex B class control escapes | `\c0` through `\c9` and `\c_` have control-character values; an otherwise invalid `\c` inside a class first contributes the literal backslash. Range comparisons use those values and consumed spans. |

@@ -9,10 +9,10 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
-    private readonly Dictionary<SyntaxNode, IReadOnlyDictionary<TextSlice, Symbol>> typeSyntaxScopes = [];
+    private readonly Dictionary<SyntaxNode, IReadOnlyDictionary<Utf8String, Symbol>> typeSyntaxScopes = [];
     internal int TypeSyntaxScopeCount => typeSyntaxScopes.Count;
 
-    internal ValueTask<TextSlice> SerializeSignatureSyntaxAsync(Signature signature, K kind, SyntaxNode? enclosing,
+    internal ValueTask<Utf8String> SerializeSignatureSyntaxAsync(Signature signature, K kind, SyntaxNode? enclosing,
         NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default,
         INodeBuilderSymbolTracker? tracker = null,
         NodeBuilderInternalFlags internalFlags = NodeBuilderInternalFlags.None)
@@ -25,7 +25,7 @@ internal sealed partial class Checker
                 (flags & NodeBuilderFlags.UseOnlyExternalAliasing) != 0, flags, tracker, internalFlags);
             var node = await SignatureSyntaxAsync(signature, kind, state, cancellation);
             if (!FinishTypeSyntax(state))
-                return "";
+                return Utf8String.Empty;
             return PrintDiagnosticNode(node, enclosing is SourceFileNode, cancellation,
                 enclosing is null ? null : SemanticSyntax.Source(enclosing), state.NoAsciiEscape, state.SingleLine);
         }, cancellation), cancellation), cancellation);
@@ -194,17 +194,17 @@ internal sealed partial class Checker
             state.Flags &= ~NodeBuilderFlags.SuppressAnyReturnType;
             NodeList? typeParameterList = typeParameters.Count == 0 ? null : new(typeParameters.ToArray());
             var parameterList = new NodeList(parameters.ToArray());
-            name ??= f.NewIdentifier("");
+            name ??= f.NewIdentifier(Utf8String.Empty);
             return kind switch
             {
                 K.CallSignature => f.NewCallSignatureDeclaration(typeParameterList, parameterList, result),
                 K.ConstructSignature => f.NewConstructSignatureDeclaration(typeParameterList, parameterList, result),
                 K.MethodSignature => f.NewMethodSignatureDeclaration(null, name, question, typeParameterList, parameterList, result),
                 K.FunctionType => f.NewFunctionTypeNode(typeParameterList, parameterList,
-                    result ?? f.NewTypeReferenceNode(f.NewIdentifier(""), null)),
+                    result ?? f.NewTypeReferenceNode(f.NewIdentifier(Utf8String.Empty), null)),
                 K.ConstructorType => f.NewConstructorTypeNode(
                     (signature.Flags & SignatureFlags.Abstract) != 0 ? new([f.NewToken(K.AbstractKeyword)]) : null,
-                    typeParameterList, parameterList, result ?? f.NewTypeReferenceNode(f.NewIdentifier(""), null)),
+                    typeParameterList, parameterList, result ?? f.NewTypeReferenceNode(f.NewIdentifier(Utf8String.Empty), null)),
                 K.GetAccessor => f.NewGetAccessorDeclaration(null, name, null, parameterList, result, null, null),
                 K.SetAccessor => f.NewSetAccessorDeclaration(null, name, null, parameterList, null, null, null),
                 K.Constructor => f.NewConstructorDeclaration(null, null, parameterList, null, null, null),
@@ -253,7 +253,7 @@ internal sealed partial class Checker
         var rest = signature.Parameters[^1];
         var arguments = await References.TypeArgumentsAsync(restType, cancellation);
         var names = tuple.ElementInfos.Select((e, i) => SignatureParameters.Label(e, rest, i)).ToArray();
-        var used = new HashSet<TextSlice>();
+        var used = new HashSet<Utf8String>();
         var duplicates = new List<int>();
         for (int i = 0; i < names.Length; i++)
             if (!used.Add(names[i]))
@@ -261,9 +261,9 @@ internal sealed partial class Checker
         foreach (int i in duplicates)
         {
             int suffix = 1;
-            TextSlice unique;
+            Utf8String unique;
             do
-                unique = TextSlice.Concat(names[i], "_", TextSlice.Format((suffix++)));
+                unique = Utf8String.Concat(names[i], "_"u8, Utf8String.Format(suffix++));
             while (!used.Add(unique));
             names[i] = unique;
         }

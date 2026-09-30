@@ -23,7 +23,7 @@ internal sealed partial class Checker
             state.Tracker.TrackSymbol(symbol, state.Symbols.Enclosing, existing ? meaning : SymbolFlags.Value);
     }
 
-    internal async ValueTask<TextSlice> GetSymbolTypeReferenceAsync(Symbol symbol, SyntaxNode? enclosing, SymbolFlags meaning,
+    internal async ValueTask<Utf8String> GetSymbolTypeReferenceAsync(Symbol symbol, SyntaxNode? enclosing, SymbolFlags meaning,
         IReadOnlyList<SyntaxNode>? typeArguments = null, bool externalAliasesOnly = false, bool aliasesOutsideScope = false,
         bool forbidIndexedAccess = false, CancellationToken cancellation = default, INodeBuilderSymbolTracker? tracker = null,
         NodeBuilderInternalFlags internalFlags = NodeBuilderInternalFlags.None)
@@ -50,7 +50,7 @@ internal sealed partial class Checker
                 forbidIndexedAccess,
                 cancellation);
             if (types is not null && !FinishTypeSyntax(types))
-                return "";
+                return Utf8String.Empty;
             return PrintDiagnosticNode(
                 node,
                 enclosing is SourceFileNode,
@@ -79,22 +79,22 @@ internal sealed partial class Checker
             ReferenceResolutionMode mode = 0;
             var contextFile = state.Enclosing is null ? null : SemanticSyntax.Source(state.Enclosing);
             var targetFile = chain[0].Declarations.OfType<SourceFileNode>().FirstOrDefault();
-            if (program.Symbols.Program.ModuleResolutionKind is "node16" or "nodenext"
+            if ((program.Symbols.Program.ModuleResolutionKind == "node16"u8 || program.Symbols.Program.ModuleResolutionKind == "nodenext"u8)
                 && targetFile is not null && contextFile is not null
                 && program.Symbols.Program.ResolutionModeForUsage(targetFile, null) == ReferenceResolutionMode.Import
                 && program.Symbols.Program.ResolutionModeForUsage(contextFile, null) != ReferenceResolutionMode.Import)
                 mode = ReferenceResolutionMode.Import;
-            TextSlice specifier = await DisplayModuleSpecifierAsync(chain[0], state, cancellation, mode);
+            Utf8String specifier = await DisplayModuleSpecifierAsync(chain[0], state, cancellation, mode);
             if (state.Types is { } types && (types.Flags & NodeBuilderFlags.AllowNodeModulesRelativePaths) == 0
-                && specifier.Span.Contains("/node_modules/", StringComparison.Ordinal))
+                && specifier.Span.Contains("/node_modules/"u8, StringComparison.Ordinal))
             {
-                TextSlice original = specifier;
-                if (program.Symbols.Program.ModuleResolutionKind is "node16" or "nodenext" && contextFile is not null)
+                Utf8String original = specifier;
+                if ((program.Symbols.Program.ModuleResolutionKind == "node16"u8 || program.Symbols.Program.ModuleResolutionKind == "nodenext"u8) && contextFile is not null)
                 {
                     var swapped = program.Symbols.Program.ResolutionModeForUsage(contextFile, null) == ReferenceResolutionMode.Import
                         ? ReferenceResolutionMode.Require : ReferenceResolutionMode.Import;
                     var alternate = await DisplayModuleSpecifierAsync(chain[0], state, cancellation, swapped);
-                    if (!alternate.Span.Contains("/node_modules/", StringComparison.Ordinal))
+                    if (!alternate.Span.Contains("/node_modules/"u8, StringComparison.Ordinal))
                     {
                         specifier = alternate;
                         mode = swapped;
@@ -142,20 +142,20 @@ internal sealed partial class Checker
             ? arguments
             : await QualifiedTypeArgumentsAsync(chain, index, state, cancellation);
         var parent = index > 0 ? chain[index - 1] : null;
-        TextSlice name = index == 0 ? DisplayNameAsWritten(symbol, state, true, cancellation) : "";
+        Utf8String name = index == 0 ? DisplayNameAsWritten(symbol, state, true, cancellation) : Utf8String.Empty;
         if (index == 0 && !state.ExpressionNames)
             state.Length?.Add(name, 1);
         if (index > 0 && parent is not null)
         {
             var exports = await ExportsAsync(parent, cancellation);
-            if (symbol.Name != "export=" && !LateName(symbol.Name) && exports.GetValueOrDefault(symbol.Name) is { } direct
+            if (symbol.Name != Utf8Literals.ExportEquals && !LateName(symbol.Name) && exports.GetValueOrDefault(symbol.Name) is { } direct
                 && await SameSymbolReferenceAsync(direct, symbol, cancellation))
                 name = symbol.Name;
             else
             {
-                var matches = new Dictionary<Symbol, TextSlice>();
+                var matches = new Dictionary<Symbol, Utf8String>();
                 foreach (var entry in exports)
-                    if (entry.Key != "export=" && !LateName(entry.Key) && await SameSymbolReferenceAsync(entry.Value, symbol, cancellation))
+                    if (entry.Key != Utf8Literals.ExportEquals && !LateName(entry.Key) && await SameSymbolReferenceAsync(entry.Value, symbol, cancellation))
                         matches[entry.Value] = entry.Key;
                 if (matches.Count != 0)
                 {
@@ -230,7 +230,7 @@ internal sealed partial class Checker
         return clone;
     }
 
-    private async ValueTask<ImportAttributesNode?> TypeImportAttributesAsync(Symbol symbol, TextSlice specifier,
+    private async ValueTask<ImportAttributesNode?> TypeImportAttributesAsync(Symbol symbol, Utf8String specifier,
         ReferenceResolutionMode mode, SymbolDisplayContext state, NodeFactory factory, CancellationToken cancellation)
     {
         Type attributes = await ModuleImportAttributesAsync(symbol, cancellation);
@@ -246,14 +246,14 @@ internal sealed partial class Checker
         var entries = new List<SyntaxNode>();
         if (mode != 0)
         {
-            entries.Add(factory.NewImportAttribute(factory.NewStringLiteral("resolution-mode", state.StringLiteralFlags),
-                factory.NewStringLiteral(mode == ReferenceResolutionMode.Import ? "import" : "require", state.StringLiteralFlags)));
-            state.Length?.Add("resolution-mode", (mode == ReferenceResolutionMode.Import ? 6 : 7) + 6);
+            entries.Add(factory.NewImportAttribute(factory.NewStringLiteral(Utf8Literals.ResolutionMode, state.StringLiteralFlags),
+                factory.NewStringLiteral(mode == ReferenceResolutionMode.Import ? Utf8Literals.ImportKeyword : Utf8Literals.RequireKeyword, state.StringLiteralFlags)));
+            state.Length?.Add(Utf8Literals.ResolutionMode, (mode == ReferenceResolutionMode.Import ? 6 : 7) + 6);
         }
         var properties = (await PropertiesAsync(attributes, cancellation)).ToList();
         properties.Sort((a, b) => TypeOrder.CompareText(a.Name, b.Name));
         foreach (var property in properties)
-            if (await Values.GetAsync(property, cancellation) is LiteralType { Value: TextSlice value })
+            if (await Values.GetAsync(property, cancellation) is LiteralType { Value: Utf8String value })
             {
                 entries.Add(factory.NewImportAttribute(IdentifierName(property.Name) ? factory.NewIdentifier(property.Name)
                     : factory.NewStringLiteral(property.Name, state.StringLiteralFlags),
@@ -266,5 +266,5 @@ internal sealed partial class Checker
         return entries.Count == 0 ? null : factory.NewImportAttributes(SyntaxKind.WithKeyword, new(entries.ToArray()), false);
     }
 
-    private static bool LateName(TextSlice name) => name.Span.StartsWith(Symbol.InternalPrefix + "@", StringComparison.Ordinal);
+    private static bool LateName(Utf8String name) => name.Span.StartsWith(Symbol.InternalUnique, StringComparison.Ordinal);
 }

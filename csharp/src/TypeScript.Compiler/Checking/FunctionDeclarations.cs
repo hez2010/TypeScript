@@ -132,14 +132,14 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
         {
             if (arrow.TypeParameters is { Count: 1 } typeParameters && !typeParameters.HasTrailingComma
                 && ((TypeParameterDeclarationNode)typeParameters[0]).Constraint is null
-                && (file.FileName.EndsWith(".mts", StringComparison.OrdinalIgnoreCase)
-                    || file.FileName.EndsWith(".cts", StringComparison.OrdinalIgnoreCase)))
+                && (file.FileName.EndsWith(".mts"u8, StringComparison.OrdinalIgnoreCase)
+                    || file.FileName.EndsWith(".cts"u8, StringComparison.OrdinalIgnoreCase)))
                 Error(
                     typeParameters[0],
                     DiagnosticCode.ThisSyntaxIsReservedInFilesWithTheMtsOrCtsExtensionAddATrailingCommaOrExplicitConstraint);
             var token = arrow.EqualsGreaterThanToken!;
-            ReadOnlySpan<char> text = file.Source.Text.Span[file.Source.ToUtf16Position(token.Pos)..file.Source.ToUtf16Position(token.End)];
-            if (text.ContainsAny("\n\r\u2028\u2029"))
+            ReadOnlySpan<byte> text = file.Source.Text.Span[token.Pos..token.End];
+            if (text.ContainsLineBreak())
             {
                 Error(token, DiagnosticCode.LineTerminatorNotPermittedBeforeArrow);
                 return grammarError;
@@ -187,7 +187,7 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
             if (parameter.Initializer is null && parameter.QuestionToken is not null && parameter.Name is BindingPatternNode
                 && SemanticSyntax.Body(node) is not null)
                 host.ExpressionError(parameter, DiagnosticCode.ABindingPatternParameterCannotBeOptionalInAnImplementationSignature);
-            if (parameter.Name is IdentifierNode { Text.Span: "this" or "new" })
+            if (parameter.Name is IdentifierNode { Text.Span: var matchedText } && (matchedText.SequenceEqual("this"u8) || matchedText.SequenceEqual("new"u8)))
             {
                 if (declaredParameters[0] != parameter)
                     host.ExpressionError(parameter, DiagnosticCode.A0ParameterMustBeTheFirstParameter);
@@ -265,8 +265,7 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
                 cancellation: cancellation).ConfigureAwait(false);
             await host.CheckConstraintAsync(defaultType, target, node.DefaultType!, cancellation).ConfigureAwait(false);
         }
-        if (node.Name!.Text.Span is "any" or "unknown" or "never" or "number" or "string" or "boolean" or "bigint" or "symbol" or "void"
-            or "object" or "undefined")
+        if (node.Name!.Text.Span is var matchedText2 && (matchedText2.SequenceEqual("any"u8) || matchedText2.SequenceEqual("unknown"u8) || matchedText2.SequenceEqual("never"u8) || matchedText2.SequenceEqual("number"u8) || matchedText2.SequenceEqual("string"u8) || matchedText2.SequenceEqual("boolean"u8) || matchedText2.SequenceEqual("bigint"u8) || matchedText2.SequenceEqual("symbol"u8) || matchedText2.SequenceEqual("void"u8) || matchedText2.SequenceEqual("object"u8) || matchedText2.SequenceEqual("undefined"u8)))
             host.ExpressionError(node.Name, DiagnosticCode.TypeParameterNameCannotBe0);
         host.DeferExpression(node);
         if (parameters is not null)

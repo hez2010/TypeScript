@@ -24,20 +24,20 @@ internal static partial class Experiments
 
     public static bool CheckFileSystem()
     {
-        string directory = Path.Combine(Path.GetTempPath(), "typescript-csharp-" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(directory);
+        Utf8String directory = Utf8String.FromString(Path.Combine(Path.GetTempPath(), "typescript-csharp-" + Guid.NewGuid().ToString("N")));
+        Directory.CreateDirectory(directory.ToString());
         try
         {
-            string name = OperatingSystem.IsWindows() ? "\uD800-日本語.ts" : "日本語.ts";
+            Utf8String name = OperatingSystem.IsWindows() ? Utf8String.Copy([0xED, 0xA0, 0x80, 0x2D, 0xE6, 0x97, 0xA5, 0xE6, 0x9C, 0xAC, 0xE8, 0xAA, 0x9E, 0x2E, 0x74, 0x73]) : "日本語.ts"u8;
             byte[] content = Wtf8.Encode("const x = '\uD800';\n");
-            string file = Path.Combine(directory, name);
-            File.WriteAllBytes(file, content);
-            return Path.GetFileName(Directory.GetFiles(directory).Single()) == name
-                && File.ReadAllBytes(file).AsSpan().SequenceEqual(content);
+            Utf8String file = Utf8String.FromString(Path.Combine(directory.ToString(), name.ToString()));
+            File.WriteAllBytes(file.ToString(), content);
+            return Utf8String.FromString(Path.GetFileName(Directory.GetFiles(directory.ToString()).Single())) == name
+                && File.ReadAllBytes(file.ToString()).AsSpan().SequenceEqual(content);
         }
         finally
         {
-            Directory.Delete(directory, true);
+            Directory.Delete(directory.ToString(), true);
         }
     }
 
@@ -63,7 +63,7 @@ internal static partial class Experiments
             return false;
         }
         catch (ArgumentException) { }
-        string deep = new string('(', 100_000) + "string" + new string(')', 100_000);
+        Utf8String deep = Utf8String.Concat(new Utf8String('(', 100_000), "string"u8, new Utf8String(')', 100_000));
         return TypeRelations.Parse(deep, []).AsSpan().SequenceEqual([new TypeAtom(AtomKind.String)]);
     }
 
@@ -71,16 +71,15 @@ internal static partial class Experiments
 
     public static void Benchmark(JsonElement input, JsonElement expected)
     {
-        var packets = expected.GetProperty("files").EnumerateArray().Select(
-            file => new AstPacket(file.GetProperty("wire").GetBytesFromBase64())).ToArray();
-        var texts = input.GetProperty("files").EnumerateArray().Select(file => file.GetProperty("text").GetBytesFromBase64()).ToArray();
-        var utf16 = texts.Select(text => Wtf8.DecodeString(text)).ToArray();
+        var packets = expected.GetProperty("files"u8).EnumerateArray().Select(
+            file => new AstPacket(file.GetProperty("wire"u8).GetBytesFromBase64())).ToArray();
+        var texts = input.GetProperty("files"u8).EnumerateArray().Select(file => file.GetProperty("text"u8).GetBytesFromBase64()).ToArray();
         var types = new List<TypeAtom[]>();
-        foreach (JsonElement type in input.GetProperty("types").EnumerateArray())
-            types.Add(TypeRelations.Parse(type.GetString(), types));
-        var workloads = new (string Name, Func<long> Run)[]
+        foreach (JsonElement type in input.GetProperty("types"u8).EnumerateArray())
+            types.Add(TypeRelations.Parse(JsonStrings.GetString(type), types));
+        var workloads = new (Utf8String Name, Func<long> Run)[]
         {
-            ("record-classes", () =>
+            (Utf8String.Copy("record-classes"u8), () =>
             {
                 long sum = 0;
                 foreach (AstPacket packet in packets)
@@ -92,7 +91,7 @@ internal static partial class Experiments
                 }
                 return sum;
             }),
-            ("record-arena-256", () =>
+            (Utf8String.Copy("record-arena-256"u8), () =>
             {
                 long sum = 0;
                 foreach (AstPacket packet in packets)
@@ -104,31 +103,13 @@ internal static partial class Experiments
                 }
                 return sum;
             }),
-            ("utf8-search", () =>
+            (Utf8String.Copy("utf8-search"u8), () =>
             {
                 long sum = 0;
                 foreach (byte[] text in texts) sum += text.AsSpan().Count((byte)'\n');
                 return sum;
             }),
-            ("utf16-search", () =>
-            {
-                long sum = 0;
-                foreach (string text in utf16) sum += text.AsSpan().Count('\n');
-                return sum;
-            }),
-            ("utf8-to-utf16", () =>
-            {
-                long sum = 0;
-                foreach (byte[] text in texts) sum += Wtf8.DecodeString(text).Length;
-                return sum;
-            }),
-            ("utf16-to-utf8", () =>
-            {
-                long sum = 0;
-                foreach (string text in utf16) sum += Wtf8.Encode(text).Length;
-                return sum;
-            }),
-            ("relation-generic", () =>
+            (Utf8String.Copy("relation-generic"u8), () =>
             {
                 long sum = 0;
                 foreach (TypeAtom[] source in types) foreach (TypeAtom[] target in types) if (TypeRelations.Assignable<StrictAssignment>(
@@ -136,7 +117,7 @@ internal static partial class Experiments
                     target)) sum++;
                 return sum;
             }),
-            ("relation-concrete", () =>
+            (Utf8String.Copy("relation-concrete"u8), () =>
             {
                 long sum = 0;
                 foreach (TypeAtom[] source in types) foreach (TypeAtom[] target in types) if (TypeRelations.AssignableConcrete(
@@ -144,16 +125,10 @@ internal static partial class Experiments
                     target)) sum++;
                 return sum;
             }),
-            ("position-maps", () =>
-            {
-                long sum = 0;
-                foreach (byte[] text in texts) sum += new PositionMap(text).Utf8ToUtf16(text.Length);
-                return sum;
-            }),
         };
         const int samples = 15, iterations = 20;
         long[] checksums = workloads.Select(workload => workload.Run()).ToArray();
-        if (checksums[0] != checksums[1] || checksums[2] != checksums[3] || checksums[6] != checksums[7])
+        if (checksums[0] != checksums[1] || checksums[3] != checksums[4])
             throw new InvalidDataException("Benchmark implementations produced different outputs");
         var times = workloads.Select(_ => new double[samples]).ToArray();
         var allocated = workloads.Select(_ => new long[samples]).ToArray();
@@ -174,19 +149,19 @@ internal static partial class Experiments
         }
         using var writer = new Utf8JsonWriter(Console.OpenStandardOutput(), new() { Indented = true });
         writer.WriteStartObject();
-        writer.WriteString("scope", "AST packet hydration and primitive operations; not end-to-end compiler performance");
-        writer.WriteNumber("iterationsPerSample", iterations);
-        writer.WriteStartArray("workloads");
+        writer.WriteString("scope"u8, "AST packet hydration and primitive operations; not end-to-end compiler performance"u8);
+        writer.WriteNumber("iterationsPerSample"u8, iterations);
+        writer.WriteStartArray("workloads"u8);
         for (int i = 0; i < workloads.Length; i++)
         {
             writer.WriteStartObject();
-            writer.WriteString("name", workloads[i].Name);
-            writer.WriteNumber("checksum", checksums[i]);
-            writer.WriteStartArray("milliseconds");
+            writer.WriteString("name"u8, workloads[i].Name);
+            writer.WriteNumber("checksum"u8, checksums[i]);
+            writer.WriteStartArray("milliseconds"u8);
             foreach (double value in times[i])
                 writer.WriteNumberValue(value);
             writer.WriteEndArray();
-            writer.WriteStartArray("allocatedBytes");
+            writer.WriteStartArray("allocatedBytes"u8);
             foreach (long value in allocated[i])
                 writer.WriteNumberValue(value);
             writer.WriteEndArray();

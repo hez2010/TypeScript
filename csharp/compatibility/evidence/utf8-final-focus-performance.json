@@ -1,0 +1,101 @@
+{
+    "timestamp": "2026-09-30T17:12:37.596Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "manifest": {
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "execution": "UTF8 Satori NativeAOT before and after BCL ASCII prefix/suffix fast path; no processor-count overrides",
+        "scope": "Five original workloads plus five ASCII/Unicode/malformed controls with a small supplied library",
+        "modes": [
+            "default"
+        ],
+        "warmups": 20,
+        "samples": 50,
+        "provisionalBudgets": {
+            "p95ElapsedMs": 5000,
+            "peakRssBytes": 536870912,
+            "releasedHeapGrowthBytes": 16777216
+        },
+        "budgetScope": "Existing phase 4 operability budgets",
+        "cases": [
+            "unicode/ascii.ts"
+        ],
+        "instructionSet": "native"
+    },
+    "manifestSha256": "af6b92a815f53e7b94dbd3c9fdd06ba9d352d41e4339943649d0fcd5c760d24f",
+    "inputsSha256": "1729d197265faef08f636411408e25df60c5c2eb4be939a0711d4577b68d075a",
+    "candidateSha256": "e3e9405035dc376fed5b38be0a413714652f627695f2168fffc3494bcd746cf3",
+    "executableSha256": "e3e9405035dc376fed5b38be0a413714652f627695f2168fffc3494bcd746cf3",
+    "baseline": {
+        "executable": "D:\\source\\repos\\TypeScript\\built\\utf8-migration\\native-satori-v1\\TypeScript.Compatibility.exe",
+        "executableSha256": "dcdae395046c4a30a009597330073fd2783e85f19e068346291a8dd4646c22f2",
+        "candidateSha256": "dcdae395046c4a30a009597330073fd2783e85f19e068346291a8dd4646c22f2"
+    },
+    "oracleSha256": "3b24ab2a8765063a904a578271c8def1a0f9607104913f99f17f8801533a2d7a",
+    "samplesSha256": "b1925425eb8aff225fb1e3154979c2013bb819be237862e35168e211db75b5ac",
+    "machine": {
+        "platform": "win32",
+        "architecture": "x64",
+        "os": "Windows 11 Pro for Workstations",
+        "cpu": "13th Gen Intel(R) Core(TM) i7-13700K",
+        "logicalProcessors": 24,
+        "availableParallelism": 24,
+        "availableMemoryBytes": 68399497216
+    },
+    "runtime": {
+        "tieredCompilation": null,
+        "processorCountOverride": null,
+        "nativeAotExecuted": true,
+        "serverGC": true,
+        "executable": "built/utf8-migration/native-satori-v2/TypeScript.Compatibility.exe",
+        "label": "Satori-NativeAOT-final-UTF8"
+    },
+    "groups": [
+        {
+            "name": "unicode/ascii.ts",
+            "mode": "default",
+            "before": {
+                "runtime": ".NET 11.0.0-dev",
+                "serverGC": true,
+                "samples": 50,
+                "medianMs": 9.7517,
+                "medianProgramMs": 4.4803,
+                "medianCheckerMs": 5.2949,
+                "p95Ms": 10.6129,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 9473608,
+                "peakRssBytes": 45715456,
+                "releasedHeapGrowthBytes": 0
+            },
+            "after": {
+                "runtime": ".NET 11.0.0-dev",
+                "serverGC": true,
+                "samples": 50,
+                "medianMs": 9.219,
+                "medianProgramMs": 4.4702,
+                "medianCheckerMs": 4.730300000000001,
+                "p95Ms": 9.9308,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 9477744,
+                "peakRssBytes": 47562752,
+                "releasedHeapGrowthBytes": 56
+            },
+            "go": {
+                "runtime": "Go",
+                "serverGC": null,
+                "samples": 50,
+                "medianMs": 6.895499999999999,
+                "medianProgramMs": 4.2086,
+                "medianCheckerMs": 2.6179999999999994,
+                "p95Ms": 7.5164,
+                "medianCpuMs": 0,
+                "medianAllocatedBytes": 6546232,
+                "peakRssBytes": 25800704,
+                "releasedHeapGrowthBytes": 25832
+            },
+            "passed": true,
+            "elapsedRatio": 0.9453736271624434,
+            "allocationRatio": 1.0004365812898317
+        }
+    ],
+    "passed": true
+}

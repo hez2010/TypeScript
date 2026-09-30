@@ -18,7 +18,7 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
     internal AwaitExpressions AwaitExpressions { get; }
     internal TypeReferenceChecks TypeReferenceChecks { get; }
     internal IndexDeclarationChecks IndexDeclarationChecks { get; }
-    public Type GlobalThisMarker => program.Globals.Types["ThisType"];
+    public Type GlobalThisMarker => program.Globals.Types[Utf8Literals.ThisType];
 
     public bool ExportsReceiver(SyntaxNode node) => node is IdentifierNode identifier
         && program.Symbols.Binding(node)?.CommonJSModuleIndicator is not null
@@ -188,7 +188,7 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
 
     public async ValueTask<Type> PromiseResultAsync(SyntaxNode node, Type type, bool reportMissing, CancellationToken cancellation)
     {
-        var target = await program.Globals.GetAsync("Promise", 1, true, cancellation);
+        var target = await program.Globals.GetAsync(Utf8Literals.Promise, 1, true, cancellation);
         Type result = context.UnknownType;
         if (target != context.EmptyGenericType)
         {
@@ -207,7 +207,7 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
                     DiagnosticCode.AnAsyncFunctionOrMethodMustReturnAPromiseMakeSureYouHaveADeclarationForPromiseOrIncludeES2015InYourLibOption);
                 return context.ErrorType;
             }
-            if (program.Symbols.Lookup(program.Symbols.Globals, "Promise", SymbolFlags.Value) is null)
+            if (program.Symbols.Lookup(program.Symbols.Globals, Utf8Literals.Promise, SymbolFlags.Value) is null)
                 Error(
                     node,
                     DiagnosticCode.AnAsyncFunctionOrMethodInES5RequiresThePromiseConstructorMakeSureYouHaveADeclarationForThePromiseConstructorOrIncludeES2015InYourLibOption);
@@ -333,9 +333,9 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
         if (SemanticSyntax.HasModifier(node, SyntaxKind.AsyncKeyword))
         {
             if (SemanticSyntax.Generator(node) && TargetYear < 2018)
-                await ExternalHelpersAsync(node, ["__await", "__asyncGenerator"], cancellation);
+                await ExternalHelpersAsync(node, [Utf8Literals.Await, Utf8Literals.AsyncGenerator], cancellation);
             else if (!SemanticSyntax.Generator(node) && TargetYear < 2017)
-                await ExternalHelpersAsync(node, ["__awaiter"], cancellation);
+                await ExternalHelpersAsync(node, [Utf8Literals.Awaiter], cancellation);
         }
     }
 
@@ -358,7 +358,7 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
         if (!SemanticSyntax.HasModifier(node, SyntaxKind.AsyncKeyword) || type == context.ErrorType
             || (type.Flags & TypeFlags.Any) != 0 && type.Alias is not null)
             return;
-        var promise = await program.Globals.GetAsync("Promise", 1, true, cancellation);
+        var promise = await program.Globals.GetAsync(Utf8Literals.Promise, 1, true, cancellation);
         if (promise != context.EmptyGenericType && !(type is TypeReference reference && reference.Target == promise))
         {
             var awaited = await Awaited.GetAsync(type, false, cancellation: cancellation) ?? context.VoidType;
@@ -386,7 +386,7 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
             {
                 if (ErasableSyntaxOnly && (node.Flags & NodeFlags.JavaScriptFile) == 0)
                     Error(node, DiagnosticCode.ThisSyntaxIsNotAllowedWhenErasableSyntaxOnlyIsEnabled);
-                if (node.Parent is ConstructorDeclarationNode && node.Name is IdentifierNode { Text.Span: "constructor" })
+                if (node.Parent is ConstructorDeclarationNode && node.Name is IdentifierNode { Text.Span: var matchedText } && matchedText.SequenceEqual("constructor"u8))
                     Error(node.Name, DiagnosticCode.XConstructorCannotBeUsedAsAParameterPropertyName);
                 if (node.Parent is not ConstructorDeclarationNode { Body: not null })
                     Error(node, DiagnosticCode.AParameterPropertyIsOnlyAllowedInAConstructorImplementation);
@@ -430,7 +430,7 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
             return true;
         }
         if (node.DotDotDotToken is not null && node.Parent!.Kind == SyntaxKind.ObjectBindingPattern && TargetYear < 2018)
-            await ExternalHelpersAsync(node, ["__rest"], cancellation);
+            await ExternalHelpersAsync(node, [Utf8Literals.Rest], cancellation);
         if (node.PropertyName is ComputedPropertyNameNode computed)
             await ObjectLiterals.ComputedAsync(computed, cancellation);
         return false;

@@ -9,7 +9,7 @@ public static class JsNumber
     public const double MaxSafeInteger = 9007199254740991;
     private static readonly double InvalidNumber = BitConverter.UInt64BitsToDouble(0x7ff8000000000001);
 
-    public static double FromString(ReadOnlySpan<char> text)
+    public static double FromString(ReadOnlySpan<byte> text)
     {
         var value = text;
         while (!value.IsEmpty && StringWhiteSpace(value[0]))
@@ -18,13 +18,13 @@ public static class JsNumber
             value = value[..^1];
         if (value.IsEmpty)
             return 0;
-        if (value.SequenceEqual("Infinity") || value.SequenceEqual("+Infinity"))
+        if (value.SequenceEqual("Infinity"u8) || value.SequenceEqual("+Infinity"u8))
             return double.PositiveInfinity;
-        if (value.SequenceEqual("-Infinity"))
+        if (value.SequenceEqual("-Infinity"u8))
             return double.NegativeInfinity;
         if (value.Length > 2 && value[0] == '0')
         {
-            int bits = value[1] switch { 'b' or 'B' => 1, 'o' or 'O' => 3, 'x' or 'X' => 4, _ => 0 };
+            int bits = value[1] switch { (byte)'b' or (byte)'B' => 1, (byte)'o' or (byte)'O' => 3, (byte)'x' or (byte)'X' => 4, _ => 0 };
             if (bits != 0)
             {
                 value = value[2..];
@@ -44,23 +44,23 @@ public static class JsNumber
                 if ((long)(value.Length - first - 1) * bits >= 1024)
                     return double.PositiveInfinity;
                 BigInteger integer = 0;
-                foreach (char digit in value[first..])
+                foreach (int digit in value[first..])
                     integer = (integer << bits) + Digit(digit);
-                return double.Parse(integer.ToString(CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
+                return double.Parse(Utf8String.Format(integer).Span, CultureInfo.InvariantCulture);
             }
         }
-        foreach (char ch in value)
+        foreach (int ch in value)
             if (ch is not (>= '0' and <= '9' or '+' or '-' or '.' or 'e' or 'E'))
                 return InvalidNumber;
         return double.TryParse(value, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent,
             CultureInfo.InvariantCulture, out double result) ? result : InvalidNumber;
     }
 
-    private static int Digit(char value) => value is >= '0' and <= '9' ? value - '0'
+    private static int Digit(int value) => value is >= '0' and <= '9' ? value - '0'
         : value is >= 'a' and <= 'f' ? value - 'a' + 10 : value is >= 'A' and <= 'F' ? value - 'A' + 10 : -1;
 
-    private static bool StringWhiteSpace(char value) => value is '\n' or '\r' or '\t' or '\v' or '\f' or '\u2028' or '\u2029' or '\uFEFF'
-        || char.GetUnicodeCategory(value) == UnicodeCategory.SpaceSeparator;
+    private static bool StringWhiteSpace(int value) => value is '\n' or '\r' or '\t' or '\v' or '\f' or '\u2028' or '\u2029' or '\uFEFF'
+        || System.Text.Rune.GetUnicodeCategory(new System.Text.Rune(value)) == UnicodeCategory.SpaceSeparator;
 
     public static int ToInt32(double value)
     {
@@ -98,7 +98,7 @@ public static class JsNumber
 
     public static double Exponentiate(double value, double exponent)
     {
-        if (((value == 1 || value == -1) && double.IsInfinity(exponent)) || (value == 1 && double.IsNaN(exponent)))
+        if ((value == 1 || value == -1) && double.IsInfinity(exponent) || value == 1 && double.IsNaN(exponent))
             return InvalidNumber;
         if (value >= long.MinValue && value <= (double)long.MaxValue && value == Math.Truncate(value)
             && exponent >= 0 && exponent <= (double)long.MaxValue && exponent == Math.Truncate(exponent) && !double.IsInfinity(exponent))
@@ -115,12 +115,12 @@ public static class JsNumber
                 {
                     var leading = absolute >> discarded;
                     var remainder = absolute - (leading << discarded);
-                    var half = BigInteger.One << (discarded - 1);
+                    var half = BigInteger.One << discarded - 1;
                     if (remainder > half || remainder == half && !leading.IsEven)
                         leading++;
                     exact = (leading << discarded) * exact.Sign;
                 }
-                return double.Parse(exact.ToString(CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
+                return double.Parse(Utf8String.Format(exact).Span, CultureInfo.InvariantCulture);
             }
         }
         if (exponent == 0 || value == 1)

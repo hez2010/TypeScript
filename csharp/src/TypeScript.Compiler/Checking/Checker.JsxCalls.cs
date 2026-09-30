@@ -95,7 +95,7 @@ internal sealed partial class Checker
         if (report)
         {
             var tagName = JsxTag(node)!;
-            TextSlice name = CheckerDiagnostic.DeclarationName(tagName);
+            Utf8String name = CheckerDiagnostic.DeclarationName(tagName);
             var diagnostic = CheckerDiagnostic.Create(tagName,
                 Messages.Tag_0_expects_at_least_1_arguments_but_the_JSX_factory_2_provides_at_most_3,
                 name, CountText(minimum), JsxFactoryName(node), CountText(maximum));
@@ -109,9 +109,9 @@ internal sealed partial class Checker
 
     private async ValueTask<Signature> JsxIntrinsicSignatureAsync(SyntaxNode node, Type props, CancellationToken cancellation)
     {
-        var parameter = new Symbol(SymbolFlags.FunctionScopedVariable | SymbolFlags.Transient, "props");
+        var parameter = new Symbol(SymbolFlags.FunctionScopedVariable | SymbolFlags.Transient, Utf8Literals.Props);
         links.Values.Get(parameter).ResolvedType = props;
-        var elementType = await JsxTypeAsync("Element", node, cancellation);
+        var elementType = await JsxTypeAsync(Utf8Literals.Element, node, cancellation);
         return context.NewSignature(0, null, [], null, [parameter], elementType, null, 1);
     }
 
@@ -119,15 +119,15 @@ internal sealed partial class Checker
     {
         if ((type.Flags & TypeFlags.String) != 0)
             return [CallSignatures.Any];
-        if (type is LiteralType { Flags: var flags, Value: TextSlice name } && (flags & TypeFlags.StringLiteral) != 0)
+        if (type is LiteralType { Flags: var flags, Value: Utf8String name } && (flags & TypeFlags.StringLiteral) != 0)
         {
-            var intrinsic = await JsxTypeAsync("IntrinsicElements", node, cancellation);
+            var intrinsic = await JsxTypeAsync(Utf8Literals.IntrinsicElements, node, cancellation);
             Type? props = intrinsic == context.ErrorType
                 ? context.AnyType
                 : await FlowPropertyTypeAsync(intrinsic, name, true, cancellation);
             if (props is null)
             {
-                Error(node, DiagnosticCode.Property0DoesNotExistOnType1, name, "JSX.IntrinsicElements");
+                Error(node, DiagnosticCode.Property0DoesNotExistOnType1, name, Utf8Literals.JSXIntrinsicElements);
                 return [];
             }
             return [await JsxIntrinsicSignatureAsync(node, props, cancellation)];
@@ -174,7 +174,7 @@ internal sealed partial class Checker
                 int start = CheckerDiagnostic.TokenRange(SemanticSyntax.Source(node)!, typeArguments.Pos).Start;
                 Error(
                     node,
-                    CheckerDiagnostic.Create(node, Messages.Expected_0_type_arguments_but_got_1, "0", CountText(typeArguments.Count))
+                    CheckerDiagnostic.Create(node, Messages.Expected_0_type_arguments_but_got_1, Utf8Literals.Zero, CountText(typeArguments.Count))
                     with
                     { Start = start, Length = Math.Max(0, typeArguments.End - start) });
             }

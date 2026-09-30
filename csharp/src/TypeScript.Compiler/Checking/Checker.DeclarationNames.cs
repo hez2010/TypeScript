@@ -22,24 +22,24 @@ internal sealed partial class Checker
         if (SemanticSyntax.Name(node) is not IdentifierNode name)
             return;
         bool ambient = (node.Flags & NodeFlags.Ambient) != 0;
-        if (SemanticSyntax.ClassLike(node) && name.Text == "Object" && !ambient && EmitModuleKind(node) < 5)
+        if (SemanticSyntax.ClassLike(node) && name.Text == Utf8Literals.ObjectType && !ambient && EmitModuleKind(node) < 5)
             Error(name, DiagnosticCode.ClassNameCannotBeObjectWhenTargetingES5AndAboveWithModule0, ModuleKind switch
             {
-                0 => "None",
-                1 => "CommonJS",
-                2 => "AMD",
-                3 => "UMD",
-                4 => "System",
-                5 => "ES2015",
-                6 => "ES2020",
-                7 => "ES2022",
-                99 => "ESNext",
-                100 => "Node16",
-                101 => "Node18",
-                102 => "Node20",
-                199 => "NodeNext",
-                200 => "Preserve",
-                _ => "ModuleKind(" + TextSlice.Format(ModuleKind) + ")"
+                0 => Utf8Literals.None,
+                1 => Utf8Literals.CommonJS,
+                2 => Utf8Literals.AMD,
+                3 => Utf8Literals.UMD,
+                4 => Utf8Literals.System,
+                5 => Utf8Literals.ES2015,
+                6 => Utf8Literals.ES2020,
+                7 => Utf8Literals.ES2022,
+                99 => Utf8Literals.ESNext,
+                100 => Utf8Literals.Node16,
+                101 => Utf8Literals.Node18,
+                102 => Utf8Literals.Node20,
+                199 => Utf8Literals.NodeNext,
+                200 => Utf8Literals.Preserve,
+                _ => Utf8Literals.ModuleKind + Utf8String.Format(ModuleKind) + Utf8Literals.CloseParen
             });
         if (ambient || node is PropertyDeclarationNode or PropertySignatureDeclarationNode or MethodDeclarationNode
             or MethodSignatureDeclarationNode
@@ -53,14 +53,14 @@ internal sealed partial class Checker
             && SemanticSyntax.DeclarationContainer(node) is SourceFileNode file && program.Symbols.Binding(file)?.IsModule == true)
         {
             int module = EmitModuleKind(node);
-            if (name.Text.Span is "require" or "exports" && module < 5
-                || name.Text == "Object" && !SemanticSyntax.ClassLike(node) && module == 1)
+            if ((name.Text.Span.SequenceEqual("require"u8) || name.Text.Span.SequenceEqual("exports"u8)) && module < 5
+                || name.Text == Utf8Literals.ObjectType && !SemanticSyntax.ClassLike(node) && module == 1)
                 Error(name, DiagnosticCode.DuplicateIdentifier0CompilerReservesName1InTopLevelScopeOfAModule, name.Text, name.Text);
-            if (name.Text == "Promise" && TargetYear < 2017
+            if (name.Text == Utf8Literals.Promise && TargetYear < 2017
                 && file.DescendantsAndSelf().Any(n => SemanticSyntax.HasModifier(n, SyntaxKind.AsyncKeyword)))
                 Error(name, DiagnosticCode.DuplicateIdentifier0CompilerReservesName1InTopLevelScopeOfAModuleContainingAsyncFunctions);
         }
-        if (TargetYear <= 2021 && name.Text.Span is "WeakMap" or "WeakSet" or "Reflect")
+        if (TargetYear <= 2021 && (name.Text.Span.SequenceEqual("WeakMap"u8) || name.Text.Span.SequenceEqual("WeakSet"u8) || name.Text.Span.SequenceEqual("Reflect"u8)))
             deferredNameCollisions.Add(node);
     }
 
@@ -79,9 +79,9 @@ internal sealed partial class Checker
         foreach (var node in deferredNameCollisions.Where(n => SemanticSyntax.Source(n) == file))
         {
             cancellation.ThrowIfCancellationRequested();
-            TextSlice name = ((IdentifierNode)SemanticSyntax.Name(node)!).Text;
+            Utf8String name = ((IdentifierNode)SemanticSyntax.Name(node)!).Text;
             var scope = DeclarationOrder.BlockContainer(node);
-            if (name.Span is "WeakMap" or "WeakSet")
+            if (name.Span.SequenceEqual("WeakMap"u8) || name.Span.SequenceEqual("WeakSet"u8))
             {
                 if (scope is not null && (links.Nodes.Get(scope).Flags & NodeCheckFlags.ContainsClassWithPrivateIdentifiers) != 0)
                     Error(node, DiagnosticCode.CompilerReservesName0WhenEmittingPrivateIdentifierDownlevel, name);
@@ -100,7 +100,7 @@ internal sealed partial class Checker
                         node,
                         DiagnosticCode.DuplicateIdentifier0CompilerReservesName1WhenEmittingSuperReferencesInStaticInitializers,
                         name,
-                        "Reflect");
+                        Utf8Literals.Reflect);
             }
         }
     }

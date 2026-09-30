@@ -49,8 +49,7 @@ func main() {
 		}
 		name := tspath.GetNormalizedAbsolutePath(request.FileName, "/fixtures")
 		file := parser.ParseSourceFile(ast.SourceFileParseOptions{FileName: name}, string(bytes), core.EnsureScriptKindFromFileName(name))
-		positions := ast.ComputePositionMap(string(bytes))
-		pos := positions.UTF8ToUTF16
+		pos := func(offset int) int { return offset }
 		var documentation any
 		if request.Mode == "documentation" {
 			hosts := make([]any, 0)
@@ -89,7 +88,7 @@ func main() {
 		}
 		result := make([]any, 0)
 		for _, d := range file.JSDocDiagnostics() {
-			result = append(result, []any{int(d.Code()), positions.UTF8ToUTF16(d.Pos()), positions.UTF8ToUTF16(d.End()) - positions.UTF8ToUTF16(d.Pos())})
+			result = append(result, []any{int(d.Code()), d.Pos(), d.End() - d.Pos()})
 		}
 		var payload any = result
 		if request.Mode == "documentation" {

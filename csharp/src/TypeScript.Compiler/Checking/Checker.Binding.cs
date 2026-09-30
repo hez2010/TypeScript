@@ -29,7 +29,7 @@ internal sealed partial class Checker : IBindingTypeHost
 
     public async ValueTask<Type> OmitAsync(Type source, Type keys, CancellationToken cancellation)
     {
-        var symbol = await program.Globals.AliasAsync("Omit", 2, Declared, cancellation);
+        var symbol = await program.Globals.AliasAsync(Utf8Literals.Omit, 2, Declared, cancellation);
         return symbol is null ? context.ErrorType
             : await References.AliasInstantiationAsync(symbol, [source, keys], cancellation: cancellation);
     }

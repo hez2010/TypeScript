@@ -22,7 +22,7 @@ internal readonly record struct IterationTypes(Type? Yield, Type? Return, Type? 
 internal readonly record struct IterationDiagnostic(
     SyntaxNode Node,
     DiagnosticCode Code,
-    TextSlice? Member = null,
+    Utf8String? Member = null,
     Type? Source = null,
     Type? Target = null);
 
@@ -30,11 +30,11 @@ internal interface IIteratorProtocolHost
 {
     bool StrictBuiltinIteratorReturn { get; }
 
-    ValueTask<Type> IterationGlobalAsync(TextSlice name, int arity, bool report, CancellationToken cancellation);
+    ValueTask<Type> IterationGlobalAsync(Utf8String name, int arity, bool report, CancellationToken cancellation);
 
     ValueTask<IReadOnlyList<Type>> BuiltinIteratorsAsync(bool async, CancellationToken cancellation);
 
-    ValueTask<TextSlice> KnownSymbolNameAsync(TextSlice name, CancellationToken cancellation);
+    ValueTask<Utf8String> KnownSymbolNameAsync(Utf8String name, CancellationToken cancellation);
 
     ValueTask<IReadOnlyList<Signature>> SignaturesAsync(Type type, bool construct, CancellationToken cancellation);
 
@@ -155,9 +155,9 @@ internal sealed class IteratorProtocols(TypeContext context, TypeAlgebra algebra
 
     private async ValueTask<IterationTypes> FastAsync(Type type, bool async, bool iterable, CancellationToken cancellation)
     {
-        TextSlice prefix = async ? "Async" : "";
-        foreach (TextSlice name in new[] { iterable ? "Iterable" : "Iterator", "IteratorObject", "IterableIterator", "Generator" })
-            if (Reference(type, await host.IterationGlobalAsync(TextSlice.Concat(prefix, name), 3, false, cancellation).ConfigureAwait(false)))
+        Utf8String prefix = async ? Utf8Literals.AsyncSuffix : Utf8String.Empty;
+        foreach (Utf8String name in new Utf8String[] { iterable ? Utf8Literals.Iterable : Utf8Literals.Iterator, Utf8Literals.IteratorObject, Utf8Literals.IterableIterator, Utf8Literals.Generator })
+            if (Reference(type, await host.IterationGlobalAsync(Utf8String.Concat(prefix, name), 3, false, cancellation).ConfigureAwait(false)))
             {
                 var args = await host.TypeArgumentsAsync((TypeReference)type, cancellation).ConfigureAwait(false);
                 return await ResolveAsync(args[0], args[1], args[2], async, cancellation).ConfigureAwait(false);
@@ -215,7 +215,7 @@ internal sealed class IteratorProtocols(TypeContext context, TypeAlgebra algebra
         List<IterationDiagnostic> diagnostics,
         CancellationToken cancellation)
     {
-        var name = await host.KnownSymbolNameAsync(async ? "asyncIterator" : "iterator", cancellation).ConfigureAwait(false);
+        var name = await host.KnownSymbolNameAsync(async ? Utf8Literals.AsyncIterator : Utf8Literals.IteratorProperty, cancellation).ConfigureAwait(false);
         var method = await properties.PropertyAsync(type, name, cancellation: cancellation).ConfigureAwait(false);
         if (method is null || (method.Flags & SymbolFlags.Optional) != 0)
             return default;
@@ -241,7 +241,7 @@ internal sealed class IteratorProtocols(TypeContext context, TypeAlgebra algebra
         }
         if (node is not null && all.Count != 0)
         {
-            var target = await host.IterationGlobalAsync(async ? "AsyncIterable" : "Iterable", 3, true, cancellation).ConfigureAwait(false);
+            var target = await host.IterationGlobalAsync(async ? Utf8Literals.AsyncIterable : Utf8Literals.Iterable, 3, true, cancellation).ConfigureAwait(false);
             if (!await relations.RelatedAsync(type, target, RelationKind.Assignable, cancellation).ConfigureAwait(false))
                 diagnostics.Add(new(node, DiagnosticCode.Type0IsNotAssignableToType1, Source: type, Target: target));
         }
@@ -259,22 +259,22 @@ internal sealed class IteratorProtocols(TypeContext context, TypeAlgebra algebra
         if (fast.HasTypes)
             return fast;
         var parts = new List<IterationTypes>();
-        foreach (TextSlice name in new[] { "next", "return", "throw" })
+        foreach (Utf8String name in new Utf8String[] { Utf8Literals.Next, Utf8Literals.Return, Utf8Literals.ThrowKeyword })
             parts.Add(await MethodAsync(type, async, name, node, diagnostics, cancellation).ConfigureAwait(false));
         return await CombineAsync(parts, cancellation).ConfigureAwait(false);
     }
 
-    private async ValueTask<IterationTypes> MethodAsync(Type type, bool async, TextSlice name, SyntaxNode? node,
+    private async ValueTask<IterationTypes> MethodAsync(Type type, bool async, Utf8String name, SyntaxNode? node,
         List<IterationDiagnostic>? diagnostics, CancellationToken cancellation)
     {
         var method = await properties.PropertyAsync(type, name, cancellation: cancellation).ConfigureAwait(false);
-        if (method is null && name != "next")
+        if (method is null && name != Utf8Literals.Next)
             return default;
         Type? methodType = null;
-        if (method is not null && !(name == "next" && (method.Flags & SymbolFlags.Optional) != 0))
+        if (method is not null && !(name == Utf8Literals.Next && (method.Flags & SymbolFlags.Optional) != 0))
         {
             methodType = await values.GetAsync(method, cancellation).ConfigureAwait(false);
-            if (name != "next")
+            if (name != Utf8Literals.Next)
                 methodType = await facts.FilterAsync(methodType, TypeFacts.NEUndefinedOrNull, cancellation).ConfigureAwait(false);
         }
         if (methodType is not null && (methodType.Flags & TypeFlags.Any) != 0)
@@ -283,7 +283,7 @@ internal sealed class IteratorProtocols(TypeContext context, TypeAlgebra algebra
         if (methodSignatures.Count == 0)
         {
             await ReportAsync(
-                name == "next"
+                name == Utf8Literals.Next
                     ? async ? DiagnosticCode.AnAsyncIteratorMustHaveANextMethod : DiagnosticCode.AnIteratorMustHaveANextMethod
                     : async
                         ? DiagnosticCode.The0PropertyOfAnAsyncIteratorMustBeAMethod
@@ -293,12 +293,12 @@ internal sealed class IteratorProtocols(TypeContext context, TypeAlgebra algebra
         if (methodSignatures.Count == 1 && methodType!.Symbol is { } symbol)
         {
             var generator = await host.IterationGlobalAsync(
-                async ? "AsyncGenerator" : "Generator",
+                async ? Utf8Literals.AsyncGeneratorType : Utf8Literals.Generator,
                 3,
                 false,
                 cancellation).ConfigureAwait(false);
             var iterator = await host.IterationGlobalAsync(
-                async ? "AsyncIterator" : "Iterator",
+                async ? Utf8Literals.AsyncIteratorType : Utf8Literals.Iterator,
                 3,
                 false,
                 cancellation).ConfigureAwait(false);
@@ -312,7 +312,7 @@ internal sealed class IteratorProtocols(TypeContext context, TypeAlgebra algebra
                     mapper is null
                         ? typeParameters[index]
                         : await mapper.MapAsync(typeParameters[index], cancellation).ConfigureAwait(false);
-                Type? next = name == "next" ? await Map(2).ConfigureAwait(false) : null;
+                Type? next = name == Utf8Literals.Next ? await Map(2).ConfigureAwait(false) : null;
                 return new(await Map(0).ConfigureAwait(false), await Map(1).ConfigureAwait(false), next);
             }
         }
@@ -320,18 +320,18 @@ internal sealed class IteratorProtocols(TypeContext context, TypeAlgebra algebra
         var methodReturns = new List<Type>();
         foreach (var signature in methodSignatures)
         {
-            if (name != "throw" && signature.Parameters.Count != 0)
+            if (name != Utf8Literals.ThrowKeyword && signature.Parameters.Count != 0)
                 parameterTypes.Add(await parameters.AtAsync(signature, 0, cancellation).ConfigureAwait(false));
             methodReturns.Add(await signatures.ReturnAsync(signature, cancellation).ConfigureAwait(false));
         }
         var returns = new List<Type>();
         Type? nextType = null;
-        if (name != "throw")
+        if (name != Utf8Literals.ThrowKeyword)
         {
             var parameter = parameterTypes.Count != 0
                 ? await algebra.UnionAsync(parameterTypes, cancellation: cancellation).ConfigureAwait(false)
                 : context.UnknownType;
-            if (name == "next")
+            if (name == Utf8Literals.Next)
                 nextType = parameter;
             else
                 returns.Add(await ResolveTypeAsync(parameter, async, node, cancellation).ConfigureAwait(false) ?? context.AnyType);
@@ -374,24 +374,24 @@ internal sealed class IteratorProtocols(TypeContext context, TypeAlgebra algebra
         context.RequireOwned(type);
         if ((type.Flags & TypeFlags.Any) != 0)
             return Any;
-        if (Reference(type, await host.IterationGlobalAsync("IteratorYieldResult", 1, false, cancellation).ConfigureAwait(false)))
+        if (Reference(type, await host.IterationGlobalAsync(Utf8Literals.IteratorYieldResult, 1, false, cancellation).ConfigureAwait(false)))
             return new((await host.TypeArgumentsAsync((TypeReference)type, cancellation).ConfigureAwait(false))[0], null, null);
-        if (Reference(type, await host.IterationGlobalAsync("IteratorReturnResult", 1, false, cancellation).ConfigureAwait(false)))
+        if (Reference(type, await host.IterationGlobalAsync(Utf8Literals.IteratorReturnResult, 1, false, cancellation).ConfigureAwait(false)))
             return new(null, (await host.TypeArgumentsAsync((TypeReference)type, cancellation).ConfigureAwait(false))[0], null);
         var yielded = await algebra.FilterAsync(type, part => IsResultAsync(part, false, cancellation), cancellation).ConfigureAwait(false);
-        var yield = yielded != context.NeverType ? await PropertyAsync(yielded, "value", cancellation).ConfigureAwait(false) : null;
+        var yield = yielded != context.NeverType ? await PropertyAsync(yielded, Utf8Literals.Value, cancellation).ConfigureAwait(false) : null;
         var returned = await algebra.FilterAsync(type, part => IsResultAsync(part, true, cancellation), cancellation).ConfigureAwait(false);
-        var result = returned != context.NeverType ? await PropertyAsync(returned, "value", cancellation).ConfigureAwait(false) : null;
+        var result = returned != context.NeverType ? await PropertyAsync(returned, Utf8Literals.Value, cancellation).ConfigureAwait(false) : null;
         return yield is null && result is null ? default : new(yield, result ?? context.VoidType, null);
     }
 
     private async ValueTask<bool> IsResultAsync(Type type, bool returned, CancellationToken cancellation) =>
         await relations.RelatedAsync(returned ? context.TrueType : context.FalseType,
-            await PropertyAsync(type, "done", cancellation).ConfigureAwait(false) ?? context.FalseType,
+            await PropertyAsync(type, Utf8Literals.Done, cancellation).ConfigureAwait(false) ?? context.FalseType,
             RelationKind.Assignable,
             cancellation).ConfigureAwait(false);
 
-    private async ValueTask<Type?> PropertyAsync(Type type, TextSlice name, CancellationToken cancellation) =>
+    private async ValueTask<Type?> PropertyAsync(Type type, Utf8String name, CancellationToken cancellation) =>
             await properties.PropertyAsync(type, name, cancellation: cancellation).ConfigureAwait(false) is { } property
                 ? await values.GetAsync(property, cancellation).ConfigureAwait(false) : null;
 

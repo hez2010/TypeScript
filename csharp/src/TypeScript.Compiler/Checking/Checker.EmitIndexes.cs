@@ -29,20 +29,20 @@ internal sealed partial class Checker
         return false;
     }
 
-    internal ValueTask<IReadOnlyList<TextSlice>> SerializeLateBoundIndexesForEmitAsync(SyntaxNode container, SyntaxNode? enclosing,
+    internal ValueTask<IReadOnlyList<Utf8String>> SerializeLateBoundIndexesForEmitAsync(SyntaxNode container, SyntaxNode? enclosing,
         NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default,
         INodeBuilderSymbolTracker? tracker = null,
         NodeBuilderInternalFlags internalFlags = NodeBuilderInternalFlags.None) =>
-        EmitSyntaxQueryAsync<IReadOnlyList<TextSlice>>(container, enclosing, flags, async state =>
+        EmitSyntaxQueryAsync<IReadOnlyList<Utf8String>>(container, enclosing, flags, async state =>
         {
             var symbol = program.Symbols.Binding(container)?.Get(container)?.Symbol ?? program.Symbols.Declaration(container);
             if (symbol is null)
                 return [];
             var staticInfos = await IndexesAsync(await Values.GetAsync(symbol, cancellation), cancellation);
             var members = await MembersAsync(symbol, cancellation);
-            var instanceInfos = members.TryGetValue(Symbol.InternalPrefix + "index", out var indexSymbol)
+            var instanceInfos = members.TryGetValue(Symbol.InternalIndex, out var indexSymbol)
                 ? await IndexInfosAsync(indexSymbol, members.Values.ToArray(), cancellation) : [];
-            var results = new List<TextSlice>();
+            var results = new List<Utf8String>();
             TypeSyntaxContext FreshContext() => new(enclosing, (flags & NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope) != 0,
                 (flags & NodeBuilderFlags.UseOnlyExternalAliasing) != 0, flags, tracker, internalFlags);
             foreach (var (infos, isStatic) in new[] { (staticInfos, true), (instanceInfos, false) })
@@ -77,13 +77,13 @@ internal sealed partial class Checker
                             var node = state.Factory.NewPropertyDeclaration(IndexModifiers(info, isStatic, state), name,
                                 postfix?.Kind == K.QuestionToken ? state.Factory.NewToken(K.QuestionToken) : null,
                                 await TypeSyntaxAsync(type, state, cancellation), null);
-                            results.Add(FinishTypeSyntax(state) ? PrintEmitSyntax(node, enclosing, state, cancellation) : "");
+                            results.Add(FinishTypeSyntax(state) ? PrintEmitSyntax(node, enclosing, state, cancellation) : Utf8String.Empty);
                         }
                         continue;
                     }
                     state = FreshContext();
                     var index = await IndexSignatureSyntaxAsync(info, state, cancellation, isStatic);
-                    results.Add(FinishTypeSyntax(state) ? PrintEmitSyntax(index, enclosing, state, cancellation) : "");
+                    results.Add(FinishTypeSyntax(state) ? PrintEmitSyntax(index, enclosing, state, cancellation) : Utf8String.Empty);
                 }
             return results;
         }, [], cancellation, tracker, internalFlags);
@@ -147,8 +147,8 @@ internal sealed partial class Checker
         bool isStatic = false, SyntaxNode? valueNode = null)
     {
         var f = state.Factory;
-        TextSlice name = info.Declaration is IndexSignatureDeclarationNode { Parameters: { Count: > 0 } parameters }
-            && SemanticSyntax.Name(parameters[0]) is IdentifierNode id ? id.Text : "x";
+        Utf8String name = info.Declaration is IndexSignatureDeclarationNode { Parameters: { Count: > 0 } parameters }
+            && SemanticSyntax.Name(parameters[0]) is IdentifierNode id ? id.Text : Utf8Literals.X;
         var parameter = f.NewParameterDeclaration(null, null, f.NewIdentifier(name), null,
             await TypeSyntaxAsync(info.KeyType, state, cancellation), null);
         var value = valueNode ?? await TypeSyntaxAsync(info.ValueType, state, cancellation);

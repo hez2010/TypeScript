@@ -38,7 +38,7 @@ internal sealed partial class Checker
         {
             if (!emitPromiseLookedUp)
             {
-                emitPromiseSymbol = program.Symbols.NameResolver(cancellation).Resolve(null, "Promise", SymbolFlags.Value,
+                emitPromiseSymbol = program.Symbols.NameResolver(cancellation).Resolve(null, Utf8Literals.Promise, SymbolFlags.Value,
                     Messages.Cannot_find_global_value_0);
                 emitPromiseLookedUp = true;
             }

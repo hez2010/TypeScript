@@ -11,7 +11,7 @@ internal sealed partial class Checker
     private Type? importCallOptionsType;
 
     private static bool IsImportCall(CallExpressionNode node) => node.Expression?.Kind == SyntaxKind.ImportKeyword
-        || node.Expression is MetaPropertyNode { KeywordToken: SyntaxKind.ImportKeyword, Name.Text.Span: "defer" };
+        || node.Expression is MetaPropertyNode { KeywordToken: SyntaxKind.ImportKeyword, Name.Text.Span: var matchedText } && matchedText.SequenceEqual("defer"u8);
 
     private async ValueTask<Type> CheckImportCallAsync(CallExpressionNode node, CancellationToken cancellation)
     {
@@ -32,15 +32,15 @@ internal sealed partial class Checker
             Type? attributes = null;
             if (options is not null)
             {
-                importCallOptionsType ??= await program.Globals.GetAsync("ImportCallOptions", 0, true, cancellation);
+                importCallOptionsType ??= await program.Globals.GetAsync(Utf8Literals.ImportCallOptions, 0, true, cancellation);
                 if (importCallOptionsType != context.EmptyObjectType)
                     await RelationDiagnostics.CheckAsync(options,
                         await Algebra.UnionAsync([importCallOptionsType, context.UndefinedType], cancellation: cancellation),
                         RelationKind.Assignable, arguments[1], null, DiagnosticCode.Type0IsNotAssignableToType1, cancellation);
                 if (arguments[1] is ObjectLiteralExpressionNode literal
-                    && literal.Properties!.OfType<PropertyAssignmentNode>().FirstOrDefault(p => p.Name is IdentifierNode { Text.Span: "assert" }) is { } assertion)
+                    && literal.Properties!.OfType<PropertyAssignmentNode>().FirstOrDefault(p => (p.Name is IdentifierNode { Text.Span: var matchedText2 } && matchedText2.SequenceEqual("assert"u8))) is { } assertion)
                     Error(assertion.Name!, DiagnosticCode.ImportAssertionsHaveBeenReplacedByImportAttributesUseWithInsteadOfAssert);
-                if (await Properties.PropertyAsync(options, "with", cancellation: cancellation) is { } property)
+                if (await Properties.PropertyAsync(options, Utf8Literals.With, cancellation: cancellation) is { } property)
                     attributes = await Values.GetAsync(property, cancellation);
             }
             var module = await ResolveImportModuleAsync(node, specifier, attributes, cancellation);
@@ -64,9 +64,9 @@ internal sealed partial class Checker
                 DiagnosticCode.ADynamicImportCallReturnsAPromiseMakeSureYouHaveADeclarationForPromiseOrIncludeES2015InYourLibOption);
             return context.ErrorType;
         }
-        if (program.Symbols.Lookup(program.Symbols.Globals, "Promise", SymbolFlags.Value) is null)
+        if (program.Symbols.Lookup(program.Symbols.Globals, Utf8Literals.Promise, SymbolFlags.Value) is null)
         {
-            program.Error(null, TypeScript.Compiler.Diagnostics.Messages.Cannot_find_global_value_0, "Promise", "es2015");
+            program.Error(null, TypeScript.Compiler.Diagnostics.Messages.Cannot_find_global_value_0, Utf8Literals.Promise, Utf8Literals.Es2015);
             Error(
                 node,
                 DiagnosticCode.ADynamicImportCallInES5RequiresThePromiseConstructorMakeSureYouHaveADeclarationForThePromiseConstructorOrIncludeES2015InYourLibOption);
@@ -157,7 +157,7 @@ internal sealed partial class Checker
             {
                 var resolved = program.Symbols.Merger.GetMergedSymbol(
                     await program.Aliases.SymbolAsync(target, cancellation: cancellation))!;
-                TextSlice name = ((IdentifierNode)current).Text;
+                Utf8String name = ((IdentifierNode)current).Text;
                 var next = node.IsTypeOf ? await Properties.PropertyAsync(
                     await Values.GetAsync(resolved, cancellation),
                     name,

@@ -33,9 +33,12 @@ const dll = path.resolve(option("--candidate-directory", executable ? path.dirna
 const compilerDll = path.join(path.dirname(dll), "TypeScript.Compiler.dll");
 const oracle = path.join(root, "built/csharp/checker-workload-oracle.exe");
 const sha256 = value => createHash("sha256").update(value).digest("hex");
-const env = { ...process.env, DOTNET_PROCESSOR_COUNT: String(manifest.processorCount), GOMAXPROCS: String(manifest.processorCount),
+const env = { ...process.env,
     DOTNET_TieredCompilation: tieredCompilation ? "1" : "0", COMPlus_TieredCompilation: tieredCompilation ? "1" : "0",
     ...(serverGC ? { DOTNET_gcServer: "1" } : {}) };
+delete env.DOTNET_PROCESSOR_COUNT;
+delete env.COMPlus_ProcessorCount;
+delete env.GOMAXPROCS;
 
 function server(command, args) {
     const child = spawn(command, args, { cwd: root, env, windowsHide: true, stdio: ["pipe", "pipe", "pipe"] });
@@ -175,8 +178,11 @@ const summary = {
     } : {}),
     ...!hasBaseline || includeGo ? { oracleSha256: sha256(await readFile(oracle)) } : {},
     samplesSha256: sha256(await readFile(path.join(output, "samples.jsonl"))),
-    machine: { platform: process.platform, architecture: process.arch, os: os.version(), cpu: os.cpus()[0].model, availableMemoryBytes: os.totalmem() },
-    runtime: { ...!executable ? { dotnet } : {}, tieredCompilation: nativeAot ? null : tieredCompilation, processorCount: manifest.processorCount, nativeAotExecuted: nativeAot, serverGC, executable, label: option("--runtime-label", nativeAot ? "NativeAOT" : "CoreCLR") },
+    machine: { platform: process.platform, architecture: process.arch, os: os.version(), cpu: os.cpus()[0].model,
+        logicalProcessors: os.cpus().length, availableParallelism: os.availableParallelism(), availableMemoryBytes: os.totalmem() },
+    runtime: { ...!executable ? { dotnet } : {}, tieredCompilation: nativeAot ? null : tieredCompilation,
+        processorCountOverride: null, nativeAotExecuted: nativeAot, serverGC, executable,
+        label: option("--runtime-label", nativeAot ? "NativeAOT" : "CoreCLR") },
     groups,
     passed: groups.every(g => g.passed),
 };

@@ -24,27 +24,24 @@ internal static class CheckerContextQueryTests
             checks++;
         }
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        const string source = "declare function color<T extends 'red'|'blue'>(value:T):T; color('red'); color('missing'); "
-            + "declare function callback<T>(value:T,func:(x:T)=>T):T; callback('red',x=>x); const tuple:[number,string]=[1,'x'];";
-        const string library = "interface Object{} interface Function{} interface CallableFunction extends Function{} "
-            + "interface NewableFunction extends Function{} interface IArguments{} interface String{} interface Number{} interface Boolean{} "
-            + "interface RegExp{} interface Array<T>{length:number;[n:number]:T;} interface ReadonlyArray<T>{readonly length:number;readonly [n:number]:T;}";
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/main.ts"] = Wtf8.Encode(source), ["/project/lib.d.ts"] = Wtf8.Encode(library) }), "/project",
-            new("/project/tsconfig.json", options, ["/project/lib.d.ts", "/project/main.ts"], [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        Utf8String source = Utf8String.Concat("declare function color<T extends 'red'|'blue'>(value:T):T; color('red'); color('missing'); "u8, "declare function callback<T>(value:T,func:(x:T)=>T):T; callback('red',x=>x); const tuple:[number,string]=[1,'x'];"u8);
+        Utf8String library = Utf8String.Concat("interface Object{} interface Function{} interface CallableFunction extends Function{} "u8, "interface NewableFunction extends Function{} interface IArguments{} interface String{} interface Number{} interface Boolean{} "u8, "interface RegExp{} interface Array<T>{length:number;[n:number]:T;} interface ReadonlyArray<T>{readonly length:number;readonly [n:number]:T;}"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/main.ts"u8] = source.Span.ToArray(), ["/project/lib.d.ts"u8] = library.Span.ToArray() }), "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/lib.d.ts"u8, "/project/main.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
-        var nodes = program.GetFile("/project/main.ts")!.Syntax.DescendantsAndSelf().ToArray();
+        var nodes = program.GetFile("/project/main.ts"u8)!.Syntax.DescendantsAndSelf().ToArray();
         var calls = nodes.OfType<CallExpressionNode>().ToArray();
         var call = calls[0];
         var argument = call.Arguments![0];
         var signature = await checker.GetResolvedSignatureAsync(call);
-        Check(await checker.GetReturnTypeOfSignatureAsync(signature) is LiteralType { Value: TextSlice { Span: "red" } });
-        Check(await checker.GetContextualTypeAsync(argument) is LiteralType { Value: TextSlice { Span: "red" } });
+        Check(await checker.GetReturnTypeOfSignatureAsync(signature) is LiteralType { Value: Utf8String { Span: var matchedText } } && matchedText.SequenceEqual("red"u8));
+        Check(await checker.GetContextualTypeAsync(argument) is LiteralType { Value: Utf8String { Span: var matchedText2 } } && matchedText2.SequenceEqual("red"u8));
         var blocked = await checker.GetContextualTypeAsync(argument, ContextFlags.IgnoreNodeInferences);
         Check(blocked is UnionType union && union.Types.Count == 2
-            && union.Types.All(t => t is LiteralType { Value: TextSlice { Span: "red" or "blue" } }));
+            && union.Types.All(t => (t is LiteralType { Value: Utf8String { Span: var matchedText3 } } && (matchedText3.SequenceEqual("red"u8) || matchedText3.SequenceEqual("blue"u8)))));
         Check(await checker.GetResolvedSignatureAsync(call) == signature);
         Check(checker.SkippedInferenceNodes.Count == 0 && !checker.InferencePartiallyBlocked && checker.ApparentArgumentCount is null);
         var arrow = nodes.OfType<ArrowFunctionNode>().Single();
@@ -164,10 +161,10 @@ internal static class CheckerContextQueryTests
             writer.WriteNumberValue(operation);
             writer.WriteNumberValue(nodeId(node));
         }
-        writer.WriteStartArray("contextQueries");
+        writer.WriteStartArray("contextQueries"u8);
         foreach (var node in nodes)
         {
-            if (SemanticSyntax.Source(node)?.FileName.StartsWith("/project/main.", StringComparison.Ordinal) != true)
+            if (SemanticSyntax.Source(node)?.FileName.StartsWith("/project/main."u8, StringComparison.Ordinal) != true)
                 continue;
             if (QuerySyntax.Expression(node))
                 foreach (var flags in new ContextFlags[] { 0, ContextFlags.Signature, ContextFlags.NoConstraints,
@@ -236,7 +233,7 @@ internal static class CheckerContextQueryTests
                 }
         }
         writer.WriteEndArray();
-        writer.WriteStartArray("querySignatureGraph");
+        writer.WriteStartArray("querySignatureGraph"u8);
         for (int i = 0; i < signatures.Count; i++)
         {
             var signature = signatures[i];

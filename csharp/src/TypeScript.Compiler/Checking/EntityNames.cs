@@ -12,7 +12,7 @@ internal interface IEntityNameHost
 {
     DiagnosticMessage CannotFindName(IdentifierNode name);
 
-    ValueTask<IReadOnlyDictionary<TextSlice, Symbol>> ExportsAsync(Symbol symbol, CancellationToken cancellation);
+    ValueTask<IReadOnlyDictionary<Utf8String, Symbol>> ExportsAsync(Symbol symbol, CancellationToken cancellation);
 
     ValueTask<Symbol> CommonJsNamespaceAsync(Symbol symbol, CancellationToken cancellation);
 
@@ -42,7 +42,7 @@ internal sealed class EntityNames(CheckerSymbols symbols, AliasResolver aliases,
                 if (result is null)
                 {
                     var alias = symbols.Merger.GetMergedSymbol(resolver.Resolve(lookupLocation, identifier.Text, S.Alias, isUse: true));
-                    if (alias?.Name == "export=")
+                    if (alias?.Name == Utf8Literals.ExportEquals)
                         result = alias.Parent;
                 }
                 if (result is null && message is not null)
@@ -70,7 +70,7 @@ internal sealed class EntityNames(CheckerSymbols symbols, AliasResolver aliases,
             if (parent == symbols.UnknownSymbol)
                 return parent;
             parent = await host.CommonJsNamespaceAsync(parent, cancellation).ConfigureAwait(false);
-            TextSlice text = ((IdentifierNode)right!).Text;
+            Utf8String text = ((IdentifierNode)right!).Text;
             result = symbols.Merger.GetMergedSymbol(
                 symbols.Lookup(await host.ExportsAsync(parent, cancellation).ConfigureAwait(false), text, meaning));
             if (result is null && (parent.Flags & S.Alias) != 0)

@@ -35,8 +35,7 @@ func main() {
 			request.FileName = "/test.ts"
 		}
 		file := parser.ParseSourceFile(ast.SourceFileParseOptions{FileName: request.FileName, ExternalModuleIndicatorOptions: ast.ExternalModuleIndicatorOptions{Force: request.Force, JSX: request.JSX}}, string(bytes), core.EnsureScriptKindFromFileName(request.FileName))
-		positions := ast.ComputePositionMap(string(bytes))
-		pos := positions.UTF8ToUTF16
+		pos := func(value int) int { return value }
 		pragmas := make([]any, 0)
 		for _, pragma := range file.Pragmas {
 			names := make([]string, 0)

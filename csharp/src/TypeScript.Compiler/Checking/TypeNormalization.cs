@@ -10,7 +10,7 @@ internal interface ITypeNormalizationHost
 {
     ValueTask<Type> SimplifyAsync(Type type, bool writing, CancellationToken cancellation);
 
-    ValueTask<IReadOnlyDictionary<TextSlice, Symbol>> MembersAsync(Symbol symbol, CancellationToken cancellation);
+    ValueTask<IReadOnlyDictionary<Utf8String, Symbol>> MembersAsync(Symbol symbol, CancellationToken cancellation);
 }
 
 internal sealed class TypeNormalization(TypeContext context, TypeAlgebra algebra, TypeReferences references, TupleTypes tuples,

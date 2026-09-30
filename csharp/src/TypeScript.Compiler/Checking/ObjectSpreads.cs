@@ -58,8 +58,8 @@ internal sealed class ObjectSpreads(TypeContext context, CheckerLinks links, Typ
             }
             return await algebra.IntersectionAsync([left, right], cancellation: cancellation).ConfigureAwait(false);
         }
-        var members = new Dictionary<TextSlice, Symbol>();
-        var skipped = new HashSet<TextSlice>();
+        var members = new Dictionary<Utf8String, Symbol>();
+        var skipped = new HashSet<Utf8String>();
         var indexInfos = left == context.EmptyObjectType ? await host.IndexesAsync(right, cancellation).ConfigureAwait(false)
             : await UnionIndexesAsync(left, right, cancellation).ConfigureAwait(false);
         foreach (var property in await properties.GetAsync(right, cancellation).ConfigureAwait(false))
@@ -77,7 +77,7 @@ internal sealed class ObjectSpreads(TypeContext context, CheckerLinks links, Typ
                 if ((previous.Flags & SymbolFlags.Optional) != 0)
                 {
                     var result = new Symbol(
-                        SymbolFlags.Property | SymbolFlags.Transient | (property.Flags & SymbolFlags.Optional),
+                        SymbolFlags.Property | SymbolFlags.Transient | property.Flags & SymbolFlags.Optional,
                         property.Name);
                     var leftType = await values.GetAsync(property, cancellation).ConfigureAwait(false);
                     var leftRequired = await RemoveMissingAsync(leftType, cancellation).ConfigureAwait(false);
@@ -126,13 +126,13 @@ internal sealed class ObjectSpreads(TypeContext context, CheckerLinks links, Typ
         var first = nonEmpty[0];
         if (nonEmpty.Any(t => t != first))
             return type;
-        var members = new Dictionary<TextSlice, Symbol>();
+        var members = new Dictionary<Utf8String, Symbol>();
         foreach (var property in await properties.GetAsync(first, cancellation).ConfigureAwait(false))
         {
             if (NonPublic(property) || !BindingTypes.Spreadable(property))
                 continue;
             var symbol = new Symbol(SymbolFlags.Property | SymbolFlags.Optional | SymbolFlags.Transient, property.Name)
-            { CheckFlags = (property.CheckFlags & CheckFlags.Late) | (readOnly ? CheckFlags.Readonly : 0) };
+            { CheckFlags = property.CheckFlags & CheckFlags.Late | (readOnly ? CheckFlags.Readonly : 0) };
             var value = (property.Flags & SymbolFlags.SetAccessor) != 0 && (property.Flags & SymbolFlags.GetAccessor) == 0
                 ? context.UndefinedType : await values.GetAsync(property, cancellation).ConfigureAwait(false);
             if (!((property.Flags & SymbolFlags.SetAccessor) != 0 && (property.Flags & SymbolFlags.GetAccessor) == 0)
@@ -148,7 +148,7 @@ internal sealed class ObjectSpreads(TypeContext context, CheckerLinks links, Typ
             ObjectFlags.ObjectLiteral | ObjectFlags.ContainsObjectOrArrayLiteral, cancellation).ConfigureAwait(false);
     }
 
-    internal async ValueTask<ObjectType> ObjectAsync(Symbol? symbol, Dictionary<TextSlice, Symbol> members,
+    internal async ValueTask<ObjectType> ObjectAsync(Symbol? symbol, Dictionary<Utf8String, Symbol> members,
         IReadOnlyList<IndexInfo> indexes, ObjectFlags flags = 0, CancellationToken cancellation = default)
     {
         var result = context.NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved | flags, symbol);

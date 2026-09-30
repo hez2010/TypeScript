@@ -36,7 +36,7 @@ internal static class BindingSyntax
                 {
                     writer.WriteString("type", "Identifier");
                     writer.WriteStartObject("fields");
-                    writer.WriteBase64String("Text", Wtf8.Encode(n.Text));
+                    writer.WriteBase64String("Text", n.Text.Span);
                     writer.WriteEndObject();
                     break;
                 }
@@ -44,7 +44,7 @@ internal static class BindingSyntax
                 {
                     writer.WriteString("type", "PrivateIdentifier");
                     writer.WriteStartObject("fields");
-                    writer.WriteBase64String("Text", Wtf8.Encode(n.Text));
+                    writer.WriteBase64String("Text", n.Text.Span);
                     writer.WriteEndObject();
                     break;
                 }
@@ -727,7 +727,7 @@ internal static class BindingSyntax
                 {
                     writer.WriteString("type", "StringLiteral");
                     writer.WriteStartObject("fields");
-                    writer.WriteBase64String("Text", Wtf8.Encode(n.Text));
+                    writer.WriteBase64String("Text", n.Text.Span);
                     writer.WriteNumber("TokenFlags", (uint)n.TokenFlags);
                     writer.WriteEndObject();
                     break;
@@ -736,7 +736,7 @@ internal static class BindingSyntax
                 {
                     writer.WriteString("type", "NumericLiteral");
                     writer.WriteStartObject("fields");
-                    writer.WriteBase64String("Text", Wtf8.Encode(n.Text));
+                    writer.WriteBase64String("Text", n.Text.Span);
                     writer.WriteNumber("TokenFlags", (uint)n.TokenFlags);
                     writer.WriteEndObject();
                     break;
@@ -745,7 +745,7 @@ internal static class BindingSyntax
                 {
                     writer.WriteString("type", "BigIntLiteral");
                     writer.WriteStartObject("fields");
-                    writer.WriteBase64String("Text", Wtf8.Encode(n.Text));
+                    writer.WriteBase64String("Text", n.Text.Span);
                     writer.WriteNumber("TokenFlags", (uint)n.TokenFlags);
                     writer.WriteEndObject();
                     break;
@@ -754,7 +754,7 @@ internal static class BindingSyntax
                 {
                     writer.WriteString("type", "RegularExpressionLiteral");
                     writer.WriteStartObject("fields");
-                    writer.WriteBase64String("Text", Wtf8.Encode(n.Text));
+                    writer.WriteBase64String("Text", n.Text.Span);
                     writer.WriteNumber("TokenFlags", (uint)n.TokenFlags);
                     writer.WriteEndObject();
                     break;
@@ -763,7 +763,7 @@ internal static class BindingSyntax
                 {
                     writer.WriteString("type", "NoSubstitutionTemplateLiteral");
                     writer.WriteStartObject("fields");
-                    writer.WriteBase64String("Text", Wtf8.Encode(n.Text));
+                    writer.WriteBase64String("Text", n.Text.Span);
                     writer.WriteNumber("TemplateFlags", (uint)n.TemplateFlags);
                     writer.WriteEndObject();
                     break;
@@ -1325,8 +1325,8 @@ internal static class BindingSyntax
                 {
                     writer.WriteString("type", "TemplateHead");
                     writer.WriteStartObject("fields");
-                    writer.WriteBase64String("Text", Wtf8.Encode(n.Text));
-                    writer.WriteBase64String("RawText", Wtf8.Encode(n.RawText));
+                    writer.WriteBase64String("Text", n.Text.Span);
+                    writer.WriteBase64String("RawText", n.RawText.Span);
                     writer.WriteNumber("TemplateFlags", (uint)n.TemplateFlags);
                     writer.WriteEndObject();
                     break;
@@ -1335,8 +1335,8 @@ internal static class BindingSyntax
                 {
                     writer.WriteString("type", "TemplateMiddle");
                     writer.WriteStartObject("fields");
-                    writer.WriteBase64String("Text", Wtf8.Encode(n.Text));
-                    writer.WriteBase64String("RawText", Wtf8.Encode(n.RawText));
+                    writer.WriteBase64String("Text", n.Text.Span);
+                    writer.WriteBase64String("RawText", n.RawText.Span);
                     writer.WriteNumber("TemplateFlags", (uint)n.TemplateFlags);
                     writer.WriteEndObject();
                     break;
@@ -1345,8 +1345,8 @@ internal static class BindingSyntax
                 {
                     writer.WriteString("type", "TemplateTail");
                     writer.WriteStartObject("fields");
-                    writer.WriteBase64String("Text", Wtf8.Encode(n.Text));
-                    writer.WriteBase64String("RawText", Wtf8.Encode(n.RawText));
+                    writer.WriteBase64String("Text", n.Text.Span);
+                    writer.WriteBase64String("RawText", n.RawText.Span);
                     writer.WriteNumber("TemplateFlags", (uint)n.TemplateFlags);
                     writer.WriteEndObject();
                     break;
@@ -1502,7 +1502,7 @@ internal static class BindingSyntax
                 {
                     writer.WriteString("type", "JsxText");
                     writer.WriteStartObject("fields");
-                    writer.WriteBase64String("Text", Wtf8.Encode(n.Text));
+                    writer.WriteBase64String("Text", n.Text.Span);
                     writer.WriteBoolean("ContainsOnlyTriviaWhiteSpaces", n.ContainsOnlyTriviaWhiteSpaces);
                     writer.WriteEndObject();
                     break;
@@ -1900,7 +1900,7 @@ internal static class BindingSyntax
                     writer.WriteString("type", "JSDocText");
                     writer.WriteStartObject("fields");
                     writer.WriteStartArray("Text");
-                    foreach(var value in n.Text) writer.WriteBase64StringValue(Wtf8.Encode(value));
+                    foreach(var value in n.Text) writer.WriteBase64StringValue(value.Span);
                     writer.WriteEndArray();
                     writer.WriteEndObject();
                     break;
@@ -1911,7 +1911,7 @@ internal static class BindingSyntax
                     writer.WriteStartObject("fields");
                     writer.WriteNumber("Name", n.Name is { } valueName ? ids[valueName] : 0);
                     writer.WriteStartArray("Text");
-                    foreach(var value in n.Text) writer.WriteBase64StringValue(Wtf8.Encode(value));
+                    foreach(var value in n.Text) writer.WriteBase64StringValue(value.Span);
                     writer.WriteEndArray();
                     writer.WriteEndObject();
                     break;
@@ -1922,7 +1922,7 @@ internal static class BindingSyntax
                     writer.WriteStartObject("fields");
                     writer.WriteNumber("Name", n.Name is { } valueName ? ids[valueName] : 0);
                     writer.WriteStartArray("Text");
-                    foreach(var value in n.Text) writer.WriteBase64StringValue(Wtf8.Encode(value));
+                    foreach(var value in n.Text) writer.WriteBase64StringValue(value.Span);
                     writer.WriteEndArray();
                     writer.WriteEndObject();
                     break;
@@ -1933,7 +1933,7 @@ internal static class BindingSyntax
                     writer.WriteStartObject("fields");
                     writer.WriteNumber("Name", n.Name is { } valueName ? ids[valueName] : 0);
                     writer.WriteStartArray("Text");
-                    foreach(var value in n.Text) writer.WriteBase64StringValue(Wtf8.Encode(value));
+                    foreach(var value in n.Text) writer.WriteBase64StringValue(value.Span);
                     writer.WriteEndArray();
                     writer.WriteEndObject();
                     break;

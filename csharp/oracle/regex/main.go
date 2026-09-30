@@ -54,8 +54,6 @@ func main() {
 			}
 			continue
 		}
-		positions := ast.ComputePositionMap(text)
-		position := positions.UTF8ToUTF16
 		s := scanner.NewScanner()
 		s.SetText(text)
 		if request.Target != 0 {
@@ -73,11 +71,11 @@ func main() {
 			for _, arg := range args {
 				arguments = append(arguments, fmt.Sprint(arg))
 			}
-			errors = append(errors, []any{int(message.Code()), position(start), position(start+length) - position(start), arguments})
+			errors = append(errors, []any{int(message.Code()), start, length, arguments})
 		})
 		s.Scan()
 		kind := s.ReScanSlashToken(true)
-		if err := output.Encode([]any{int(kind), position(s.TokenEnd()), int(s.TokenFlags()), base64.StdEncoding.EncodeToString([]byte(s.TokenValue())), errors}); err != nil {
+		if err := output.Encode([]any{int(kind), s.TokenEnd(), int(s.TokenFlags()), base64.StdEncoding.EncodeToString([]byte(s.TokenValue())), errors}); err != nil {
 			panic(err)
 		}
 	}

@@ -10,7 +10,7 @@ internal sealed partial class FlowNarrowing
     private sealed class SwitchData
     {
         internal Type[]? Types { get; set; }
-        internal TextSlice[]? Witnesses { get; set; }
+        internal Utf8String[]? Witnesses { get; set; }
         internal bool WitnessesComputed { get; set; }
         internal int Exhaustive { get; set; }
     }
@@ -46,7 +46,7 @@ internal sealed partial class FlowNarrowing
             else if (expression is TypeOfExpressionNode optionalTypeof
                 && await references.ContainsAsync(optionalTypeof.Expression!, state.Reference, true, cancellation).ConfigureAwait(false))
                 type = await SwitchOptionalAsync(type, flow, t => (t.Flags & TypeFlags.Never) == 0
-                    && !(t is LiteralType { Value: TextSlice { Span: "undefined" } } && (t.Flags & TypeFlags.StringLiteral) != 0),
+                    && !(t is LiteralType { Value: Utf8String { Span: var matchedText } } && matchedText.SequenceEqual("undefined"u8) && (t.Flags & TypeFlags.StringLiteral) != 0),
                     cancellation).ConfigureAwait(false);
         }
         if (await DiscriminantAccessAsync(state, type, expression, cancellation).ConfigureAwait(false) is { } access)
@@ -246,13 +246,13 @@ internal sealed partial class FlowNarrowing
         return data.Types = types;
     }
 
-    private TextSlice[]? Witnesses(SwitchStatementNode statement)
+    private Utf8String[]? Witnesses(SwitchStatementNode statement)
     {
         var data = SwitchLinks(statement);
         if (data.WitnessesComputed)
             return data.Witnesses;
         var clauses = statement.CaseBlock!.Clauses!;
-        TextSlice[]? witnesses = new TextSlice[clauses.Count];
+        Utf8String[]? witnesses = new Utf8String[clauses.Count];
         for (int i = 0; i < clauses.Count; i++)
             if (clauses[i] is CaseOrDefaultClauseNode { Kind: SyntaxKind.CaseClause } clause)
             {
@@ -268,21 +268,21 @@ internal sealed partial class FlowNarrowing
         return data.Witnesses = witnesses;
     }
 
-    private static TypeFacts ExcludeFacts(int start, int end, TextSlice[] witnesses)
+    private static TypeFacts ExcludeFacts(int start, int end, Utf8String[] witnesses)
     {
         TypeFacts result = 0;
         for (int i = 0; i < witnesses.Length; i++)
             if ((i < start || i >= end) && witnesses[i].Length != 0)
                 result |= witnesses[i].Span switch
                 {
-                    "string" => TypeFacts.TypeofNEString,
-                    "number" => TypeFacts.TypeofNENumber,
-                    "bigint" => TypeFacts.TypeofNEBigInt,
-                    "boolean" => TypeFacts.TypeofNEBoolean,
-                    "symbol" => TypeFacts.TypeofNESymbol,
-                    "undefined" => TypeFacts.NEUndefined,
-                    "object" => TypeFacts.TypeofNEObject,
-                    "function" => TypeFacts.TypeofNEFunction,
+                    var matchedText2 when matchedText2.SequenceEqual("string"u8) => TypeFacts.TypeofNEString,
+                    var matchedText3 when matchedText3.SequenceEqual("number"u8) => TypeFacts.TypeofNENumber,
+                    var matchedText4 when matchedText4.SequenceEqual("bigint"u8) => TypeFacts.TypeofNEBigInt,
+                    var matchedText5 when matchedText5.SequenceEqual("boolean"u8) => TypeFacts.TypeofNEBoolean,
+                    var matchedText6 when matchedText6.SequenceEqual("symbol"u8) => TypeFacts.TypeofNESymbol,
+                    var matchedText7 when matchedText7.SequenceEqual("undefined"u8) => TypeFacts.NEUndefined,
+                    var matchedText8 when matchedText8.SequenceEqual("object"u8) => TypeFacts.TypeofNEObject,
+                    var matchedText9 when matchedText9.SequenceEqual("function"u8) => TypeFacts.TypeofNEFunction,
                     _ => TypeFacts.TypeofNEHostObject
                 };
         return result;

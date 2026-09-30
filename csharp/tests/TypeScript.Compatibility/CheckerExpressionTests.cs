@@ -22,14 +22,14 @@ internal static class CheckerExpressionTests
                 throw new InvalidOperationException($"Expression assertion {checks + 1}");
             checks++;
         }
-        const string source = "interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}enum E{A=1,B=A+2,C='x'}const a=3;let b=3;let c;const d=typeof 1;const e=void absent;const f=`x${'a'}`;";
+        Utf8String source = "interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}enum E{A=1,B=A+2,C='x'}const a=3;let b=3;let c;const d=typeof 1;const e=void absent;const f=`x${'a'}`;"u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/main.ts"] = Wtf8.Encode(source) }),
-            "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/main.ts"u8] = source.Span.ToArray() }),
+            "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
         var scope = new CheckerEnvironment(context, links);
@@ -54,18 +54,18 @@ internal static class CheckerExpressionTests
         Check((await host.EnumValues.GetAsync(enumMembers[2])).IsSyntacticallyString);
         Check((links.Nodes.Get(enumNode).Flags & NodeCheckFlags.EnumValuesComputed) != 0);
         var declarations = program.SourceFiles[0].Syntax.DescendantsAndSelf().OfType<VariableDeclarationNode>().ToDictionary(n => ((IdentifierNode)n.Name!).Text);
-        var constant = await host.Values.GetAsync(symbols.Declaration(declarations["a"])!);
+        var constant = await host.Values.GetAsync(symbols.Declaration(declarations["a"u8])!);
         Check(constant is LiteralType { Value: 3d, IsFreshLiteral: true });
-        Check(await host.Values.GetAsync(symbols.Declaration(declarations["b"])!) == context.NumberType);
-        Check(await host.Values.GetAsync(symbols.Declaration(declarations["c"])!) == context.AutoType);
-        Check(await host.Values.GetAsync(symbols.Declaration(declarations["d"])!) is UnionType { Types.Count: 8 });
-        Check(await host.Values.GetAsync(symbols.Declaration(declarations["e"])!) == context.UndefinedType);
-        Check(host.DeferredExpressions.Contains(declarations["e"].Initializer!));
-        Check(await host.Values.GetAsync(symbols.Declaration(declarations["f"])!) is LiteralType { Value: TextSlice { Span: "xa" } });
+        Check(await host.Values.GetAsync(symbols.Declaration(declarations["b"u8])!) == context.NumberType);
+        Check(await host.Values.GetAsync(symbols.Declaration(declarations["c"u8])!) == context.AutoType);
+        Check(await host.Values.GetAsync(symbols.Declaration(declarations["d"u8])!) is UnionType { Types.Count: 8 });
+        Check(await host.Values.GetAsync(symbols.Declaration(declarations["e"u8])!) == context.UndefinedType);
+        Check(host.DeferredExpressions.Contains(declarations["e"u8].Initializer!));
+        Check(await host.Values.GetAsync(symbols.Declaration(declarations["f"u8])!) is LiteralType { Value: Utf8String { Span: var matchedText } } && matchedText.SequenceEqual("xa"u8));
         host.BeforeExpressionFinish = () => throw new InvalidOperationException("Expression finish failure");
         try
         {
-            await host.Expressions.CheckAsync(new NumericLiteralNode { Text = "1" });
+            await host.Expressions.CheckAsync(new NumericLiteralNode { Text = "1"u8 });
             throw new InvalidOperationException("Expression failure ignored");
         }
         catch (InvalidOperationException error) when (error.Message == "Expression finish failure")
@@ -89,21 +89,21 @@ internal static class CheckerExpressionTests
             checks++;
         }
         Check((await host.EnumValues.GetAsync(enumMembers[1])).Value is 3d);
-        var evaluator = new ConstantEvaluator((node, _, _) => ValueTask.FromResult(node is IdentifierNode { Text: { Span: "ext" } }
+        var evaluator = new ConstantEvaluator((node, _, _) => ValueTask.FromResult((node is IdentifierNode { Text: { Span: var matchedText2 } } && matchedText2.SequenceEqual("ext"u8))
             ? new ConstantResult(4d, false, true, true) : default));
         var binary = new BinaryExpressionNode
         {
-            Left = new IdentifierNode { Text = "ext" },
+            Left = new IdentifierNode { Text = "ext"u8 },
             OperatorToken = new TokenNode(SyntaxKind.PlusToken),
-            Right = new StringLiteralNode { Text = "x" }
+            Right = new StringLiteralNode { Text = "x"u8 }
         };
         var evaluated = await evaluator.EvaluateAsync(binary);
-        Check(evaluated is { Value: TextSlice { Span: "4x" }, IsSyntacticallyString: true, ResolvedOtherFiles: true, HasExternalReferences: true });
-        var negative = new PrefixUnaryExpressionNode { Operator = SyntaxKind.MinusToken, Operand = new NumericLiteralNode { Text = "0" } };
+        Check(evaluated is { Value: Utf8String { Span: var matchedText3 }, IsSyntacticallyString: true, ResolvedOtherFiles: true, HasExternalReferences: true } && matchedText3.SequenceEqual("4x"u8));
+        var negative = new PrefixUnaryExpressionNode { Operator = SyntaxKind.MinusToken, Operand = new NumericLiteralNode { Text = "0"u8 } };
         Check(BitConverter.DoubleToUInt64Bits((double)(await evaluator.EvaluateAsync(negative)).Value!) == 0x8000000000000000);
         var assertion = new AsExpressionNode
         {
-            Expression = new NumericLiteralNode { Text = "1" },
+            Expression = new NumericLiteralNode { Text = "1"u8 },
             Type = new TokenNode(SyntaxKind.NumberKeyword)
         };
         Check((await evaluator.EvaluateAsync(assertion)).Value is null);
@@ -111,13 +111,13 @@ internal static class CheckerExpressionTests
             (_, _, _) => ValueTask.FromResult(default(ConstantResult)),
             OuterExpressionKinds.TypeAssertions);
         Check((await skipping.EvaluateAsync(assertion)).Value is 1d);
-        SyntaxNode deep = new NumericLiteralNode { Text = "1" };
+        SyntaxNode deep = new NumericLiteralNode { Text = "1"u8 };
         for (int i = 0; i < 20_000; i++)
             deep = new ParenthesizedExpressionNode { Expression = deep };
         Check((await evaluator.EvaluateAsync(deep)).Value is 1d);
         Check(await host.Expressions.CheckAsync(deep) is LiteralType { Value: 1d });
         Check(host.Expressions.CurrentNode is null);
-        deep = new NumericLiteralNode { Text = "1" };
+        deep = new NumericLiteralNode { Text = "1"u8 };
         for (int i = 0; i < 20_000; i++)
             deep = new PrefixUnaryExpressionNode { Operator = SyntaxKind.TildeToken, Operand = deep };
         Check((await evaluator.EvaluateAsync(deep)).Value is 1d);
@@ -134,25 +134,25 @@ internal static class CheckerExpressionTests
 
     private static async Task<int> RegularExpressionSafety()
     {
-        const string source = """
+        Utf8String source = """
             /* 😀 */ const duplicate = /x/ggg;
             const unmatched = /)/u;
             const property = /\p{Script=Hiragan}/u;
-            """;
+            """u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("target", "\"es2018\"");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("target"u8, "\"es2018\""u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/main.ts"u8] = source.Span.ToArray() }), "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
         var file = program.SourceFiles[0].Syntax;
         await checker.CheckSourceFileAsync(file);
         var diagnostics = checker.DetailedDiagnosticsForFile(file);
         var duplicates = diagnostics.Where(d => d.Code == DiagnosticCode.DuplicateRegularExpressionFlag).ToArray();
-        int flags = source.IndexOf("ggg", StringComparison.Ordinal);
-        if (duplicates.Length != 2 || duplicates[0].Start != file.Source.ToBytePosition(flags + 1)
-            || duplicates[1].Start != file.Source.ToBytePosition(flags + 2) || duplicates.Any(d => d.Length != 1))
+        int flags = source.IndexOf("ggg"u8, StringComparison.Ordinal);
+        if (duplicates.Length != 2 || duplicates[0].Start != flags + 1
+            || duplicates[1].Start != flags + 2 || duplicates.Any(d => d.Length != 1))
             throw new InvalidOperationException("Regular-expression duplicate flags lost distinct byte ranges");
         if (!diagnostics.Any(
             d => d.RelatedInformation.Count != 0
@@ -167,12 +167,12 @@ internal static class CheckerExpressionTests
 
     private static async Task<int> UnicodeLiteralSafety()
     {
-        const string source = "/* 😀😀😀😀😀😀😀😀 */ const large = 9007199254740993; const pair = (0, 1);";
+        Utf8String source = "/* 😀😀😀😀😀😀😀😀 */ const large = 9007199254740993; const pair = (0, 1);"u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/main.ts"u8] = source.Span.ToArray() }), "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
         await checker.CheckProgramAsync();
         if (!checker.DiagnosticCodesForFile(program.SourceFiles[0].Syntax).SequenceEqual(
@@ -186,19 +186,19 @@ internal static class CheckerExpressionTests
 
     private static async Task<int> WithAndTemplateSafety()
     {
-        const string source = """
+        Utf8String source = """
             const text = `${(value: number) => value}`;
             const other = `${text}`;
             enum Values { value = ({ value: 'text' }).value }
             with (missing) { unknownInsideWith = 1; }
-            """;
+            """u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/main.ts"u8] = source.Span.ToArray() }), "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
-        var file = program.GetFile("/project/main.ts")!.Syntax;
+        var file = program.GetFile("/project/main.ts"u8)!.Syntax;
         await checker.CheckSourceFileAsync(file);
         var codes = checker.DiagnosticCodesForFile(file);
         if (!codes.SequenceEqual(
@@ -216,7 +216,7 @@ internal static class CheckerExpressionTests
 
     private static async Task<int> JsxSafety()
     {
-        const string library = """
+        Utf8String library = """
             interface Array<T> { length: number; [n: number]: T; }
             interface ReadonlyArray<T> { readonly length: number; readonly [n: number]: T; }
             type Partial<T> = { [P in keyof T]?: T[P] };
@@ -233,8 +233,8 @@ internal static class CheckerExpressionTests
                     interface IntrinsicElements { span: { label: string }; }
                 }
             }
-            """;
-        const string source = """
+            """u8;
+        Utf8String source = """
             declare function Choice(props: { kind: 'number'; onValue: (value: number) => void } | { kind: 'string'; onValue: (value: string) => void }): JSX.Element;
             declare function List<T>(props: { values: T[]; onValue: (value: T) => void }): JSX.Element;
             declare function Variant(props: { kind: 'number' } | { kind: 'string' }): JSX.Element;
@@ -247,25 +247,25 @@ internal static class CheckerExpressionTests
             <box kind='other' />;
             <box kind='number' extra />;
             <box kind='number'>one{'two'}</box>;
-            """;
+            """u8;
         int checks = 0;
         foreach (bool automatic in new[] { false, true })
         {
             var options = new CompilerOptions();
-            options.SetRaw("noLib", "true");
-            options.SetRaw("strict", "true");
-            options.SetRaw("target", "\"esnext\"");
-            options.SetRaw("module", "\"preserve\"");
-            options.SetRaw("jsx", automatic ? "\"react-jsx\"" : "\"preserve\"");
+            options.SetRaw("noLib"u8, "true"u8);
+            options.SetRaw("strict"u8, "true"u8);
+            options.SetRaw("target"u8, "\"esnext\""u8);
+            options.SetRaw("module"u8, "\"preserve\""u8);
+            options.SetRaw("jsx"u8, automatic ? Utf8String.Copy("\"react-jsx\""u8) : Utf8String.Copy("\"preserve\""u8));
             if (automatic)
-                options.SetRaw("jsxImportSource", "\"custom\"");
-            var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+                options.SetRaw("jsxImportSource"u8, "\"custom\""u8);
+            var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
             {
-                ["/project/main.tsx"] = Wtf8.Encode(automatic ? "<span label='text' />;" : source),
-                ["/project/globals.d.ts"] = Wtf8.Encode(library)
-            }), "/project", new("/project/tsconfig.json", options, ["/project/main.tsx", "/project/globals.d.ts"], [], [], []));
+                ["/project/main.tsx"u8] = (automatic ? Utf8String.Copy("<span label='text' />;"u8) : source).Span.ToArray(),
+                ["/project/globals.d.ts"u8] = library.Span.ToArray()
+            }), "/project"u8, new("/project/tsconfig.json"u8, options, ["/project/main.tsx"u8, "/project/globals.d.ts"u8], [], [], []));
             var checker = await program.CreateCheckerAsync();
-            var file = program.GetFile("/project/main.tsx")!.Syntax;
+            var file = program.GetFile("/project/main.tsx"u8)!.Syntax;
             var nodes = file.DescendantsAndSelf().ToArray();
             var parents = nodes.Select(n => n.Parent).ToArray();
             await checker.CheckSourceFileAsync(file);
@@ -286,28 +286,28 @@ internal static class CheckerExpressionTests
             if (automatic)
             {
                 var type = await checker.GetExpressionTypeAsync(nodes.OfType<JsxSelfClosingElementNode>().Single());
-                if (await checker.Properties.PropertyAsync(type, "runtime") is null)
+                if (await checker.Properties.PropertyAsync(type, "runtime"u8) is null)
                     throw new InvalidOperationException("JSX runtime namespace was not selected");
                 checks++;
             }
             else
                 foreach (var variable in nodes.OfType<VariableDeclarationNode>().Where(
-                    v => v.Name is IdentifierNode { Text: { Span: "intrinsicValue" } or { Span: "chosen" } or { Span: "inferred" } }))
+                    v => (v.Name is IdentifierNode { Text: var matchedText4 } && (matchedText4 is { Span: var matchedText5 } && matchedText5.SequenceEqual("intrinsicValue"u8) || matchedText4 is { Span: var matchedText6 } && matchedText6.SequenceEqual("chosen"u8) || matchedText4 is { Span: var matchedText7 } && matchedText7.SequenceEqual("inferred"u8)))))
                 {
                     if (await checker.GetExpressionTypeAsync(variable.Initializer!) != checker.Context.NumberType)
                         throw new InvalidOperationException("JSX callback parameter was not inferred as number");
                     checks++;
                 }
         }
-        if (Parser.ParseIsolatedEntityName("Element.createElement=") is not null
-            || Parser.ParseIsolatedEntityName("React.createElement") is not QualifiedNameNode)
+        if (Parser.ParseIsolatedEntityName("Element.createElement="u8) is not null
+            || Parser.ParseIsolatedEntityName("React.createElement"u8) is not QualifiedNameNode)
             throw new InvalidOperationException("JSX factory name parser accepted invalid syntax");
         return checks + 1;
     }
 
     private static async Task<int> ConditionSafety()
     {
-        const string source = """
+        Utf8String source = """
             interface Object { }
             interface Function { readonly name: string; }
             interface Array<T> { length: number; [n: number]: T; }
@@ -340,14 +340,14 @@ internal static class CheckerExpressionTests
                 if (value instanceof predicate) { const text: string = value.value; }
                 else { const number: number = value; }
             }
-            """;
+            """u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        options.SetRaw("target", "\"esnext\"");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        options.SetRaw("target"u8, "\"esnext\""u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/main.ts"u8] = source.Span.ToArray() }), "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var checker = await program.CreateCheckerAsync();
         var file = program.SourceFiles[0].Syntax;
         await checker.CheckSourceFileAsync(file);
@@ -387,13 +387,13 @@ internal static class CheckerExpressionTests
                 throw new InvalidOperationException($"Ordinary expression assertion {checks + 1}");
             checks++;
         }
-        const string source = "interface Array<T>{length:number;[n:number]:T} interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T} declare function f<T>(value:T):T; f<number>; f<number,string>; 1 as string; 2 as number;";
+        Utf8String source = "interface Array<T>{length:number;[n:number]:T} interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T} declare function f<T>(value:T):T; f<number>; f<number,string>; 1 as string; 2 as number;"u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
         var program = await CompilerProgram.CreateAsync(
-            new MemoryFileSystem(new Dictionary<string, byte[]> { ["/project/main.ts"] = Wtf8.Encode(source) }),
-            "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+            new MemoryFileSystem(new Dictionary<Utf8String, byte[]> { ["/project/main.ts"u8] = source.Span.ToArray() }),
+            "/project"u8, new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
         var scope = new CheckerEnvironment(context, links);
@@ -402,7 +402,7 @@ internal static class CheckerExpressionTests
         var allNodes = program.SourceFiles[0].Syntax.DescendantsAndSelf().ToArray();
         var instantiations = allNodes.OfType<ExpressionWithTypeArgumentsNode>().ToArray();
         var assertions = allNodes.OfType<AsExpressionNode>().ToArray();
-        var function = await host.Values.GetAsync(symbols.Globals["f"]);
+        var function = await host.Values.GetAsync(symbols.Globals["f"u8]);
         var specialized = await host.InstantiationExpressions.GetAsync(function, instantiations[0]);
         Check(specialized is InstantiationExpressionType { Node: var node } && node == instantiations[0]);
         Check(
@@ -426,7 +426,7 @@ internal static class CheckerExpressionTests
         host.BeforeInstantiationDiagnostic = null;
         await host.InstantiationExpressions.GetAsync(function, instantiations[1]);
         Check(
-            host.InstantiationErrors.Values.Single() == "<T>(value: T) => T"
+            host.InstantiationErrors.Values.Single() == "<T>(value: T) => T"u8
                 && host.Diagnostics.Contains(DiagnosticCode.Type0HasNoSignaturesForWhichTheTypeArgumentListIsApplicable));
         try
         {
@@ -481,14 +481,14 @@ internal static class CheckerExpressionTests
                 throw new InvalidOperationException($"Literal assertion {checks + 1}");
             checks++;
         }
-        const string source = "interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}const left='left';const right='right';const object={[left]:1,[right]:2};const array=[1,2];function f({value=1,nested:{text='a'}}){}";
+        Utf8String source = "interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}const left='left';const right='right';const object={[left]:1,[right]:2};const array=[1,2];function f({value=1,nested:{text='a'}}){}"u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/main.ts"] = Wtf8.Encode(source) }),
-            "/project",
-            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/main.ts"u8] = source.Span.ToArray() }),
+            "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
         var scope = new CheckerEnvironment(context, links);
@@ -502,7 +502,7 @@ internal static class CheckerExpressionTests
         {
             host.BeforeExpressionFinish = () =>
             {
-                if (host.Expressions.CurrentNode is IdentifierNode { Text: { Span: "right" } })
+                if (host.Expressions.CurrentNode is IdentifierNode { Text: { Span: var matchedText8 } } && matchedText8.SequenceEqual("right"u8))
                     cancellation.Cancel();
             };
             try
@@ -520,10 +520,10 @@ internal static class CheckerExpressionTests
         Check(literal.Properties!.All(n => links.SymbolNodes.Get(n).ResolvedSymbol is null));
         Check(nodes.OfType<ComputedPropertyNameNode>().Last() is { } lastName && links.TypeNodes.Get(lastName).ResolvedType is null);
         var table = await host.LateMembers.TableAsync(rawObject);
-        Check(table.ContainsKey("left") && table.ContainsKey("right"));
-        Check((table["left"].CheckFlags & CheckFlags.Late) != 0 && table["left"].Parent == rawObject);
-        Check(symbols.Binding(literal.Properties![0])!.Get(literal.Properties[0])!.Value.Symbol!.Name == Symbol.InternalPrefix + "computed");
-        Check(symbols.Declaration(literal.Properties[0]) == table["left"]);
+        Check(table.ContainsKey("left"u8) && table.ContainsKey("right"u8));
+        Check((table["left"u8].CheckFlags & CheckFlags.Late) != 0 && table["left"u8].Parent == rawObject);
+        Check(symbols.Binding(literal.Properties![0])!.Get(literal.Properties[0])!.Value.Symbol!.Name == Symbol.InternalPrefix + "computed"u8);
+        Check(symbols.Declaration(literal.Properties[0]) == table["left"u8]);
         var array = nodes.OfType<ArrayLiteralExpressionNode>().Single();
         var inference = host.Inference.Create([context.NewTypeParameter()]);
         inference.Inferences[0].Candidates.Add(context.NumberType);
@@ -593,13 +593,13 @@ internal static class CheckerExpressionTests
         {
             checks++;
         }
-        var leaf = new NumericLiteralNode { Text = "1" };
+        var leaf = new NumericLiteralNode { Text = "1"u8 };
         SyntaxNode nested = leaf;
         for (int i = 0; i < 20_000; i++)
             nested = new ParenthesizedExpressionNode { Expression = nested };
         var declaration = new VariableDeclarationNode
         {
-            Name = new IdentifierNode { Text = "deep" },
+            Name = new IdentifierNode { Text = "deep"u8 },
             Type = new TokenNode(SyntaxKind.NumberKeyword),
             Initializer = nested
         };

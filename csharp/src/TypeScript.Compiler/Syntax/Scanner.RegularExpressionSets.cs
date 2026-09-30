@@ -205,7 +205,7 @@ public sealed partial class Scanner
                                 Unexpected('&', at - 1);
                         }
                         else
-                            Error(Messages.X_0_expected, at, 0, frame.Operator == '-' ? "--" : "&&");
+                            Error(Messages.X_0_expected, at, 0, frame.Operator == '-' ? Utf8Literals.DoubleHyphen : Utf8Literals.LogicalAnd);
                         if (ClassExit)
                         {
                             Error(Messages.Expected_a_class_set_operand, at);

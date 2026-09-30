@@ -5,25 +5,25 @@ using TypeScript.Compiler.Resolution;
 
 namespace TypeScript.Compiler.Programs;
 
-public sealed record ProjectFileRedirect(string Source, string Output, ParsedConfig Project);
+public sealed record ProjectFileRedirect(Utf8String Source, Utf8String Output, ParsedConfig Project);
 
 public sealed class ProjectReferences
 {
     private readonly IFileSystem fs;
     private readonly bool preserveSymlinks;
-    private readonly Dictionary<string, ParsedConfig> projects;
-    private readonly Dictionary<string, ProjectFileRedirect> sources, outputs;
-    private readonly Dictionary<string, string[]> references;
-    public IReadOnlyDictionary<string, ParsedConfig> Projects => projects;
-    public IReadOnlyDictionary<string, ProjectFileRedirect> Sources => sources;
-    public IReadOnlyDictionary<string, ProjectFileRedirect> Outputs => outputs;
-    public IReadOnlyDictionary<string, string[]> References => references;
+    private readonly Dictionary<Utf8String, ParsedConfig> projects;
+    private readonly Dictionary<Utf8String, ProjectFileRedirect> sources, outputs;
+    private readonly Dictionary<Utf8String, Utf8String[]> references;
+    public IReadOnlyDictionary<Utf8String, ParsedConfig> Projects => projects;
+    public IReadOnlyDictionary<Utf8String, ProjectFileRedirect> Sources => sources;
+    public IReadOnlyDictionary<Utf8String, ProjectFileRedirect> Outputs => outputs;
+    public IReadOnlyDictionary<Utf8String, Utf8String[]> References => references;
     public IReadOnlyList<Diagnostic> Diagnostics { get; }
     public bool UseSources { get; }
 
     public ProjectReferences(
         IFileSystem fileSystem,
-        string currentDirectory,
+        Utf8String currentDirectory,
         ParsedConfig root,
         bool useSources,
         CancellationToken cancellation = default)
@@ -31,7 +31,7 @@ public sealed class ProjectReferences
         fs = fileSystem;
         preserveSymlinks = root.Options.PreserveSymlinks == true;
         UseSources = useSources && root.Options.DisableSourceOfProjectReferenceRedirect != true;
-        var comparer = fs.CaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
+        var comparer = fs.CaseSensitive ? Utf8StringComparer.Ordinal : Utf8StringComparer.OrdinalIgnoreCase;
         projects = new(comparer);
         sources = new(comparer);
         outputs = new(comparer);
@@ -40,7 +40,7 @@ public sealed class ProjectReferences
         var parser = new ConfigParser(fs, currentDirectory);
         var stack = new Stack<ParsedConfig>();
         stack.Push(root);
-        var visited = new HashSet<string>(comparer);
+        var visited = new HashSet<Utf8String>(comparer);
         while (stack.TryPop(out var config))
         {
             cancellation.ThrowIfCancellationRequested();
@@ -48,12 +48,12 @@ public sealed class ProjectReferences
                 continue;
             projects[config.FileName] = config;
             var children = new List<ParsedConfig>();
-            var paths = new List<string>();
+            var paths = new List<Utf8String>();
             foreach (var reference in config.References)
             {
-                string path = reference.Path;
-                if (!path.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
-                    path = CompilerPath.Combine(path, "tsconfig.json");
+                Utf8String path = reference.Path;
+                if (!path.EndsWith(".json"u8, StringComparison.OrdinalIgnoreCase))
+                    path = CompilerPath.Combine(path, Utf8Literals.TsconfigJson);
                 paths.Add(path);
                 if (!fs.FileExists(path))
                 {
@@ -74,17 +74,17 @@ public sealed class ProjectReferences
             references[config.FileName] = paths.ToArray();
             if (config != root)
             {
-                string rootDir = config.Options.RootDir ?? (config.Options.Composite == true
+                Utf8String rootDir = config.Options.RootDir ?? (config.Options.Composite == true
                     ? CompilerPath.DirectoryName(config.FileName) : CommonDirectory(
                         config.FileNames.Where(f => !CompilerPath.IsDeclarationFile(f)),
                         fs.CaseSensitive));
-                foreach (string source in config.FileNames)
+                foreach (Utf8String source in config.FileNames)
                 {
-                    if (CompilerPath.IsDeclarationFile(source) || ModuleResolver.Extension(source) == ".json")
+                    if (CompilerPath.IsDeclarationFile(source) || ModuleResolver.Extension(source) == Utf8Literals.Json)
                         continue;
-                    string ext = ModuleResolver.Extension(source);
-                    string suffix = ext is ".mts" or ".mjs" ? ".d.mts" : ext is ".cts" or ".cjs" ? ".d.cts" : ".d.ts";
-                    string output = source[..^ext.Length] + suffix;
+                    Utf8String ext = ModuleResolver.Extension(source);
+                    Utf8String suffix = (ext == ".mts"u8 || ext == ".mjs"u8) ? Utf8Literals.DMts : (ext == ".cts"u8 || ext == ".cjs"u8) ? Utf8Literals.DCts : Utf8Literals.DTs;
+                    Utf8String output = source[..^ext.Length] + suffix;
                     if ((config.Options.DeclarationDir ?? config.Options.OutDir) is { } folder)
                         output = CompilerPath.Resolve(folder, CompilerPath.Relative(rootDir, output, fs.CaseSensitive));
                     var redirect = new ProjectFileRedirect(source, output, config);
@@ -98,37 +98,37 @@ public sealed class ProjectReferences
         Diagnostics = errors.ToArray();
     }
 
-    public ProjectFileRedirect? Find(string path) => sources.GetValueOrDefault(path) ?? outputs.GetValueOrDefault(path)
-        ?? (preserveSymlinks && path.Contains("/node_modules/", StringComparison.Ordinal)
+    public ProjectFileRedirect? Find(Utf8String path) => sources.GetValueOrDefault(path) ?? outputs.GetValueOrDefault(path)
+        ?? (preserveSymlinks && path.Contains("/node_modules/"u8, StringComparison.Ordinal)
             ? outputs.GetValueOrDefault(CompilerPath.Normalize(fs.RealPath(path))) : null);
 
-    public string Redirect(string path)
+    public Utf8String Redirect(Utf8String path)
     {
         if (!UseSources)
             return sources.TryGetValue(path, out var source) ? source.Output : path;
         return Find(path)?.Source ?? path;
     }
 
-    public static string CommonDirectory(IEnumerable<string> files, bool sensitive)
+    public static Utf8String CommonDirectory(IEnumerable<Utf8String> files, bool sensitive)
     {
-        string? common = null;
-        foreach (string file in files)
+        Utf8String? common = null;
+        foreach (Utf8String file in files)
         {
-            string directory = CompilerPath.DirectoryName(file);
+            Utf8String directory = CompilerPath.DirectoryName(file);
             if (common is null)
             {
                 common = directory;
                 continue;
             }
-            while (!CompilerPath.Contains(common, directory, sensitive))
+            while (!CompilerPath.Contains(common.Value, directory, sensitive))
             {
-                string parent = CompilerPath.DirectoryName(common);
+                Utf8String parent = CompilerPath.DirectoryName(common.Value);
                 if (parent == common)
-                    return "";
+                    return Utf8String.Empty;
                 common = parent;
             }
         }
-        return common ?? "";
+        return common ?? Utf8String.Empty;
     }
 
     internal IFileSystem ResolutionFileSystem() => UseSources ? new OutputFileSystem(fs, this) : fs;
@@ -137,32 +137,32 @@ public sealed class ProjectReferences
     {
         public bool CaseSensitive => fs.CaseSensitive;
 
-        public bool FileExists(string path) => fs.FileExists(path) || CompilerPath.IsDeclarationFile(path)
+        public bool FileExists(Utf8String path) => fs.FileExists(path) || CompilerPath.IsDeclarationFile(path)
                     && (references.outputs.GetValueOrDefault(path) ?? references.outputs.GetValueOrDefault(CompilerPath.Normalize(fs.RealPath(path)))) is { } redirect
                     && fs.FileExists(redirect.Source);
 
-        public bool DirectoryExists(string path) => fs.DirectoryExists(path)
+        public bool DirectoryExists(Utf8String path) => fs.DirectoryExists(path)
                     || references.outputs.Values.Any(
                         r => CompilerPath.Contains(CompilerPath.Normalize(fs.RealPath(path)), r.Output, CaseSensitive)
                             && fs.FileExists(r.Source));
 
-        public byte[]? ReadFile(string path) => fs.ReadFile(path);
+        public byte[]? ReadFile(Utf8String path) => fs.ReadFile(path);
 
-        public DirectoryEntries GetAccessibleEntries(string path) => fs.GetAccessibleEntries(path);
+        public DirectoryEntries GetAccessibleEntries(Utf8String path) => fs.GetAccessibleEntries(path);
 
-        public FileEntry? Stat(string path) => fs.Stat(path);
+        public FileEntry? Stat(Utf8String path) => fs.Stat(path);
 
-        public string RealPath(string path) => fs.RealPath(path);
+        public Utf8String RealPath(Utf8String path) => fs.RealPath(path);
 
-        public void WriteFile(string path, ReadOnlySpan<byte> contents) =>
+        public void WriteFile(Utf8String path, ReadOnlySpan<byte> contents) =>
             throw new NotSupportedException("Resolution filesystem is read only");
 
-        public void AppendFile(string path, ReadOnlySpan<byte> contents) =>
+        public void AppendFile(Utf8String path, ReadOnlySpan<byte> contents) =>
             throw new NotSupportedException("Resolution filesystem is read only");
 
-        public void Remove(string path) => throw new NotSupportedException("Resolution filesystem is read only");
+        public void Remove(Utf8String path) => throw new NotSupportedException("Resolution filesystem is read only");
 
-        public void SetTimes(string path, DateTime accessTimeUtc, DateTime writeTimeUtc) =>
+        public void SetTimes(Utf8String path, DateTime accessTimeUtc, DateTime writeTimeUtc) =>
             throw new NotSupportedException("Resolution filesystem is read only");
     }
 }

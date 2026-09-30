@@ -53,7 +53,7 @@ public sealed partial class Parser
                         reportInvalidElement();
                     else
                         Error(elementExpected!);
-                    if ((recoveryBoundary?.Invoke() ?? (!recoveringReparse && Token != K.SemicolonToken && StartsStatement()))
+                    if ((recoveryBoundary?.Invoke() ?? !recoveringReparse && Token != K.SemicolonToken && StartsStatement())
                         || variableDeclarationDepth != 0 && Token == K.EqualsGreaterThanToken
                         || !recoveringReparse && Token is K.CloseBraceToken or K.CloseParenToken or K.CloseBracketToken)
                         break;
@@ -66,7 +66,7 @@ public sealed partial class Parser
                     break;
                 if (!Take(K.CommaToken) && !(semicolons && (Take(K.SemicolonToken) || LineBreak)))
                 {
-                    Error(Messages.X_0_expected, semicolons ? ";" : ",");
+                    Error(Messages.X_0_expected, semicolons ? Utf8Literals.Semicolon : Utf8Literals.Comma);
                     if (!recoveringReparse && Token is K.CloseBraceToken or K.CloseParenToken or K.CloseBracketToken)
                         break;
                 }

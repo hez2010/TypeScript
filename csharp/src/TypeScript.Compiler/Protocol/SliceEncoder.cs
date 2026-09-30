@@ -8,15 +8,15 @@ using TypeScript.Compiler.Text;
 
 namespace TypeScript.Compiler.Protocol;
 
-// Independent version-8 source-file encoding. No reference packet is accepted
+// Independent version-9 source-file encoding with UTF-8 byte positions.
+// No reference packet is accepted
 // as input: strings, extended payloads, MessagePack imports and topology are
 // all produced from the C# syntax store.
 public static class SliceEncoder
 {
     public static byte[] Encode<TStore>(SliceFile<TStore> file, CancellationToken cancellation = default) where TStore : INodeStore
     {
-        using var profile = Diagnostics.NativeProfile.Enter("TypeScript.Encode");
-        var positions = new PositionMap(file.Text);
+        using var profile = Diagnostics.NativeProfile.Enter(Utf8Literals.TypeScriptEncode);
         var strings = new ArrayBufferWriter<byte>();
         var offsets = new List<uint>();
         var extended = new ArrayBufferWriter<byte>();
@@ -40,7 +40,7 @@ public static class SliceEncoder
             if (header.Kind == SyntaxKind.NodeList)
                 flags = file.Store.Get<NodeListData>(frame.Node).TrailingComma ? 1u : 0;
             records.Add(
-                new(header.Kind, positions.Utf8ToUtf16(header.Pos), positions.Utf8ToUtf16(header.End), 0, frame.Parent, data, flags));
+                new(header.Kind, header.Pos, header.End, 0, frame.Parent, data, flags));
             for (int i = SliceSchema.ChildSlots(file.Store, frame.Node) - 1; i >= 0; i--)
             {
                 NodeId child = SliceSchema.ChildAt(file.Store, frame.Node, i);
@@ -61,7 +61,7 @@ public static class SliceEncoder
         int structuredOffset = checked(extendedOffset + extended.WrittenCount);
         int nodeOffset = checked(structuredOffset + structured.WrittenCount);
         byte[] result = new byte[checked(nodeOffset + records.Count * NodeRecord.Size)];
-        BinaryPrimitives.WriteUInt32LittleEndian(result, 8u << 24);
+        BinaryPrimitives.WriteUInt32LittleEndian(result, (uint)AstPacket.FormatVersion << 24);
         BinaryPrimitives.WriteUInt128LittleEndian(result.AsSpan(4), XxHash128.HashToUInt128(file.Text));
         BinaryPrimitives.WriteUInt32LittleEndian(result.AsSpan(24), AstPacket.HeaderSize);
         BinaryPrimitives.WriteUInt32LittleEndian(result.AsSpan(28), (uint)stringDataOffset);
@@ -91,13 +91,14 @@ public static class SliceEncoder
             offsets.Add(checked((uint)strings.WrittenCount));
             return index;
         }
-        uint AddText(ReadOnlySpan<char> text)
+        uint AddText(ReadOnlySpan<byte> text)
         {
             uint index = checked((uint)offsets.Count);
             if (index > 0xFFFFFF)
                 throw new InvalidDataException("AST string table exceeds the protocol limit");
             offsets.Add(checked((uint)strings.WrittenCount));
-            strings.Advance(Wtf8.Encode(text, strings.GetSpan(Encoding.UTF8.GetByteCount(text))));
+            text.CopyTo(strings.GetSpan(text.Length));
+            strings.Advance(text.Length);
             offsets.Add(checked((uint)strings.WrittenCount));
             return index;
         }
@@ -141,7 +142,7 @@ public static class SliceEncoder
                 uint offset = checked((uint)extended.WrittenCount);
                 if (offset > 0xFFFFFF)
                     throw new InvalidDataException("AST extended data exceeds the protocol limit");
-                string text;
+                Utf8String text;
                 uint flags;
                 if (kind == SyntaxKind.StringLiteral)
                 {

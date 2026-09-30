@@ -22,25 +22,25 @@ internal static class CheckerMappedTests
         var relations = new AlgebraFixtureHost(context);
         var algebra = new TypeAlgebra(context, new([]), relations);
         var host = new InstantiationFixtureHost(context, algebra, links, relations);
-        var t = context.NewTypeParameter(new(SymbolFlags.TypeParameter, "T"));
-        var p = context.NewTypeParameter(new(SymbolFlags.TypeParameter, "P"));
+        var t = context.NewTypeParameter(new(SymbolFlags.TypeParameter, "T"u8));
+        var p = context.NewTypeParameter(new(SymbolFlags.TypeParameter, "P"u8));
         var map = TypeMapper.Create([t], [context.NumberType]);
         var emptyMapper = TypeMapper.Create([], []);
         MappedType NewMapped(Type constraint, Type template, SyntaxKind? optional = null)
         {
             var node = new MappedTypeNode
             {
-                TypeParameter = new TypeParameterDeclarationNode { Name = new IdentifierNode { Text = "P" } },
+                TypeParameter = new TypeParameterDeclarationNode { Name = new IdentifierNode { Text = "P"u8 } },
                 Type = new TokenNode(SyntaxKind.UnknownKeyword),
                 QuestionToken = optional is { } kind ? new TokenNode(kind) : null
             };
             node.SetParents();
-            var parameter = context.NewTypeParameter(new(SymbolFlags.TypeParameter, "P"));
+            var parameter = context.NewTypeParameter(new(SymbolFlags.TypeParameter, "P"u8));
             parameter.Symbol!.DeclarationList = parameter.Symbol!.DeclarationList.Add(node.TypeParameter);
             parameter.Constraint = constraint;
             host.Parameters[node.TypeParameter] = parameter;
             host.ConstraintDependencies.Nodes[node.Type!] = _ => ValueTask.FromResult(template);
-            var symbol = new Symbol(SymbolFlags.TypeLiteral, "Mapped");
+            var symbol = new Symbol(SymbolFlags.TypeLiteral, "Mapped"u8);
             symbol.DeclarationList = symbol.DeclarationList.Add(node);
             var type = (MappedType)context.NewObjectType(ObjectFlags.Mapped, symbol);
             type.Declaration = node;
@@ -103,8 +103,8 @@ internal static class CheckerMappedTests
         var aliasError = new IntrinsicType(
             context,
             TypeFlags.Any,
-            "error")
-        { Alias = context.CreateAlias(new(SymbolFlags.TypeAlias, "Unresolved"), []) };
+            "error"u8)
+        { Alias = context.CreateAlias(new(SymbolFlags.TypeAlias, "Unresolved"u8), []) };
         Check(await host.Mapped.InstantiateAsync(constrainedMapped, TypeMapper.Create([constrained], [aliasError])) == aliasError);
 
         var labels = new TupleElementInfo[]
@@ -170,8 +170,8 @@ internal static class CheckerMappedTests
         Check(retry.TemplateType is null);
         host.ConstraintDependencies.Nodes[retry.Declaration.Type!] = _ => ValueTask.FromResult<Type>(context.StringType);
         Check(await host.Mapped.TemplateAsync(retry) == context.StringType);
-        var checkLeaf = new TypeReferenceNode { TypeName = new IdentifierNode { Text = "Check" } };
-        var extendsLeaf = new TypeReferenceNode { TypeName = new IdentifierNode { Text = "Extends" } };
+        var checkLeaf = new TypeReferenceNode { TypeName = new IdentifierNode { Text = "Check"u8 } };
+        var extendsLeaf = new TypeReferenceNode { TypeName = new IdentifierNode { Text = "Extends"u8 } };
         host.ConstraintDependencies.Nodes[checkLeaf] = _ => ValueTask.FromResult<Type>(t);
         host.ConstraintDependencies.Nodes[extendsLeaf] = _ => ValueTask.FromResult<Type>(context.NumberType);
         SyntaxNode checkNode = checkLeaf, extendsNode = extendsLeaf;

@@ -17,7 +17,7 @@ internal interface ITypeNodeHost
 
     ValueTask<Type> TypeQueryAsync(TypeQueryNode node, CancellationToken cancellation);
 
-    ValueTask<IReadOnlyDictionary<TextSlice, Symbol>> MembersAsync(Symbol symbol, CancellationToken cancellation);
+    ValueTask<IReadOnlyDictionary<Utf8String, Symbol>> MembersAsync(Symbol symbol, CancellationToken cancellation);
 
     ValueTask<Type> IndexAsync(Type type, CancellationToken cancellation);
 
@@ -188,7 +188,7 @@ internal sealed class TypeNodes(TypeContext context, CheckerLinks links, Checker
                 break;
             case TemplateLiteralTypeNode template:
                 var spans = template.TemplateSpans!;
-                var texts = new TextSlice[spans.Count + 1];
+                var texts = new Utf8String[spans.Count + 1];
                 var types = new Type[spans.Count];
                 texts[0] = ((TemplateHeadNode)template.Head!).Text;
                 for (int i = 0; i < spans.Count; i++)

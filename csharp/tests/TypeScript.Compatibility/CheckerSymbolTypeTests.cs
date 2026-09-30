@@ -21,21 +21,21 @@ internal static class CheckerSymbolTypeTests
                 throw new InvalidOperationException($"Symbol type assertion {checks + 1}");
             checks++;
         }
-        const string text = "interface I<T> { get value():T; set value(v:T|undefined); p?:T } type S=I<string>; declare const number:number; declare function f(x:number):void; class C<T> { value:T } namespace N { export const name:string; export const other:number; } import A=N.name; import Retry=N.other;";
+        Utf8String text = "interface I<T> { get value():T; set value(v:T|undefined); p?:T } type S=I<string>; declare const number:number; declare function f(x:number):void; class C<T> { value:T } namespace N { export const name:string; export const other:number; } import A=N.name; import Retry=N.other;"u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("strict", "true");
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("strict"u8, "true"u8);
         var program = await CompilerProgram.CreateAsync(
-            new MemoryFileSystem(new Dictionary<string, byte[]> { ["/project/main.ts"] = Wtf8.Encode(text) }),
-            "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+            new MemoryFileSystem(new Dictionary<Utf8String, byte[]> { ["/project/main.ts"u8] = text.Span.ToArray() }),
+            "/project"u8, new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
         var scope = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
         var host = new Checker(context, links, scope);
-        var instance = (ObjectType)await host.Declared.GetAsync(symbols.Globals["S"]);
+        var instance = (ObjectType)await host.Declared.GetAsync(symbols.Globals["S"u8]);
         await host.Members.ResolveAsync(instance);
-        var accessor = instance.Properties!.Single(p => p.Name == "value");
+        var accessor = instance.Properties!.Single(p => p.Name == "value"u8);
         host.BeforeNode = _ => throw new OperationCanceledException();
         try
         {
@@ -64,12 +64,12 @@ internal static class CheckerSymbolTypeTests
         var write = await host.Values.WriteAsync(accessor);
         Check(write is UnionType union && union.Types.Contains(context.StringType) && union.Types.Contains(context.UndefinedType));
         Check(await host.Values.WriteAsync(accessor) == write);
-        var optional = instance.Properties!.Single(p => p.Name == "p");
+        var optional = instance.Properties!.Single(p => p.Name == "p"u8);
         Check(await host.Values.GetAsync(optional) is UnionType missing && missing.Types.Contains(context.MissingType));
         Check(await host.Values.WriteAsync(optional) == context.StringType);
-        Check(await host.Values.GetAsync(symbols.Globals["A"]) == context.StringType);
-        Check(links.Values.Get(symbols.Globals["A"]).ResolvedType == context.StringType);
-        var retry = symbols.Globals["Retry"];
+        Check(await host.Values.GetAsync(symbols.Globals["A"u8]) == context.StringType);
+        Check(links.Values.Get(symbols.Globals["A"u8]).ResolvedType == context.StringType);
+        var retry = symbols.Globals["Retry"u8];
         host.BeforeNode = _ => throw new OperationCanceledException();
         try
         {
@@ -83,14 +83,14 @@ internal static class CheckerSymbolTypeTests
         Check(links.Values.Get(retry).ResolvedType is null && host.Instantiation.Resolutions.Count == 0);
         host.BeforeNode = null;
         Check(await host.Values.GetAsync(retry) == context.NumberType);
-        var prototype = symbols.Globals["C"].Exports["prototype"];
+        var prototype = symbols.Globals["C"u8].Exports["prototype"u8];
         var prototypeType = (TypeReference)await host.Values.GetAsync(prototype);
         Check(prototypeType.ResolvedTypeArguments!.SequenceEqual([context.AnyType]));
         Check(await host.Values.GetAsync(symbols.RequireSymbol) == context.AnyType);
 
         var deferred = new Symbol(
             SymbolFlags.Property | SymbolFlags.Transient,
-            "deferred")
+            "deferred"u8)
         { CheckFlags = CheckFlags.SyntheticProperty | CheckFlags.DeferredType };
         var deferredLinks = links.DeferredSymbols.Get(deferred);
         deferredLinks.Parent = context.NewUnionType([context.StringType, context.NumberType]);
@@ -100,7 +100,7 @@ internal static class CheckerSymbolTypeTests
         Check(await host.Values.WriteAsync(deferred) == context.BooleanType);
         var intersection = new Symbol(
             SymbolFlags.Property | SymbolFlags.Transient,
-            "intersection")
+            "intersection"u8)
         { CheckFlags = CheckFlags.SyntheticProperty | CheckFlags.DeferredType };
         var intersectionLinks = links.DeferredSymbols.Get(intersection);
         intersectionLinks.Parent = context.NewIntersectionType([context.StringType, context.NumberType]);
@@ -108,7 +108,7 @@ internal static class CheckerSymbolTypeTests
         Check(await host.Values.GetAsync(intersection) == context.NeverType);
         Check(await host.Values.WriteAsync(intersection) == context.NeverType);
 
-        var variable = symbols.Globals["number"];
+        var variable = symbols.Globals["number"u8];
         host.VariableBody = (symbol, _, token) => host.Values.GetAsync(symbol, token);
         Check(
             await host.Values.GetAsync(variable) == context.ErrorType
@@ -134,7 +134,7 @@ internal static class CheckerSymbolTypeTests
         host.VariableBody = null;
         Check(await host.Values.GetAsync(variable) == context.NumberType);
 
-        var parameter = symbols.Globals["f"].Declarations.OfType<FunctionDeclarationNode>().Single().Parameters![0];
+        var parameter = symbols.Globals["f"u8].Declarations.OfType<FunctionDeclarationNode>().Single().Parameters![0];
         var parameterSymbol = symbols.Binding(parameter)!.Get(parameter)!.Value.Symbol!;
         host.SensitiveParameter = symbol => symbol == parameterSymbol;
         host.VariableBody = (_, reportErrors, _) =>
@@ -156,7 +156,7 @@ internal static class CheckerSymbolTypeTests
         Symbol deepest = variable;
         for (int i = 0; i < 20_000; i++)
         {
-            var next = new Symbol(SymbolFlags.Property | SymbolFlags.Transient, "instantiated") { CheckFlags = CheckFlags.Instantiated };
+            var next = new Symbol(SymbolFlags.Property | SymbolFlags.Transient, "instantiated"u8) { CheckFlags = CheckFlags.Instantiated };
             links.Values.Get(next).Target = deepest;
             deepest = next;
         }

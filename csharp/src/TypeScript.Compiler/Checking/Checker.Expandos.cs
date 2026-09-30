@@ -151,12 +151,12 @@ internal sealed partial class Checker
     private async ValueTask<Type> PropertyDescriptorTypeAsync(SyntaxNode node, CancellationToken cancellation)
     {
         var type = await CachedExpressionAsync(node, 0, cancellation).ConfigureAwait(false);
-        if (await PropertyTypeAsync(type, "value", cancellation).ConfigureAwait(false) is { } value)
+        if (await PropertyTypeAsync(type, Utf8Literals.Value, cancellation).ConfigureAwait(false) is { } value)
             return value;
-        if (await PropertyTypeAsync(type, "get", cancellation).ConfigureAwait(false) is { } getter
+        if (await PropertyTypeAsync(type, Utf8Literals.Get, cancellation).ConfigureAwait(false) is { } getter
             && await SignaturesAsync(getter, false, cancellation).ConfigureAwait(false) is { Count: 1 } getSignatures)
             return await Signatures.ReturnAsync(getSignatures[0], cancellation).ConfigureAwait(false);
-        if (await PropertyTypeAsync(type, "set", cancellation).ConfigureAwait(false) is { } setter
+        if (await PropertyTypeAsync(type, Utf8Literals.Set, cancellation).ConfigureAwait(false) is { } setter
             && await SignaturesAsync(setter, false, cancellation).ConfigureAwait(false) is { Count: 1 } setSignatures)
             return await Parameters.AtAsync(setSignatures[0], 0, cancellation).ConfigureAwait(false);
         return context.AnyType;
@@ -165,9 +165,9 @@ internal sealed partial class Checker
     private async ValueTask<bool> ReadonlyDescriptorAsync(CallExpressionNode declaration)
     {
         var type = await CachedExpressionAsync(declaration.Arguments![2], 0, default).ConfigureAwait(false);
-        if (await PropertyTypeAsync(type, "value", default).ConfigureAwait(false) is not null)
+        if (await PropertyTypeAsync(type, Utf8Literals.Value, default).ConfigureAwait(false) is not null)
         {
-            var property = await Properties.PropertyAsync(type, "writable").ConfigureAwait(false);
+            var property = await Properties.PropertyAsync(type, Utf8Literals.Writable).ConfigureAwait(false);
             if (property is null)
                 return true;
             var writable = property.ValueDeclaration is PropertyAssignmentNode assigned
@@ -175,10 +175,10 @@ internal sealed partial class Checker
                 : await Values.GetAsync(property).ConfigureAwait(false);
             return (writable.Flags & TypeFlags.BooleanLiteral) != 0 && writable is LiteralType { Value: false };
         }
-        return await PropertyTypeAsync(type, "set", default).ConfigureAwait(false) is null;
+        return await PropertyTypeAsync(type, Utf8Literals.Set, default).ConfigureAwait(false) is null;
     }
 
-    private async ValueTask<Type?> PropertyTypeAsync(Type type, TextSlice name, CancellationToken cancellation)
+    private async ValueTask<Type?> PropertyTypeAsync(Type type, Utf8String name, CancellationToken cancellation)
         => await Properties.PropertyAsync(type, name, cancellation: cancellation).ConfigureAwait(false) is { } property
             ? await Values.GetAsync(property, cancellation).ConfigureAwait(false) : null;
 
@@ -225,11 +225,11 @@ internal sealed partial class Checker
             else if (expression.Kind == SyntaxKind.ThisKeyword)
             {
                 var type = await ExpressionAsync(expression, cancellation).ConfigureAwait(false);
-                TextSlice? name = left is PropertyAccessExpressionNode access
+                Utf8String? name = left is PropertyAccessExpressionNode access
                     ? access.Name is PrivateIdentifierNode privateName && type.Symbol is { } symbol
                         ? PrivateAccess.Name(symbol, privateName.Text)
                         : SyntaxNameText.Get(access.Name)
-                    : (TextSlice?)null;
+                    : (Utf8String?)null;
                 if (left is ElementAccessExpressionNode element)
                 {
                     var key = await CachedExpressionAsync(element.ArgumentExpression!, 0, cancellation).ConfigureAwait(false);
@@ -238,7 +238,7 @@ internal sealed partial class Checker
                 }
                 var property = name is null
                     ? null
-                    : await Properties.PropertyAsync(type, (name).Value, cancellation: cancellation).ConfigureAwait(false);
+                    : await Properties.PropertyAsync(type, name.Value, cancellation: cancellation).ConfigureAwait(false);
                 if (property?.ValueDeclaration is PropertyDeclarationNode { Type: null, Initializer: null }
                     or PropertySignatureDeclarationNode { Type: null })
                     return null;
@@ -249,13 +249,7 @@ internal sealed partial class Checker
         return await ExpressionAsync(left, cancellation).ConfigureAwait(false);
     }
 
-    private static bool ModuleExportsAccess(SyntaxNode? node) => node is
-        PropertyAccessExpressionNode { Expression: IdentifierNode { Text.Span: "module" }, Name: IdentifierNode { Text.Span: "exports" } }
-        or ElementAccessExpressionNode
-        {
-            Expression: IdentifierNode { Text.Span: "module" }, ArgumentExpression: StringLiteralNode { Text.Span: "exports" }
-            or NoSubstitutionTemplateLiteralNode { Text.Span: "exports" }
-        };
+    private static bool ModuleExportsAccess(SyntaxNode? node) => node is PropertyAccessExpressionNode { Expression: IdentifierNode { Text.Span: var matchedText }, Name: IdentifierNode { Text.Span: var matchedText2 } } && matchedText.SequenceEqual("module"u8) && matchedText2.SequenceEqual("exports"u8) || node is ElementAccessExpressionNode { Expression: IdentifierNode { Text.Span: var matchedText3 }, ArgumentExpression: var matchedText4 } && matchedText3.SequenceEqual("module"u8) && (matchedText4 is StringLiteralNode { Text.Span: var matchedText5 } && matchedText5.SequenceEqual("exports"u8) || matchedText4 is NoSubstitutionTemplateLiteralNode { Text.Span: var matchedText6 } && matchedText6.SequenceEqual("exports"u8));
 
     private static bool BindableStaticName(SyntaxNode? node, bool excludeThis)
     {

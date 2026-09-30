@@ -16,7 +16,7 @@ public sealed partial class CompilerProgram
         private readonly HashSet<ContentMapper> mapperInitializationFailures = new(ReferenceEqualityComparer.Instance);
 
         private async ValueTask<ParsedSource> ParseMapped(ContentMapper mapper, ParseOptions options, SourceText original,
-            ReferenceResolutionMode format, string packageDirectory, string packageType)
+            ReferenceResolutionMode format, Utf8String packageDirectory, Utf8String packageType)
         {
             SemaphoreSlim gate;
             lock (mapperGates)
@@ -38,7 +38,7 @@ public sealed partial class CompilerProgram
                     try
                     {
                         if (mapperProject is null)
-                            throw new MapperException(MapperFailure.Project, "Mapper project is unavailable");
+                            throw new MapperException(MapperFailure.Project, Utf8Literals.MapperProjectIsUnavailable);
                         var mapped = await mapperProject.TransformAndParseAsync(
                             mapper,
                             options,
@@ -48,7 +48,7 @@ public sealed partial class CompilerProgram
                             if (fs.FileExists(extra.Syntax.FileName))
                                 throw new MapperException(
                                     MapperFailure.Response,
-                                    "Supplemental output conflicts with an existing file: " + extra.Syntax.FileName);
+                                    Utf8Literals.SupplementalOutputConflictsWithAnExisting + extra.Syntax.FileName);
                         MappedSourceFile Reuse(MappedSourceFile value)
                         {
                             if (previous?.GetFile(value.Syntax.FileName) is { Mapping: { } old } prior && prior.ParseOptions == options
@@ -62,10 +62,10 @@ public sealed partial class CompilerProgram
                         }
                         mapped = new(Reuse(mapped.Canonical), mapped.Supplemental.Select(Reuse).ToArray());
                         var extension = mapped.Canonical.VirtualFileName;
-                        if (extension.EndsWith(".mts", StringComparison.Ordinal) || extension.EndsWith(".mjs", StringComparison.Ordinal))
+                        if (extension.EndsWith(".mts"u8, StringComparison.Ordinal) || extension.EndsWith(".mjs"u8, StringComparison.Ordinal))
                             format = ReferenceResolutionMode.Import;
-                        else if (extension.EndsWith(".cts", StringComparison.Ordinal)
-                            || extension.EndsWith(".cjs", StringComparison.Ordinal))
+                        else if (extension.EndsWith(".cts"u8, StringComparison.Ordinal)
+                            || extension.EndsWith(".cjs"u8, StringComparison.Ordinal))
                             format = ReferenceResolutionMode.Require;
                         return new(mapped.Canonical.Syntax, options, format, packageDirectory, packageType, mapped);
                     }
@@ -84,7 +84,7 @@ public sealed partial class CompilerProgram
                                 mapperFailures[mapper] = ++failures;
                             if (failures == 5)
                                 globals.Add(
-                                    new(Messages.The_content_mapper_0_failed_1_times_and_will_not_be_used, 0, 0, [mapper.Name, "5"]));
+                                    new(Messages.The_content_mapper_0_failed_1_times_and_will_not_be_used, 0, 0, [mapper.Name, Utf8Literals.Five]));
                         }
                         var empty = await Empty().ConfigureAwait(false);
                         if (!initialize)
@@ -104,16 +104,16 @@ public sealed partial class CompilerProgram
             {
                 var file = await Parser.ParseSourceFileAsync(
                     options with { ScriptKind = ScriptKind.TS },
-                    new SourceText(""),
+                    new SourceText(Utf8String.Empty),
                     cancellation).ConfigureAwait(false);
-                return new(new(file, original, new SpanMap([]), options.FileName + ".ts", ContentMapperHost.Identity(mapper), "", []), []);
+                return new(new(file, original, new SpanMap([]), options.FileName + Utf8Literals.Ts, ContentMapperHost.Identity(mapper), Utf8String.Empty, []), []);
             }
         }
 
-        private static Diagnostic MappingDiagnostic(ContentMapper mapper, string file, Exception error)
+        private static Diagnostic MappingDiagnostic(ContentMapper mapper, Utf8String file, Exception error)
         {
             DiagnosticMessage message = Messages.The_content_mapper_0_did_not_provide_the_required_position_mappings;
-            TextSlice[] args = [mapper.Name];
+            Utf8String[] args = [mapper.Name];
             if (error is MappingException mapping)
             {
                 message = mapping.Kind switch
@@ -128,15 +128,15 @@ public sealed partial class CompilerProgram
                 args = mapping.Kind == MappingErrorKind.VerbatimMismatch ?
                     [
                         mapper.Name,
-                        TextSlice.Format(mapping.VirtualPosition),
-                        TextSlice.Format(mapping.OriginalPosition)
+                        Utf8String.Format(mapping.VirtualPosition),
+                        Utf8String.Format(mapping.OriginalPosition)
                     ]
                     :
                         [
                             mapper.Name,
-                            TextSlice.Format((mapping.Kind is MappingErrorKind.OutOfBounds or MappingErrorKind.Feature
+                            Utf8String.Format(mapping.Kind is MappingErrorKind.OutOfBounds or MappingErrorKind.Feature
                                 ? mapping.OriginalPosition
-                                : mapping.VirtualPosition))
+                                : mapping.VirtualPosition)
                         ];
             }
             else

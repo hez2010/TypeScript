@@ -61,7 +61,7 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
     {
         if (call is CallExpressionNode import && IsImportCall(import))
             return index == 0 ? context.StringType : index == 1
-                ? importCallOptionsType ?? await program.Globals.GetAsync("ImportCallOptions", 0, false, cancellation) : context.AnyType;
+                ? importCallOptionsType ?? await program.Globals.GetAsync(Utf8Literals.ImportCallOptions, 0, false, cancellation) : context.AnyType;
         var signature = links.Signatures.Get(call).ResolvedSignature == CallSignatures.Resolving
             ? CallSignatures.Resolving : await CallResolution.GetAsync(call, cancellation: cancellation);
         if (JsxOpening(call) && index == 0)
@@ -92,7 +92,7 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         }
         if (node is TaggedTemplateExpressionNode tagged)
         {
-            var type = await program.Globals.GetAsync("TemplateStringsArray", 0, true, cancellation);
+            var type = await program.Globals.GetAsync(Utf8Literals.TemplateStringsArray, 0, true, cancellation);
             var result = new List<SyntaxNode> { Checking.CallArguments.Synthetic(tagged.Template!, type) };
             if (tagged.Template is TemplateExpressionNode template)
                 result.AddRange(template.TemplateSpans!.OfType<TemplateSpanNode>().Select(s => s.Expression!));
@@ -284,8 +284,8 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
             && SemanticSyntax.Source(node) is { } file)
         {
             var scanner = new Scanner(file.Source, false);
-            scanner.ResetPosition(file.Source.ToUtf16Position(node.End));
-            while (scanner.Position < file.Source.ToUtf16Position(call.Arguments.Pos))
+            scanner.ResetPosition(node.End);
+            while (scanner.Position < call.Arguments.Pos)
             {
                 var token = scanner.Scan();
                 if (token == SyntaxKind.NewLineTrivia || token != SyntaxKind.MultiLineCommentTrivia && scanner.HasPrecedingLineBreak)
@@ -372,12 +372,12 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         }
         if ((result.Flags & TypeFlags.ESSymbolLike) != 0 && node is CallExpressionNode call)
         {
-            var target = call.Expression is PropertyAccessExpressionNode { Name: IdentifierNode { Text.Span: "for" } } property
+            var target = (call.Expression is PropertyAccessExpressionNode { Name: IdentifierNode { Text.Span: var matchedText } } property && matchedText.SequenceEqual("for"u8))
                 ? property.Expression
                 : call.Expression;
-            if (target is IdentifierNode { Text.Span: "Symbol" } identifier
-                && program.Symbols.Lookup(program.Symbols.Globals, "Symbol", SymbolFlags.Value) is { } global
-                && program.Symbols.NameResolver(cancellation).Resolve(identifier, "Symbol", SymbolFlags.Value) == global)
+            if (target is IdentifierNode { Text.Span: var matchedText2 } identifier && matchedText2.SequenceEqual("Symbol"u8)
+                && program.Symbols.Lookup(program.Symbols.Globals, Utf8Literals.Symbol, SymbolFlags.Value) is { } global
+                && program.Symbols.NameResolver(cancellation).Resolve(identifier, Utf8Literals.Symbol, SymbolFlags.Value) == global)
             {
                 var declaration = node.Parent;
                 while (declaration is ParenthesizedExpressionNode)
@@ -390,7 +390,7 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
 
     private bool CommonJsRequire(SyntaxNode node, CancellationToken cancellation)
     {
-        if (node is not CallExpressionNode { Expression: IdentifierNode { Text.Span: "require" } name, Arguments.Count: 1 } call
+        if (!(node is CallExpressionNode { Expression: IdentifierNode { Text.Span: var matchedText3 } name, Arguments.Count: 1 } call && matchedText3.SequenceEqual("require"u8))
             || call.Arguments[0] is not (StringLiteralNode or NoSubstitutionTemplateLiteralNode))
             return false;
         var symbol = program.Symbols.NameResolver(cancellation).Resolve(name, name.Text, SymbolFlags.Value);

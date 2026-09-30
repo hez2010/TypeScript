@@ -22,18 +22,18 @@ internal static class CheckerMemberTests
                 throw new InvalidOperationException($"Structured member assertion {checks + 1}");
             checks++;
         }
-        const string text = "interface Array<T> { [n:number]:T; length:number } interface ReadonlyArray<T> {} interface Base<T> { value:T; self:this } interface Child extends Base<string> { own:number; [key: string]:unknown } type Fn<T> = (x:T) => T; type S = Fn<string>; function body(x:unknown) { return x; } type Pred = (x:unknown) => x is string;";
+        Utf8String text = "interface Array<T> { [n:number]:T; length:number } interface ReadonlyArray<T> {} interface Base<T> { value:T; self:this } interface Child extends Base<string> { own:number; [key: string]:unknown } type Fn<T> = (x:T) => T; type S = Fn<string>; function body(x:unknown) { return x; } type Pred = (x:unknown) => x is string;"u8;
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
+        options.SetRaw("noLib"u8, "true"u8);
         var program = await CompilerProgram.CreateAsync(
-            new MemoryFileSystem(new Dictionary<string, byte[]> { ["/project/main.ts"] = Wtf8.Encode(text) }),
-            "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+            new MemoryFileSystem(new Dictionary<Utf8String, byte[]> { ["/project/main.ts"u8] = text.Span.ToArray() }),
+            "/project"u8, new("/project/tsconfig.json"u8, options, ["/project/main.ts"u8], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
         var scopes = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scopes);
         var host = new Checker(context, links, scopes);
-        var child = (InterfaceType)await host.Declared.GetAsync(symbols.Globals["Child"]);
+        var child = (InterfaceType)await host.Declared.GetAsync(symbols.Globals["Child"u8]);
         host.BeforeNode = _ => throw new OperationCanceledException();
         try
         {
@@ -48,16 +48,16 @@ internal static class CheckerMemberTests
         Check(!child.DeclaredMembersResolved && host.Instantiation.Resolutions.Count == 0);
         host.BeforeNode = null;
         await host.Members.ResolveAsync(child);
-        Check(child.Properties!.Select(p => p.Name).SequenceEqual(["own", "value", "self"]));
-        var value = child.Properties!.Single(p => p.Name == "value");
+        Check(child.Properties!.Select(p => p.Name).SequenceEqual([Utf8String.Copy("own"u8), Utf8String.Copy("value"u8), Utf8String.Copy("self"u8)]));
+        var value = child.Properties!.Single(p => p.Name == "value"u8);
         Check(await host.SymbolTypeAsync(value, default) == context.StringType);
-        Check(await host.SymbolTypeAsync(child.Properties!.Single(p => p.Name == "self"), default) == child);
+        Check(await host.SymbolTypeAsync(child.Properties!.Single(p => p.Name == "self"u8), default) == child);
         Check(child.IndexInfos!.Count == 1 && child.IndexInfos[0].ValueType == context.UnknownType);
         var originalMembers = child.Members;
         Check(await host.Members.ResolveAsync(child) == child && child.Members == originalMembers);
-        Check(symbols.Globals["Base"].Members["value"] != value);
+        Check(symbols.Globals["Base"u8].Members["value"u8] != value);
 
-        var function = (ObjectType)await host.Declared.GetAsync(symbols.Globals["S"]);
+        var function = (ObjectType)await host.Declared.GetAsync(symbols.Globals["S"u8]);
         await host.Members.ResolveAsync(function);
         var signature = function.CallSignatures!.Single();
         Check(signature.Target is not null && signature.ResolvedReturnType is null);
@@ -78,7 +78,7 @@ internal static class CheckerMemberTests
         host.BeforeNode = null;
         Check(await host.Signatures.ReturnAsync(signature) == context.StringType);
         Check(await host.Signatures.ReturnAsync(signature) == context.StringType);
-        var predicateType = (ObjectType)await host.Declared.GetAsync(symbols.Globals["Pred"]);
+        var predicateType = (ObjectType)await host.Declared.GetAsync(symbols.Globals["Pred"u8]);
         await host.Members.ResolveAsync(predicateType);
         var predicateSignature = predicateType.CallSignatures!.Single();
         host.BeforeNode = _ => throw new OperationCanceledException();
@@ -94,10 +94,10 @@ internal static class CheckerMemberTests
         Check(predicateSignature.ResolvedTypePredicate is null);
         host.BeforeNode = null;
         var predicate = await host.Signatures.PredicateAsync(predicateSignature);
-        Check(predicate is { ParameterIndex: 0, ParameterName: { Span: "x" } } && predicate.Type == context.StringType);
+        Check(predicate is { ParameterIndex: 0, ParameterName: { Span: var matchedText } } && matchedText.SequenceEqual("x"u8) && predicate.Type == context.StringType);
         Check(await host.Signatures.PredicateAsync(predicateSignature) == predicate);
 
-        var body = (await host.Signatures.OfSymbolAsync(symbols.Globals["body"])).Single();
+        var body = (await host.Signatures.OfSymbolAsync(symbols.Globals["body"u8])).Single();
         host.ReturnBody = (_, token) => host.Signatures.ReturnAsync(body, token);
         Check(
             await host.Signatures.ReturnAsync(body) == context.AnyType
@@ -129,7 +129,7 @@ internal static class CheckerMemberTests
         composite.Composite = new(true, [predicateSignature, falseReturn]);
         Check((await host.Signatures.PredicateAsync(composite))?.Type == context.StringType);
         var incompatible = context.NewSignature(0, null, [], null, [], context.BooleanType,
-            new(TypePredicateKind.Identifier, 1, "other", context.NumberType), 0);
+            new(TypePredicateKind.Identifier, 1, "other"u8, context.NumberType), 0);
         var mismatch = context.NewSignature(0, null, [], null, [], null, null, 0);
         mismatch.Composite = new(true, [predicateSignature, incompatible]);
         Check(await host.Signatures.PredicateAsync(mismatch) is null);
@@ -181,13 +181,13 @@ internal static class CheckerMemberTests
             checks++;
         }
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        options.SetRaw("allowJs", "true");
-        const string path = "/project/exports.js";
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        options.SetRaw("noLib"u8, "true"u8);
+        options.SetRaw("allowJs"u8, "true"u8);
+        Utf8String path = "/project/exports.js"u8;
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
         {
             [path] = Wtf8.Encode("module.exports.i = function i() {}; module.exports.ii = module.exports.i;")
-        }), "/project", new("/project/tsconfig.json", options, [path], [], [], []));
+        }), "/project"u8, new("/project/tsconfig.json"u8, options, [path], [], [], []));
         var context = new TypeContext(true);
         var links = new CheckerLinks();
         var environment = new CheckerEnvironment(context, links);
@@ -209,11 +209,11 @@ internal static class CheckerMemberTests
             checks++;
         }
         Check(type.Members is null && type.Properties is null && (type.ObjectFlags & ObjectFlags.MembersResolved) == 0);
-        Check(checker.Instantiation.Resolutions.Count == 0 && links.Aliases.Get(module.Exports["ii"]).AliasTarget is null);
+        Check(checker.Instantiation.Resolutions.Count == 0 && links.Aliases.Get(module.Exports["ii"u8]).AliasTarget is null);
         checker.VariableBody = null;
         await checker.Members.ResolveAsync(type);
-        Check(type.Properties!.Select(p => p.Name).Order().SequenceEqual(["i", "ii"]));
-        Check(await checker.Values.GetAsync(module.Exports["ii"]) == await checker.Values.GetAsync(module.Exports["i"]));
+        Check(type.Properties!.Select(p => p.Name).Order().SequenceEqual([Utf8String.Copy("i"u8), Utf8String.Copy("ii"u8)]));
+        Check(await checker.Values.GetAsync(module.Exports["ii"u8]) == await checker.Values.GetAsync(module.Exports["i"u8]));
         Check(!environment.Diagnostics.Contains(DiagnosticCode.CircularDefinitionOfImportAlias0));
         Check(snapshot.All(n => n.Node.Parent == n.Parent && n.Node.Pos == n.Pos && n.Node.End == n.End && n.Node.Flags == n.Flags));
         return checks;
@@ -329,7 +329,7 @@ internal static class CheckerMemberTests
         if (callQueries)
             foreach (var node in nodes)
                 if (node is CallExpressionNode or NewExpressionNode or TaggedTemplateExpressionNode
-                    && CallArguments.Target(node) is not IdentifierNode { Text: { Span: "__expr" } })
+                    && !(CallArguments.Target(node) is IdentifierNode { Text: { Span: var matchedText2 } } && matchedText2.SequenceEqual("__expr"u8)))
                     callRows.Add([nodeId(node), SignatureId(await host.CallResolution.GetAsync(node))]);
         var members = new List<object[]>();
         for (int i = 0; i < pending.Count; i++)
@@ -357,13 +357,13 @@ internal static class CheckerMemberTests
                 indexes.Add([Type(index.KeyType), Type(index.ValueType), index.IsReadonly, nodeId(index.Declaration)]);
             members.Add([typeId(type), properties, calls, constructors, indexes]);
         }
-        writer.WritePropertyName("memberQueries");
+        writer.WritePropertyName("memberQueries"u8);
         Write(queries);
-        writer.WritePropertyName("members");
+        writer.WritePropertyName("members"u8);
         Write(members);
         if (callQueries)
         {
-            writer.WritePropertyName("resolvedCalls");
+            writer.WritePropertyName("resolvedCalls"u8);
             Write(callRows);
         }
         if (signatureQueries)
@@ -398,12 +398,12 @@ internal static class CheckerMemberTests
                             parts!
                         ]);
             }
-            writer.WritePropertyName("signatureGraph");
+            writer.WritePropertyName("signatureGraph"u8);
             Write(rows);
         }
         if (values)
         {
-            writer.WritePropertyName("valueQueries");
+            writer.WritePropertyName("valueQueries"u8);
             Write(valueQueries);
         }
         void Write(object? value)
@@ -422,7 +422,7 @@ internal static class CheckerMemberTests
                 case bool boolean:
                     writer.WriteBooleanValue(boolean);
                     break;
-                case TextSlice slice:
+                case Utf8String slice:
                     writer.WriteStringValue(slice.Span);
                     break;
                 case string text:

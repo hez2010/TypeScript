@@ -7,7 +7,7 @@ namespace TypeScript.Compiler.Configuration;
 
 internal static partial class LocaleIdentifier
 {
-    private static readonly FrozenSet<string> Languages = """
+    private static readonly FrozenSet<Utf8String> Languages = Utf8String.Copy("""
         aa aaa aab aac aad aae aaf aag aah aai aak aal aam aan aao aap aaq aar aas aat aau aav aaw aax
         aaz ab aba abb abc abd abe abf abg abh abi abj abk abl abm abn abo abp abq abr abs abt abu abv
         abw abx aby abz aca acb acd ace acf ach aci ack acl acm acn acp acq acr acs act acu acv acw acx
@@ -383,9 +383,9 @@ internal static partial class LocaleIdentifier
         zpl zpm zpn zpo zpp zpq zpr zps zpt zpu zpv zpw zpx zpy zpz zqe zra zrg zrn zro zrp zrs zsa zsk
         zsl zsm zsr zsu zte ztg ztl ztm ztn ztp ztq zts ztt ztu ztx zty zu zua zuh zul zum zun zuy zwa
         zxx zyb zyg zyj zyn zyp zza zzj
-        """.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).ToFrozenSet(StringComparer.Ordinal);
+        """u8).SplitAny(" \t\r\n"u8, StringSplitOptions.RemoveEmptyEntries).ToFrozenSet(Utf8StringComparer.Ordinal);
 
-    private static readonly FrozenSet<string> Regions = """
+    private static readonly FrozenSet<Utf8String> Regions = Utf8String.Copy("""
         001 002 003 004 005 008 009 010 011 012 013 014 015 016 017 018 019 020 021 024 028 029 030 031
         032 034 035 036 039 040 044 048 050 051 052 053 054 056 057 060 061 064 068 070 072 074 076 084
         086 090 092 096 100 104 108 112 116 120 124 132 136 140 142 143 144 145 148 150 151 152 154 155
@@ -414,9 +414,9 @@ internal static partial class LocaleIdentifier
         tp tr tt tv tw tz ua ug uk um un us uy uz va vc vd ve vg vi vn vu wf wk
         ws xa xb xc xd xe xf xg xh xi xj xk xl xm xn xo xp xq xr xs xt xu xv xw
         xx xy xz yd ye yt yu za zm zr zw zz
-        """.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).ToFrozenSet(StringComparer.Ordinal);
+        """u8).SplitAny(" \t\r\n"u8, StringSplitOptions.RemoveEmptyEntries).ToFrozenSet(Utf8StringComparer.Ordinal);
 
-    private static readonly FrozenSet<string> Scripts = """
+    private static readonly FrozenSet<Utf8String> Scripts = Utf8String.Copy("""
         adlm afak aghb ahom arab aran armi armn avst bali bamu bass batk beng bhks blis bopo brah brai bugi buhd cakm cans cari
         cham cher chrs cirt copt cpmn cprt cyrl cyrs deva diak dogr dsrt dupl egyd egyh egyp elba elym ethi geok geor glag gong
         gonm goth gran grek gujr guru hanb hang hani hano hans hant hatr hebr hira hluw hmng hmnp hrkt hung inds ital jamo java
@@ -428,18 +428,18 @@ internal static partial class LocaleIdentifier
         qabs qabt qabu qabv qabw qabx ranj rjng rohg roro runr samr sara sarb saur sgnw shaw shrd shui sidd sind sinh sogd sogo
         sora soyo sund sunu sylo syrc syre syrj syrn tagb takr tale talu taml tang tavt telu teng tfng tglg thaa thai tibt tirh
         tnsa toto ugar vaii visp vith wara wcho wole xpeo xsux yezi yiii zanb zinh zmth zsye zsym zxxx zyyy zzzz
-        """.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).ToFrozenSet(StringComparer.Ordinal);
+        """u8).SplitAny(" \t\r\n"u8, StringSplitOptions.RemoveEmptyEntries).ToFrozenSet(Utf8StringComparer.Ordinal);
 
-    private static readonly FrozenSet<string> Variants = """
+    private static readonly FrozenSet<Utf8String> Variants = Utf8String.Copy("""
         1606nict 1694acad 1901 1959acad 1994 1996 abl1943 akuapem alalc97 aluku ao1990 aranes arevela arevmda arkaika asante auvern baku1926 balanka barla basiceng bauddha bciav bcizbl
         biscayan biske bohoric boont bornholm cisaup colb1945 cornu creiss dajnko ekavsk emodeng fonipa fonkirsh fonnapa fonupa fonxsamp gallo gascon grclass grital grmistr hepburn heploc
         hognorsk hsistemo ijekavsk itihasa ivanchov jauer jyutping kkcor kociewie kscor laukika lemosin lengadoc lipaw ltg1929 ltg2007 luna1918 metelko monoton ndyuka nedis newfound nicard njiva
         nulik osojs oxendict pahawh2 pahawh3 pahawh4 pamaka peano petr1708 pinyin polyton provenc puter rigik rozaj rumgr scotland scouse simple solba sotav spanglis surmiran sursilv
         sutsilv synnejyl tarask tongyong tunumiit uccor ucrcor ulster unifon vaidika valencia vallader vecdruka vivaraup wadegile xsistemo
-        """.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).ToFrozenSet(StringComparer.Ordinal);
+        """u8).SplitAny(" \t\r\n"u8, StringSplitOptions.RemoveEmptyEntries).ToFrozenSet(Utf8StringComparer.Ordinal);
 
-    private static readonly FrozenSet<string> Grandfathered = """
+    private static readonly FrozenSet<Utf8String> Grandfathered = Utf8String.Copy("""
         art-lojban cel-gaulish en-gb-oed en-us-posix i-ami i-bnn i-default i-enochian i-hak i-klingon i-lux i-mingo i-navajo i-pwn i-tao i-tay i-tsu no-bok no-nyn root sgn-be-fr sgn-be-nl sgn-ch-de zh-guoyu
         zh-hakka zh-min zh-min-nan zh-xiang
-        """.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).ToFrozenSet(StringComparer.Ordinal);
+        """u8).SplitAny(" \t\r\n"u8, StringSplitOptions.RemoveEmptyEntries).ToFrozenSet(Utf8StringComparer.Ordinal);
 }

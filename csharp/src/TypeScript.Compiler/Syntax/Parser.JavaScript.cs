@@ -37,7 +37,7 @@ public sealed partial class Parser
                 _ => null,
             };
             if (question is { Kind: K.QuestionToken } && (question.Flags & NodeFlags.Reparsed) == 0)
-                Error(question, Messages.The_0_modifier_can_only_be_used_in_TypeScript_files, "?");
+                Error(question, Messages.The_0_modifier_can_only_be_used_in_TypeScript_files, Utf8Literals.QuestionMark);
 
             switch (node.Kind)
             {
@@ -71,16 +71,16 @@ public sealed partial class Parser
                         Error(type, Messages.Type_annotations_can_only_be_used_in_TypeScript_files);
                     break;
                 case K.ImportDeclaration when node is ImportDeclarationNode { ImportClause.PhaseModifier: K.TypeKeyword }:
-                    Error(node, Messages.X_0_declarations_can_only_be_used_in_TypeScript_files, "import type");
+                    Error(node, Messages.X_0_declarations_can_only_be_used_in_TypeScript_files, Utf8Literals.ImportTypeKeywords);
                     break;
                 case K.ExportDeclaration when node is ExportDeclarationNode { IsTypeOnly: true }:
-                    Error(node, Messages.X_0_declarations_can_only_be_used_in_TypeScript_files, "export type");
+                    Error(node, Messages.X_0_declarations_can_only_be_used_in_TypeScript_files, Utf8Literals.ExportTypeKeywords);
                     break;
                 case K.ImportSpecifier when node is ImportSpecifierNode { IsTypeOnly: true }:
-                    Error(node, Messages.X_0_declarations_can_only_be_used_in_TypeScript_files, "import...type");
+                    Error(node, Messages.X_0_declarations_can_only_be_used_in_TypeScript_files, Utf8Literals.ImportTypeSequence);
                     break;
                 case K.ExportSpecifier when node is ExportSpecifierNode { IsTypeOnly: true }:
-                    Error(node, Messages.X_0_declarations_can_only_be_used_in_TypeScript_files, "export...type");
+                    Error(node, Messages.X_0_declarations_can_only_be_used_in_TypeScript_files, Utf8Literals.ExportTypeSequence);
                     break;
                 case K.ImportEqualsDeclaration:
                     Error(node, Messages.X_import_can_only_be_used_in_TypeScript_files);
@@ -92,7 +92,7 @@ public sealed partial class Parser
                     Error(node, Messages.X_implements_clauses_can_only_be_used_in_TypeScript_files);
                     break;
                 case K.InterfaceDeclaration:
-                    Error(((INamedNode)node).Name!, Messages.X_0_declarations_can_only_be_used_in_TypeScript_files, "interface");
+                    Error(((INamedNode)node).Name!, Messages.X_0_declarations_can_only_be_used_in_TypeScript_files, Utf8Literals.Interface);
                     break;
                 case K.ModuleDeclaration:
                     Error(
@@ -104,7 +104,7 @@ public sealed partial class Parser
                     Error(((INamedNode)node).Name!, Messages.Type_aliases_can_only_be_used_in_TypeScript_files);
                     break;
                 case K.EnumDeclaration:
-                    Error(((INamedNode)node).Name!, Messages.X_0_declarations_can_only_be_used_in_TypeScript_files, "enum");
+                    Error(((INamedNode)node).Name!, Messages.X_0_declarations_can_only_be_used_in_TypeScript_files, Utf8Literals.EnumKeyword);
                     break;
                 case K.NonNullExpression:
                     Error(node, Messages.Non_null_assertions_can_only_be_used_in_TypeScript_files);
@@ -184,17 +184,17 @@ public sealed partial class Parser
         }
         file.JSDiagnostics = errors.ToArray();
 
-        Diagnostic At(int start, int end, DiagnosticMessage message, params TextSlice[] arguments)
+        Diagnostic At(int start, int end, DiagnosticMessage message, params Utf8String[] arguments)
         {
             var trivia = new Scanner(source);
-            trivia.ResetPosition(Math.Max(0, source.ToUtf16Position(start)));
+            trivia.ResetPosition(Math.Max(0, start));
             trivia.Scan();
-            int tokenStart = Math.Min(source.ToBytePosition(trivia.TokenStart), end);
+            int tokenStart = Math.Min(trivia.TokenStart, end);
             return new(message, tokenStart, Math.Max(0, end - tokenStart), arguments) { FileName = options.FileName };
         }
-        void RangeError(int start, int end, DiagnosticMessage message, params TextSlice[] arguments) =>
+        void RangeError(int start, int end, DiagnosticMessage message, params Utf8String[] arguments) =>
             errors.Add(At(start, end, message, arguments));
-        void Error(SyntaxNode node, DiagnosticMessage message, params TextSlice[] arguments) =>
+        void Error(SyntaxNode node, DiagnosticMessage message, params Utf8String[] arguments) =>
             RangeError(node.Pos, node.End, message, arguments);
         void CheckDecorators(SyntaxNode node, NodeList? modifiers)
         {

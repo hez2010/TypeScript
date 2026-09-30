@@ -26,7 +26,7 @@ internal sealed partial class Checker
             return false;
         if (IllegalDeclarationModifier(node, first.Kind))
             return Report(first, DiagnosticCode.ModifiersCannotAppearHere);
-        if (node is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: "this" } })
+        if (node is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: var matchedText } } && matchedText.SequenceEqual("this"u8))
             return Report(node, DiagnosticCode.NeitherDecoratorsNorModifiersMayBeAppliedToThisParameters);
         UInt128 seen = 0;
         bool moduleElement = node.Parent is SourceFileNode or ModuleBlockNode;
@@ -69,9 +69,9 @@ internal sealed partial class Checker
                     if (Has(SyntaxKind.AbstractKeyword))
                     {
                         if (kind == SyntaxKind.PrivateKeyword)
-                            return Report(modifier, DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier, "private", "abstract");
+                            return Report(modifier, DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier, Utf8Literals.Private, Utf8Literals.Abstract);
                         if (parsed)
-                            return Report(modifier, DiagnosticCode.X0ModifierMustPrecede1Modifier, TokenFacts.Text(kind), "abstract");
+                            return Report(modifier, DiagnosticCode.X0ModifierMustPrecede1Modifier, TokenFacts.Text(kind), Utf8Literals.Abstract);
                     }
                     if (SemanticSyntax.Name(node) is PrivateIdentifierNode)
                         return Report(modifier, DiagnosticCode.AnAccessibilityModifierCannotBeUsedWithAPrivateIdentifier);
@@ -82,27 +82,27 @@ internal sealed partial class Checker
                         return Report(
                             modifier,
                             DiagnosticCode.X0ModifierMustPrecede1Modifier,
-                            "static",
+                            Utf8Literals.Static,
                             Seen(SyntaxKind.ReadonlyKeyword, SyntaxKind.AsyncKeyword, SyntaxKind.AccessorKeyword));
                     if (moduleElement)
                         return Report(modifier, DiagnosticCode.X0ModifierCannotAppearOnAModuleOrNamespaceElement);
                     if (node is ParameterDeclarationNode)
                         return Report(modifier, DiagnosticCode.X0ModifierCannotAppearOnAParameter);
                     if (Has(SyntaxKind.AbstractKeyword))
-                        return Report(modifier, DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier, "static", "abstract");
+                        return Report(modifier, DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier, Utf8Literals.Static, Utf8Literals.Abstract);
                     if (parsed && Has(SyntaxKind.OverrideKeyword))
-                        return Report(modifier, DiagnosticCode.X0ModifierMustPrecede1Modifier, "static", "override");
+                        return Report(modifier, DiagnosticCode.X0ModifierMustPrecede1Modifier, Utf8Literals.Static, Utf8Literals.Override);
                     break;
                 case SyntaxKind.ConstKeyword:
                     if (node is not (EnumDeclarationNode or TypeParameterDeclarationNode))
-                        return Report(node, DiagnosticCode.AClassMemberCannotHaveThe0Keyword, "const");
+                        return Report(node, DiagnosticCode.AClassMemberCannotHaveThe0Keyword, Utf8Literals.Const);
                     break;
                 case SyntaxKind.AccessorKeyword:
                     if (Has(SyntaxKind.ReadonlyKeyword) || Has(SyntaxKind.DeclareKeyword))
                         return Report(
                             modifier,
                             DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier,
-                            "accessor",
+                            Utf8Literals.Accessor,
                             Seen(SyntaxKind.ReadonlyKeyword, SyntaxKind.DeclareKeyword));
                     if (node is not PropertyDeclarationNode)
                         return Report(modifier, DiagnosticCode.XAccessorModifierCanOnlyAppearOnAPropertyDeclaration);
@@ -112,7 +112,7 @@ internal sealed partial class Checker
                         or ParameterDeclarationNode))
                         return Report(modifier, DiagnosticCode.XReadonlyModifierCanOnlyAppearOnAPropertyDeclarationOrIndexSignature);
                     if (Has(SyntaxKind.AccessorKeyword))
-                        return Report(modifier, DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier, "readonly", "accessor");
+                        return Report(modifier, DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier, Utf8Literals.Readonly, Utf8Literals.Accessor);
                     break;
                 case SyntaxKind.ExportKeyword:
                     if ((node.Flags & NodeFlags.Ambient) == 0 && node.Parent is SourceFileNode
@@ -126,7 +126,7 @@ internal sealed partial class Checker
                         return Report(
                             modifier,
                             DiagnosticCode.X0ModifierMustPrecede1Modifier,
-                            "export",
+                            Utf8Literals.Export,
                             Seen(SyntaxKind.DeclareKeyword, SyntaxKind.AbstractKeyword, SyntaxKind.AsyncKeyword));
                     if (SemanticSyntax.ClassLike(node.Parent))
                         return Report(modifier, DiagnosticCode.X0ModifierCannotAppearOnClassElementsOfThisKind);
@@ -138,7 +138,7 @@ internal sealed partial class Checker
                     if (container is ModuleDeclarationNode && !AmbientModule(container))
                         return Report(modifier, DiagnosticCode.ADefaultExportCanOnlyBeUsedInAnECMAScriptStyleModule);
                     if (parsed && !Has(SyntaxKind.ExportKeyword))
-                        return Report(modifier, DiagnosticCode.X0ModifierMustPrecede1Modifier, "export", "default");
+                        return Report(modifier, DiagnosticCode.X0ModifierMustPrecede1Modifier, Utf8Literals.Export, Utf8Literals.Default);
                     break;
                 case SyntaxKind.DeclareKeyword:
                     if (Has(SyntaxKind.AsyncKeyword) || Has(SyntaxKind.OverrideKeyword))
@@ -155,7 +155,7 @@ internal sealed partial class Checker
                     if (SemanticSyntax.Name(node) is PrivateIdentifierNode)
                         return Report(modifier, DiagnosticCode.X0ModifierCannotBeUsedWithAPrivateIdentifier);
                     if (Has(SyntaxKind.AccessorKeyword))
-                        return Report(modifier, DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier, "declare", "accessor");
+                        return Report(modifier, DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier, Utf8Literals.Declare, Utf8Literals.Accessor);
                     break;
                 case SyntaxKind.AbstractKeyword:
                     if (node is not (ClassDeclarationNode or ConstructorTypeNode))
@@ -174,18 +174,18 @@ internal sealed partial class Checker
                                 modifier,
                                 DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier,
                                 Seen(SyntaxKind.StaticKeyword, SyntaxKind.PrivateKeyword),
-                                "abstract");
+                                Utf8Literals.Abstract);
                         if (Has(SyntaxKind.AsyncKeyword))
                             return Report(
                                 modifiers.First(m => m.Kind == SyntaxKind.AsyncKeyword),
                                 DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier,
-                                "async",
-                                "abstract");
+                                Utf8Literals.Async,
+                                Utf8Literals.Abstract);
                         if (parsed && (Has(SyntaxKind.OverrideKeyword) || Has(SyntaxKind.AccessorKeyword)))
                             return Report(
                                 modifier,
                                 DiagnosticCode.X0ModifierMustPrecede1Modifier,
-                                "abstract",
+                                Utf8Literals.Abstract,
                                 Seen(SyntaxKind.OverrideKeyword, SyntaxKind.AccessorKeyword));
                     }
                     if (SemanticSyntax.Name(node) is PrivateIdentifierNode)
@@ -197,17 +197,17 @@ internal sealed partial class Checker
                     if (node is ParameterDeclarationNode)
                         return Report(modifier, DiagnosticCode.X0ModifierCannotAppearOnAParameter);
                     if (Has(SyntaxKind.AbstractKeyword))
-                        return Report(modifier, DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier, "async", "abstract");
+                        return Report(modifier, DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier, Utf8Literals.Async, Utf8Literals.Abstract);
                     break;
                 case SyntaxKind.OverrideKeyword:
                     if (Has(SyntaxKind.DeclareKeyword))
-                        return Report(modifier, DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier, "override", "declare");
+                        return Report(modifier, DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier, Utf8Literals.Override, Utf8Literals.Declare);
                     if (parsed && (Has(SyntaxKind.ReadonlyKeyword) || Has(SyntaxKind.AccessorKeyword)
                         || Has(SyntaxKind.AsyncKeyword)))
                         return Report(
                             modifier,
                             DiagnosticCode.X0ModifierMustPrecede1Modifier,
-                            "override",
+                            Utf8Literals.Override,
                             Seen(SyntaxKind.ReadonlyKeyword, SyntaxKind.AccessorKeyword, SyntaxKind.AsyncKeyword));
                     break;
                 case SyntaxKind.InKeyword:
@@ -245,7 +245,7 @@ internal sealed partial class Checker
             return (uint)index < 128 ? UInt128.One << index : 0;
         }
 
-        TextSlice Seen(params SyntaxKind[] kinds)
+        Utf8String Seen(params SyntaxKind[] kinds)
         {
             foreach (var kind in kinds)
                 if (Has(kind))
@@ -253,7 +253,7 @@ internal sealed partial class Checker
             throw new InvalidOperationException("Sequence contains no matching element");
         }
 
-        bool Report(SyntaxNode location, DiagnosticCode code, params TextSlice[] arguments)
+        bool Report(SyntaxNode location, DiagnosticCode code, params Utf8String[] arguments)
         {
             Error(location, code, arguments.Length != 0 ? arguments
                 : code is DiagnosticCode.X0ModifierAlreadySeen or DiagnosticCode.X0ModifierCannotBeUsedInAnAmbientContext

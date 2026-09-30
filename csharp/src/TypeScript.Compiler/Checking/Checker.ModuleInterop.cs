@@ -34,30 +34,30 @@ internal sealed partial class Checker
         if (ModuleKind is >= 100 and <= 199)
             return metadata.ImpliedFormat;
         if (metadata.ImpliedFormat == ReferenceResolutionMode.Require
-            && (metadata.PackageType == "commonjs"
-                || file.FileName.EndsWith(".cts", StringComparison.OrdinalIgnoreCase)
-                || file.FileName.EndsWith(".cjs", StringComparison.OrdinalIgnoreCase)))
+            && (metadata.PackageType == Utf8Literals.Commonjs
+                || file.FileName.EndsWith(".cts"u8, StringComparison.OrdinalIgnoreCase)
+                || file.FileName.EndsWith(".cjs"u8, StringComparison.OrdinalIgnoreCase)))
             return ReferenceResolutionMode.Require;
         if (metadata.ImpliedFormat == ReferenceResolutionMode.Import
-            && (metadata.PackageType == "module"
-                || file.FileName.EndsWith(".mts", StringComparison.OrdinalIgnoreCase)
-                || file.FileName.EndsWith(".mjs", StringComparison.OrdinalIgnoreCase)))
+            && (metadata.PackageType == Utf8Literals.Module
+                || file.FileName.EndsWith(".mts"u8, StringComparison.OrdinalIgnoreCase)
+                || file.FileName.EndsWith(".mjs"u8, StringComparison.OrdinalIgnoreCase)))
             return ReferenceResolutionMode.Import;
         return ReferenceResolutionMode.Unspecified;
     }
 
     private bool DefaultOnlyModule(Symbol module, SyntaxNode specifier) => ModuleKind is >= 100 and <= 199
         && ModuleUsageMode(specifier) == ReferenceResolutionMode.Import && module.Declarations.OfType<SourceFileNode>().Any(
-            f => f.ScriptKind == ScriptKind.JSON || f.FileName.EndsWith(".d.json.ts", StringComparison.OrdinalIgnoreCase));
+            f => f.ScriptKind == ScriptKind.JSON || f.FileName.EndsWith(".d.json.ts"u8, StringComparison.OrdinalIgnoreCase));
 
     private async ValueTask<Symbol?> ResolveModuleExportAsync(
         Symbol module,
-        TextSlice name,
+        Utf8String name,
         bool dontResolveAlias,
         CancellationToken cancellation)
     {
         Symbol? symbol;
-        if (module.Exports.TryGetValue("export=", out var assignment))
+        if (module.Exports.TryGetValue(Utf8Literals.ExportEquals, out var assignment))
             symbol = await Properties.PropertyAsync(
                 await Values.GetAsync(assignment, cancellation).ConfigureAwait(false),
                 name,
@@ -93,17 +93,17 @@ internal sealed partial class Checker
         }
         if (file is null || file.IsDeclarationFile)
         {
-            var declaredDefault = await ResolveModuleExportAsync(module, "default", true, cancellation).ConfigureAwait(false);
+            var declaredDefault = await ResolveModuleExportAsync(module, Utf8Literals.Default, true, cancellation).ConfigureAwait(false);
             if (declaredDefault?.Declarations.Any(
                 d => d is ExportAssignmentNode { IsExportEquals: false } || SemanticSyntax.HasModifier(d, SyntaxKind.DefaultKeyword)
                 || d is ExportSpecifierNode or NamespaceExportNode) == true)
                 return false;
-            return await ResolveModuleExportAsync(module, "__esModule", dontResolveAlias, cancellation).ConfigureAwait(false) is null;
+            return await ResolveModuleExportAsync(module, Utf8Literals.EsModule, dontResolveAlias, cancellation).ConfigureAwait(false) is null;
         }
         if ((file.Flags & NodeFlags.JavaScriptFile) == 0)
-            return module.Exports.ContainsKey("export=");
+            return module.Exports.ContainsKey(Utf8Literals.ExportEquals);
         return (file.ExternalModuleIndicator is null || file.ExternalModuleIndicator == file)
-            && await ResolveModuleExportAsync(module, "__esModule", dontResolveAlias, cancellation).ConfigureAwait(false) is null;
+            && await ResolveModuleExportAsync(module, Utf8Literals.EsModule, dontResolveAlias, cancellation).ConfigureAwait(false) is null;
     }
 
     internal async ValueTask<Symbol?> ModuleDefaultAsync(
@@ -120,11 +120,11 @@ internal sealed partial class Checker
             && ModuleUsageMode(specifier) == ReferenceResolutionMode.Require
             && ModuleTargetMode(file) == ReferenceResolutionMode.Import && await ResolveModuleExportAsync(
                 module,
-                "module.exports",
+                Utf8Literals.ModuleExports,
                 dontResolveAlias,
                 cancellation).ConfigureAwait(false) is { } moduleExports)
             return moduleExports;
-        var result = await ResolveModuleExportAsync(module, "default", dontResolveAlias, cancellation).ConfigureAwait(false);
+        var result = await ResolveModuleExportAsync(module, Utf8Literals.Default, dontResolveAlias, cancellation).ConfigureAwait(false);
         if (specifier is null)
             return result;
         bool synthetic = await SyntheticDefaultAsync(
@@ -144,11 +144,11 @@ internal sealed partial class Checker
                             ? DiagnosticCode.Module0HasNoDefaultExportDidYouMeanToUseImport1From0Instead
                             : DiagnosticCode.Module0HasNoDefaultExport),
                     named ? [TypeDisplay.SymbolName(module), clause.Name.Text] : [TypeDisplay.SymbolName(module)]);
-                if (!named && module.Exports.TryGetValue(Symbol.InternalPrefix + "export", out var stars))
+                if (!named && module.Exports.TryGetValue(Symbol.InternalExport, out var stars))
                     foreach (var export in stars.Declarations.OfType<ExportDeclarationNode>())
                         if (export.ModuleSpecifier is not null
                             && await program.ExportStarModuleAsync(export, cancellation) is { } exported
-                            && exported.Exports.ContainsKey("default"))
+                            && exported.Exports.ContainsKey(Utf8Literals.Default))
                         {
                             diagnostic = diagnostic with
                             {
@@ -212,7 +212,7 @@ internal sealed partial class Checker
             && ModuleTargetMode(file) == ReferenceResolutionMode.Import
             && await program.ModuleExports.ExportAsync(
                 target,
-                "module.exports",
+                Utf8Literals.ModuleExports,
                 node,
                 true,
                 cancellation).ConfigureAwait(false) is { } moduleExports)
@@ -227,7 +227,7 @@ internal sealed partial class Checker
             && mode == ReferenceResolutionMode.Import
             && ModuleTargetMode(file) == ReferenceResolutionMode.Require;
         if (signatures
-            || await Properties.PropertyAsync(type, "default", true, cancellation: cancellation).ConfigureAwait(false) is not null
+            || await Properties.PropertyAsync(type, Utf8Literals.Default, true, cancellation: cancellation).ConfigureAwait(false) is not null
             || esmCommonJs)
         {
             var adjusted = type is StructuredType ? await SyntheticModuleTypeAsync(
@@ -260,7 +260,7 @@ internal sealed partial class Checker
         Type result = type;
         if (await SyntheticDefaultAsync(original, specifier, false, cancellation).ConfigureAwait(false))
         {
-            var symbol = new Symbol(SymbolFlags.TypeLiteral | SymbolFlags.Transient, Symbol.InternalPrefix + "type");
+            var symbol = new Symbol(SymbolFlags.TypeLiteral | SymbolFlags.Transient, Symbol.InternalType);
             symbol.DeclarationList = symbol.DeclarationList.AddRange(original.Declarations);
             var wrapper = await DefaultWrapperAsync(target, original, symbol, cancellation).ConfigureAwait(false);
             links.Values.Get(symbol).ResolvedType = wrapper;
@@ -273,18 +273,18 @@ internal sealed partial class Checker
 
     private async ValueTask<Type> DefaultWrapperAsync(Symbol target, Symbol? original, Symbol? anonymous, CancellationToken cancellation)
     {
-        var property = new Symbol(SymbolFlags.Alias | SymbolFlags.Transient, "default") { Parent = original };
-        links.Values.Get(property).NameType = context.GetStringLiteralType("default");
+        var property = new Symbol(SymbolFlags.Alias | SymbolFlags.Transient, Utf8Literals.Default) { Parent = original };
+        links.Values.Get(property).NameType = context.GetStringLiteralType(Utf8Literals.Default);
         links.Aliases.Get(property).AliasTarget = await program.Aliases.SymbolAsync(
             target,
             cancellation: cancellation).ConfigureAwait(false);
         if (anonymous is null && original is not null)
         {
-            anonymous = new Symbol(SymbolFlags.ObjectLiteral | SymbolFlags.Transient, Symbol.InternalPrefix + "object");
+            anonymous = new Symbol(SymbolFlags.ObjectLiteral | SymbolFlags.Transient, Symbol.InternalObject);
             anonymous.DeclarationList = anonymous.DeclarationList.AddRange(original.Declarations);
         }
         var result = context.NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved, anonymous);
-        result.Members = new Dictionary<TextSlice, Symbol> { ["default"] = property }.AsReadOnly();
+        result.Members = new Dictionary<Utf8String, Symbol> { [Utf8Literals.Default] = property }.AsReadOnly();
         result.Properties = [property];
         return result;
     }
@@ -299,11 +299,11 @@ internal sealed partial class Checker
     {
         if (nameNode is not (IdentifierNode or StringLiteralNode) || nameNode is IdentifierNode { Text.Length: 0 })
             return null;
-        TextSlice name = AliasTargets.Text(nameNode) ?? SyntaxNameText.Get(nameNode);
+        Utf8String name = AliasTargets.Text(nameNode) ?? SyntaxNameText.Get(nameNode);
         if (module.ValueDeclaration is ModuleDeclarationNode { Body: null })
             return module;
         Symbol? value = null;
-        bool exportEquals = module.Exports.ContainsKey("export=");
+        bool exportEquals = module.Exports.ContainsKey(Utf8Literals.ExportEquals);
         if (exportEquals)
             value = await Properties.PropertyAsync(
                 await Values.GetAsync(target, cancellation).ConfigureAwait(false),

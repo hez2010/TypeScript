@@ -16,9 +16,9 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
     internal ReferenceSymbols ReferenceSymbols { get; private set; } = null!;
     internal ValueUseChecks ValueUses { get; private set; } = null!;
     internal List<DiagnosticCode> ValueSuggestions { get; } = [];
-    private readonly HashSet<(SyntaxNode Node, DiagnosticCode Code, TextSlice Name)> reportedSuggestions = [];
+    private readonly HashSet<(SyntaxNode Node, DiagnosticCode Code, Utf8String Name)> reportedSuggestions = [];
 
-    internal void Suggestion(SyntaxNode node, DiagnosticCode code, TextSlice name)
+    internal void Suggestion(SyntaxNode node, DiagnosticCode code, Utf8String name)
     {
         if (reportedSuggestions.Add((node, code, name)))
             ValueSuggestions.Add(code);
@@ -34,11 +34,11 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
     internal ModuleTypes ModuleTypes { get; private set; } = null!;
     internal ModuleExports ModuleExports { get; private set; } = null!;
     internal Checker? SemanticChecker { get; set; }
-    private readonly HashSet<(SyntaxNode? Node, DiagnosticCode Code, TextSlice Arguments)> reported = [];
+    private readonly HashSet<(SyntaxNode? Node, DiagnosticCode Code, Utf8String Arguments)> reported = [];
     internal List<DiagnosticCode> Diagnostics { get; } = [];
     internal List<(SyntaxNode? Node, Diagnostic Diagnostic)> DiagnosticFiles { get; } = [];
 
-    private void AddDiagnostic(SyntaxNode? node, DiagnosticMessage message, TextSlice[] arguments)
+    private void AddDiagnostic(SyntaxNode? node, DiagnosticMessage message, Utf8String[] arguments)
     {
         Diagnostics.Add(message.Code);
         DiagnosticFiles.Add((node, CheckerDiagnostic.Create(node, message, arguments)));
@@ -50,7 +50,7 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
     internal Action? BeforeGlobalTypes { get; set; }
     internal Action? BeforeResolveType { get; set; }
     internal Action? BeforeValueResolution { get; set; }
-    internal Func<SyntaxNode, TextSlice, ValueTask<bool>>? MissingPrefixCheck { get; set; }
+    internal Func<SyntaxNode, Utf8String, ValueTask<bool>>? MissingPrefixCheck { get; set; }
     internal Func<SyntaxNode, ValueTask<bool>>? ExtendingInterfaceCheck { get; set; }
     internal Func<Symbol, Symbol>? LateMemberSymbol { get; set; }
     internal Func<Symbol, CancellationToken, ValueTask<Signature?>>? CallSignature { get; set; }
@@ -80,7 +80,7 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
     public Symbol LateBoundSymbol(Symbol symbol)
         =>
             LateMemberSymbol is { } resolve ? resolve(symbol)
-                : (symbol.Flags & SymbolFlags.ClassMember) == 0 || symbol.Name != Symbol.InternalPrefix + "computed"
+                : (symbol.Flags & SymbolFlags.ClassMember) == 0 || symbol.Name != Symbol.InternalComputed
                 ? symbol
                 : throw new InvalidOperationException("Checker requires computed member binding");
 
@@ -114,8 +114,8 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
             {
                 var node = Location(declaration)!;
                 var sourceName = SemanticSyntax.Name(source.ValueDeclaration ?? source.Declarations.FirstOrDefault());
-                TextSlice name = sourceName is ComputedPropertyNameNode or StringLiteralNode or NumericLiteralNode
-                    ? CheckerDiagnostic.DeclarationName(sourceName) : source.Name.Length == 0 ? "(Missing)" : source.Name;
+                Utf8String name = sourceName is ComputedPropertyNameNode or StringLiteralNode or NumericLiteralNode
+                    ? CheckerDiagnostic.DeclarationName(sourceName) : source.Name.Length == 0 ? Utf8Literals.MissingDisplay : source.Name;
                 var related = new List<Diagnostic>();
                 var locations = new HashSet<SyntaxNode>();
                 foreach (var otherDeclaration in other.Declarations)
@@ -132,9 +132,9 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
         }
     }
 
-    public void Error(SyntaxNode? node, DiagnosticMessage message, params TextSlice[] arguments)
+    public void Error(SyntaxNode? node, DiagnosticMessage message, params Utf8String[] arguments)
     {
-        TextSlice key = TextSlice.Frame(arguments);
+        Utf8String key = Utf8String.Frame(arguments);
         if (reported.Add((node, message.Code, key)))
             AddDiagnostic(node, message, arguments);
     }
@@ -168,14 +168,14 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
         var programFile = Symbols.Program.GetFile(file.FileName)!;
         var resolution = programFile.Resolutions.FirstOrDefault(r => r.Node == moduleName)?.Resolution;
         Symbol? result = resolution is { IsResolved: true } ? Symbols.Program.GetFile(resolution.FileName)?.Binding.Symbol : null;
-        TextSlice name = ((StringLiteralNode)moduleName).Text;
-        result ??= Symbols.Globals.GetValueOrDefault(TextSlice.Concat("\"", name, "\""));
+        Utf8String name = ((StringLiteralNode)moduleName).Text;
+        result ??= Symbols.Globals.GetValueOrDefault(Utf8String.Concat("\""u8, name, "\""u8));
         if (result is null)
         {
             int longest = -1;
             foreach (var pattern in Symbols.PatternModules)
             {
-                int star = pattern.Pattern.Span.IndexOf('*');
+                int star = pattern.Pattern.Span.IndexOf((byte)'*');
                 if (star > longest && name.Length >= pattern.Pattern.Length - 1
                     && name.Span.StartsWith(pattern.Pattern.Span.Slice(0, star), StringComparison.Ordinal)
                     && name.Span.EndsWith(pattern.Pattern.Span.Slice(star + 1), StringComparison.Ordinal))
@@ -197,13 +197,13 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
         => await AliasTargets.ExternalModuleAsync(symbol, false, cancellation).ConfigureAwait(false)
             ?? throw new InvalidOperationException("Present module resolved to no symbol");
 
-    public ValueTask<IReadOnlyDictionary<TextSlice, Symbol>> ResolvedExportsAsync(Symbol symbol, CancellationToken cancellation)
+    public ValueTask<IReadOnlyDictionary<Utf8String, Symbol>> ResolvedExportsAsync(Symbol symbol, CancellationToken cancellation)
         => ExportsAsync(symbol, cancellation);
 
-    public bool InvalidInitializer(SyntaxNode? location, TextSlice name, SyntaxNode declaration, Symbol? result)
+    public bool InvalidInitializer(SyntaxNode? location, Utf8String name, SyntaxNode declaration, Symbol? result)
         => ValueUses.InvalidInitializer(location, name, declaration, result);
 
-    public void FailedResolution(SyntaxNode? location, TextSlice name, SymbolFlags meaning, DiagnosticMessage message)
+    public void FailedResolution(SyntaxNode? location, Utf8String name, SymbolFlags meaning, DiagnosticMessage message)
     {
         if (SemanticChecker is { } checker)
         {
@@ -226,7 +226,7 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
                 var target = Symbols.NameResolver().Resolve(
                     location,
                     name,
-                    SymbolFlags.NamespaceModule | (SymbolFlags.Type & ~SymbolFlags.Value));
+                    SymbolFlags.NamespaceModule | SymbolFlags.Type & ~SymbolFlags.Value);
                 if (Aliases.SymbolAsync(target).GetAwaiter().GetResult() is not null)
                     return;
             }
@@ -246,11 +246,11 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
         ValueUses.ResolvedAsync(location, symbol, meaning, last, declaration, deferred).GetAwaiter().GetResult();
     }
 
-    public void ValueUseError(SyntaxNode? node, DiagnosticMessage message, params TextSlice[] arguments) => Error(node, message, arguments);
+    public void ValueUseError(SyntaxNode? node, DiagnosticMessage message, params Utf8String[] arguments) => Error(node, message, arguments);
 
-    public void ValueUseSuggestion(SyntaxNode node, DiagnosticMessage message, TextSlice name) => Suggestion(node, message.Code, name);
+    public void ValueUseSuggestion(SyntaxNode node, DiagnosticMessage message, Utf8String name) => Suggestion(node, message.Code, name);
 
-    public void DeclarationRelatedInfo(SyntaxNode? location, DiagnosticCode code, SyntaxNode declaration, bool typeOnly, TextSlice name)
+    public void DeclarationRelatedInfo(SyntaxNode? location, DiagnosticCode code, SyntaxNode declaration, bool typeOnly, Utf8String name)
     {
         var message = !typeOnly ? Messages.X_0_is_declared_here
             : declaration is ExportSpecifierNode or ExportDeclarationNode or NamespaceExportNode
@@ -268,7 +268,7 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
 
     public bool ValidTypeOnlyUse(SyntaxNode node) => ReferenceSyntax.ValidTypeOnlyUse(node);
 
-    public bool MissingPrefix(SyntaxNode node, TextSlice name) => MissingPrefixCheck is { } check ? check(node, name).GetAwaiter().GetResult()
+    public bool MissingPrefix(SyntaxNode node, Utf8String name) => MissingPrefixCheck is { } check ? check(node, name).GetAwaiter().GetResult()
         : throw new InvalidOperationException("Checker requires missing-prefix diagnostics");
 
     public ValueTask<bool> InitializedInStaticBlocksAsync(PropertyDeclarationNode declaration, SyntaxNode usage,

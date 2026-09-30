@@ -17,15 +17,15 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
     internal List<DiagnosticCode> Suggestions { get; } = [];
     private readonly HashSet<(SyntaxNode, DiagnosticCode)> suggestionLocations = [];
 
-    public void DuplicateObjectProperty(SyntaxNode node, TextSlice name) =>
+    public void DuplicateObjectProperty(SyntaxNode node, Utf8String name) =>
         Error(node, DiagnosticCode.AnObjectLiteralCannotHaveMultiplePropertiesWithTheSameName, CheckerDiagnostic.DeclarationName(node));
 
     public void ExpressionError(SyntaxNode node, DiagnosticCode code)
     {
         if (code == DiagnosticCode.X0Expected
-            && node is IdentifierNode { Text.Span: "defer", Parent: MetaPropertyNode { KeywordToken: SyntaxKind.ImportKeyword } })
+            && node is IdentifierNode { Text.Span: var matchedText, Parent: MetaPropertyNode { KeywordToken: SyntaxKind.ImportKeyword } } && matchedText.SequenceEqual("defer"u8))
         {
-            Error(node, CheckerDiagnostic.Create(node, Messages.X_0_expected, "(") with { Start = node.End, Length = 0 });
+            Error(node, CheckerDiagnostic.Create(node, Messages.X_0_expected, Utf8Literals.OpenParen) with { Start = node.End, Length = 0 });
             return;
         }
         if (code == DiagnosticCode.ARestParameterOrBindingPatternMayNotHaveATrailingComma
@@ -40,7 +40,7 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
             && SemanticSyntax.Body(function) is BlockNode body)
         {
             var directive = body.Statements!.OfType<ExpressionStatementNode>().First(n =>
-                n.Expression is StringLiteralNode { Text.Span: "use strict" });
+                (n.Expression is StringLiteralNode { Text.Span: var matchedText2 } && matchedText2.SequenceEqual("use strict"u8)));
             Error(node, CheckerDiagnostic.Create(node, Messages.This_parameter_is_not_allowed_with_use_strict_directive) with
             { RelatedInformation = [CheckerDiagnostic.Create(directive, Messages.X_use_strict_directive_used_here)] });
             return;
@@ -59,7 +59,7 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
         }
         if (code == DiagnosticCode.X0Expected && node is MethodDeclarationNode { Parent: ObjectLiteralExpressionNode, Body: null })
         {
-            Error(node, CheckerDiagnostic.Create(node, Messages.X_0_expected, "{") with { Start = node.End - 1, Length = 1 });
+            Error(node, CheckerDiagnostic.Create(node, Messages.X_0_expected, Utf8Literals.OpenBrace) with { Start = node.End - 1, Length = 1 });
             return;
         }
         if (code == DiagnosticCode.ThisSyntaxIsNotAllowedWhenErasableSyntaxOnlyIsEnabled
@@ -94,30 +94,30 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
             EmptyTypeListError(node, signature.TypeParameters, code);
             return;
         }
-        TextSlice[] arguments = code switch
+        Utf8String[] arguments = code switch
         {
             DiagnosticCode.X0ModifierCannotBeUsedHere => [TokenFacts.Text(node.Kind)!],
             DiagnosticCode.A0ParameterMustBeTheFirstParameter => [SyntaxNameText.Get(((ParameterDeclarationNode)node).Name!)],
             DiagnosticCode.TypeParameter0HasACircularDefault => [SyntaxNameText.Get(((TypeParameterDeclarationNode)node.Parent!).Name!)],
             DiagnosticCode.TypeParameterNameCannotBe0 => [CheckerDiagnostic.DeclarationName(node)],
             DiagnosticCode.The0OperatorCannotBeAppliedToTypeSymbol when node.Parent is PrefixUnaryExpressionNode unary => [TokenFacts.Text(unary.Operator)!],
-            DiagnosticCode.MetaProperty0IsOnlyAllowedInTheBodyOfAFunctionDeclarationFunctionExpressionOrConstructor => ["new.target"],
+            DiagnosticCode.MetaProperty0IsOnlyAllowedInTheBodyOfAFunctionDeclarationFunctionExpressionOrConstructor => [Utf8Literals.NewTarget],
             DiagnosticCode.X0IsNotAValidMetaPropertyForKeywordImportDidYouMeanMetaOrDefer => [CheckerDiagnostic.DeclarationName(
                 node is MetaPropertyNode meta
                 ? meta.Name!
                 : node)],
             DiagnosticCode.X0And1OperationsCannotBeMixedWithoutParentheses when node is BinaryExpressionNode { OperatorToken.Kind: SyntaxKind.QuestionQuestionToken }
-                && node.Parent is BinaryExpressionNode outer => ["??", TokenFacts.Text(outer.OperatorToken!.Kind)!],
+                && node.Parent is BinaryExpressionNode outer => [Utf8Literals.NullishCoalescing, TokenFacts.Text(outer.OperatorToken!.Kind)!],
             DiagnosticCode.X0And1OperationsCannotBeMixedWithoutParentheses when node is BinaryExpressionNode mixed => node.Parent is BinaryExpressionNode parent
                 && parent.Right == node
-                ? ["??", TokenFacts.Text(mixed.OperatorToken!.Kind)!]
-                : [TokenFacts.Text(mixed.OperatorToken!.Kind)!, "??"],
+                ? [Utf8Literals.NullishCoalescing, TokenFacts.Text(mixed.OperatorToken!.Kind)!]
+                : [TokenFacts.Text(mixed.OperatorToken!.Kind)!, Utf8Literals.NullishCoalescing],
             DiagnosticCode.X0IsNotAValidMetaPropertyForKeyword1DidYouMean2 when node.Parent is MetaPropertyNode meta => [CheckerDiagnostic.DeclarationName(node),
-                TokenFacts.Text(meta.KeywordToken)!, meta.KeywordToken == SyntaxKind.NewKeyword ? "target" : "meta"],
+                TokenFacts.Text(meta.KeywordToken)!, meta.KeywordToken == SyntaxKind.NewKeyword ? Utf8Literals.Target : Utf8Literals.Meta],
             DiagnosticCode.Property0HasNoInitializerAndIsNotDefinitelyAssignedInTheConstructor => [CheckerDiagnostic.DeclarationName(node)],
             DiagnosticCode.X0IsOfTypeUnknown or DiagnosticCode.X0IsPossiblyNull or DiagnosticCode.X0IsPossiblyUndefined
-                or DiagnosticCode.X0IsPossiblyNullOrUndefined => [(ExpressionChecks.EntityText(node))!.Value],
-            DiagnosticCode.TheValue0CannotBeUsedHere => [node.Kind == SyntaxKind.NullKeyword ? "null" : "undefined"],
+                or DiagnosticCode.X0IsPossiblyNullOrUndefined => [ExpressionChecks.EntityText(node)!.Value],
+            DiagnosticCode.TheValue0CannotBeUsedHere => [node.Kind == SyntaxKind.NullKeyword ? Utf8Literals.Null : Utf8Literals.Undefined],
             DiagnosticCode.CannotAccessAmbientConstEnumsWhen0IsEnabled => [IsolatedModuleOptionName],
             _ => []
         };
@@ -128,7 +128,7 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
     {
         if (code == DiagnosticCode.Operator0CannotBeAppliedToType1)
             type = await Widening.LiteralBaseAsync(type, cancellation);
-        TextSlice display = await TypeDisplay.GetAsync(type, cancellation);
+        Utf8String display = await TypeDisplay.GetAsync(type, cancellation);
         Error(
             node,
             code,
@@ -137,7 +137,7 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
                     CheckerDiagnostic.DeclarationName(node),
                     display
                 ]
-            : code == DiagnosticCode.Operator0CannotBeAppliedToType1 ? ["+", display] : [display]);
+            : code == DiagnosticCode.Operator0CannotBeAppliedToType1 ? [Utf8Literals.Plus, display] : [display]);
     }
 
     public void DeferExpression(SyntaxNode node)
@@ -247,7 +247,7 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
         if (node.Kind == SyntaxKind.RegularExpressionLiteral)
         {
             CheckRegularExpression(node);
-            return program.Globals.Types["RegExp"];
+            return program.Globals.Types[Utf8Literals.RegExp];
         }
         if (node is ArrayLiteralExpressionNode array)
             return await ArrayLiterals.CheckAsync(array, mode, cancellation);
@@ -325,9 +325,9 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
         if (node is NumericLiteralNode number)
         {
             var scanner = new Scanner(file.Source);
-            scanner.ResetPosition(file.Source.ToUtf16Position(node.Pos));
+            scanner.ResetPosition(node.Pos);
             scanner.Scan();
-            if (!scanner.TokenText.Contains('.') && (number.TokenFlags & TokenFlags.Scientific) == 0
+            if (!scanner.TokenText.Contains((byte)'.') && (number.TokenFlags & TokenFlags.Scientific) == 0
                 && JsNumber.FromString(number.Text) > JsNumber.MaxSafeInteger && suggestionLocations.Add(
                     (node, DiagnosticCode.NumericLiteralsWithAbsoluteValuesEqualTo253OrGreaterAreTooLargeToBeRepresentedAccuratelyAsIntegers)))
                 Suggestions.Add(

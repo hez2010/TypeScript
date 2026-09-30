@@ -92,12 +92,12 @@ internal sealed partial class Checker
         return diagnostic;
     }
 
-    internal void TrackDiagnostic(SyntaxNode? node, DiagnosticCode code, params TextSlice[] arguments)
+    internal void TrackDiagnostic(SyntaxNode? node, DiagnosticCode code, params Utf8String[] arguments)
         => diagnosticFiles.Add((node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments)));
 
     internal void TrackDiagnostic(SyntaxNode? node, Diagnostic diagnostic) => diagnosticFiles.Add((node, diagnostic));
 
-    private void ListError(SyntaxNode node, NodeList list, DiagnosticCode code, params TextSlice[] arguments)
+    private void ListError(SyntaxNode node, NodeList list, DiagnosticCode code, params Utf8String[] arguments)
     {
         int start = list.Count == 0 ? list.Pos : CheckerDiagnostic.TokenRange(SemanticSyntax.Source(node)!, list.Pos).Start;
         Error(node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments) with
@@ -116,7 +116,7 @@ internal sealed partial class Checker
         return true;
     }
 
-    private void ErrorOnFirstToken(SyntaxNode node, DiagnosticCode code, params TextSlice[] arguments)
+    private void ErrorOnFirstToken(SyntaxNode node, DiagnosticCode code, params Utf8String[] arguments)
     {
         if (!reported.Add((node, code)))
             return;
@@ -190,10 +190,10 @@ internal sealed partial class Checker
                 }
                 int offset = file.Source.LineStarts[line];
                 var text = file.Source.Text;
-                while (offset < text.Length && text[offset] is ' ' or '\t')
+                while (offset < text.Length && text[offset] is (byte)' ' or (byte)'\t')
                     offset++;
                 if (!(offset == text.Length
-                    || text[offset] is '\r' or '\n'
+                    || text[offset] is (byte)'\r' or (byte)'\n'
                     || offset + 1 < text.Length && text[offset] == '/' && text[offset + 1] == '/'))
                     break;
             }

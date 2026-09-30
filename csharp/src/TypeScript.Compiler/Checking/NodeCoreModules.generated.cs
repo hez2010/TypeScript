@@ -4,118 +4,31 @@ namespace TypeScript.Compiler.Checking;
 
 internal static class NodeCoreModules
 {
-    internal static bool Contains(ReadOnlySpan<char> name) => name is
-        "assert"
-        or "assert/strict"
-        or "async_hooks"
-        or "buffer"
-        or "child_process"
-        or "cluster"
-        or "console"
-        or "constants"
-        or "crypto"
-        or "dgram"
-        or "diagnostics_channel"
-        or "dns"
-        or "dns/promises"
-        or "domain"
-        or "events"
-        or "fs"
-        or "fs/promises"
-        or "http"
-        or "http2"
-        or "https"
-        or "inspector"
-        or "inspector/promises"
-        or "module"
-        or "net"
-        or "node:assert"
-        or "node:assert/strict"
-        or "node:async_hooks"
-        or "node:buffer"
-        or "node:child_process"
-        or "node:cluster"
-        or "node:console"
-        or "node:constants"
-        or "node:crypto"
-        or "node:dgram"
-        or "node:diagnostics_channel"
-        or "node:dns"
-        or "node:dns/promises"
-        or "node:domain"
-        or "node:events"
-        or "node:fs"
-        or "node:fs/promises"
-        or "node:http"
-        or "node:http2"
-        or "node:https"
-        or "node:inspector"
-        or "node:inspector/promises"
-        or "node:module"
-        or "node:net"
-        or "node:os"
-        or "node:path"
-        or "node:path/posix"
-        or "node:path/win32"
-        or "node:perf_hooks"
-        or "node:process"
-        or "node:punycode"
-        or "node:querystring"
-        or "node:quic"
-        or "node:readline"
-        or "node:readline/promises"
-        or "node:repl"
-        or "node:sea"
-        or "node:sqlite"
-        or "node:stream"
-        or "node:stream/consumers"
-        or "node:stream/promises"
-        or "node:stream/web"
-        or "node:string_decoder"
-        or "node:sys"
-        or "node:test"
-        or "node:test/reporters"
-        or "node:timers"
-        or "node:timers/promises"
-        or "node:tls"
-        or "node:trace_events"
-        or "node:tty"
-        or "node:url"
-        or "node:util"
-        or "node:util/types"
-        or "node:v8"
-        or "node:vm"
-        or "node:wasi"
-        or "node:worker_threads"
-        or "node:zlib"
-        or "os"
-        or "path"
-        or "path/posix"
-        or "path/win32"
-        or "perf_hooks"
-        or "process"
-        or "punycode"
-        or "querystring"
-        or "readline"
-        or "readline/promises"
-        or "repl"
-        or "stream"
-        or "stream/consumers"
-        or "stream/promises"
-        or "stream/web"
-        or "string_decoder"
-        or "sys"
-        or "timers"
-        or "timers/promises"
-        or "tls"
-        or "trace_events"
-        or "tty"
-        or "url"
-        or "util"
-        or "util/types"
-        or "v8"
-        or "vm"
-        or "wasi"
-        or "worker_threads"
-        or "zlib";
+    internal static bool Contains(ReadOnlySpan<byte> name) => name.Length switch
+    {
+        2 => name.SequenceEqual("fs"u8) || name.SequenceEqual("os"u8) || name.SequenceEqual("v8"u8) || name.SequenceEqual("vm"u8),
+        3 => name.SequenceEqual("dns"u8) || name.SequenceEqual("net"u8) || name.SequenceEqual("sys"u8) || name.SequenceEqual("tls"u8) || name.SequenceEqual("tty"u8) || name.SequenceEqual("url"u8),
+        4 => name.SequenceEqual("http"u8) || name.SequenceEqual("path"u8) || name.SequenceEqual("repl"u8) || name.SequenceEqual("util"u8) || name.SequenceEqual("wasi"u8) || name.SequenceEqual("zlib"u8),
+        5 => name.SequenceEqual("dgram"u8) || name.SequenceEqual("http2"u8) || name.SequenceEqual("https"u8),
+        6 => name.SequenceEqual("assert"u8) || name.SequenceEqual("buffer"u8) || name.SequenceEqual("crypto"u8) || name.SequenceEqual("domain"u8) || name.SequenceEqual("events"u8) || name.SequenceEqual("module"u8) || name.SequenceEqual("stream"u8) || name.SequenceEqual("timers"u8),
+        7 => name.SequenceEqual("cluster"u8) || name.SequenceEqual("console"u8) || name.SequenceEqual("node:fs"u8) || name.SequenceEqual("node:os"u8) || name.SequenceEqual("node:v8"u8) || name.SequenceEqual("node:vm"u8) || name.SequenceEqual("process"u8),
+        8 => name.SequenceEqual("node:dns"u8) || name.SequenceEqual("node:net"u8) || name.SequenceEqual("node:sea"u8) || name.SequenceEqual("node:sys"u8) || name.SequenceEqual("node:tls"u8) || name.SequenceEqual("node:tty"u8) || name.SequenceEqual("node:url"u8) || name.SequenceEqual("punycode"u8) || name.SequenceEqual("readline"u8),
+        9 => name.SequenceEqual("constants"u8) || name.SequenceEqual("inspector"u8) || name.SequenceEqual("node:http"u8) || name.SequenceEqual("node:path"u8) || name.SequenceEqual("node:quic"u8) || name.SequenceEqual("node:repl"u8) || name.SequenceEqual("node:test"u8) || name.SequenceEqual("node:util"u8) || name.SequenceEqual("node:wasi"u8) || name.SequenceEqual("node:zlib"u8),
+        10 => name.SequenceEqual("node:dgram"u8) || name.SequenceEqual("node:http2"u8) || name.SequenceEqual("node:https"u8) || name.SequenceEqual("path/posix"u8) || name.SequenceEqual("path/win32"u8) || name.SequenceEqual("perf_hooks"u8) || name.SequenceEqual("stream/web"u8) || name.SequenceEqual("util/types"u8),
+        11 => name.SequenceEqual("async_hooks"u8) || name.SequenceEqual("fs/promises"u8) || name.SequenceEqual("node:assert"u8) || name.SequenceEqual("node:buffer"u8) || name.SequenceEqual("node:crypto"u8) || name.SequenceEqual("node:domain"u8) || name.SequenceEqual("node:events"u8) || name.SequenceEqual("node:module"u8) || name.SequenceEqual("node:sqlite"u8) || name.SequenceEqual("node:stream"u8) || name.SequenceEqual("node:timers"u8) || name.SequenceEqual("querystring"u8),
+        12 => name.SequenceEqual("dns/promises"u8) || name.SequenceEqual("node:cluster"u8) || name.SequenceEqual("node:console"u8) || name.SequenceEqual("node:process"u8) || name.SequenceEqual("trace_events"u8),
+        13 => name.SequenceEqual("assert/strict"u8) || name.SequenceEqual("child_process"u8) || name.SequenceEqual("node:punycode"u8) || name.SequenceEqual("node:readline"u8),
+        14 => name.SequenceEqual("node:constants"u8) || name.SequenceEqual("node:inspector"u8) || name.SequenceEqual("string_decoder"u8) || name.SequenceEqual("worker_threads"u8),
+        15 => name.SequenceEqual("node:path/posix"u8) || name.SequenceEqual("node:path/win32"u8) || name.SequenceEqual("node:perf_hooks"u8) || name.SequenceEqual("node:stream/web"u8) || name.SequenceEqual("node:util/types"u8) || name.SequenceEqual("stream/promises"u8) || name.SequenceEqual("timers/promises"u8),
+        16 => name.SequenceEqual("node:async_hooks"u8) || name.SequenceEqual("node:fs/promises"u8) || name.SequenceEqual("node:querystring"u8) || name.SequenceEqual("stream/consumers"u8),
+        17 => name.SequenceEqual("node:dns/promises"u8) || name.SequenceEqual("node:trace_events"u8) || name.SequenceEqual("readline/promises"u8),
+        18 => name.SequenceEqual("inspector/promises"u8) || name.SequenceEqual("node:assert/strict"u8) || name.SequenceEqual("node:child_process"u8),
+        19 => name.SequenceEqual("diagnostics_channel"u8) || name.SequenceEqual("node:string_decoder"u8) || name.SequenceEqual("node:test/reporters"u8) || name.SequenceEqual("node:worker_threads"u8),
+        20 => name.SequenceEqual("node:stream/promises"u8) || name.SequenceEqual("node:timers/promises"u8),
+        21 => name.SequenceEqual("node:stream/consumers"u8),
+        22 => name.SequenceEqual("node:readline/promises"u8),
+        23 => name.SequenceEqual("node:inspector/promises"u8),
+        24 => name.SequenceEqual("node:diagnostics_channel"u8),
+        _ => false,
+    };
 }

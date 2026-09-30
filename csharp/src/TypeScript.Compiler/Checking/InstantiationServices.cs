@@ -91,7 +91,7 @@ internal sealed class InstantiationServices : ITypeInstantiationHost, ITupleType
     public ValueTask<IReadOnlyList<IndexInfo>> IndexInfosAsync(Type type, CancellationToken cancellation) =>
         checker.IndexesAsync(type, cancellation);
 
-    public ValueTask<Symbol?> PropertyAsync(Type type, TextSlice name, CancellationToken cancellation) =>
+    public ValueTask<Symbol?> PropertyAsync(Type type, Utf8String name, CancellationToken cancellation) =>
         checker.PropertyAsync(type, name, cancellation);
 
     public ValueTask<Type> PropertyNameTypeAsync(Symbol symbol, CancellationToken cancellation) =>

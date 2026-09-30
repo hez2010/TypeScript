@@ -129,10 +129,10 @@ internal sealed partial class Checker
 
     private bool SymbolCall(CallExpressionNode call, CancellationToken cancellation)
     {
-        var expression = call.Expression is PropertyAccessExpressionNode { Name: IdentifierNode { Text.Span: "for" } } property
+        var expression = (call.Expression is PropertyAccessExpressionNode { Name: IdentifierNode { Text.Span: var matchedText } } property && matchedText.SequenceEqual("for"u8))
             ? property.Expression : call.Expression;
-        return expression is IdentifierNode { Text.Span: "Symbol" } identifier
-            && program.Symbols.Lookup(program.Symbols.Globals, "Symbol", SymbolFlags.Value) is { } global
-            && program.Symbols.NameResolver(cancellation).Resolve(identifier, "Symbol", SymbolFlags.Value) == global;
+        return expression is IdentifierNode { Text.Span: var matchedText2 } identifier && matchedText2.SequenceEqual("Symbol"u8)
+            && program.Symbols.Lookup(program.Symbols.Globals, Utf8Literals.Symbol, SymbolFlags.Value) is { } global
+            && program.Symbols.NameResolver(cancellation).Resolve(identifier, Utf8Literals.Symbol, SymbolFlags.Value) == global;
     }
 }

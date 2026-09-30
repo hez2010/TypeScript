@@ -1,15 +1,25 @@
 namespace TypeScript.Compiler.Text;
 
-/// <summary>Owns original source bytes and a lossless UTF-16 scanning view.</summary>
+/// <summary>Owns UTF-8 source text. Syntax and scanner positions are byte offsets.</summary>
 public sealed class SourceText
 {
     private readonly byte[] bytes;
-    private readonly PositionMap map;
+    private int ascii;
     private int[]? lineStarts;
-    public TextSlice Text { get; }
+    public Utf8String Text { get; }
     public ReadOnlyMemory<byte> Bytes => bytes;
+    internal byte[] Buffer => bytes;
     public int Length => Text.Length;
-    internal bool IsAsciiOnly => map.IsAsciiOnly;
+    internal bool IsAsciiOnly
+    {
+        get
+        {
+            int value = Volatile.Read(ref ascii);
+            if (value == 0)
+                Volatile.Write(ref ascii, value = System.Text.Ascii.IsValid(bytes) ? 1 : 2);
+            return value == 1;
+        }
+    }
 
     public SourceText(ReadOnlySpan<byte> bytes) : this(bytes.ToArray()) { }
 
@@ -19,26 +29,10 @@ public sealed class SourceText
     private SourceText(byte[] bytes)
     {
         this.bytes = bytes;
-        Text = Wtf8.DecodeString(bytes, out bool validUtf8);
-        map = validUtf8 && bytes.Length == Text.Length ? PositionMap.Ascii : new PositionMap(bytes, validUtf8);
+        Text = new(bytes);
     }
 
-    public SourceText(string text) : this((TextSlice)text) { }
-
-    public SourceText(TextSlice text)
-    {
-        Text = text;
-        bytes = Wtf8.Encode(text);
-        map = bytes.Length == text.Length ? PositionMap.Ascii : new PositionMap(bytes);
-    }
-
-    public int ToBytePosition(int utf16Position) => map.Utf16ToUtf8(utf16Position);
-
-    public int ToUtf16Position(int bytePosition) => map.Utf8ToUtf16(bytePosition);
-
-    // Starts and ends follow different sequences during a tree walk. Separate
-    // interval hints keep one endpoint from evicting the other's nearby range.
-    internal (int Start, int End) ToByteRange(int start, int end) => map.Utf16ToUtf8(start, end);
+    public SourceText(Utf8String text) : this(text.Span.ToArray()) { }
 
     public ReadOnlySpan<int> LineStarts
     {
@@ -49,7 +43,12 @@ public sealed class SourceText
                 var starts = new List<int> { 0 };
                 for (int pos = 0; pos < Text.Length; pos++)
                 {
-                    char ch = Text[pos];
+                    int ch = bytes[pos];
+                    if (ch >= 128)
+                    {
+                        ch = Wtf8.Decode(bytes.AsSpan(pos), out int width);
+                        pos += width - 1;
+                    }
                     if (ch == '\r' && pos + 1 < Text.Length && Text[pos + 1] == '\n')
                         pos++;
                     if (ch is '\r' or '\n' or '\u2028' or '\u2029')
@@ -63,10 +62,9 @@ public sealed class SourceText
 
     public (int Line, int Character) GetLineAndCharacter(int bytePosition)
     {
-        int pos = ToUtf16Position(bytePosition);
-        int line = LineStarts.BinarySearch(pos);
+        int line = LineStarts.BinarySearch(bytePosition);
         if (line < 0)
             line = ~line - 1;
-        return (line, pos - LineStarts[line]);
+        return (line, bytePosition - LineStarts[line]);
     }
 }

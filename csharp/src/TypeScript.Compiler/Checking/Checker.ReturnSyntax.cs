@@ -105,7 +105,7 @@ internal sealed partial class Checker
                 returned, cancellation);
         }
         Type candidateType;
-        if (expression.Kind == SyntaxKind.OmittedExpression || expression is IdentifierNode { Text.Span: "undefined" })
+        if (expression.Kind == SyntaxKind.OmittedExpression || expression is IdentifierNode { Text.Span: var matchedText } && matchedText.SequenceEqual("undefined"u8))
             candidateType = context.UndefinedWideningType;
         else if (expression.Kind == SyntaxKind.NullKeyword)
             candidateType = context.NullWideningType;
@@ -164,20 +164,20 @@ internal sealed partial class Checker
     private static SyntaxNode RecoveredPropertyName(SyntaxNode name, bool method, TypeSyntaxContext state)
     {
         var value = name is ComputedPropertyNameNode computed ? computed.Expression : name;
-        TextSlice? text = value switch
+        Utf8String? text = value switch
         {
             IdentifierNode identifier => identifier.Text,
             StringLiteralNode literal => literal.Text,
             NumericLiteralNode literal => literal.Text,
             NoSubstitutionTemplateLiteralNode literal => literal.Text,
-            _ => (TextSlice?)null
+            _ => (Utf8String?)null
         };
         if (text is not null)
         {
-            if (IdentifierName((text).Value) && !(method && text == "new"))
-                return state.Factory.NewIdentifier((text).Value);
-            if (method && text == "new" && name is not StringLiteralNode)
-                return state.Factory.NewStringLiteral((text).Value, TokenFlags.None);
+            if (IdentifierName(text.Value) && !(method && text == Utf8Literals.New))
+                return state.Factory.NewIdentifier(text.Value);
+            if (method && text == Utf8Literals.New && name is not StringLiteralNode)
+                return state.Factory.NewStringLiteral(text.Value, TokenFlags.None);
         }
         return CloneSyntaxBindingName(name, state);
     }
@@ -211,11 +211,11 @@ internal sealed partial class Checker
         CancellationToken cancellation)
     {
         bool isThis = node.ParameterName?.Kind == SyntaxKind.ThisType;
-        if (isThis != (predicate.Kind is TypePredicateKind.This or TypePredicateKind.AssertsThis)
-            || (node.AssertsModifier is not null) != (predicate.Kind is TypePredicateKind.AssertsIdentifier
-                or TypePredicateKind.AssertsThis)
+        if (isThis != predicate.Kind is TypePredicateKind.This or TypePredicateKind.AssertsThis
+            || node.AssertsModifier is not null != predicate.Kind is TypePredicateKind.AssertsIdentifier
+                or TypePredicateKind.AssertsThis
             || !isThis && node.ParameterName is IdentifierNode name && name.Text != predicate.ParameterName
-            || (node.Type is null) != (predicate.Type is null))
+            || node.Type is null != predicate.Type is null)
             return false;
         return node.Type is null || await IdenticalAsync(await Nodes.FromNodeAsync(node.Type, cancellation), predicate.Type!, cancellation);
     }

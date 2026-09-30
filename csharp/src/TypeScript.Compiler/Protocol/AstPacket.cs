@@ -34,6 +34,7 @@ public readonly record struct NodeRecord(SyntaxKind Kind, int Pos, int End, uint
 // metadata or replace the source-file AST encoder.
 public sealed class AstPacket
 {
+    public const byte FormatVersion = 9;
     public const int HeaderSize = 44;
     private readonly byte[] bytes;
     public int NodesOffset { get; }
@@ -43,8 +44,8 @@ public sealed class AstPacket
     {
         // The implementation puts version in the high byte of an LE uint32.
         // The Go format comment saying byte 0 is inconsistent with its writer.
-        if (source.Length < HeaderSize || (BinaryPrimitives.ReadUInt32LittleEndian(source) >> 24) != 8)
-            throw new InvalidDataException("Expected API AST version 8");
+        if (source.Length < HeaderSize || BinaryPrimitives.ReadUInt32LittleEndian(source) >> 24 != FormatVersion)
+            throw new InvalidDataException("Expected UTF-8 AST packet version 9");
         int previous = HeaderSize;
         for (int i = 24; i < HeaderSize; i += 4)
         {
@@ -63,7 +64,7 @@ public sealed class AstPacket
         {
             NodeRecord node = GetNode(i);
             // Source order guarantees earlier parents and forward siblings.
-            if (node.Parent >= i || (node.Next != 0 && (node.Next <= i || node.Next >= NodeCount)))
+            if (node.Parent >= i || node.Next != 0 && (node.Next <= i || node.Next >= NodeCount))
                 throw new InvalidDataException(
                     $"Invalid AST topology at {i}/{NodeCount}: parent={node.Parent}, next={node.Next}, kind={node.Kind}, offset={NodesOffset}");
         }

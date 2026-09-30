@@ -10,14 +10,14 @@ internal sealed partial class Checker
 {
     private sealed class TypeSyntaxNames
     {
-        internal Dictionary<TypeParameter, TextSlice> Names { get; } = [];
-        internal HashSet<TextSlice> Used { get; } = new(TextSliceComparer.Ordinal);
-        internal Dictionary<TextSlice, int> Suffixes { get; } = new(TextSliceComparer.Ordinal);
+        internal Dictionary<TypeParameter, Utf8String> Names { get; } = [];
+        internal HashSet<Utf8String> Used { get; } = new(Utf8StringComparer.Ordinal);
+        internal Dictionary<Utf8String, int> Suffixes { get; } = new(Utf8StringComparer.Ordinal);
         private Scope? scope;
 
         internal IDisposable EnterScope() => new Scope(this);
 
-        internal void Add(TypeParameter parameter, TextSlice name, TextSlice original, int suffix)
+        internal void Add(TypeParameter parameter, Utf8String name, Utf8String original, int suffix)
         {
             scope?.Parameters.Add(parameter);
             scope?.Names.Add(name);
@@ -33,8 +33,8 @@ internal sealed partial class Checker
             private readonly TypeSyntaxNames owner;
             private readonly Scope? previous;
             internal List<TypeParameter> Parameters { get; } = [];
-            internal List<TextSlice> Names { get; } = [];
-            internal Dictionary<TextSlice, int?> Suffixes { get; } = new(TextSliceComparer.Ordinal);
+            internal List<Utf8String> Names { get; } = [];
+            internal Dictionary<Utf8String, int?> Suffixes { get; } = new(Utf8StringComparer.Ordinal);
 
             internal Scope(TypeSyntaxNames owner)
             {
@@ -47,7 +47,7 @@ internal sealed partial class Checker
             {
                 foreach (var parameter in Parameters)
                     owner.Names.Remove(parameter);
-                foreach (TextSlice name in Names)
+                foreach (Utf8String name in Names)
                     owner.Used.Remove(name);
                 foreach (var (name, value) in Suffixes)
                     if (value is { } suffix)
@@ -70,8 +70,8 @@ internal sealed partial class Checker
         var existing = valueParameterScopes.Contains(previous) ? previous
             : previous.Parent is { } parent && valueParameterScopes.Contains(parent) ? parent : null;
         var node = existing ?? state.Factory.NewBlock(new([]), false);
-        var table = existing is null ? new Dictionary<TextSlice, Symbol>()
-            : (Dictionary<TextSlice, Symbol>)typeSyntaxScopes[node];
+        var table = existing is null ? new Dictionary<Utf8String, Symbol>()
+            : (Dictionary<Utf8String, Symbol>)typeSyntaxScopes[node];
         if (existing is null)
         {
             node.Flags |= TypeScript.Compiler.Syntax.NodeFlags.Synthesized;
@@ -111,28 +111,28 @@ internal sealed partial class Checker
         }
     }
 
-    private TextSlice TypeSyntaxParameterName(TypeParameter parameter, TypeSyntaxContext state, CancellationToken cancellation)
+    private Utf8String TypeSyntaxParameterName(TypeParameter parameter, TypeSyntaxContext state, CancellationToken cancellation)
     {
         var names = state.ParameterNames;
-        if (names?.Names.TryGetValue(parameter, out TextSlice cached) == true)
+        if (names?.Names.TryGetValue(parameter, out Utf8String cached) == true)
             return cached;
         if (parameter.Symbol is { } tracked)
             state.Tracker.TrackSymbol(tracked, state.Symbols.Enclosing, SymbolFlags.Type);
-        TextSlice original = parameter.Symbol is { } symbol ? DisplayNameAsWritten(symbol, state.Symbols, true, cancellation)
-            : "(Missing type parameter)";
+        Utf8String original = parameter.Symbol is { } symbol ? DisplayNameAsWritten(symbol, state.Symbols, true, cancellation)
+            : Utf8Literals.MissingTypeParameter;
         if (names is null)
             return original;
         int suffix = names.Suffixes.GetValueOrDefault(original);
-        TextSlice name = original;
+        Utf8String name = original;
         while (names.Used.Contains(name) || ShadowsParameter(name))
         {
             cancellation.ThrowIfCancellationRequested();
-            name = TextSlice.Concat(original, "_", TextSlice.Format((++suffix)));
+            name = Utf8String.Concat(original, "_"u8, Utf8String.Format(++suffix));
         }
         names.Add(parameter, name, original, suffix);
         return name;
 
-        bool ShadowsParameter(TextSlice text)
+        bool ShadowsParameter(Utf8String text)
         {
             Symbol? found = null;
             for (var node = state.Symbols.Enclosing; node is not null; node = node.Parent)
@@ -155,8 +155,8 @@ internal sealed partial class Checker
         var existing = generatedParameterScopes.Contains(previous) ? previous
             : previous.Parent is { } parent && generatedParameterScopes.Contains(parent) ? parent : null;
         var node = existing ?? state.Factory.NewBlock(new([]), false);
-        var table = existing is null ? new Dictionary<TextSlice, Symbol>()
-            : (Dictionary<TextSlice, Symbol>)typeSyntaxScopes[node];
+        var table = existing is null ? new Dictionary<Utf8String, Symbol>()
+            : (Dictionary<Utf8String, Symbol>)typeSyntaxScopes[node];
         if (existing is null)
         {
             node.Flags |= TypeScript.Compiler.Syntax.NodeFlags.Synthesized;
@@ -181,11 +181,11 @@ internal sealed partial class Checker
     }
 
     private sealed class GeneratedParameterScope(Checker checker, TypeSyntaxContext state, SyntaxNode previous, SyntaxNode node,
-        Dictionary<TextSlice, Symbol> table, bool owned) : IDisposable
+        Dictionary<Utf8String, Symbol> table, bool owned) : IDisposable
     {
-        private readonly Dictionary<TextSlice, Symbol?> changes = new();
+        private readonly Dictionary<Utf8String, Symbol?> changes = new();
 
-        internal void Add(TextSlice name, Symbol symbol)
+        internal void Add(Utf8String name, Symbol symbol)
         {
             changes.TryAdd(name, table.GetValueOrDefault(name));
             table[name] = symbol;

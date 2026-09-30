@@ -15,7 +15,7 @@ internal interface IIndexedTypeHost
 
     ValueTask<IReadOnlyList<IndexInfo>> IndexesAsync(Type type, CancellationToken cancellation);
 
-    ValueTask<Type?> ContextualPropertyAsync(Type type, TextSlice name, CancellationToken cancellation);
+    ValueTask<Type?> ContextualPropertyAsync(Type type, Utf8String name, CancellationToken cancellation);
 
     ValueTask<Type?> ElementPropertyAsync(Symbol property, Type objectType, ElementAccessExpressionNode node,
         AccessFlags flags, CancellationToken cancellation);
@@ -23,7 +23,7 @@ internal interface IIndexedTypeHost
     ValueTask ReadonlyIndexAsync(IndexInfo? index, Type objectType, ElementAccessExpressionNode? node, CancellationToken cancellation);
 
     ValueTask<Type?> MissingElementAsync(Type original, Type objectType, Type index, Type fullIndex,
-        ElementAccessExpressionNode node, TextSlice? propertyName, AccessFlags flags, CancellationToken cancellation);
+        ElementAccessExpressionNode node, Utf8String? propertyName, AccessFlags flags, CancellationToken cancellation);
 
     ValueTask DeprecatedPropertyAsync(Symbol property, SyntaxNode node, CancellationToken cancellation);
 
@@ -36,7 +36,7 @@ internal interface IIndexedTypeHost
         DiagnosticCode code,
         CancellationToken cancellation,
         Type? fullIndex = null,
-        TextSlice? suggestion = null);
+        Utf8String? suggestion = null);
 }
 
 // Type-level indexed access. Expression access additionally needs reference
@@ -140,12 +140,12 @@ internal sealed class IndexedTypes(TypeContext context, TypeAlgebra algebra, Typ
         SyntaxNode? node, AccessFlags flags, CancellationToken cancellation)
     {
         var element = node as ElementAccessExpressionNode;
-        TextSlice? name = node is PrivateIdentifierNode ? null : PropertyName(indexType, node);
+        Utf8String? name = node is PrivateIdentifierNode ? null : PropertyName(indexType, node);
         if (name is not null)
         {
             if ((flags & AccessFlags.Contextual) != 0)
-                return await host.ContextualPropertyAsync(objectType, (name).Value, cancellation).ConfigureAwait(false) ?? context.AnyType;
-            var property = await properties.PropertyAsync(objectType, (name).Value, cancellation: cancellation).ConfigureAwait(false);
+                return await host.ContextualPropertyAsync(objectType, name.Value, cancellation).ConfigureAwait(false) ?? context.AnyType;
+            var property = await properties.PropertyAsync(objectType, name.Value, cancellation: cancellation).ConfigureAwait(false);
             if (property is not null)
             {
                 if ((flags & AccessFlags.ReportDeprecated) != 0 && node is not null && property.Declarations.Length != 0)
@@ -157,9 +157,9 @@ internal sealed class IndexedTypes(TypeContext context, TypeAlgebra algebra, Typ
                 return node is IndexedAccessTypeNode && ContainsMissing(value)
                     ? await algebra.UnionAsync([value, context.UndefinedType], cancellation: cancellation).ConfigureAwait(false) : value;
             }
-            if (Parts(objectType).All(t => t is TypeReference { Target: TupleType }) && IndexSignatures.NumericName((name).Value))
+            if (Parts(objectType).All(t => t is TypeReference { Target: TupleType }) && IndexSignatures.NumericName(name.Value))
             {
-                double position = JsNumber.FromString((name).Value);
+                double position = JsNumber.FromString(name.Value);
                 if (node is not null && (flags & AccessFlags.AllowMissing) == 0
                     && Parts(objectType).All(t => (((TupleType)((TypeReference)t).Target!).CombinedFlags & ElementFlags.Variable) == 0))
                 {
@@ -477,13 +477,13 @@ internal sealed class IndexedTypes(TypeContext context, TypeAlgebra algebra, Typ
             (t.Flags & TypeFlags.StringOrNumberLiteral) != 0 && IndexSignatures.NumericName(MappedMembers.PropertyName(t))
             && JsNumber.FromString(MappedMembers.PropertyName(t)) is var number && number >= 0 && number < limit);
 
-    private static TextSlice? PropertyName(Type type, SyntaxNode? node) => (type.Flags & TypeFlags.StringOrNumberLiteralOrUnique) != 0
+    private static Utf8String? PropertyName(Type type, SyntaxNode? node) => (type.Flags & TypeFlags.StringOrNumberLiteralOrUnique) != 0
             ? MappedMembers.PropertyName(type) : node switch
             {
                 IdentifierNode identifier => identifier.Text,
                 StringLiteralNode text => text.Text,
                 NumericLiteralNode numeric => numeric.Text,
-                _ => (TextSlice?)null
+                _ => (Utf8String?)null
             };
 
     private static SyntaxNode IndexNode(SyntaxNode node) => node switch

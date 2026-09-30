@@ -9,7 +9,7 @@ namespace TypeScript.Compiler.Checking;
 internal sealed class MissingNamePrefixes(CheckerSymbols symbols, SymbolTypes values, DeclaredTypes declared, TypeProperties properties,
     Action<SyntaxNode, DiagnosticCode, Symbol?> report)
 {
-    internal async ValueTask<bool> CheckAsync(SyntaxNode location, TextSlice name, CancellationToken cancellation = default)
+    internal async ValueTask<bool> CheckAsync(SyntaxNode location, Utf8String name, CancellationToken cancellation = default)
     {
         if (location is not IdentifierNode identifier || identifier.Text != name || DeclarationOrder.InTypeQuery(location))
             return false;

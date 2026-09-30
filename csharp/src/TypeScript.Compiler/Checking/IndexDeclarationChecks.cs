@@ -34,7 +34,7 @@ internal sealed class IndexDeclarationChecks(CheckerSymbols symbols, TypeNodes n
 
     internal void DuplicateProperties(NodeList members, CancellationToken cancellation = default)
     {
-        var names = new Dictionary<TextSlice, int>(TextSliceComparer.Ordinal);
+        var names = new Dictionary<Utf8String, int>(Utf8StringComparer.Ordinal);
         foreach (var member in members)
         {
             cancellation.ThrowIfCancellationRequested();
@@ -155,7 +155,7 @@ internal sealed class IndexDeclarationChecks(CheckerSymbols symbols, TypeNodes n
     internal async ValueTask DuplicateIndexesAsync(SyntaxNode node, CancellationToken cancellation = default)
     {
         var symbol = symbols.Declaration(node);
-        if (symbol?.Members.GetValueOrDefault(Symbol.InternalPrefix + "index") is not { Declarations.Length: > 1 } index)
+        if (symbol?.Members.GetValueOrDefault(Symbol.InternalIndex) is not { Declarations.Length: > 1 } index)
             return;
         var groups = new Dictionary<Type, List<SyntaxNode>>();
         foreach (var declaration in index.Declarations)

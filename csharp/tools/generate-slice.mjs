@@ -16,11 +16,11 @@ const source = await readFile(path.join(root, "tools/scripts/tsc/ast.json"));
 const schema = JSON.parse(source);
 const selected = {
     SourceFile: ["Statements", "EndOfFileToken"],
-    Identifier: ["Text:string"],
+    Identifier: ["Text:Utf8String"],
     KeywordTypeNode: [],
     Token: [],
-    StringLiteral: ["Text:string", "TokenFlags:uint"],
-    NumericLiteral: ["Text:string", "TokenFlags:uint"],
+    StringLiteral: ["Text:Utf8String", "TokenFlags:uint"],
+    NumericLiteral: ["Text:Utf8String", "TokenFlags:uint"],
     LiteralTypeNode: ["Literal"],
     UnionTypeNode: ["Types"],
     ParenthesizedTypeNode: ["Type"],
@@ -49,9 +49,7 @@ for (const [name, fields] of Object.entries(selected)) {
     children.forEach((name, index) => lines.push(`        ${index} => ${name},`));
     lines.push("        _ => throw new ArgumentOutOfRangeException(nameof(slot)),", "    };", "}", "");
 }
-lines.push("public static class SliceSchema", "{", `    public const int PayloadCount = ${tag + 1};`, "    public static string KeywordText(SyntaxKind kind) => kind switch", "    {");
-for (const kind of schema.kinds.elements.filter(kind => typeof kind === "string" && kind.endsWith("Keyword"))) lines.push(`        SyntaxKind.${kind} => "${kind.slice(0, -7).toLowerCase()}",`);
-lines.push('        _ => throw new InvalidDataException("Expected keyword"),', "    };", "    public static int ChildSlots<TStore>(TStore store, NodeId id) where TStore : INodeStore => store.Tag(id) switch", "    {");
+lines.push("public static class SliceSchema", "{", `    public const int PayloadCount = ${tag + 1};`, "    public static Utf8String KeywordText(SyntaxKind kind) => kind is >= SyntaxKind.FirstKeyword and <= SyntaxKind.LastKeyword", '        ? TokenFacts.Text(kind) : throw new InvalidDataException("Expected keyword");', "    public static int ChildSlots<TStore>(TStore store, NodeId id) where TStore : INodeStore => store.Tag(id) switch", "    {");
 tag = 1;
 for (const name of Object.keys(selected)) lines.push(`        ${tag++} => store.Get<${name}Data>(id).ChildSlots,`);
 lines.push("        0 => store.Get<NodeListData>(id).Nodes.Length,", '        _ => throw new InvalidDataException("Unknown syntax payload"),', "    };", "    public static NodeId ChildAt<TStore>(TStore store, NodeId id, int slot) where TStore : INodeStore => store.Tag(id) switch", "    {");

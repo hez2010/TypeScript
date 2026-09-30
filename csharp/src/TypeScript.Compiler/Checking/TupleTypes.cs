@@ -66,7 +66,7 @@ internal sealed class TupleTypes(TypeContext context, TypeAlgebra algebra, Check
             return cached;
         int arity = infos.Count, minimum = infos.Count(i => (i.Flags & (E.Required | E.Variadic)) != 0);
         var parameters = new TypeParameter[arity];
-        var members = new Dictionary<TextSlice, Symbol>();
+        var members = new Dictionary<Utf8String, Symbol>();
         E combined = 0;
         for (int i = 0; i < arity; i++)
         {
@@ -78,7 +78,7 @@ internal sealed class TupleTypes(TypeContext context, TypeAlgebra algebra, Check
             {
                 var property = new Symbol(
                     SymbolFlags.Property | SymbolFlags.Transient | ((flags & E.Optional) != 0 ? SymbolFlags.Optional : 0),
-                    TextSlice.Format(i))
+                    Utf8String.Format(i))
                 { CheckFlags = isReadonly ? CheckFlags.Readonly : 0 };
                 links.Values.Get(property).ResolvedType = parameters[i];
                 members.Add(property.Name, property);
@@ -87,7 +87,7 @@ internal sealed class TupleTypes(TypeContext context, TypeAlgebra algebra, Check
         int fixedLength = members.Count;
         var length = new Symbol(
             SymbolFlags.Property | SymbolFlags.Transient,
-            "length")
+            Utf8Literals.Length)
         { CheckFlags = isReadonly ? CheckFlags.Readonly : 0 };
         Type lengthType = context.NumberType;
         if ((combined & E.Variable) == 0)

@@ -135,10 +135,10 @@ internal sealed class ArrayLiterals(TypeContext context, TypeAlgebra algebra, Ex
     internal async ValueTask<bool> TupleLikeAsync(Type type, CancellationToken cancellation = default)
     {
         if (type is TypeReference { Target: TupleType }
-            || await properties.PropertyAsync(type, "0", cancellation: cancellation).ConfigureAwait(false) is not null)
+            || await properties.PropertyAsync(type, Utf8Literals.Zero, cancellation: cancellation).ConfigureAwait(false) is not null)
             return true;
         if (await host.ArrayLikeAsync(type, cancellation).ConfigureAwait(false)
-            && await properties.PropertyAsync(type, "length", cancellation: cancellation).ConfigureAwait(false) is { } length)
+            && await properties.PropertyAsync(type, Utf8Literals.Length, cancellation: cancellation).ConfigureAwait(false) is { } length)
         {
             var lengthType = await values.GetAsync(length, cancellation).ConfigureAwait(false);
             return (lengthType is UnionType union ? union.Types : [lengthType]).All(t => (t.Flags & TypeFlags.NumberLiteral) != 0);

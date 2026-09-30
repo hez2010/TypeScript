@@ -195,7 +195,7 @@ internal sealed partial class Checker
                         Error(
                             nextName ?? next,
                             DiagnosticCode.FunctionImplementationNameMustBe0,
-                            name is null ? "" : CheckerDiagnostic.DeclarationName(name));
+                            name is null ? Utf8String.Empty : CheckerDiagnostic.DeclarationName(name));
                         return;
                     }
                 }
@@ -240,13 +240,13 @@ internal sealed partial class Checker
         _ => false
     };
 
-    private static TextSlice? OverloadNameText(SyntaxNode node) => node switch
+    private static Utf8String? OverloadNameText(SyntaxNode node) => node switch
     {
         IdentifierNode identifier => identifier.Text,
         StringLiteralNode literal => literal.Text,
         NoSubstitutionTemplateLiteralNode literal => literal.Text,
         NumericLiteralNode literal => literal.Text,
-        _ => (TextSlice?)null
+        _ => (Utf8String?)null
     };
 
     private async ValueTask CheckFunctionOverloadsAsync(SyntaxNode node, CancellationToken cancellation)

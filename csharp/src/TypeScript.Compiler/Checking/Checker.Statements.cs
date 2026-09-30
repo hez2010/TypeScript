@@ -195,7 +195,7 @@ internal sealed partial class Checker
             else
             {
                 var key = await Keys.GetAsync(right, cancellation: cancellation).ConfigureAwait(false);
-                var extract = await program.Globals.AliasAsync("Extract", 2, Declared, cancellation).ConfigureAwait(false);
+                var extract = await program.Globals.AliasAsync(Utf8Literals.Extract, 2, Declared, cancellation).ConfigureAwait(false);
                 key = extract is null
                     ? context.StringType
                     : await References.AliasInstantiationAsync(
@@ -260,11 +260,11 @@ internal sealed partial class Checker
                 }
             }
             if (TargetYear < 2018)
-                await ExternalHelpersAsync(node, ["__asyncValues"], cancellation);
+                await ExternalHelpersAsync(node, [Utf8Literals.AsyncValues], cancellation);
         }
         if (!grammar)
             return;
-        if (forOf && (node.Flags & NodeFlags.AwaitContext) == 0 && node.Initializer is IdentifierNode { Text.Span: "async" })
+        if (forOf && (node.Flags & NodeFlags.AwaitContext) == 0 && node.Initializer is IdentifierNode { Text.Span: var matchedText } && matchedText.SequenceEqual("async"u8))
         {
             Error(node.Initializer, DiagnosticCode.TheLeftHandSideOfAForOfStatementMayNotBeAsync);
             return;

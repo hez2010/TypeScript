@@ -39,7 +39,7 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
 
     public async ValueTask<bool> BindableNameAsync(SyntaxNode node, CancellationToken cancellation) =>
         (node as INamedNode)?.Name is not ComputedPropertyNameNode
-            || program.Symbols.Binding(node)?.Get(node)?.Symbol?.Name is { } name && name != Symbol.InternalPrefix + "computed"
+            || program.Symbols.Binding(node)?.Get(node)?.Symbol?.Name is { } name && name != Symbol.InternalComputed
             || await LateMembers.BindableAsync(node, cancellation);
 
     public ValueTask<Type> ReturnFromBodyAsync(SyntaxNode declaration, CancellationToken cancellation) =>
@@ -99,7 +99,7 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
         }
     }
 
-    public ValueTask<IReadOnlyDictionary<TextSlice, Symbol>> ExportsAsync(Symbol symbol, CancellationToken cancellation) =>
+    public ValueTask<IReadOnlyDictionary<Utf8String, Symbol>> ExportsAsync(Symbol symbol, CancellationToken cancellation) =>
         LateMembers.TableAsync(symbol, true, cancellation);
 
     public ValueTask<IReadOnlyList<IndexInfo>> IndexInfosAsync(
@@ -213,7 +213,7 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
         Relations.RelatedAsync(source, target, RelationKind.Assignable, cancellation);
 
     public async ValueTask<bool> SymbolNameAsync(Symbol symbol, CancellationToken cancellation) =>
-        symbol.Name.Span.StartsWith(Symbol.InternalPrefix + "@", StringComparison.Ordinal)
+        symbol.Name.Span.StartsWith(Symbol.InternalUnique, StringComparison.Ordinal)
             || symbol.Declarations.FirstOrDefault() is INamedNode { Name: ComputedPropertyNameNode name }
                 && await AssignableKindAsync(await ComputedNameAsync(name, cancellation), TypeFlags.ESSymbol, cancellation);
 
@@ -241,7 +241,7 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
         }
         if ((symbol.Flags & SymbolFlags.ModuleExports) != 0)
         {
-            if (symbol.Name == "exports")
+            if (symbol.Name == Utf8Literals.Exports)
             {
                 var module = program.Symbols.Declaration(symbol.ValueDeclaration!)!;
                 var target = await program.AliasTargets.ExternalModuleAsync(module, false, cancellation).ConfigureAwait(false);
@@ -337,7 +337,7 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
                         ? DiagnosticCode.Property0ImplicitlyHasTypeAnyBecauseItsGetAccessorLacksAReturnTypeAnnotation
                         : DiagnosticCode.Member0ImplicitlyHasAn1Type,
                 declaration is SetAccessorDeclarationNode or GetAccessorDeclarationNode
-                    ? [TypeDisplay.SymbolName(symbol)] : [TypeDisplay.SymbolName(symbol), "any"]);
+                    ? [TypeDisplay.SymbolName(symbol)] : [TypeDisplay.SymbolName(symbol), Utf8Literals.Any]);
     }
 
     public void CircularAccessor(Symbol symbol, SyntaxNode? annotation, SyntaxNode? getter)

@@ -30,7 +30,7 @@ internal sealed partial class Checker : IFlowTypeHost, IFlowReferenceHost, IFlow
         {
             cancellation.ThrowIfCancellationRequested();
             var symbol = program.Symbols.Declaration(owner)!;
-            TextSlice key = TypeScript.Compiler.Checking.PrivateAccess.Name(symbol, name.Text);
+            Utf8String key = TypeScript.Compiler.Checking.PrivateAccess.Name(symbol, name.Text);
             if ((symbol.Members.GetValueOrDefault(key) ?? symbol.Exports.GetValueOrDefault(key)) is { } found)
                 return found;
         }
@@ -47,7 +47,7 @@ internal sealed partial class Checker : IFlowTypeHost, IFlowReferenceHost, IFlow
     public ValueTask<bool> ContainsAsync(SyntaxNode source, SyntaxNode target, bool optionalChain, CancellationToken cancellation) =>
         FlowReferences.ContainsAsync(source, target, optionalChain, cancellation);
 
-    public ValueTask<TextSlice?> ReferenceKeyAsync(FlowState state, CancellationToken cancellation) =>
+    public ValueTask<Utf8String?> ReferenceKeyAsync(FlowState state, CancellationToken cancellation) =>
         FlowReferences.KeyAsync(state, cancellation);
 
     public ValueTask<Type> NarrowAsync(FlowState state, Type type, SyntaxNode expression, bool assumeTrue, CancellationToken cancellation) =>
@@ -157,7 +157,7 @@ internal sealed partial class Checker : IFlowTypeHost, IFlowReferenceHost, IFlow
         Iteration.TryAsync(node.AwaitModifier is null ? IterationUse.ForOf : IterationUse.ForAwaitOf,
             expression, context.UndefinedType, cancellation: cancellation);
 
-    public TextSlice PrivatePropertyName(Symbol symbol, PrivateIdentifierNode name) => PrivateAccess.Name(symbol, name.Text);
+    public Utf8String PrivatePropertyName(Symbol symbol, PrivateIdentifierNode name) => PrivateAccess.Name(symbol, name.Text);
 
     private SyntaxNode? explicitAnnotationError;
     internal Dictionary<SyntaxNode, List<(Symbol Symbol, SyntaxNode Declaration)>> AssertionRelatedDeclarations { get; } = [];
@@ -185,7 +185,7 @@ internal sealed partial class Checker : IFlowTypeHost, IFlowReferenceHost, IFlow
 
     public async ValueTask<Type?> HasInstanceMethodAsync(Type type, CancellationToken cancellation)
     {
-        TextSlice name = await KnownSymbolNameAsync("hasInstance", cancellation);
+        Utf8String name = await KnownSymbolNameAsync(Utf8Literals.HasInstance, cancellation);
         if (await AllAssignableKindAsync(type, TypeFlags.NonPrimitive, cancellation)
             && await Properties.PropertyAsync(type, name, cancellation: cancellation) is { } property)
         {
@@ -247,9 +247,9 @@ internal sealed partial class Checker : IFlowTypeHost, IFlowReferenceHost, IFlow
         return false;
     }
 
-    public ValueTask<TextSlice?> AccessNameAsync(SyntaxNode node, CancellationToken cancellation) => AccessNames.GetAsync(node, cancellation);
+    public ValueTask<Utf8String?> AccessNameAsync(SyntaxNode node, CancellationToken cancellation) => AccessNames.GetAsync(node, cancellation);
 
-    public async ValueTask<Type?> FlowPropertyTypeAsync(Type type, TextSlice name, bool includeIndex, CancellationToken cancellation)
+    public async ValueTask<Type?> FlowPropertyTypeAsync(Type type, Utf8String name, bool includeIndex, CancellationToken cancellation)
     {
         if (await Properties.PropertyAsync(type, name, cancellation: cancellation) is { } property)
             return await Values.GetAsync(property, cancellation);
@@ -276,7 +276,7 @@ internal sealed partial class Checker : IFlowTypeHost, IFlowReferenceHost, IFlow
         if (!callable && (constructor.Flags & TypeFlags.TypeVariable) != 0
             && await Instantiation.Constraints.BaseConstraintAsync(constructor, cancellation) is { } constraint)
             callable = await Composites.MixinAsync(await SignaturesAsync(constraint, true, cancellation), cancellation);
-        if (!callable || await Properties.PropertyAsync(constructor, "prototype", cancellation: cancellation) is not { } prototype)
+        if (!callable || await Properties.PropertyAsync(constructor, Utf8Literals.Prototype, cancellation: cancellation) is not { } prototype)
             return type;
         var candidate = await Values.GetAsync(prototype, cancellation).ConfigureAwait(false);
         if ((candidate.Flags & TypeFlags.Any) != 0 || candidate == GlobalObject || candidate == GlobalFunction)

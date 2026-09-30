@@ -6,15 +6,15 @@ namespace TypeScript.Compiler.Syntax;
 
 internal static class SyntaxNameText
 {
-    public static TextSlice Get(SyntaxNode? node, bool propertyAccess = true)
+    public static Utf8String Get(SyntaxNode? node, bool propertyAccess = true)
     {
         if (node is IdentifierNode identifier)
             return identifier.Text;
         if (node is PrivateIdentifierNode privateIdentifier)
             return privateIdentifier.Text;
         if (node is null)
-            return "";
-        var text = new StringBuilder();
+            return Utf8String.Empty;
+        var text = new Utf8StringBuilder();
         var parts = new Stack<SyntaxNode?>();
         parts.Push(node);
         while (parts.TryPop(out SyntaxNode? part))
@@ -22,7 +22,7 @@ internal static class SyntaxNameText
             switch (part)
             {
                 case null:
-                    text.Append('.');
+                    text.Append((byte)'.');
                     break;
                 case IdentifierNode name:
                     text.Append(name.Text.Span);
@@ -46,6 +46,6 @@ internal static class SyntaxNameText
                     break;
             }
         }
-        return TextSlice.FromBuilder(text);
+        return Utf8String.FromBuilder(text);
     }
 }

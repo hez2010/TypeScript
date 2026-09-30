@@ -12,14 +12,14 @@ internal sealed partial class Checker : IIteratorProtocolHost, IIterationElement
     internal IterationElements Iteration { get; }
     internal GeneratorTypes Generators { get; }
     internal YieldExpressions Yields { get; }
-    internal Action<TextSlice>? BeforeIterationGlobal { get; set; }
-    private readonly Dictionary<(TextSlice Name, int Arity, bool Report), Type> iterationGlobals = [];
+    internal Action<Utf8String>? BeforeIterationGlobal { get; set; }
+    private readonly Dictionary<(Utf8String Name, int Arity, bool Report), Type> iterationGlobals = [];
     internal List<(SyntaxNode Node, Type Type, bool Async, IReadOnlyList<IterationDiagnostic> Related)> DeferredIterationDiagnostics { get; } = [];
     internal List<(SyntaxNode Node, DiagnosticCode Code)> IterationAwaitHints { get; } = [];
 
     public bool StrictBuiltinIteratorReturn => program.Symbols.Program.Configuration.Options.EffectiveStrictBuiltinIteratorReturn;
 
-    public async ValueTask<Type> IterationGlobalAsync(TextSlice name, int arity, bool report, CancellationToken cancellation)
+    public async ValueTask<Type> IterationGlobalAsync(Utf8String name, int arity, bool report, CancellationToken cancellation)
     {
         BeforeIterationGlobal?.Invoke(name);
         cancellation.ThrowIfCancellationRequested();
@@ -34,20 +34,20 @@ internal sealed partial class Checker : IIteratorProtocolHost, IIterationElement
     public async ValueTask<IReadOnlyList<Type>> BuiltinIteratorsAsync(bool async, CancellationToken cancellation)
     {
         var types = new List<Type>();
-        foreach (TextSlice name in async
-            ? new[] { "ReadableStreamAsyncIterator" }
-            : ["ArrayIterator", "MapIterator", "SetIterator", "StringIterator"])
+        foreach (Utf8String name in async
+            ? new Utf8String[] { Utf8Literals.ReadableStreamAsyncIterator }
+            : [Utf8String.Copy("ArrayIterator"u8), Utf8String.Copy("MapIterator"u8), Utf8String.Copy("SetIterator"u8), Utf8String.Copy("StringIterator"u8)])
             types.Add(await IterationGlobalAsync(name, 1, false, cancellation));
         return types;
     }
 
-    public async ValueTask<TextSlice> KnownSymbolNameAsync(TextSlice name, CancellationToken cancellation)
+    public async ValueTask<Utf8String> KnownSymbolNameAsync(Utf8String name, CancellationToken cancellation)
     {
-        if (program.Symbols.Lookup(program.Symbols.Globals, "Symbol", SymbolFlags.Value) is { } symbol
+        if (program.Symbols.Lookup(program.Symbols.Globals, Utf8Literals.Symbol, SymbolFlags.Value) is { } symbol
             && await Properties.PropertyAsync(await Values.GetAsync(symbol, cancellation), name, cancellation: cancellation) is { } property
             && await Values.GetAsync(property, cancellation) is { } type && (type.Flags & TypeFlags.StringOrNumberLiteralOrUnique) != 0)
             return MappedMembers.PropertyName(type);
-        return TextSlice.Concat(Symbol.InternalPrefix + "@", name);
+        return Utf8String.Concat(Symbol.InternalUnique, name);
     }
 
     public async ValueTask IterationDiagnosticAsync(IterationDiagnostic diagnostic, CancellationToken cancellation)
@@ -89,7 +89,7 @@ internal sealed partial class Checker : IIteratorProtocolHost, IIterationElement
     public ValueTask AsyncYieldHelpersAsync(SyntaxNode node, CancellationToken cancellation)
         =>
             TargetYear < 2018
-                ? ExternalHelpersAsync(node, ["__await", "__asyncDelegator", "__asyncValues"], cancellation)
+                ? ExternalHelpersAsync(node, [Utf8Literals.Await, Utf8Literals.AsyncDelegator, Utf8Literals.AsyncValues], cancellation)
                 : ValueTask.CompletedTask;
 
     public void DeferIteratorDiagnostic(SyntaxNode node, Type type, bool async, IReadOnlyList<IterationDiagnostic> related) =>
@@ -98,7 +98,7 @@ internal sealed partial class Checker : IIteratorProtocolHost, IIterationElement
     public async ValueTask IterationErrorAsync(SyntaxNode node, DiagnosticCode code, bool missingAwait, Type type, Type? other,
         CancellationToken cancellation, IReadOnlyList<IterationDiagnostic>? related = null)
     {
-        TextSlice text = await TypeDisplay.GetAsync(type, cancellation);
+        Utf8String text = await TypeDisplay.GetAsync(type, cancellation);
         var information = new List<Diagnostic>();
         if (related is not null)
             foreach (var item in related)

@@ -1,0 +1,3081 @@
+{
+  "scope": "VS ETW actual CPU PCs filtered to compilation QPC intervals; Satori CoreCLR with tiering off; these profiles precede the final ASCII prefix/suffix fast path. CPU sample shares are not elapsed-time shares.",
+  "processorCountOverride": null,
+  "profiles": [
+    {
+      "name": "managed-vs-compiler-giant-ts-default-managed-satori-v1-tiering-off",
+      "pid": 27256,
+      "executable": "D:\\source\\repos\\TypeScript\\built\\utf8-migration\\managed-satori-v1\\TypeScript.Compatibility.exe",
+      "tieredCompilation": false,
+      "compilerSha256": "d3ffcaadfb6a232073cfeec37ff95c9c8101e6091c161c5301671bdf5e3bcdb8",
+      "sessionSha256": "90075d626d67d50fe5e9b556bb2a8b7ce49092a850aef27ae450f35183496b5f",
+      "requestsSha256": "91569e895a25ca1d47a3be8b37d83fc951ac0f75d40cfb56901d1427418a25a8",
+      "requestCount": 576,
+      "analysis": {
+        "pid": 27256,
+        "total": 43155,
+        "stacked": 43137,
+        "compilerStacked": 13923,
+        "stages": {
+          "binder": 3737,
+          "parser": 8522,
+          "checker": 1529,
+          "program": 98,
+          "other-compiler": 37
+        },
+        "exclusive": [
+          {
+            "Key": "coreclr!<native>",
+            "Value": 27548
+          },
+          {
+            "Key": "system.private.corelib!<native>",
+            "Value": 1817
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.Scan()",
+            "Value": 853
+          },
+          {
+            "Key": "ntdll!<native>",
+            "Value": 838
+          },
+          {
+            "Key": "ntoskrnl!<native>",
+            "Value": 828
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.FromText(value class System.ReadOnlySpan`1<unsigned int8>)",
+            "Value": 639
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.CodePoint(int32&)",
+            "Value": 581
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.ScanIdentifier(bool,bool,value class TypeScript.Compiler.Syntax.SyntaxKind&)",
+            "Value": 429
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Visit(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 331
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.DeclareNode(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 321
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Next(bool)",
+            "Value": 245
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Children(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 245
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Declare(class TypeScript.Compiler.Binding.SymbolTable,class TypeScript.Compiler.Binding.Symbol,class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags,value class System.Nullable`1<value class TypeScript.Compiler.Text.Utf8String>,bool)",
+            "Value": 238
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.VisitChildren(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "Value": 212
+          },
+          {
+            "Key": "System.Collections.Generic.Dictionary`2+CollectionsMarshalHelper[TypeScript.Compiler.Text.Utf8String,System.__Canon].GetValueRefOrAddDefault(class System.Collections.Generic.Dictionary`2<!0,!1>,!0,bool&)",
+            "Value": 208
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.UnionTypeCore(bool)",
+            "Value": 198
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.UnionConstituentCore(bool,bool)",
+            "Value": 197
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.Mark()",
+            "Value": 181
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Finish(!!0,int32,value class System.Nullable`1<int32>)",
+            "Value": 169
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.TypeCore()",
+            "Value": 165
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.WithJSDocCore(!!0,value class TypeScript.Compiler.Syntax.TokenFlags)",
+            "Value": 152
+          },
+          {
+            "Key": "System.IO.Hashing.XxHash3.HashLength0To16(unsigned int8*,unsigned int32,unsigned int64)",
+            "Value": 144
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.Punctuation(value class System.ReadOnlySpan`1<unsigned int8>,int32&)",
+            "Value": 142
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.PrimaryTypeCore()",
+            "Value": 141
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.PostfixTypeCore()",
+            "Value": 136
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.<InterfaceCore>b__157_0()",
+            "Value": 128
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.EachChild(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 128
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ListCore(value class TypeScript.Compiler.Syntax.SyntaxKind,class System.Func`1<value class System.Threading.Tasks.ValueTask`1<class TypeScript.Compiler.Ast.SyntaxNode>>,bool,class System.Func`1<bool>,bool)",
+            "Value": 127
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ParameterCore(value class TypeScript.Compiler.Syntax.NodeFlags)",
+            "Value": 121
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.SymbolTable.GetValueRefOrAddDefault(value class TypeScript.Compiler.Text.Utf8String,bool&)",
+            "Value": 111
+          },
+          {
+            "Key": "System.Runtime.CompilerServices.AsyncHelpers.Await(value class System.Runtime.CompilerServices.ConfiguredTaskAwaitable)",
+            "Value": 111
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Peek(!!0,class System.Func`2<!!0,bool>,bool)",
+            "Value": 109
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.DelimitedCore(value class TypeScript.Compiler.Syntax.SyntaxKind,class System.Func`1<value class System.Threading.Tasks.ValueTask`1<class TypeScript.Compiler.Ast.SyntaxNode>>,bool,class System.Func`1<bool>,class System.Func`1<bool>,class TypeScript.Compiler.Diagnostics.DiagnosticMessage,class System.Action,class System.Func`1<bool>)",
+            "Value": 107
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.TypeMemberWorkerCore(bool)",
+            "Value": 106
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter.Emit(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 97
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.AnnotationCore()",
+            "Value": 94
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ModifiersCore(bool,bool)",
+            "Value": 88
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.IsIdentifierStart(int32)",
+            "Value": 87
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.AddDeclaration(class TypeScript.Compiler.Binding.Symbol,class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags)",
+            "Value": 86
+          },
+          {
+            "Key": "nvlddmkm.sys!<native>",
+            "Value": 84
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.IsWhiteSpace(int32)",
+            "Value": 83
+          },
+          {
+            "Key": "System.IO.Hashing.XxHash3.HashLength17To128(unsigned int8*,unsigned int32,unsigned int64)",
+            "Value": 82
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.CheckerSymbols.InitializeAsync(value class System.Threading.CancellationToken)",
+            "Value": 76
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.InitializerCore()",
+            "Value": 74
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.VisitContainer(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 73
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.TypeArgumentsCore(bool,bool,bool)",
+            "Value": 71
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.TypeMemberCore(bool)",
+            "Value": 69
+          },
+          {
+            "Key": "system.linq!<native>",
+            "Value": 69
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.DeclarationName(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 66
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.NameText(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 66
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Identifier(bool,bool,class TypeScript.Compiler.Diagnostics.DiagnosticMessage)",
+            "Value": 64
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.ProcessDirective(int32,int32,bool)",
+            "Value": 63
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Member(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags)",
+            "Value": 63
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.NameCore()",
+            "Value": 60
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.CheckIdentifier(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 57
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Each(class TypeScript.Compiler.Ast.NodeList,bool)",
+            "Value": 55
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.get_IsIdentifier()",
+            "Value": 53
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.BindingNameCore(class TypeScript.Compiler.Diagnostics.DiagnosticMessage)",
+            "Value": 51
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ParametersCore(value class TypeScript.Compiler.Syntax.NodeFlags,bool)",
+            "Value": 51
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.Text(value class TypeScript.Compiler.Syntax.SyntaxKind)",
+            "Value": 50
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.IsContainer(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 49
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.RecordParseError(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "Value": 47
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.HasTag(value class System.ReadOnlySpan`1<unsigned int8>,value class System.ReadOnlySpan`1<unsigned int8>)",
+            "Value": 42
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Name(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 42
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.BoundSourceFile.Data(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 41
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Initializer(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 39
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.SemanticSyntax.HasModifier(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Syntax.SyntaxKind)",
+            "Value": 39
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.IsConflictMarker(int32)",
+            "Value": 38
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.IsIdentifierPart(int32,bool)",
+            "Value": 35
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "Value": 32
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.IdentifierKind(value class System.ReadOnlySpan`1<unsigned int8>)",
+            "Value": 32
+          },
+          {
+            "Key": "  <CodeAddress Address=\"0x7ff9855e5055\" CodeAddressIndex=\"4032\"/>",
+            "Value": 32
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.TypeParametersCore()",
+            "Value": 32
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ReturnAnnotationCore()",
+            "Value": 31
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.Rewind(value class TypeScript.Compiler.Syntax.ScannerState)",
+            "Value": 31
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.InterfaceDeclarationNode.GetChild(int32)",
+            "Value": 31
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.MethodSignatureDeclarationNode.GetChild(int32)",
+            "Value": 31
+          },
+          {
+            "Key": "  <CodeAddress Address=\"0x7ff87a9901d0\" CodeAddressIndex=\"4598\"/>",
+            "Value": 30
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Take(value class TypeScript.Compiler.Syntax.SyntaxKind)",
+            "Value": 28
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ParseStatementCore()",
+            "Value": 28
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.SymbolOf(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 27
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Expected(value class TypeScript.Compiler.Syntax.SyntaxKind)",
+            "Value": 25
+          },
+          {
+            "Key": "System.Runtime.CompilerServices.AsyncHelpers.Await(value class System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable`1<!!0>)",
+            "Value": 25
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.PropertySignatureDeclarationNode.GetChild(int32)",
+            "Value": 25
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.TypeParameterCore()",
+            "Value": 24
+          },
+          {
+            "Key": "kernel32!<native>",
+            "Value": 24
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.SyntaxNode.SetChildParents()",
+            "Value": 23
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.InterfaceCore(class TypeScript.Compiler.Ast.NodeList,int32)",
+            "Value": 23
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.CheckerSymbols.MergeGlobalAsync(class TypeScript.Compiler.Binding.Symbol,value class System.Threading.CancellationToken)",
+            "Value": 22
+          },
+          {
+            "Key": "  <CodeAddress Address=\"0x7ff9855e5040\" CodeAddressIndex=\"3140\"/>",
+            "Value": 21
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.TypeOrPredicateCore()",
+            "Value": 21
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.NodeFactory.NewTypeReferenceNode(class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Ast.NodeList)",
+            "Value": 21
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.BlockScope(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 21
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.get_IsBindingIdentifier()",
+            "Value": 20
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.SymbolDeclarations.Add(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 20
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Property(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags)",
+            "Value": 20
+          },
+          {
+            "Key": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.Utf8String,System.__Canon].FindValue(!0)",
+            "Value": 19
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.NodeBinding.get_LocalTable()",
+            "Value": 19
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.SyntaxNode.get_HasFunctionSignature()",
+            "Value": 19
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.EntityName(bool,bool)",
+            "Value": 18
+          }
+        ],
+        "compilerCharge": [
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.Scan()",
+            "Value": 861
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.FromText(value class System.ReadOnlySpan`1<unsigned int8>)",
+            "Value": 642
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.CodePoint(int32&)",
+            "Value": 582
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.ScanIdentifier(bool,bool,value class TypeScript.Compiler.Syntax.SyntaxKind&)",
+            "Value": 537
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Declare(class TypeScript.Compiler.Binding.SymbolTable,class TypeScript.Compiler.Binding.Symbol,class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags,value class System.Nullable`1<value class TypeScript.Compiler.Text.Utf8String>,bool)",
+            "Value": 481
+          },
+          {
+            "Key": "System.Collections.Generic.Dictionary`2+CollectionsMarshalHelper[TypeScript.Compiler.Text.Utf8String,System.__Canon].GetValueRefOrAddDefault(class System.Collections.Generic.Dictionary`2<!0,!1>,!0,bool&)",
+            "Value": 440
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Visit(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 376
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.DeclareNode(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 328
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Identifier(bool,bool,class TypeScript.Compiler.Diagnostics.DiagnosticMessage)",
+            "Value": 252
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Next(bool)",
+            "Value": 246
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.UnionTypeCore(bool)",
+            "Value": 245
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Children(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 245
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.UnionConstituentCore(bool,bool)",
+            "Value": 224
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.VisitChildren(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "Value": 212
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ParameterCore(value class TypeScript.Compiler.Syntax.NodeFlags)",
+            "Value": 211
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.PrimaryTypeCore()",
+            "Value": 192
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.TypeCore()",
+            "Value": 185
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.Mark()",
+            "Value": 181
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ParametersCore(value class TypeScript.Compiler.Syntax.NodeFlags,bool)",
+            "Value": 177
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.WithJSDocCore(!!0,value class TypeScript.Compiler.Syntax.TokenFlags)",
+            "Value": 171
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Finish(!!0,int32,value class System.Nullable`1<int32>)",
+            "Value": 170
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.VisitContainer(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 167
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.DelimitedCore(value class TypeScript.Compiler.Syntax.SyntaxKind,class System.Func`1<value class System.Threading.Tasks.ValueTask`1<class TypeScript.Compiler.Ast.SyntaxNode>>,bool,class System.Func`1<bool>,class System.Func`1<bool>,class TypeScript.Compiler.Diagnostics.DiagnosticMessage,class System.Action,class System.Func`1<bool>)",
+            "Value": 163
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.SymbolTable.GetValueRefOrAddDefault(value class TypeScript.Compiler.Text.Utf8String,bool&)",
+            "Value": 156
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ListCore(value class TypeScript.Compiler.Syntax.SyntaxKind,class System.Func`1<value class System.Threading.Tasks.ValueTask`1<class TypeScript.Compiler.Ast.SyntaxNode>>,bool,class System.Func`1<bool>,bool)",
+            "Value": 155
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.PostfixTypeCore()",
+            "Value": 152
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ModifiersCore(bool,bool)",
+            "Value": 147
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.Punctuation(value class System.ReadOnlySpan`1<unsigned int8>,int32&)",
+            "Value": 142
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.TypeMemberWorkerCore(bool)",
+            "Value": 130
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.EachChild(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 129
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.<InterfaceCore>b__157_0()",
+            "Value": 128
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.AddDeclaration(class TypeScript.Compiler.Binding.Symbol,class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags)",
+            "Value": 112
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Peek(!!0,class System.Func`2<!!0,bool>,bool)",
+            "Value": 110
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.AnnotationCore()",
+            "Value": 107
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.TypeArgumentsCore(bool,bool,bool)",
+            "Value": 103
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.NodeFactory.NewTypeReferenceNode(class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Ast.NodeList)",
+            "Value": 100
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter.Emit(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 98
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.CheckerSymbols.InitializeAsync(value class System.Threading.CancellationToken)",
+            "Value": 94
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.InitializerCore()",
+            "Value": 90
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.IsIdentifierStart(int32)",
+            "Value": 87
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.BindingNameCore(class TypeScript.Compiler.Diagnostics.DiagnosticMessage)",
+            "Value": 85
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.IsWhiteSpace(int32)",
+            "Value": 83
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.NodeFactory.NewPropertySignatureDeclaration(class TypeScript.Compiler.Ast.NodeList,class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 83
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.CheckIdentifier(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 76
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.TypeMemberCore(bool)",
+            "Value": 74
+          },
+          {
+            "Key": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.Utf8String,System.__Canon].Resize(int32,bool)",
+            "Value": 72
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.DeclarationName(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 67
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.NameCore()",
+            "Value": 67
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.NameText(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 66
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.ProcessDirective(int32,int32,bool)",
+            "Value": 63
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Member(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags)",
+            "Value": 63
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Each(class TypeScript.Compiler.Ast.NodeList,bool)",
+            "Value": 55
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.NodeFactory.NewMethodSignatureDeclaration(class TypeScript.Compiler.Ast.NodeList,class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Ast.NodeList,class TypeScript.Compiler.Ast.NodeList,class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 54
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.LateMembers.SymbolAsync(class TypeScript.Compiler.Binding.Symbol,value class System.Threading.CancellationToken)",
+            "Value": 53
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.get_IsIdentifier()",
+            "Value": 53
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.Text(value class TypeScript.Compiler.Syntax.SyntaxKind)",
+            "Value": 50
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.TypeParametersCore()",
+            "Value": 50
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.Rewind(value class TypeScript.Compiler.Syntax.ScannerState)",
+            "Value": 49
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.IsContainer(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 49
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.RecordParseError(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "Value": 48
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.HasTag(value class System.ReadOnlySpan`1<unsigned int8>,value class System.ReadOnlySpan`1<unsigned int8>)",
+            "Value": 42
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Name(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 42
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.BoundSourceFile.Data(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 41
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "Value": 40
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.SemanticSyntax.HasModifier(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Syntax.SyntaxKind)",
+            "Value": 40
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.NodeBinding.get_LocalTable()",
+            "Value": 40
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.ParameterDeclarationNode.SetChildParents()",
+            "Value": 39
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Initializer(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 39
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.IsConflictMarker(int32)",
+            "Value": 38
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.CheckerSymbols.MergeGlobalAsync(class TypeScript.Compiler.Binding.Symbol,value class System.Threading.CancellationToken)",
+            "Value": 37
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.TypeOrPredicateCore()",
+            "Value": 36
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.InterfaceCore(class TypeScript.Compiler.Ast.NodeList,int32)",
+            "Value": 36
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.IsIdentifierPart(int32,bool)",
+            "Value": 35
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ReturnAnnotationCore()",
+            "Value": 34
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.NodeFactory.NewInterfaceDeclaration(class TypeScript.Compiler.Ast.NodeList,class TypeScript.Compiler.Ast.IdentifierNode,class TypeScript.Compiler.Ast.NodeList,class TypeScript.Compiler.Ast.NodeList,class TypeScript.Compiler.Ast.NodeList)",
+            "Value": 33
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.TypeParameterCore()",
+            "Value": 32
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.IdentifierKind(value class System.ReadOnlySpan`1<unsigned int8>)",
+            "Value": 32
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.SymbolTable..ctor(int32)",
+            "Value": 32
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Literal()",
+            "Value": 31
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.InterfaceDeclarationNode.GetChild(int32)",
+            "Value": 31
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.MethodSignatureDeclarationNode.GetChild(int32)",
+            "Value": 31
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.IdentifierNode.set_BindingFlow(class TypeScript.Compiler.Binding.FlowNode)",
+            "Value": 30
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.PropertySignatureDeclarationNode.SetChildParents()",
+            "Value": 30
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.MethodSignatureDeclarationNode.SetChildParents()",
+            "Value": 29
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ParseStatementCore()",
+            "Value": 29
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker+TypeSyntaxContext..ctor(class TypeScript.Compiler.Ast.SyntaxNode,bool,bool,value class TypeScript.Compiler.Checking.NodeBuilderFlags,class TypeScript.Compiler.Checking.INodeBuilderSymbolTracker,value class TypeScript.Compiler.Checking.NodeBuilderInternalFlags)",
+            "Value": 28
+          },
+          {
+            "Key": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.Utf8String,System.__Canon].Initialize(int32)",
+            "Value": 28
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.SetValue(class TypeScript.Compiler.Binding.Symbol,class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 28
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Take(value class TypeScript.Compiler.Syntax.SyntaxKind)",
+            "Value": 28
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.CollectModuleReferences(class TypeScript.Compiler.Ast.SourceFileNode)",
+            "Value": 27
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.SymbolDeclarations.Add(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 27
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.SymbolOf(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 27
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Expected(value class TypeScript.Compiler.Syntax.SyntaxKind)",
+            "Value": 26
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.TypeReferenceNode.SetChildParents()",
+            "Value": 26
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.HeritageCore(bool)",
+            "Value": 26
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.PropertySignatureDeclarationNode.GetChild(int32)",
+            "Value": 25
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.InterfaceDeclarationNode.SetChildParents()",
+            "Value": 25
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.ModuleState(class TypeScript.Compiler.Ast.ModuleDeclarationNode)",
+            "Value": 25
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.SymbolMerger.MergeTableCore(class TypeScript.Compiler.Binding.SymbolTable,class System.Collections.Generic.IReadOnlyDictionary`2<value class TypeScript.Compiler.Text.Utf8String,class TypeScript.Compiler.Binding.Symbol>,bool,class TypeScript.Compiler.Binding.Symbol,value class System.Threading.CancellationToken)",
+            "Value": 25
+          },
+          {
+            "Key": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.Utf8String,System.__Canon].FindValue(!0)",
+            "Value": 24
+          }
+        ],
+        "examples": [
+          [
+            "TypeScript.Compiler.Binding.Binder.IdentifierName(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.CheckIdentifier(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.Visit(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.EachChild(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.Children(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitContainer(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitChildren(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "TypeScript.Compiler.Binding.Binder.Each(class TypeScript.Compiler.Ast.NodeList,bool)",
+            "TypeScript.Compiler.Binding.Binder.Children(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitContainer(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitChildren(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "TypeScript.Compiler.Binding.Binder.EachChild(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.Children(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitContainer(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitChildren(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "TypeScript.Compiler.Binding.Binder.Each(class TypeScript.Compiler.Ast.NodeList,bool)",
+            "TypeScript.Compiler.Binding.Binder.Children(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitContainer(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitChildren(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "TypeScript.Compiler.Binding.Binder.EachChild(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.Children(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitContainer(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitChildren(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "TypeScript.Compiler.Binding.Binder.Each(class TypeScript.Compiler.Ast.NodeList,bool)",
+            "TypeScript.Compiler.Binding.Binder.Children(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitContainer(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitChildren(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "TypeScript.Compiler.Binding.Binder.BindAsync(class TypeScript.Compiler.Ast.SourceFileNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Programs.CompilerProgram+Builder.ParseAndBind(value class TypeScript.Compiler.Text.Utf8String,class TypeScript.Compiler.Configuration.ParsedConfig,bool)",
+            "dynamicClass.IL_STUB_AsyncResume(class System.Object,unsigned int8&)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "TypeScript.Compiler.Syntax.Scanner.CodePoint(int32&)",
+            "TypeScript.Compiler.Syntax.Scanner.Scan()",
+            "TypeScript.Compiler.Syntax.Parser.Next(bool)",
+            "TypeScript.Compiler.Syntax.Parser.ParseToken()",
+            "TypeScript.Compiler.Syntax.Parser.ParameterCore(value class TypeScript.Compiler.Syntax.NodeFlags)",
+            "TypeScript.Compiler.Syntax.Parser.ParameterCore(value class TypeScript.Compiler.Syntax.NodeFlags)",
+            "TypeScript.Compiler.Syntax.Parser.DelimitedCore(value class TypeScript.Compiler.Syntax.SyntaxKind,class System.Func`1<value class System.Threading.Tasks.ValueTask`1<class TypeScript.Compiler.Ast.SyntaxNode>>,bool,class System.Func`1<bool>,class System.Func`1<bool>,class TypeScript.Compiler.Diagnostics.DiagnosticMessage,class System.Action,class System.Func`1<bool>)",
+            "TypeScript.Compiler.Syntax.Parser.ParametersCore(value class TypeScript.Compiler.Syntax.NodeFlags,bool)",
+            "TypeScript.Compiler.Syntax.Parser.FunctionTypeCore(bool,class TypeScript.Compiler.Ast.NodeList,int32)",
+            "TypeScript.Compiler.Syntax.Parser.PrimaryTypeCore()",
+            "TypeScript.Compiler.Syntax.Parser.TypeCore()",
+            "TypeScript.Compiler.Syntax.Parser.TypeCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseFileCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseSourceFileAsync(value class TypeScript.Compiler.Syntax.ParseOptions,class TypeScript.Compiler.Text.SourceText,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Programs.CompilerProgram+Builder.Parse(value class TypeScript.Compiler.Text.Utf8String,class TypeScript.Compiler.Configuration.ParsedConfig,bool)",
+            "dynamicClass.IL_STUB_AsyncResume(class System.Object,unsigned int8&)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "TypeScript.Compiler.Syntax.Parser.Finish(!!0,int32,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.PrimaryTypeCore()",
+            "TypeScript.Compiler.Syntax.Parser.PostfixTypeCore()",
+            "TypeScript.Compiler.Syntax.Parser.UnionConstituentCore(bool,bool)",
+            "TypeScript.Compiler.Syntax.Parser.UnionTypeCore(bool)",
+            "TypeScript.Compiler.Syntax.Parser.UnionConstituentCore(bool,bool)",
+            "TypeScript.Compiler.Syntax.Parser.UnionTypeCore(bool)",
+            "TypeScript.Compiler.Syntax.Parser.TypeCore()",
+            "TypeScript.Compiler.Syntax.Parser.AnnotationCore()",
+            "TypeScript.Compiler.Syntax.Parser.TypeMemberWorkerCore(bool)",
+            "TypeScript.Compiler.Syntax.Parser.TypeMemberCore(bool)",
+            "TypeScript.Compiler.Syntax.Parser.<InterfaceCore>b__157_0()",
+            "TypeScript.Compiler.Syntax.Parser.<InterfaceCore>b__157_0()",
+            "TypeScript.Compiler.Syntax.Parser.ListCore(value class TypeScript.Compiler.Syntax.SyntaxKind,class System.Func`1<value class System.Threading.Tasks.ValueTask`1<class TypeScript.Compiler.Ast.SyntaxNode>>,bool,class System.Func`1<bool>,bool)",
+            "TypeScript.Compiler.Syntax.Parser.InterfaceCore(class TypeScript.Compiler.Ast.NodeList,int32)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseFileCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseSourceFileAsync(value class TypeScript.Compiler.Syntax.ParseOptions,class TypeScript.Compiler.Text.SourceText,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Programs.CompilerProgram+Builder.Parse(value class TypeScript.Compiler.Text.Utf8String,class TypeScript.Compiler.Configuration.ParsedConfig,bool)",
+            "dynamicClass.IL_STUB_AsyncResume(class System.Object,unsigned int8&)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "System.Collections.Generic.Dictionary`2+CollectionsMarshalHelper[TypeScript.Compiler.Text.Utf8String,System.__Canon].GetValueRefOrAddDefault(class System.Collections.Generic.Dictionary`2<!0,!1>,!0,bool&)",
+            "TypeScript.Compiler.Binding.SymbolTable.GetValueRefOrAddDefault(value class TypeScript.Compiler.Text.Utf8String,bool&)",
+            "TypeScript.Compiler.Binding.Binder.Declare(class TypeScript.Compiler.Binding.SymbolTable,class TypeScript.Compiler.Binding.Symbol,class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags,value class System.Nullable`1<value class TypeScript.Compiler.Text.Utf8String>,bool)",
+            "TypeScript.Compiler.Binding.Binder.Member(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags)",
+            "TypeScript.Compiler.Binding.Binder.Property(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags)",
+            "TypeScript.Compiler.Binding.Binder.DeclareNode(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.Visit(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.EachChild(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.Children(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitContainer(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitChildren(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "TypeScript.Compiler.Binding.Binder.Each(class TypeScript.Compiler.Ast.NodeList,bool)",
+            "TypeScript.Compiler.Binding.Binder.Children(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitContainer(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitChildren(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "TypeScript.Compiler.Binding.Binder.BindAsync(class TypeScript.Compiler.Ast.SourceFileNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Programs.CompilerProgram+Builder.ParseAndBind(value class TypeScript.Compiler.Text.Utf8String,class TypeScript.Compiler.Configuration.ParsedConfig,bool)",
+            "dynamicClass.IL_STUB_AsyncResume(class System.Object,unsigned int8&)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "TypeScript.Compiler.Syntax.Parser.ReturnAnnotationCore()",
+            "TypeScript.Compiler.Syntax.Parser.TypeMemberWorkerCore(bool)",
+            "TypeScript.Compiler.Syntax.Parser.TypeMemberCore(bool)",
+            "TypeScript.Compiler.Syntax.Parser.TypeMemberCore(bool)",
+            "TypeScript.Compiler.Syntax.Parser.ListCore(value class TypeScript.Compiler.Syntax.SyntaxKind,class System.Func`1<value class System.Threading.Tasks.ValueTask`1<class TypeScript.Compiler.Ast.SyntaxNode>>,bool,class System.Func`1<bool>,bool)",
+            "TypeScript.Compiler.Syntax.Parser.PrimaryTypeCore()",
+            "TypeScript.Compiler.Syntax.Parser.PostfixTypeCore()",
+            "TypeScript.Compiler.Syntax.Parser.UnionConstituentCore(bool,bool)",
+            "TypeScript.Compiler.Syntax.Parser.UnionTypeCore(bool)",
+            "TypeScript.Compiler.Syntax.Parser.UnionConstituentCore(bool,bool)",
+            "TypeScript.Compiler.Syntax.Parser.UnionTypeCore(bool)",
+            "TypeScript.Compiler.Syntax.Parser.TypeCore()",
+            "TypeScript.Compiler.Syntax.Parser.AnnotationCore()",
+            "TypeScript.Compiler.Syntax.Parser.VariableDeclarationCore()",
+            "TypeScript.Compiler.Syntax.Parser.VariableDeclarationsWorkerCore()",
+            "TypeScript.Compiler.Syntax.Parser.VariableDeclarationsCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseFileCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseSourceFileAsync(value class TypeScript.Compiler.Syntax.ParseOptions,class TypeScript.Compiler.Text.SourceText,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Programs.CompilerProgram+Builder.Parse(value class TypeScript.Compiler.Text.Utf8String,class TypeScript.Compiler.Configuration.ParsedConfig,bool)",
+            "dynamicClass.IL_STUB_AsyncResume(class System.Object,unsigned int8&)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "TypeScript.Compiler.Syntax.TokenFacts.IsIdentifierStart(int32)",
+            "TypeScript.Compiler.Syntax.Scanner.ScanIdentifier(bool,bool,value class TypeScript.Compiler.Syntax.SyntaxKind&)",
+            "TypeScript.Compiler.Syntax.Scanner.Scan()",
+            "TypeScript.Compiler.Syntax.Parser.Next(bool)",
+            "TypeScript.Compiler.Syntax.Parser.AnnotationCore()",
+            "TypeScript.Compiler.Syntax.Parser.TypeMemberWorkerCore(bool)",
+            "TypeScript.Compiler.Syntax.Parser.TypeMemberCore(bool)",
+            "TypeScript.Compiler.Syntax.Parser.<InterfaceCore>b__157_0()",
+            "TypeScript.Compiler.Syntax.Parser.<InterfaceCore>b__157_0()",
+            "TypeScript.Compiler.Syntax.Parser.ListCore(value class TypeScript.Compiler.Syntax.SyntaxKind,class System.Func`1<value class System.Threading.Tasks.ValueTask`1<class TypeScript.Compiler.Ast.SyntaxNode>>,bool,class System.Func`1<bool>,bool)",
+            "TypeScript.Compiler.Syntax.Parser.InterfaceCore(class TypeScript.Compiler.Ast.NodeList,int32)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseFileCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseSourceFileAsync(value class TypeScript.Compiler.Syntax.ParseOptions,class TypeScript.Compiler.Text.SourceText,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Programs.CompilerProgram+Builder.Parse(value class TypeScript.Compiler.Text.Utf8String,class TypeScript.Compiler.Configuration.ParsedConfig,bool)",
+            "dynamicClass.IL_STUB_AsyncResume(class System.Object,unsigned int8&)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "TypeScript.Compiler.Syntax.Parser.Next(bool)",
+            "TypeScript.Compiler.Syntax.Parser.Identifier(bool,bool,class TypeScript.Compiler.Diagnostics.DiagnosticMessage)",
+            "TypeScript.Compiler.Syntax.Parser.BindingNameCore(class TypeScript.Compiler.Diagnostics.DiagnosticMessage)",
+            "TypeScript.Compiler.Syntax.Parser.ParameterCore(value class TypeScript.Compiler.Syntax.NodeFlags)",
+            "TypeScript.Compiler.Syntax.Parser.ParameterCore(value class TypeScript.Compiler.Syntax.NodeFlags)",
+            "TypeScript.Compiler.Syntax.Parser.DelimitedCore(value class TypeScript.Compiler.Syntax.SyntaxKind,class System.Func`1<value class System.Threading.Tasks.ValueTask`1<class TypeScript.Compiler.Ast.SyntaxNode>>,bool,class System.Func`1<bool>,class System.Func`1<bool>,class TypeScript.Compiler.Diagnostics.DiagnosticMessage,class System.Action,class System.Func`1<bool>)",
+            "TypeScript.Compiler.Syntax.Parser.ParametersCore(value class TypeScript.Compiler.Syntax.NodeFlags,bool)",
+            "TypeScript.Compiler.Syntax.Parser.TypeMemberWorkerCore(bool)",
+            "TypeScript.Compiler.Syntax.Parser.TypeMemberCore(bool)",
+            "TypeScript.Compiler.Syntax.Parser.TypeMemberCore(bool)",
+            "TypeScript.Compiler.Syntax.Parser.ListCore(value class TypeScript.Compiler.Syntax.SyntaxKind,class System.Func`1<value class System.Threading.Tasks.ValueTask`1<class TypeScript.Compiler.Ast.SyntaxNode>>,bool,class System.Func`1<bool>,bool)",
+            "TypeScript.Compiler.Syntax.Parser.PrimaryTypeCore()",
+            "TypeScript.Compiler.Syntax.Parser.PostfixTypeCore()",
+            "TypeScript.Compiler.Syntax.Parser.UnionConstituentCore(bool,bool)",
+            "TypeScript.Compiler.Syntax.Parser.UnionTypeCore(bool)",
+            "TypeScript.Compiler.Syntax.Parser.UnionConstituentCore(bool,bool)",
+            "TypeScript.Compiler.Syntax.Parser.UnionTypeCore(bool)",
+            "TypeScript.Compiler.Syntax.Parser.TypeCore()",
+            "TypeScript.Compiler.Syntax.Parser.AnnotationCore()",
+            "TypeScript.Compiler.Syntax.Parser.VariableDeclarationCore()",
+            "TypeScript.Compiler.Syntax.Parser.VariableDeclarationsWorkerCore()",
+            "TypeScript.Compiler.Syntax.Parser.VariableDeclarationsCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseFileCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseSourceFileAsync(value class TypeScript.Compiler.Syntax.ParseOptions,class TypeScript.Compiler.Text.SourceText,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Programs.CompilerProgram+Builder.Parse(value class TypeScript.Compiler.Text.Utf8String,class TypeScript.Compiler.Configuration.ParsedConfig,bool)",
+            "dynamicClass.IL_STUB_AsyncResume(class System.Object,unsigned int8&)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "TypeScript.Compiler.Syntax.Parser.Expected(value class TypeScript.Compiler.Syntax.SyntaxKind)",
+            "TypeScript.Compiler.Syntax.Parser.ParametersCore(value class TypeScript.Compiler.Syntax.NodeFlags,bool)",
+            "TypeScript.Compiler.Syntax.Parser.TypeMemberWorkerCore(bool)",
+            "TypeScript.Compiler.Syntax.Parser.TypeMemberCore(bool)",
+            "TypeScript.Compiler.Syntax.Parser.TypeMemberCore(bool)",
+            "TypeScript.Compiler.Syntax.Parser.ListCore(value class TypeScript.Compiler.Syntax.SyntaxKind,class System.Func`1<value class System.Threading.Tasks.ValueTask`1<class TypeScript.Compiler.Ast.SyntaxNode>>,bool,class System.Func`1<bool>,bool)",
+            "TypeScript.Compiler.Syntax.Parser.PrimaryTypeCore()",
+            "TypeScript.Compiler.Syntax.Parser.PostfixTypeCore()",
+            "TypeScript.Compiler.Syntax.Parser.UnionConstituentCore(bool,bool)",
+            "TypeScript.Compiler.Syntax.Parser.UnionTypeCore(bool)",
+            "TypeScript.Compiler.Syntax.Parser.UnionConstituentCore(bool,bool)",
+            "TypeScript.Compiler.Syntax.Parser.UnionTypeCore(bool)",
+            "TypeScript.Compiler.Syntax.Parser.TypeCore()",
+            "TypeScript.Compiler.Syntax.Parser.AnnotationCore()",
+            "TypeScript.Compiler.Syntax.Parser.VariableDeclarationCore()",
+            "TypeScript.Compiler.Syntax.Parser.VariableDeclarationsWorkerCore()",
+            "TypeScript.Compiler.Syntax.Parser.VariableDeclarationsCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseFileCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseSourceFileAsync(value class TypeScript.Compiler.Syntax.ParseOptions,class TypeScript.Compiler.Text.SourceText,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Programs.CompilerProgram+Builder.Parse(value class TypeScript.Compiler.Text.Utf8String,class TypeScript.Compiler.Configuration.ParsedConfig,bool)",
+            "dynamicClass.IL_STUB_AsyncResume(class System.Object,unsigned int8&)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "coreclr!<native>",
+            "TypeScript.Compiler.Ast.NodeFactory.NewFunctionTypeNode(class TypeScript.Compiler.Ast.NodeList,class TypeScript.Compiler.Ast.NodeList,class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Syntax.Parser.FunctionTypeCore(bool,class TypeScript.Compiler.Ast.NodeList,int32)",
+            "TypeScript.Compiler.Syntax.Parser.PrimaryTypeCore()",
+            "TypeScript.Compiler.Syntax.Parser.TypeCore()",
+            "TypeScript.Compiler.Syntax.Parser.AnnotationCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParameterCore(value class TypeScript.Compiler.Syntax.NodeFlags)",
+            "TypeScript.Compiler.Syntax.Parser.ParameterCore(value class TypeScript.Compiler.Syntax.NodeFlags)",
+            "TypeScript.Compiler.Syntax.Parser.DelimitedCore(value class TypeScript.Compiler.Syntax.SyntaxKind,class System.Func`1<value class System.Threading.Tasks.ValueTask`1<class TypeScript.Compiler.Ast.SyntaxNode>>,bool,class System.Func`1<bool>,class System.Func`1<bool>,class TypeScript.Compiler.Diagnostics.DiagnosticMessage,class System.Action,class System.Func`1<bool>)",
+            "TypeScript.Compiler.Syntax.Parser.ParametersCore(value class TypeScript.Compiler.Syntax.NodeFlags,bool)",
+            "TypeScript.Compiler.Syntax.Parser.TypeMemberWorkerCore(bool)",
+            "TypeScript.Compiler.Syntax.Parser.TypeMemberCore(bool)",
+            "TypeScript.Compiler.Syntax.Parser.<InterfaceCore>b__157_0()",
+            "TypeScript.Compiler.Syntax.Parser.<InterfaceCore>b__157_0()",
+            "TypeScript.Compiler.Syntax.Parser.ListCore(value class TypeScript.Compiler.Syntax.SyntaxKind,class System.Func`1<value class System.Threading.Tasks.ValueTask`1<class TypeScript.Compiler.Ast.SyntaxNode>>,bool,class System.Func`1<bool>,bool)",
+            "TypeScript.Compiler.Syntax.Parser.InterfaceCore(class TypeScript.Compiler.Ast.NodeList,int32)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseFileCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseSourceFileAsync(value class TypeScript.Compiler.Syntax.ParseOptions,class TypeScript.Compiler.Text.SourceText,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Programs.CompilerProgram+Builder.Parse(value class TypeScript.Compiler.Text.Utf8String,class TypeScript.Compiler.Configuration.ParsedConfig,bool)",
+            "dynamicClass.IL_STUB_AsyncResume(class System.Object,unsigned int8&)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "coreclr!<native>",
+            "TypeScript.Compiler.Ast.MethodSignatureDeclarationNode.SetChildParents()",
+            "TypeScript.Compiler.Syntax.Parser.Finish(!!0,int32,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.TypeMemberWorkerCore(bool)",
+            "TypeScript.Compiler.Syntax.Parser.TypeMemberCore(bool)",
+            "TypeScript.Compiler.Syntax.Parser.<InterfaceCore>b__157_0()",
+            "TypeScript.Compiler.Syntax.Parser.<InterfaceCore>b__157_0()",
+            "TypeScript.Compiler.Syntax.Parser.ListCore(value class TypeScript.Compiler.Syntax.SyntaxKind,class System.Func`1<value class System.Threading.Tasks.ValueTask`1<class TypeScript.Compiler.Ast.SyntaxNode>>,bool,class System.Func`1<bool>,bool)",
+            "TypeScript.Compiler.Syntax.Parser.InterfaceCore(class TypeScript.Compiler.Ast.NodeList,int32)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseFileCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseSourceFileAsync(value class TypeScript.Compiler.Syntax.ParseOptions,class TypeScript.Compiler.Text.SourceText,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Programs.CompilerProgram+Builder.Parse(value class TypeScript.Compiler.Text.Utf8String,class TypeScript.Compiler.Configuration.ParsedConfig,bool)",
+            "dynamicClass.IL_STUB_AsyncResume(class System.Object,unsigned int8&)",
+            "system.private.corelib!<native>"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "managed-vs-unicode-ascii-ts-default-small-symbol-table-final-managed-tiering-off",
+      "pid": 53688,
+      "executable": "D:\\source\\repos\\TypeScript\\built\\satori-profile\\small-symbol-table-final-managed\\TypeScript.Compatibility.exe",
+      "tieredCompilation": false,
+      "compilerSha256": "99ab5bd282d104d51205a86b2175a4e9cede51f39a63ab656404c433f0f85927",
+      "sessionSha256": "f51d5d05bee28df9ba994285a41468150c2ad4ca3d549aafd63c9166af56d077",
+      "requestsSha256": "8ea250a502ffc9a62cc05bf0ebcf636f9decfc941c65763e5192935ca4091789",
+      "requestCount": 1275,
+      "analysis": {
+        "pid": 53688,
+        "total": 22645,
+        "stacked": 22639,
+        "compilerStacked": 9697,
+        "stages": {
+          "parser": 3163,
+          "binder": 1907,
+          "checker": 4569,
+          "program": 54,
+          "other-compiler": 4
+        },
+        "exclusive": [
+          {
+            "Key": "coreclr!<native>",
+            "Value": 11685
+          },
+          {
+            "Key": "system.private.corelib!<native>",
+            "Value": 1331
+          },
+          {
+            "Key": "ntdll!<native>",
+            "Value": 418
+          },
+          {
+            "Key": "ntoskrnl!<native>",
+            "Value": 414
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckSourceElementAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 331
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.DeclarationModifiers(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 289
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.Scan()",
+            "Value": 281
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.ScanIdentifier(bool,bool,value class TypeScript.Compiler.Syntax.SyntaxKind&)",
+            "Value": 229
+          },
+          {
+            "Key": "System.Collections.Generic.Dictionary`2+CollectionsMarshalHelper[TypeScript.Compiler.Text.TextSlice,System.__Canon].GetValueRefOrAddDefault(class System.Collections.Generic.Dictionary`2<!0,!1>,!0,bool&)",
+            "Value": 194
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Declare(class TypeScript.Compiler.Binding.SymbolTable,class TypeScript.Compiler.Binding.Symbol,class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags,value class System.Nullable`1<value class TypeScript.Compiler.Text.TextSlice>,bool)",
+            "Value": 189
+          },
+          {
+            "Key": "System.Runtime.CompilerServices.AsyncHelpers.Await(value class System.Runtime.CompilerServices.ConfiguredTaskAwaitable)",
+            "Value": 146
+          },
+          {
+            "Key": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.TextSlice,System.__Canon].FindValue(!0)",
+            "Value": 124
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.ExpressionTypes.CheckAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "Value": 120
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.VisitChildren(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "Value": 116
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Next(bool)",
+            "Value": 107
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.CodePoint(int32&)",
+            "Value": 104
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.WithJSDocCore(!!0,value class TypeScript.Compiler.Syntax.TokenFlags)",
+            "Value": 97
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Children(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 96
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "Value": 95
+          },
+          {
+            "Key": "System.Collections.Generic.HashSet`1[TypeScript.Compiler.Text.TextSlice].AddIfNotPresent(!0,int32&)",
+            "Value": 90
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.FunctionDeclarations.VariableAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 87
+          },
+          {
+            "Key": "System.IO.Hashing.XxHash3.HashLength0To16(unsigned int8*,unsigned int32,unsigned int64)",
+            "Value": 83
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.DecoratorGrammar(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 82
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.DeclareNode(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 78
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Visit(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 77
+          },
+          {
+            "Key": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.TextSlice,System.__Canon].TryInsert(!0,!1,value class System.Collections.Generic.InsertionBehavior)",
+            "Value": 76
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.SemanticSyntax.HasModifier(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Syntax.SyntaxKind)",
+            "Value": 75
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.MemberExpressionCore(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "Value": 74
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.DeclarationWithExportCore(class TypeScript.Compiler.Ast.NodeList,int32,int32,int32)",
+            "Value": 74
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.VariableDeclarationCore()",
+            "Value": 73
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.Mark()",
+            "Value": 72
+          },
+          {
+            "Key": "TypeScript.Compiler.Text.TextSlice.GetHashCode()",
+            "Value": 72
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckDeclarationName(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 70
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.PrimaryExpressionCore()",
+            "Value": 69
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.EachChild(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 69
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.ModuleTargetMode(class TypeScript.Compiler.Ast.SourceFileNode)",
+            "Value": 67
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ParseStatementCore()",
+            "Value": 66
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ExpressionCore(int32,bool)",
+            "Value": 64
+          },
+          {
+            "Key": "System.IO.Hashing.XxHash3.HashLength17To128(unsigned int8*,unsigned int32,unsigned int64)",
+            "Value": 62
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ParseFileCore()",
+            "Value": 62
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.VariableDeclarationsWorkerCore()",
+            "Value": 62
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.IsWhiteSpace(int32)",
+            "Value": 61
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Finish(!!0,int32,value class System.Nullable`1<int32>)",
+            "Value": 60
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckSourceFileAsync(class TypeScript.Compiler.Ast.SourceFileNode,value class System.Threading.CancellationToken)",
+            "Value": 60
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckVariableListAsync(class TypeScript.Compiler.Ast.VariableDeclarationListNode,value class System.Threading.CancellationToken)",
+            "Value": 59
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.SymbolTypes.VariableAsync(class TypeScript.Compiler.Binding.Symbol,value class System.Threading.CancellationToken)",
+            "Value": 58
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.UnaryExpressionCore(bool,bool)",
+            "Value": 53
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.SemanticSyntax.RootDeclaration(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 53
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.get_NoImplicitAny()",
+            "Value": 52
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ExportCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "Value": 52
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckUnreachableAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 48
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Peek(!!0,class System.Func`2<!!0,bool>,bool)",
+            "Value": 48
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CachedExpressionAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "Value": 47
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.DeclarationName(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 47
+          },
+          {
+            "Key": "nvlddmkm.sys!<native>",
+            "Value": 46
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.VariableAsync(class TypeScript.Compiler.Binding.Symbol,bool,value class System.Threading.CancellationToken)",
+            "Value": 46
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.ExpressionTypes.WorkerAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "Value": 46
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.BindingNameCore(class TypeScript.Compiler.Diagnostics.DiagnosticMessage)",
+            "Value": 44
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.NodeList.get_HasTrailingComma()",
+            "Value": 43
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.ModuleMember(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags)",
+            "Value": 43
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.UserName(value class TypeScript.Compiler.Text.TextSlice)",
+            "Value": 42
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.QuickExpressionTypeAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 42
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.FromText(value class System.ReadOnlySpan`1<wchar>)",
+            "Value": 42
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.SymbolTypes.GetAsync(class TypeScript.Compiler.Binding.Symbol,value class System.Threading.CancellationToken)",
+            "Value": 42
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ModifiersCore(bool,bool)",
+            "Value": 42
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.ExportedDeclaration(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "Value": 41
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.SyntaxNode.get_ModifierList()",
+            "Value": 39
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.VariableDeclarationNode.get_DeclarationName()",
+            "Value": 39
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.get_ModuleKind()",
+            "Value": 39
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.UnreachableAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 39
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.AddDeclaration(class TypeScript.Compiler.Binding.Symbol,class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags)",
+            "Value": 38
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.VariableDeclarationsCore()",
+            "Value": 38
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.AnnotationCore()",
+            "Value": 38
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.Punctuation(value class System.ReadOnlySpan`1<wchar>,int32&)",
+            "Value": 37
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckDisposableInitializerAsync(class TypeScript.Compiler.Ast.VariableDeclarationNode,value class System.Threading.CancellationToken)",
+            "Value": 37
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.VariableTypes.WidenAsync(class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Ast.SyntaxNode,bool,value class System.Threading.CancellationToken)",
+            "Value": 37
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.AliasResolver.IsTypeOnly(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 37
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.FlowReachability.ReachableAsync(class TypeScript.Compiler.Binding.FlowNode,value class System.Threading.CancellationToken)",
+            "Value": 36
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.FlowTypes.StableAsync(!!0,class System.Func`2<!!0,value class System.Threading.Tasks.ValueTask`1<class TypeScript.Compiler.Checking.Type>>,value class System.Threading.CancellationToken)",
+            "Value": 36
+          },
+          {
+            "Key": "System.Collections.Generic.Dictionary`2+Enumerator[TypeScript.Compiler.Text.TextSlice,System.__Canon].MoveNext()",
+            "Value": 36
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.NameText(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 36
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.VariableTypes.WidenInitializerAsync(class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Checking.Type,value class System.Threading.CancellationToken)",
+            "Value": 36
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.SemanticSyntax.Source(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 35
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.<DeclarationModifiers>g__Has|1042_2(value class TypeScript.Compiler.Syntax.SyntaxKind,value class <>c__DisplayClass1042_0&)",
+            "Value": 35
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.ScanString(bool)",
+            "Value": 34
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckLiteralAssignableAsync(class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 34
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.IllegalDeclarationModifier(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Syntax.SyntaxKind)",
+            "Value": 34
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.TypeWidening.GetAsync(class TypeScript.Compiler.Checking.Type,class WideningContext,value class System.Threading.CancellationToken)",
+            "Value": 34
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Name(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 33
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.VariableTypes.DeclaredOrInferredAsync(class TypeScript.Compiler.Ast.SyntaxNode,bool,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "Value": 33
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.VariableGrammarAsync(class TypeScript.Compiler.Ast.VariableDeclarationNode,value class System.Threading.CancellationToken)",
+            "Value": 33
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.FinishExpressionAsync(class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "Value": 33
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckMergedExportsAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 31
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.IsIdentifierStart(int32)",
+            "Value": 31
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.InitializerCore()",
+            "Value": 31
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.GenericExpressions.FinishAsync(class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "Value": 30
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.VariableTypes.GetAsync(class TypeScript.Compiler.Ast.SyntaxNode,bool,value class System.Threading.CancellationToken)",
+            "Value": 30
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.DeclarationInitializerWithContextAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Checking.CheckMode,class TypeScript.Compiler.Checking.Type,value class System.Threading.CancellationToken)",
+            "Value": 30
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.CheckEval(class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 29
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.VariableAliasAsync(class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Binding.Symbol,value class System.Threading.CancellationToken)",
+            "Value": 29
+          }
+        ],
+        "compilerCharge": [
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckSourceElementAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 392
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.DeclarationModifiers(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 306
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.Scan()",
+            "Value": 290
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Declare(class TypeScript.Compiler.Binding.SymbolTable,class TypeScript.Compiler.Binding.Symbol,class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags,value class System.Nullable`1<value class TypeScript.Compiler.Text.TextSlice>,bool)",
+            "Value": 262
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.ScanIdentifier(bool,bool,value class TypeScript.Compiler.Syntax.SyntaxKind&)",
+            "Value": 259
+          },
+          {
+            "Key": "TypeScript.Compiler.Text.TextSlice.GetHashCode()",
+            "Value": 217
+          },
+          {
+            "Key": "System.Collections.Generic.Dictionary`2+CollectionsMarshalHelper[TypeScript.Compiler.Text.TextSlice,System.__Canon].GetValueRefOrAddDefault(class System.Collections.Generic.Dictionary`2<!0,!1>,!0,bool&)",
+            "Value": 207
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.DeclarationWithExportCore(class TypeScript.Compiler.Ast.NodeList,int32,int32,int32)",
+            "Value": 161
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.ExpressionTypes.CheckAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "Value": 152
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.VariableDeclarationCore()",
+            "Value": 144
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.FlowTypes.StableAsync(!!0,class System.Func`2<!!0,value class System.Threading.Tasks.ValueTask`1<class TypeScript.Compiler.Checking.Type>>,value class System.Threading.CancellationToken)",
+            "Value": 142
+          },
+          {
+            "Key": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.TextSlice,System.__Canon].FindValue(!0)",
+            "Value": 124
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.WithJSDocCore(!!0,value class TypeScript.Compiler.Syntax.TokenFlags)",
+            "Value": 118
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.FunctionDeclarations.VariableAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 116
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.VisitChildren(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "Value": 116
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.VariableDeclarationsWorkerCore()",
+            "Value": 115
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "Value": 112
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.UnaryExpressionCore(bool,bool)",
+            "Value": 108
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Next(bool)",
+            "Value": 108
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.CodePoint(int32&)",
+            "Value": 105
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.DecoratorGrammar(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 98
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Visit(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 98
+          },
+          {
+            "Key": "System.Collections.Generic.HashSet`1[TypeScript.Compiler.Text.TextSlice].AddIfNotPresent(!0,int32&)",
+            "Value": 98
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Children(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 96
+          },
+          {
+            "Key": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.TextSlice,System.__Canon].TryInsert(!0,!1,value class System.Collections.Generic.InsertionBehavior)",
+            "Value": 89
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Initialized(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 86
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.MemberExpressionCore(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "Value": 84
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.DeclareNode(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 78
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.PrimaryExpressionCore()",
+            "Value": 77
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.SemanticSyntax.HasModifier(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Syntax.SyntaxKind)",
+            "Value": 75
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.FlowReachability.ReachableAsync(class TypeScript.Compiler.Binding.FlowNode,value class System.Threading.CancellationToken)",
+            "Value": 74
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ParseStatementCore()",
+            "Value": 74
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.SymbolTypes.VariableAsync(class TypeScript.Compiler.Binding.Symbol,value class System.Threading.CancellationToken)",
+            "Value": 74
+          },
+          {
+            "Key": "System.Collections.Generic.Dictionary`2+Enumerator[TypeScript.Compiler.Text.TextSlice,System.__Canon].MoveNext()",
+            "Value": 73
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.Mark()",
+            "Value": 72
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ExpressionCore(int32,bool)",
+            "Value": 72
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckDeclarationName(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 71
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.EachChild(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 70
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.LateMembers.SymbolAsync(class TypeScript.Compiler.Binding.Symbol,value class System.Threading.CancellationToken)",
+            "Value": 68
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.ModuleTargetMode(class TypeScript.Compiler.Ast.SourceFileNode)",
+            "Value": 67
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Identifier(bool,bool,class TypeScript.Compiler.Diagnostics.DiagnosticMessage)",
+            "Value": 65
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckVariableListAsync(class TypeScript.Compiler.Ast.VariableDeclarationListNode,value class System.Threading.CancellationToken)",
+            "Value": 64
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ParseFileCore()",
+            "Value": 64
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.BindingNameCore(class TypeScript.Compiler.Diagnostics.DiagnosticMessage)",
+            "Value": 64
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckSourceFileAsync(class TypeScript.Compiler.Ast.SourceFileNode,value class System.Threading.CancellationToken)",
+            "Value": 64
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.IsWhiteSpace(int32)",
+            "Value": 63
+          },
+          {
+            "Key": "System.Collections.Generic.HashSet`1[TypeScript.Compiler.Text.TextSlice].Resize(int32,bool)",
+            "Value": 60
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Finish(!!0,int32,value class System.Nullable`1<int32>)",
+            "Value": 60
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ExportCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "Value": 58
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CachedExpressionAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "Value": 57
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.ExpressionTypes.WorkerAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "Value": 55
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.VariableTypes.DeclaredOrInferredAsync(class TypeScript.Compiler.Ast.SyntaxNode,bool,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "Value": 54
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.get_NoImplicitAny()",
+            "Value": 53
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.SymbolTypes.GetAsync(class TypeScript.Compiler.Binding.Symbol,value class System.Threading.CancellationToken)",
+            "Value": 53
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.SemanticSyntax.RootDeclaration(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 53
+          },
+          {
+            "Key": "TypeScript.Compiler.Programs.CompilerProgram.GetFile(class System.String)",
+            "Value": 50
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.QuickExpressionTypeAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 49
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckUnreachableAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 49
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.ModuleMember(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags)",
+            "Value": 49
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.AddDeclaration(class TypeScript.Compiler.Binding.Symbol,class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags)",
+            "Value": 48
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Peek(!!0,class System.Func`2<!!0,bool>,bool)",
+            "Value": 48
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ModifiersCore(bool,bool)",
+            "Value": 48
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.DeclarationName(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 47
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.VariableAsync(class TypeScript.Compiler.Binding.Symbol,bool,value class System.Threading.CancellationToken)",
+            "Value": 46
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Literal()",
+            "Value": 46
+          },
+          {
+            "Key": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.TextSlice,System.__Canon].Resize(int32,bool)",
+            "Value": 46
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.AnnotationCore()",
+            "Value": 45
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.NodeList.get_HasTrailingComma()",
+            "Value": 44
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.NodeFactory.NewVariableDeclarationList(class TypeScript.Compiler.Ast.NodeList,value class TypeScript.Compiler.Syntax.NodeFlags)",
+            "Value": 44
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckUnusedLocals(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 43
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.UserName(value class TypeScript.Compiler.Text.TextSlice)",
+            "Value": 42
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.ExportedDeclaration(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "Value": 42
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.ScanString(bool)",
+            "Value": 42
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.FromText(value class System.ReadOnlySpan`1<wchar>)",
+            "Value": 42
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.get_ModuleKind()",
+            "Value": 40
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.VariableTypes.WidenAsync(class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Ast.SyntaxNode,bool,value class System.Threading.CancellationToken)",
+            "Value": 40
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.TypeWidening.GetAsync(class TypeScript.Compiler.Checking.Type,class WideningContext,value class System.Threading.CancellationToken)",
+            "Value": 40
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.SyntaxNode.get_ModifierList()",
+            "Value": 39
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.VariableDeclarationNode.get_DeclarationName()",
+            "Value": 39
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.UnreachableAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 39
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.InitializerCore()",
+            "Value": 38
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.VariableDeclarationsCore()",
+            "Value": 38
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.AliasResolver.IsTypeOnly(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 38
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.SourceFileNode.SetChildParents()",
+            "Value": 37
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.Punctuation(value class System.ReadOnlySpan`1<wchar>,int32&)",
+            "Value": 37
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckDisposableInitializerAsync(class TypeScript.Compiler.Ast.VariableDeclarationNode,value class System.Threading.CancellationToken)",
+            "Value": 37
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.IsArrowCore(bool)",
+            "Value": 36
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.FunctionExpressions.RecordExpressionCache(class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Checking.Type)",
+            "Value": 36
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.NameText(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 36
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.CollectModuleReferences(class TypeScript.Compiler.Ast.SourceFileNode)",
+            "Value": 36
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.VariableTypes.WidenInitializerAsync(class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Checking.Type,value class System.Threading.CancellationToken)",
+            "Value": 36
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.NodeFactory.NewVariableStatement(class TypeScript.Compiler.Ast.NodeList,class TypeScript.Compiler.Ast.VariableDeclarationListNode)",
+            "Value": 35
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckLiteralAssignableAsync(class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 35
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.SemanticSyntax.Source(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 35
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.<DeclarationModifiers>g__Has|1042_2(value class TypeScript.Compiler.Syntax.SyntaxKind,value class <>c__DisplayClass1042_0&)",
+            "Value": 35
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.IllegalDeclarationModifier(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Syntax.SyntaxKind)",
+            "Value": 34
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.VariableGrammarAsync(class TypeScript.Compiler.Ast.VariableDeclarationNode,value class System.Threading.CancellationToken)",
+            "Value": 34
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Name(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 33
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.FinishExpressionAsync(class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "Value": 33
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.Rewind(value class TypeScript.Compiler.Syntax.ScannerState)",
+            "Value": 32
+          }
+        ],
+        "examples": [
+          [
+            "TypeScript.Compiler.Syntax.Scanner.ScanIdentifier(bool,bool,value class TypeScript.Compiler.Syntax.SyntaxKind&)",
+            "TypeScript.Compiler.Syntax.Scanner.Scan()",
+            "TypeScript.Compiler.Syntax.Parser.Next(bool)",
+            "TypeScript.Compiler.Syntax.Parser.Identifier(bool,bool,class TypeScript.Compiler.Diagnostics.DiagnosticMessage)",
+            "TypeScript.Compiler.Syntax.Parser.BindingNameCore(class TypeScript.Compiler.Diagnostics.DiagnosticMessage)",
+            "TypeScript.Compiler.Syntax.Parser.VariableDeclarationCore()",
+            "TypeScript.Compiler.Syntax.Parser.VariableDeclarationsWorkerCore()",
+            "TypeScript.Compiler.Syntax.Parser.VariableDeclarationsCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.DeclarationWithExportCore(class TypeScript.Compiler.Ast.NodeList,int32,int32,int32)",
+            "TypeScript.Compiler.Syntax.Parser.ExportCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseFileCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseSourceFileAsync(value class TypeScript.Compiler.Syntax.ParseOptions,class TypeScript.Compiler.Text.SourceText,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Programs.CompilerProgram+Builder.Parse(class System.String,class TypeScript.Compiler.Configuration.ParsedConfig,bool)",
+            "dynamicClass.IL_STUB_AsyncResume(class System.Object,unsigned int8&)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "TypeScript.Compiler.Syntax.Scanner.CodePoint(int32&)",
+            "TypeScript.Compiler.Syntax.Scanner.ScanIdentifier(bool,bool,value class TypeScript.Compiler.Syntax.SyntaxKind&)",
+            "TypeScript.Compiler.Syntax.Scanner.Scan()",
+            "TypeScript.Compiler.Syntax.Parser.Next(bool)",
+            "TypeScript.Compiler.Syntax.Parser.Literal()",
+            "TypeScript.Compiler.Syntax.Parser.PrimaryExpressionCore()",
+            "TypeScript.Compiler.Syntax.Parser.UnaryExpressionCore(bool,bool)",
+            "TypeScript.Compiler.Syntax.Parser.ExpressionCore(int32,bool)",
+            "TypeScript.Compiler.Syntax.Parser.InitializerCore()",
+            "TypeScript.Compiler.Syntax.Parser.VariableDeclarationCore()",
+            "TypeScript.Compiler.Syntax.Parser.VariableDeclarationsWorkerCore()",
+            "TypeScript.Compiler.Syntax.Parser.VariableDeclarationsCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.DeclarationWithExportCore(class TypeScript.Compiler.Ast.NodeList,int32,int32,int32)",
+            "TypeScript.Compiler.Syntax.Parser.ExportCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseFileCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseSourceFileAsync(value class TypeScript.Compiler.Syntax.ParseOptions,class TypeScript.Compiler.Text.SourceText,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Programs.CompilerProgram+Builder.Parse(class System.String,class TypeScript.Compiler.Configuration.ParsedConfig,bool)",
+            "dynamicClass.IL_STUB_AsyncResume(class System.Object,unsigned int8&)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "coreclr!<native>",
+            "TypeScript.Compiler.Ast.SourceFileNode.SetChildParents()",
+            "TypeScript.Compiler.Syntax.Parser.Finish(!!0,int32,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.ParseFileCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseSourceFileAsync(value class TypeScript.Compiler.Syntax.ParseOptions,class TypeScript.Compiler.Text.SourceText,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Programs.CompilerProgram+Builder.Parse(class System.String,class TypeScript.Compiler.Configuration.ParsedConfig,bool)",
+            "dynamicClass.IL_STUB_AsyncResume(class System.Object,unsigned int8&)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "System.IO.Hashing.XxHash3.HashLength17To128(unsigned int8*,unsigned int32,unsigned int64)",
+            "TypeScript.Compiler.Text.TextSlice.GetHashCode()",
+            "System.Collections.Generic.Dictionary`2+CollectionsMarshalHelper[TypeScript.Compiler.Text.TextSlice,System.__Canon].GetValueRefOrAddDefault(class System.Collections.Generic.Dictionary`2<!0,!1>,!0,bool&)",
+            "TypeScript.Compiler.Binding.SymbolTable.GetValueRefOrAddDefault(value class TypeScript.Compiler.Text.TextSlice,bool&)",
+            "TypeScript.Compiler.Binding.Binder.Declare(class TypeScript.Compiler.Binding.SymbolTable,class TypeScript.Compiler.Binding.Symbol,class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags,value class System.Nullable`1<value class TypeScript.Compiler.Text.TextSlice>,bool)",
+            "TypeScript.Compiler.Binding.Binder.ModuleMember(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags)",
+            "TypeScript.Compiler.Binding.Binder.BlockMember(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags)",
+            "TypeScript.Compiler.Binding.Binder.DeclareNode(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.Visit(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.EachChild(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.Children(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitChildren(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "TypeScript.Compiler.Binding.Binder.EachChild(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.Children(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitChildren(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "TypeScript.Compiler.Binding.Binder.Each(class TypeScript.Compiler.Ast.NodeList,bool)",
+            "TypeScript.Compiler.Binding.Binder.Children(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitContainer(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitChildren(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "TypeScript.Compiler.Binding.Binder.BindAsync(class TypeScript.Compiler.Ast.SourceFileNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Programs.CompilerProgram+Builder.ParseAndBind(class System.String,class TypeScript.Compiler.Configuration.ParsedConfig,bool)",
+            "dynamicClass.IL_STUB_AsyncResume(class System.Object,unsigned int8&)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "TypeScript.Compiler.Binding.Binder.UserName(value class TypeScript.Compiler.Text.TextSlice)",
+            "TypeScript.Compiler.Binding.Binder.NameText(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.DeclarationName(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.Declare(class TypeScript.Compiler.Binding.SymbolTable,class TypeScript.Compiler.Binding.Symbol,class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags,value class System.Nullable`1<value class TypeScript.Compiler.Text.TextSlice>,bool)",
+            "TypeScript.Compiler.Binding.Binder.ModuleMember(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags)",
+            "TypeScript.Compiler.Binding.Binder.BlockMember(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags)",
+            "TypeScript.Compiler.Binding.Binder.DeclareNode(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.Visit(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.EachChild(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.Children(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitChildren(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "TypeScript.Compiler.Binding.Binder.EachChild(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.Children(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitChildren(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "TypeScript.Compiler.Binding.Binder.Each(class TypeScript.Compiler.Ast.NodeList,bool)",
+            "TypeScript.Compiler.Binding.Binder.Children(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitContainer(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitChildren(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "TypeScript.Compiler.Binding.Binder.BindAsync(class TypeScript.Compiler.Ast.SourceFileNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Programs.CompilerProgram+Builder.ParseAndBind(class System.String,class TypeScript.Compiler.Configuration.ParsedConfig,bool)",
+            "dynamicClass.IL_STUB_AsyncResume(class System.Object,unsigned int8&)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "System.IO.Hashing.XxHash3.HashLength0To16(unsigned int8*,unsigned int32,unsigned int64)",
+            "TypeScript.Compiler.Text.TextSlice.GetHashCode()",
+            "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.TextSlice,System.__Canon].FindValue(!0)",
+            "TypeScript.Compiler.Checking.TypeContext.GetStringLiteralType(value class TypeScript.Compiler.Text.TextSlice)",
+            "TypeScript.Compiler.Checking.ExpressionTypes.WorkerAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.ExpressionTypes.CheckAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.QuickExpressionTypeAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.DeclarationInitializerWithContextAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Checking.CheckMode,class TypeScript.Compiler.Checking.Type,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.DeclarationInitializerAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.VariableTypes.DeclaredOrInferredAsync(class TypeScript.Compiler.Ast.SyntaxNode,bool,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.VariableTypes.GetAsync(class TypeScript.Compiler.Ast.SyntaxNode,bool,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.VariableAsync(class TypeScript.Compiler.Binding.Symbol,bool,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.SymbolTypes.VariableAsync(class TypeScript.Compiler.Binding.Symbol,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.SymbolTypes.GetAsync(class TypeScript.Compiler.Binding.Symbol,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.FunctionDeclarations.VariableAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceElementAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceElementAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceElementAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceFileAsync(class TypeScript.Compiler.Ast.SourceFileNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.CheckerPool+<>c__DisplayClass12_0.<GetDiagnosticsAsync>g__CheckGroupAsync|0(int32)",
+            "TypeScript.Compiler.Checking.CheckerPool+<>c__DisplayClass12_0.<GetDiagnosticsAsync>g__CheckGroupAsync|0(int32)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "coreclr!<native>",
+            "TypeScript.Compiler.Checking.LateMembers.SymbolAsync(class TypeScript.Compiler.Binding.Symbol,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.<.ctor>b__334_10(class TypeScript.Compiler.Binding.Symbol)",
+            "TypeScript.Compiler.Checking.CheckerSymbols.Declaration(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Checking.FunctionDeclarations.VariableAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceElementAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceElementAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceElementAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceFileAsync(class TypeScript.Compiler.Ast.SourceFileNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.CheckerPool+<>c__DisplayClass12_0.<GetDiagnosticsAsync>g__CheckGroupAsync|0(int32)",
+            "TypeScript.Compiler.Checking.CheckerPool+<>c__DisplayClass12_0.<GetDiagnosticsAsync>g__CheckGroupAsync|0(int32)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "ntoskrnl!<native>",
+            "ntoskrnl!<native>",
+            "ntoskrnl!<native>",
+            "ntoskrnl!<native>",
+            "ntoskrnl!<native>",
+            "coreclr!<native>",
+            "TypeScript.Compiler.Checking.FlowTypes.StableAsync(!!0,class System.Func`2<!!0,value class System.Threading.Tasks.ValueTask`1<class TypeScript.Compiler.Checking.Type>>,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CachedExpressionAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.FunctionDeclarations.VariableAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceElementAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceElementAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceElementAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceFileAsync(class TypeScript.Compiler.Ast.SourceFileNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.CheckerPool+<>c__DisplayClass12_0.<GetDiagnosticsAsync>g__CheckGroupAsync|0(int32)",
+            "TypeScript.Compiler.Checking.CheckerPool+<>c__DisplayClass12_0.<GetDiagnosticsAsync>g__CheckGroupAsync|0(int32)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "TypeScript.Compiler.Checking.Checker.DecoratorGrammar(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Checking.Checker.DeclarationModifiers(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Checking.Checker.ExportedDeclaration(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceElementAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceFileAsync(class TypeScript.Compiler.Ast.SourceFileNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.CheckerPool+<>c__DisplayClass12_0.<GetDiagnosticsAsync>g__CheckGroupAsync|0(int32)",
+            "TypeScript.Compiler.Checking.CheckerPool+<>c__DisplayClass12_0.<GetDiagnosticsAsync>g__CheckGroupAsync|0(int32)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "coreclr!<native>",
+            "coreclr!<native>",
+            "coreclr!<native>",
+            "coreclr!<native>",
+            "coreclr!<native>",
+            "TypeScript.Compiler.Ast.NodeFactory.NewVariableStatement(class TypeScript.Compiler.Ast.NodeList,class TypeScript.Compiler.Ast.VariableDeclarationListNode)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.DeclarationWithExportCore(class TypeScript.Compiler.Ast.NodeList,int32,int32,int32)",
+            "TypeScript.Compiler.Syntax.Parser.ExportCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseFileCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseSourceFileAsync(value class TypeScript.Compiler.Syntax.ParseOptions,class TypeScript.Compiler.Text.SourceText,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Programs.CompilerProgram+Builder.Parse(class System.String,class TypeScript.Compiler.Configuration.ParsedConfig,bool)",
+            "dynamicClass.IL_STUB_AsyncResume(class System.Object,unsigned int8&)",
+            "system.private.corelib!<native>"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "managed-vs-unicode-ascii-ts-default-managed-satori-v1-tiering-off",
+      "pid": 38292,
+      "executable": "D:\\source\\repos\\TypeScript\\built\\utf8-migration\\managed-satori-v1\\TypeScript.Compatibility.exe",
+      "tieredCompilation": false,
+      "compilerSha256": "d3ffcaadfb6a232073cfeec37ff95c9c8101e6091c161c5301671bdf5e3bcdb8",
+      "sessionSha256": "514d9e91154112b0059d89b7125618e3126de25a854566c735f4132ee92ea7e6",
+      "requestsSha256": "a6d7837a8c5049a70ba3f267d36f2dfecffe0787eb35350e40efdbbc72bbe1ea",
+      "requestCount": 1209,
+      "analysis": {
+        "pid": 38292,
+        "total": 22418,
+        "stacked": 22404,
+        "compilerStacked": 10154,
+        "stages": {
+          "parser": 3304,
+          "binder": 1829,
+          "checker": 4962,
+          "program": 52,
+          "other-compiler": 7
+        },
+        "exclusive": [
+          {
+            "Key": "coreclr!<native>",
+            "Value": 10898
+          },
+          {
+            "Key": "system.private.corelib!<native>",
+            "Value": 1435
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.FromText(value class System.ReadOnlySpan`1<unsigned int8>)",
+            "Value": 459
+          },
+          {
+            "Key": "ntdll!<native>",
+            "Value": 400
+          },
+          {
+            "Key": "ntoskrnl!<native>",
+            "Value": 376
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.DeclarationModifiers(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 278
+          },
+          {
+            "Key": "TypeScript.Compiler.Text.Wtf8.DecodeLast(value class System.ReadOnlySpan`1<unsigned int8>,int32&)",
+            "Value": 239
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckSourceElementAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 236
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.ScanIdentifier(bool,bool,value class TypeScript.Compiler.Syntax.SyntaxKind&)",
+            "Value": 233
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.Scan()",
+            "Value": 213
+          },
+          {
+            "Key": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.Utf8String,System.__Canon].FindValue(!0)",
+            "Value": 207
+          },
+          {
+            "Key": "System.Collections.Generic.Dictionary`2+CollectionsMarshalHelper[TypeScript.Compiler.Text.Utf8String,System.__Canon].GetValueRefOrAddDefault(class System.Collections.Generic.Dictionary`2<!0,!1>,!0,bool&)",
+            "Value": 193
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.CodePoint(int32&)",
+            "Value": 184
+          },
+          {
+            "Key": "TypeScript.Compiler.Text.Wtf8.Decode(value class System.ReadOnlySpan`1<unsigned int8>,int32&)",
+            "Value": 156
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Declare(class TypeScript.Compiler.Binding.SymbolTable,class TypeScript.Compiler.Binding.Symbol,class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags,value class System.Nullable`1<value class TypeScript.Compiler.Text.Utf8String>,bool)",
+            "Value": 156
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.ExpressionTypes.CheckAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "Value": 115
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckDeclarationName(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 113
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.VisitChildren(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "Value": 108
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.ModuleTargetMode(class TypeScript.Compiler.Ast.SourceFileNode)",
+            "Value": 108
+          },
+          {
+            "Key": "System.Collections.Generic.HashSet`1[TypeScript.Compiler.Text.Utf8String].AddIfNotPresent(!0,int32&)",
+            "Value": 98
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.Mark()",
+            "Value": 97
+          },
+          {
+            "Key": "System.IO.Hashing.XxHash3.HashLength0To16(unsigned int8*,unsigned int32,unsigned int64)",
+            "Value": 96
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Children(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 95
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.WithJSDocCore(!!0,value class TypeScript.Compiler.Syntax.TokenFlags)",
+            "Value": 90
+          },
+          {
+            "Key": "System.Runtime.CompilerServices.AsyncHelpers.Await(value class System.Runtime.CompilerServices.ConfiguredTaskAwaitable)",
+            "Value": 87
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.get_ModuleKind()",
+            "Value": 86
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Next(bool)",
+            "Value": 84
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Visit(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 84
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "Value": 83
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.FunctionDeclarations.VariableAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 80
+          },
+          {
+            "Key": "TypeScript.Compiler.Text.Utf8SpanExtensions.EndsWith(value class System.ReadOnlySpan`1<unsigned int8>,value class System.ReadOnlySpan`1<unsigned int8>,value class System.StringComparison)",
+            "Value": 78
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.EachChild(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 75
+          },
+          {
+            "Key": "TypeScript.Compiler.Text.Utf8StringComparer.GetHashCode(value class TypeScript.Compiler.Text.Utf8String)",
+            "Value": 73
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Finish(!!0,int32,value class System.Nullable`1<int32>)",
+            "Value": 69
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.DecoratorGrammar(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 65
+          },
+          {
+            "Key": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.Utf8String,System.__Canon].TryInsert(!0,!1,value class System.Collections.Generic.InsertionBehavior)",
+            "Value": 65
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ExpressionCore(int32,bool)",
+            "Value": 64
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.VariableDeclarationsWorkerCore()",
+            "Value": 64
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.MemberExpressionCore(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "Value": 64
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.SemanticSyntax.HasModifier(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Syntax.SyntaxKind)",
+            "Value": 64
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.ExpressionTypes.WorkerAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "Value": 62
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.VariableGrammarAsync(class TypeScript.Compiler.Ast.VariableDeclarationNode,value class System.Threading.CancellationToken)",
+            "Value": 61
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckUnreachableAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 60
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.UnaryExpressionCore(bool,bool)",
+            "Value": 58
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.SemanticSyntax.Source(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 58
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.DeclareNode(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 58
+          },
+          {
+            "Key": "TypeScript.Compiler.Text.Utf8StringComparer.Fold(int32)",
+            "Value": 56
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.VariableDeclarationCore()",
+            "Value": 55
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.get_NoImplicitAny()",
+            "Value": 53
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CachedExpressionAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "Value": 51
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Peek(!!0,class System.Func`2<!!0,bool>,bool)",
+            "Value": 51
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.SymbolTypes.VariableAsync(class TypeScript.Compiler.Binding.Symbol,value class System.Threading.CancellationToken)",
+            "Value": 49
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckVariableListAsync(class TypeScript.Compiler.Ast.VariableDeclarationListNode,value class System.Threading.CancellationToken)",
+            "Value": 47
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.Text(value class TypeScript.Compiler.Syntax.SyntaxKind)",
+            "Value": 47
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.AnnotationCore()",
+            "Value": 46
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ParseFileCore()",
+            "Value": 46
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.AddDeclaration(class TypeScript.Compiler.Binding.Symbol,class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags)",
+            "Value": 46
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Name(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 46
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.DeclarationName(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 46
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.BindingNameCore(class TypeScript.Compiler.Diagnostics.DiagnosticMessage)",
+            "Value": 46
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.SemanticSyntax.RootDeclaration(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 43
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckSourceFileAsync(class TypeScript.Compiler.Ast.SourceFileNode,value class System.Threading.CancellationToken)",
+            "Value": 43
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.VariableAsync(class TypeScript.Compiler.Binding.Symbol,bool,value class System.Threading.CancellationToken)",
+            "Value": 42
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ExportCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "Value": 41
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.ScanString(bool)",
+            "Value": 41
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.DeclarationWithExportCore(class TypeScript.Compiler.Ast.NodeList,int32,int32,int32)",
+            "Value": 41
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.VariableTypes.WidenAsync(class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Ast.SyntaxNode,bool,value class System.Threading.CancellationToken)",
+            "Value": 40
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.ModuleMember(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags)",
+            "Value": 40
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.Punctuation(value class System.ReadOnlySpan`1<unsigned int8>,int32&)",
+            "Value": 39
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.IsConflictMarker(int32)",
+            "Value": 39
+          },
+          {
+            "Key": "TypeScript.Compiler.Text.Utf8StringComparer.Equals(value class TypeScript.Compiler.Text.Utf8String,value class TypeScript.Compiler.Text.Utf8String)",
+            "Value": 39
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.SyntaxNode.get_ModifierList()",
+            "Value": 37
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.VariableTypes.WidenInitializerAsync(class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Checking.Type,value class System.Threading.CancellationToken)",
+            "Value": 37
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.VariableTypes.DeclaredOrInferredAsync(class TypeScript.Compiler.Ast.SyntaxNode,bool,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "Value": 37
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.VariableDeclarationNode.get_DeclarationName()",
+            "Value": 36
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ModifiersCore(bool,bool)",
+            "Value": 35
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.NodeList.get_HasTrailingComma()",
+            "Value": 34
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckExternalExportsAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 34
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckDisposableInitializerAsync(class TypeScript.Compiler.Ast.VariableDeclarationNode,value class System.Threading.CancellationToken)",
+            "Value": 34
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.ModuleExports.ResolveAsync(class TypeScript.Compiler.Binding.Symbol,value class System.Threading.CancellationToken)",
+            "Value": 34
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.VariableDeclarationsCore()",
+            "Value": 33
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.FlowReachability.ReachableAsync(class TypeScript.Compiler.Binding.FlowNode,value class System.Threading.CancellationToken)",
+            "Value": 33
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.FinishExpressionAsync(class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "Value": 33
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.FlowTypes.StableAsync(!!0,class System.Func`2<!!0,value class System.Threading.Tasks.ValueTask`1<class TypeScript.Compiler.Checking.Type>>,value class System.Threading.CancellationToken)",
+            "Value": 31
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckMergedExportsAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 31
+          },
+          {
+            "Key": "  <CodeAddress Address=\"0x7ff9855e5055\" CodeAddressIndex=\"2982\"/>",
+            "Value": 31
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckLiteralAssignableAsync(class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 29
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.InitializerCore()",
+            "Value": 29
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.BoundSourceFile.Data(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 29
+          },
+          {
+            "Key": "System.Collections.Generic.Dictionary`2+Enumerator[TypeScript.Compiler.Text.Utf8String,System.__Canon].MoveNext()",
+            "Value": 29
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.VariableAliasAsync(class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Binding.Symbol,value class System.Threading.CancellationToken)",
+            "Value": 29
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.QuickExpressionTypeAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 28
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.CheckEval(class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 28
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.PrimaryExpressionCore()",
+            "Value": 28
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.CheckerSymbols.Binding(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 28
+          },
+          {
+            "Key": "System.Collections.Generic.Dictionary`2+KeyCollection+Enumerator[TypeScript.Compiler.Text.Utf8String,System.__Canon].get_Current()",
+            "Value": 28
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.IdentifierKind(value class System.ReadOnlySpan`1<unsigned int8>)",
+            "Value": 28
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.DeclarationInitializerWithContextAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Checking.CheckMode,class TypeScript.Compiler.Checking.Type,value class System.Threading.CancellationToken)",
+            "Value": 27
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.SymbolTable.GetValueRefOrAddDefault(value class TypeScript.Compiler.Text.Utf8String,bool&)",
+            "Value": 27
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.TypeWidening.GetAsync(class TypeScript.Compiler.Checking.Type,class WideningContext,value class System.Threading.CancellationToken)",
+            "Value": 27
+          }
+        ],
+        "compilerCharge": [
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.FromText(value class System.ReadOnlySpan`1<unsigned int8>)",
+            "Value": 461
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.DeclarationModifiers(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 291
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckSourceElementAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 286
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.ScanIdentifier(bool,bool,value class TypeScript.Compiler.Syntax.SyntaxKind&)",
+            "Value": 259
+          },
+          {
+            "Key": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.Utf8String,System.__Canon].FindValue(!0)",
+            "Value": 256
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Declare(class TypeScript.Compiler.Binding.SymbolTable,class TypeScript.Compiler.Binding.Symbol,class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags,value class System.Nullable`1<value class TypeScript.Compiler.Text.Utf8String>,bool)",
+            "Value": 244
+          },
+          {
+            "Key": "TypeScript.Compiler.Text.Wtf8.DecodeLast(value class System.ReadOnlySpan`1<unsigned int8>,int32&)",
+            "Value": 239
+          },
+          {
+            "Key": "System.Collections.Generic.Dictionary`2+CollectionsMarshalHelper[TypeScript.Compiler.Text.Utf8String,System.__Canon].GetValueRefOrAddDefault(class System.Collections.Generic.Dictionary`2<!0,!1>,!0,bool&)",
+            "Value": 233
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.Scan()",
+            "Value": 221
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.CodePoint(int32&)",
+            "Value": 184
+          },
+          {
+            "Key": "TypeScript.Compiler.Text.Wtf8.Decode(value class System.ReadOnlySpan`1<unsigned int8>,int32&)",
+            "Value": 159
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.ExpressionTypes.CheckAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "Value": 142
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.VariableDeclarationsWorkerCore()",
+            "Value": 133
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.DeclarationWithExportCore(class TypeScript.Compiler.Ast.NodeList,int32,int32,int32)",
+            "Value": 124
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.FunctionDeclarations.VariableAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 121
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.VariableDeclarationCore()",
+            "Value": 121
+          },
+          {
+            "Key": "System.Collections.Generic.HashSet`1[TypeScript.Compiler.Text.Utf8String].AddIfNotPresent(!0,int32&)",
+            "Value": 117
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckDeclarationName(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 113
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.WithJSDocCore(!!0,value class TypeScript.Compiler.Syntax.TokenFlags)",
+            "Value": 111
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.VisitChildren(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "Value": 108
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.ModuleTargetMode(class TypeScript.Compiler.Ast.SourceFileNode)",
+            "Value": 108
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Visit(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 100
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.Mark()",
+            "Value": 97
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Children(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 95
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "Value": 95
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Initialized(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 89
+          },
+          {
+            "Key": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.Utf8String,System.__Canon].TryInsert(!0,!1,value class System.Collections.Generic.InsertionBehavior)",
+            "Value": 89
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.get_ModuleKind()",
+            "Value": 87
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Next(bool)",
+            "Value": 86
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.FlowTypes.StableAsync(!!0,class System.Func`2<!!0,value class System.Threading.Tasks.ValueTask`1<class TypeScript.Compiler.Checking.Type>>,value class System.Threading.CancellationToken)",
+            "Value": 78
+          },
+          {
+            "Key": "TypeScript.Compiler.Text.Utf8SpanExtensions.EndsWith(value class System.ReadOnlySpan`1<unsigned int8>,value class System.ReadOnlySpan`1<unsigned int8>,value class System.StringComparison)",
+            "Value": 78
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.MemberExpressionCore(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "Value": 77
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.EachChild(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 75
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.DecoratorGrammar(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 75
+          },
+          {
+            "Key": "TypeScript.Compiler.Text.Utf8StringComparer.GetHashCode(value class TypeScript.Compiler.Text.Utf8String)",
+            "Value": 73
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Finish(!!0,int32,value class System.Nullable`1<int32>)",
+            "Value": 69
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ExpressionCore(int32,bool)",
+            "Value": 68
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Identifier(bool,bool,class TypeScript.Compiler.Diagnostics.DiagnosticMessage)",
+            "Value": 68
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CachedExpressionAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "Value": 67
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.BindingNameCore(class TypeScript.Compiler.Diagnostics.DiagnosticMessage)",
+            "Value": 66
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.SymbolTypes.VariableAsync(class TypeScript.Compiler.Binding.Symbol,value class System.Threading.CancellationToken)",
+            "Value": 65
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.FlowReachability.ReachableAsync(class TypeScript.Compiler.Binding.FlowNode,value class System.Threading.CancellationToken)",
+            "Value": 65
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.UnaryExpressionCore(bool,bool)",
+            "Value": 65
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.ExpressionTypes.WorkerAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "Value": 64
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.VariableGrammarAsync(class TypeScript.Compiler.Ast.VariableDeclarationNode,value class System.Threading.CancellationToken)",
+            "Value": 64
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.SemanticSyntax.HasModifier(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Syntax.SyntaxKind)",
+            "Value": 64
+          },
+          {
+            "Key": "System.Collections.Generic.HashSet`1[TypeScript.Compiler.Text.Utf8String].Resize(int32,bool)",
+            "Value": 62
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckUnreachableAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 60
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.AddDeclaration(class TypeScript.Compiler.Binding.Symbol,class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags)",
+            "Value": 60
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.VariableTypes.DeclaredOrInferredAsync(class TypeScript.Compiler.Ast.SyntaxNode,bool,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "Value": 59
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.SemanticSyntax.Source(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 59
+          },
+          {
+            "Key": "System.Collections.Generic.Dictionary`2+Enumerator[TypeScript.Compiler.Text.Utf8String,System.__Canon].MoveNext()",
+            "Value": 58
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.DeclareNode(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 58
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.LateMembers.SymbolAsync(class TypeScript.Compiler.Binding.Symbol,value class System.Threading.CancellationToken)",
+            "Value": 57
+          },
+          {
+            "Key": "TypeScript.Compiler.Text.Utf8StringComparer.Fold(int32)",
+            "Value": 56
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.get_NoImplicitAny()",
+            "Value": 53
+          },
+          {
+            "Key": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.Utf8String,System.__Canon].Resize(int32,bool)",
+            "Value": 52
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Literal()",
+            "Value": 52
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckVariableListAsync(class TypeScript.Compiler.Ast.VariableDeclarationListNode,value class System.Threading.CancellationToken)",
+            "Value": 51
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.Peek(!!0,class System.Func`2<!!0,bool>,bool)",
+            "Value": 51
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.AnnotationCore()",
+            "Value": 50
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckSourceFileAsync(class TypeScript.Compiler.Ast.SourceFileNode,value class System.Threading.CancellationToken)",
+            "Value": 48
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.Text(value class TypeScript.Compiler.Syntax.SyntaxKind)",
+            "Value": 48
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.ModuleMember(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags)",
+            "Value": 48
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ParseFileCore()",
+            "Value": 47
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.Name(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 46
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.Binder.DeclarationName(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 46
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.ScanString(bool)",
+            "Value": 46
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckExternalExportsAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 45
+          },
+          {
+            "Key": "TypeScript.Compiler.Text.Utf8StringComparer.GetHashCode(value class System.ReadOnlySpan`1<unsigned int8>)",
+            "Value": 44
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ExportCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "Value": 44
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.SemanticSyntax.RootDeclaration(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 43
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ModifiersCore(bool,bool)",
+            "Value": 43
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.VariableAsync(class TypeScript.Compiler.Binding.Symbol,bool,value class System.Threading.CancellationToken)",
+            "Value": 42
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.VariableTypes.WidenAsync(class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Ast.SyntaxNode,bool,value class System.Threading.CancellationToken)",
+            "Value": 41
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.FunctionExpressions.RecordExpressionCache(class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Checking.Type)",
+            "Value": 40
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.CollectModuleReferences(class TypeScript.Compiler.Ast.SourceFileNode)",
+            "Value": 40
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.TokenFacts.Punctuation(value class System.ReadOnlySpan`1<unsigned int8>,int32&)",
+            "Value": 39
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Scanner.IsConflictMarker(int32)",
+            "Value": 39
+          },
+          {
+            "Key": "TypeScript.Compiler.Text.Utf8StringComparer.Equals(value class TypeScript.Compiler.Text.Utf8String,value class TypeScript.Compiler.Text.Utf8String)",
+            "Value": 39
+          },
+          {
+            "Key": "TypeScript.Compiler.Programs.CompilerProgram.GetFile(value class TypeScript.Compiler.Text.Utf8String)",
+            "Value": 38
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.VariableTypes.WidenInitializerAsync(class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Checking.Type,value class System.Threading.CancellationToken)",
+            "Value": 38
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.SyntaxNode.get_ModifierList()",
+            "Value": 37
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.NodeFactory.NewVariableDeclarationList(class TypeScript.Compiler.Ast.NodeList,value class TypeScript.Compiler.Syntax.NodeFlags)",
+            "Value": 37
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.VariableDeclarationNode.get_DeclarationName()",
+            "Value": 36
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.NodeFactory.NewVariableStatement(class TypeScript.Compiler.Ast.NodeList,class TypeScript.Compiler.Ast.VariableDeclarationListNode)",
+            "Value": 36
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.InitializerCore()",
+            "Value": 36
+          },
+          {
+            "Key": "TypeScript.Compiler.Ast.NodeList.get_HasTrailingComma()",
+            "Value": 34
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckUnusedLocals(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 34
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckDisposableInitializerAsync(class TypeScript.Compiler.Ast.VariableDeclarationNode,value class System.Threading.CancellationToken)",
+            "Value": 34
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.ModuleExports.ResolveAsync(class TypeScript.Compiler.Binding.Symbol,value class System.Threading.CancellationToken)",
+            "Value": 34
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.VariableDeclarationsCore()",
+            "Value": 33
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.FinishExpressionAsync(class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "Value": 33
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.ParseStatementCore()",
+            "Value": 32
+          },
+          {
+            "Key": "TypeScript.Compiler.Syntax.Parser.PrimaryExpressionCore()",
+            "Value": 31
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckMergedExportsAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 31
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.DeclarationInitializerWithContextAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Checking.CheckMode,class TypeScript.Compiler.Checking.Type,value class System.Threading.CancellationToken)",
+            "Value": 29
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.CheckLiteralAssignableAsync(class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 29
+          },
+          {
+            "Key": "TypeScript.Compiler.Checking.Checker.QuickExpressionTypeAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "Value": 29
+          },
+          {
+            "Key": "TypeScript.Compiler.Binding.BoundSourceFile.Data(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "Value": 29
+          }
+        ],
+        "examples": [
+          [
+            "TypeScript.Compiler.Syntax.Parser.ExpressionCore(int32,bool)",
+            "TypeScript.Compiler.Syntax.Parser.InitializerCore()",
+            "TypeScript.Compiler.Syntax.Parser.VariableDeclarationCore()",
+            "TypeScript.Compiler.Syntax.Parser.VariableDeclarationsWorkerCore()",
+            "TypeScript.Compiler.Syntax.Parser.VariableDeclarationsCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.DeclarationWithExportCore(class TypeScript.Compiler.Ast.NodeList,int32,int32,int32)",
+            "TypeScript.Compiler.Syntax.Parser.ExportCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseFileCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseSourceFileAsync(value class TypeScript.Compiler.Syntax.ParseOptions,class TypeScript.Compiler.Text.SourceText,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Programs.CompilerProgram+Builder.Parse(value class TypeScript.Compiler.Text.Utf8String,class TypeScript.Compiler.Configuration.ParsedConfig,bool)",
+            "dynamicClass.IL_STUB_AsyncResume(class System.Object,unsigned int8&)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "TypeScript.Compiler.Syntax.Scanner.ScanIdentifier(bool,bool,value class TypeScript.Compiler.Syntax.SyntaxKind&)",
+            "TypeScript.Compiler.Syntax.Scanner.Scan()",
+            "TypeScript.Compiler.Syntax.Parser.Next(bool)",
+            "TypeScript.Compiler.Syntax.Parser.Take(value class TypeScript.Compiler.Syntax.SyntaxKind)",
+            "TypeScript.Compiler.Syntax.Parser.Expected(value class TypeScript.Compiler.Syntax.SyntaxKind)",
+            "TypeScript.Compiler.Syntax.Parser.ExportCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseFileCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseSourceFileAsync(value class TypeScript.Compiler.Syntax.ParseOptions,class TypeScript.Compiler.Text.SourceText,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Programs.CompilerProgram+Builder.Parse(value class TypeScript.Compiler.Text.Utf8String,class TypeScript.Compiler.Configuration.ParsedConfig,bool)",
+            "dynamicClass.IL_STUB_AsyncResume(class System.Object,unsigned int8&)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "TypeScript.Compiler.Syntax.Parser.Next(bool)",
+            "TypeScript.Compiler.Syntax.Parser.Literal()",
+            "TypeScript.Compiler.Syntax.Parser.PrimaryExpressionCore()",
+            "TypeScript.Compiler.Syntax.Parser.UnaryExpressionCore(bool,bool)",
+            "TypeScript.Compiler.Syntax.Parser.ExpressionCore(int32,bool)",
+            "TypeScript.Compiler.Syntax.Parser.InitializerCore()",
+            "TypeScript.Compiler.Syntax.Parser.VariableDeclarationCore()",
+            "TypeScript.Compiler.Syntax.Parser.VariableDeclarationsWorkerCore()",
+            "TypeScript.Compiler.Syntax.Parser.VariableDeclarationsCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.DeclarationWithExportCore(class TypeScript.Compiler.Ast.NodeList,int32,int32,int32)",
+            "TypeScript.Compiler.Syntax.Parser.ExportCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseFileCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseSourceFileAsync(value class TypeScript.Compiler.Syntax.ParseOptions,class TypeScript.Compiler.Text.SourceText,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Programs.CompilerProgram+Builder.Parse(value class TypeScript.Compiler.Text.Utf8String,class TypeScript.Compiler.Configuration.ParsedConfig,bool)",
+            "dynamicClass.IL_STUB_AsyncResume(class System.Object,unsigned int8&)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "TypeScript.Compiler.Syntax.TokenFacts.IsIdentifierStart(int32)",
+            "TypeScript.Compiler.Syntax.Scanner.ScanIdentifier(bool,bool,value class TypeScript.Compiler.Syntax.SyntaxKind&)",
+            "TypeScript.Compiler.Syntax.Scanner.Scan()",
+            "TypeScript.Compiler.Syntax.Parser.Next(bool)",
+            "TypeScript.Compiler.Syntax.Parser.Identifier(bool,bool,class TypeScript.Compiler.Diagnostics.DiagnosticMessage)",
+            "TypeScript.Compiler.Syntax.Parser.BindingNameCore(class TypeScript.Compiler.Diagnostics.DiagnosticMessage)",
+            "TypeScript.Compiler.Syntax.Parser.VariableDeclarationCore()",
+            "TypeScript.Compiler.Syntax.Parser.VariableDeclarationsWorkerCore()",
+            "TypeScript.Compiler.Syntax.Parser.VariableDeclarationsCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.DeclarationWithExportCore(class TypeScript.Compiler.Ast.NodeList,int32,int32,int32)",
+            "TypeScript.Compiler.Syntax.Parser.ExportCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(class TypeScript.Compiler.Ast.NodeList,value class System.Nullable`1<int32>)",
+            "TypeScript.Compiler.Syntax.Parser.ParseStatementCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseFileCore()",
+            "TypeScript.Compiler.Syntax.Parser.ParseSourceFileAsync(value class TypeScript.Compiler.Syntax.ParseOptions,class TypeScript.Compiler.Text.SourceText,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Programs.CompilerProgram+Builder.Parse(value class TypeScript.Compiler.Text.Utf8String,class TypeScript.Compiler.Configuration.ParsedConfig,bool)",
+            "dynamicClass.IL_STUB_AsyncResume(class System.Object,unsigned int8&)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "TypeScript.Compiler.Binding.Binder.VisitChildren(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "TypeScript.Compiler.Binding.Binder.Each(class TypeScript.Compiler.Ast.NodeList,bool)",
+            "TypeScript.Compiler.Binding.Binder.Children(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitContainer(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitChildren(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "TypeScript.Compiler.Binding.Binder.BindAsync(class TypeScript.Compiler.Ast.SourceFileNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Programs.CompilerProgram+Builder.ParseAndBind(value class TypeScript.Compiler.Text.Utf8String,class TypeScript.Compiler.Configuration.ParsedConfig,bool)",
+            "dynamicClass.IL_STUB_AsyncResume(class System.Object,unsigned int8&)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "TypeScript.Compiler.Binding.Binder.EachChild(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.Children(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitChildren(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "TypeScript.Compiler.Binding.Binder.EachChild(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.Children(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitChildren(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "TypeScript.Compiler.Binding.Binder.EachChild(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.Children(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitChildren(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "TypeScript.Compiler.Binding.Binder.Each(class TypeScript.Compiler.Ast.NodeList,bool)",
+            "TypeScript.Compiler.Binding.Binder.Children(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitContainer(class TypeScript.Compiler.Ast.SyntaxNode)",
+            "TypeScript.Compiler.Binding.Binder.VisitChildren(class TypeScript.Compiler.Ast.SyntaxNode,bool)",
+            "TypeScript.Compiler.Binding.Binder.BindAsync(class TypeScript.Compiler.Ast.SourceFileNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Programs.CompilerProgram+Builder.ParseAndBind(value class TypeScript.Compiler.Text.Utf8String,class TypeScript.Compiler.Configuration.ParsedConfig,bool)",
+            "dynamicClass.IL_STUB_AsyncResume(class System.Object,unsigned int8&)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "TypeScript.Compiler.Checking.Checker.CheckSourceElementAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceFileAsync(class TypeScript.Compiler.Ast.SourceFileNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.CheckerPool+<>c__DisplayClass12_0.<GetDiagnosticsAsync>g__CheckGroupAsync|0(int32)",
+            "TypeScript.Compiler.Checking.CheckerPool+<>c__DisplayClass12_0.<GetDiagnosticsAsync>g__CheckGroupAsync|0(int32)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "coreclr!<native>",
+            "TypeScript.Compiler.Checking.FunctionExpressions.RecordExpressionCache(class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Checking.Type)",
+            "TypeScript.Compiler.Checking.Checker.CachedExpressionAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.FunctionDeclarations.VariableAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceElementAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceElementAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceElementAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceFileAsync(class TypeScript.Compiler.Ast.SourceFileNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.CheckerPool+<>c__DisplayClass12_0.<GetDiagnosticsAsync>g__CheckGroupAsync|0(int32)",
+            "TypeScript.Compiler.Checking.CheckerPool+<>c__DisplayClass12_0.<GetDiagnosticsAsync>g__CheckGroupAsync|0(int32)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "TypeScript.Compiler.Checking.SymbolTypes.GetAsync(class TypeScript.Compiler.Binding.Symbol,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.FunctionDeclarations.VariableAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceElementAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceElementAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceElementAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceFileAsync(class TypeScript.Compiler.Ast.SourceFileNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.CheckerPool+<>c__DisplayClass12_0.<GetDiagnosticsAsync>g__CheckGroupAsync|0(int32)",
+            "TypeScript.Compiler.Checking.CheckerPool+<>c__DisplayClass12_0.<GetDiagnosticsAsync>g__CheckGroupAsync|0(int32)",
+            "system.private.corelib!<native>"
+          ],
+          [
+            "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.Utf8String,System.__Canon].FindValue(!0)",
+            "TypeScript.Compiler.Checking.TypeContext.GetStringLiteralType(value class TypeScript.Compiler.Text.Utf8String)",
+            "TypeScript.Compiler.Checking.ExpressionTypes.WorkerAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.ExpressionTypes.CheckAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.QuickExpressionTypeAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.DeclarationInitializerWithContextAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Checking.CheckMode,class TypeScript.Compiler.Checking.Type,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.DeclarationInitializerAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.VariableTypes.DeclaredOrInferredAsync(class TypeScript.Compiler.Ast.SyntaxNode,bool,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.VariableTypes.GetAsync(class TypeScript.Compiler.Ast.SyntaxNode,bool,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.VariableAsync(class TypeScript.Compiler.Binding.Symbol,bool,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.SymbolTypes.VariableAsync(class TypeScript.Compiler.Binding.Symbol,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.SymbolTypes.GetAsync(class TypeScript.Compiler.Binding.Symbol,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.FunctionDeclarations.VariableAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceElementAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceElementAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceElementAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.Checker.CheckSourceFileAsync(class TypeScript.Compiler.Ast.SourceFileNode,value class System.Threading.CancellationToken)",
+            "TypeScript.Compiler.Checking.CheckerPool+<>c__DisplayClass12_0.<GetDiagnosticsAsync>g__CheckGroupAsync|0(int32)",
+            "TypeScript.Compiler.Checking.CheckerPool+<>c__DisplayClass12_0.<GetDiagnosticsAsync>g__CheckGroupAsync|0(int32)",
+            "system.private.corelib!<native>"
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -98,7 +98,7 @@ internal sealed class SignatureInstantiation(TypeContext context, TypeInstantiat
             or SyntaxKind.ConstructorType;
         var result = context.NewObjectType(ObjectFlags.Anonymous | ObjectFlags.SingleSignatureType,
             signature.Declaration is { } node ? symbols.Declaration(node) : null);
-        result.Members = new Dictionary<TextSlice, Symbol>().AsReadOnly();
+        result.Members = new Dictionary<Utf8String, Symbol>().AsReadOnly();
         result.Properties = [];
         result.CallSignatures = construct ? [] : [signature];
         result.ConstructSignatures = construct ? [signature] : [];

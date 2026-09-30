@@ -28,12 +28,12 @@ internal sealed class ExpressionChecks(TypeContext context, TypeFactQueries fact
     {
         cancellation.ThrowIfCancellationRequested();
         context.RequireOwned(type);
-        TextSlice? name = EntityText(node);
+        Utf8String? name = EntityText(node);
         if (context.StrictNullChecks && (type.Flags & TypeFlags.Unknown) != 0)
         {
             host.ExpressionError(
                 node,
-                name is not null && Encoding.UTF8.GetByteCount((name).Value) < 100
+                name is not null && name.Value.Length < 100
                     ? DiagnosticCode.X0IsOfTypeUnknown
                     : DiagnosticCode.ObjectIsOfTypeUnknown);
             return context.ErrorType;
@@ -47,9 +47,9 @@ internal sealed class ExpressionChecks(TypeContext context, TypeFactQueries fact
                 ? DiagnosticCode.CannotInvokeAnObjectWhichIsPossiblyNullOrUndefined
                 : DiagnosticCode.CannotInvokeAnObjectWhichIsPossiblyUndefined
             : DiagnosticCode.CannotInvokeAnObjectWhichIsPossiblyNull
-            : node.Kind == SyntaxKind.NullKeyword || node is IdentifierNode { Text.Span: "undefined" } ? DiagnosticCode.TheValue0CannotBeUsedHere
+            : node.Kind == SyntaxKind.NullKeyword || node is IdentifierNode { Text.Span: var matchedText } && matchedText.SequenceEqual("undefined"u8) ? DiagnosticCode.TheValue0CannotBeUsedHere
             : name is { Length: > 0 }
-                && Encoding.UTF8.GetByteCount((name).Value) < 100 ? undefined
+                && name.Value.Length < 100 ? undefined
                     ? nullValue ? DiagnosticCode.X0IsPossiblyNullOrUndefined : DiagnosticCode.X0IsPossiblyUndefined
                     : DiagnosticCode.X0IsPossiblyNull
             : undefined
@@ -91,7 +91,7 @@ internal sealed class ExpressionChecks(TypeContext context, TypeFactQueries fact
             }
             result |= current switch
             {
-                NumericLiteralNode number => number.Text.Span is "0" or "1" ? 3 : 1,
+                NumericLiteralNode number => (number.Text.Span.SequenceEqual("0"u8) || number.Text.Span.SequenceEqual("1"u8)) ? 3 : 1,
                 StringLiteralNode text => text.Text.Length != 0 ? 1 : 2,
                 NoSubstitutionTemplateLiteralNode text => text.Text.Length != 0 ? 1 : 2,
                 {
@@ -179,7 +179,7 @@ internal sealed class ExpressionChecks(TypeContext context, TypeFactQueries fact
                         return await NullishnessAsync(binary.Right!, cancellation).ConfigureAwait(false);
                     case SyntaxKind.QuestionQuestionToken or SyntaxKind.QuestionQuestionEqualsToken:
                         int left = await NullishnessAsync(binary.Left!, cancellation).ConfigureAwait(false);
-                        return (left & 2) | ((left & 1) != 0
+                        return left & 2 | ((left & 1) != 0
                             ? await NullishnessAsync(binary.Right!, cancellation).ConfigureAwait(false)
                             : 0);
                     default:
@@ -198,17 +198,17 @@ internal sealed class ExpressionChecks(TypeContext context, TypeFactQueries fact
         }
     }
 
-    internal static TextSlice? EntityText(SyntaxNode node)
+    internal static Utf8String? EntityText(SyntaxNode node)
     {
         if (!ConstantEvaluator.EntityName(node))
             return null;
-        var names = new Stack<TextSlice>();
+        var names = new Stack<Utf8String>();
         while (node is PropertyAccessExpressionNode { Name: IdentifierNode name } property)
         {
             names.Push(name.Text);
             node = property.Expression!;
         }
         names.Push(((IdentifierNode)node).Text);
-        return TextSlice.Join('.', names);
+        return Utf8String.Join((byte)'.', names);
     }
 }

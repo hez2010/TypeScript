@@ -6,28 +6,44 @@ namespace TypeScript.Compiler.Semantics;
 internal static class SpellingSuggestions
 {
     internal static async ValueTask<T?> FindAsync<T>(
-        TextSlice name,
+        Utf8String name,
         IEnumerable<T> candidates,
-        Func<T, ValueTask<TextSlice?>> getName,
+        Func<T, ValueTask<Utf8String?>> getName,
         Comparison<T> compare,
         int maximumCandidates = 0,
         CancellationToken cancellation = default) where T : class
     {
+        var (value, found) = await FindCoreAsync(name, candidates, getName, compare, maximumCandidates, cancellation).ConfigureAwait(false);
+        return found ? value : null;
+    }
+
+    internal static async ValueTask<Utf8String?> FindAsync(Utf8String name, IEnumerable<Utf8String> candidates,
+        Func<Utf8String, ValueTask<Utf8String?>> getName, Comparison<Utf8String> compare, int maximumCandidates = 0,
+        CancellationToken cancellation = default)
+    {
+        var (value, found) = await FindCoreAsync(name, candidates, getName, compare, maximumCandidates, cancellation).ConfigureAwait(false);
+        return found ? value : null;
+    }
+
+    private static async ValueTask<(T? Value, bool Found)> FindCoreAsync<T>(Utf8String name, IEnumerable<T> candidates,
+        Func<T, ValueTask<Utf8String?>> getName, Comparison<T> compare, int maximumCandidates, CancellationToken cancellation)
+    {
         var input = GoUnicode.Runes(name);
         int maximumLengthDifference = Math.Max(2, (int)(input.Length * 0.34));
         double bestDistance = Math.Floor(input.Length * 0.4) + 0.9;
-        T? best = null;
+        T? best = default;
+        bool found = false;
         int count = 0;
         double[] previous = [], current = [];
         foreach (var candidate in candidates)
         {
             cancellation.ThrowIfCancellationRequested();
             if (maximumCandidates > 0 && ++count > maximumCandidates)
-                return null;
-            TextSlice? candidateText = await getName(candidate).ConfigureAwait(false);
+                return default;
+            Utf8String? candidateText = await getName(candidate).ConfigureAwait(false);
             if (candidateText is not { IsEmpty: false } text)
                 continue;
-            int length = Encoding.UTF8.GetByteCount(text);
+            int length = text.Length;
             if (Math.Abs(length - input.Length) > maximumLengthDifference || text == name)
                 continue;
             var runes = GoUnicode.Runes(text);
@@ -36,13 +52,14 @@ internal static class SpellingSuggestions
             double distance = Distance(input, runes, bestDistance, ref previous, ref current);
             if (distance < 0)
                 continue;
-            if (distance < bestDistance || best is null || distance == bestDistance && compare(candidate, best) < 0)
+            if (distance < bestDistance || !found || distance == bestDistance && compare(candidate, best!) < 0)
             {
                 bestDistance = distance;
                 best = candidate;
+                found = true;
             }
         }
-        return best;
+        return (best, found);
     }
 
     private static double Distance(int[] first, int[] second, double maximum, ref double[] previous, ref double[] current)

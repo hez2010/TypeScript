@@ -7,12 +7,12 @@ using TypeScript.Compiler.Text;
 
 namespace TypeScript.Compiler.Experiments;
 
-public readonly record struct ProjectDiagnostic(string File, DiagnosticCode Code, int Pos, int Length, string Message);
+public readonly record struct ProjectDiagnostic(Utf8String File, DiagnosticCode Code, int Pos, int Length, Utf8String Message);
 
 public sealed class SliceSymbol<TStore>(
     SliceFile<TStore> file,
     NodeId declaration,
-    string name,
+    Utf8String name,
     bool exported,
     bool typeAlias,
     bool constant,
@@ -21,7 +21,7 @@ public sealed class SliceSymbol<TStore>(
 {
     public SliceFile<TStore> File { get; } = file;
     public NodeId Declaration { get; } = declaration;
-    public string Name { get; } = name;
+    public Utf8String Name { get; } = name;
     public bool Exported { get; } = exported;
     public bool TypeAlias { get; } = typeAlias;
     public bool Constant { get; } = constant;
@@ -31,28 +31,28 @@ public sealed class SliceSymbol<TStore>(
 
 public sealed class SliceProject<TStore> where TStore : INodeStore
 {
-    public FrozenDictionary<string, SliceFile<TStore>> Files { get; }
+    public FrozenDictionary<Utf8String, SliceFile<TStore>> Files { get; }
     public List<ProjectDiagnostic> Diagnostics { get; } = [];
-    public Dictionary<string, Dictionary<string, SliceSymbol<TStore>>> Locals { get; } = new(StringComparer.Ordinal);
+    public Dictionary<Utf8String, Dictionary<Utf8String, SliceSymbol<TStore>>> Locals { get; } = new(Utf8StringComparer.Ordinal);
     private readonly Dictionary<SliceSymbol<TStore>, TypeAtom[]> types = [];
-    private readonly HashSet<(string File, string Name)> typeOnlyImports = [];
+    private readonly HashSet<(Utf8String File, Utf8String Name)> typeOnlyImports = [];
     private readonly CancellationToken cancellation;
     private static readonly TypeAtom[] Any = [new(AtomKind.Any)];
 
     public SliceProject(IEnumerable<SliceFile<TStore>> files, CancellationToken cancellation = default)
     {
         this.cancellation = cancellation;
-        Files = files.ToFrozenDictionary(file => file.Name, StringComparer.Ordinal);
+        Files = files.ToFrozenDictionary(file => file.Name, Utf8StringComparer.Ordinal);
         Bind();
     }
 
     private void Bind()
     {
-        using var profile = Compiler.Diagnostics.NativeProfile.Enter("TypeScript.Bind");
-        foreach (var file in Files.Values.OrderBy(file => file.Name, StringComparer.Ordinal))
+        using var profile = Compiler.Diagnostics.NativeProfile.Enter(Utf8Literals.TypeScriptBind);
+        foreach (var file in Files.Values.OrderBy(file => file.Name, Utf8StringComparer.Ordinal))
         {
             cancellation.ThrowIfCancellationRequested();
-            var locals = new Dictionary<string, SliceSymbol<TStore>>(StringComparer.Ordinal);
+            var locals = new Dictionary<Utf8String, SliceSymbol<TStore>>(Utf8StringComparer.Ordinal);
             Locals.Add(file.Name, locals);
             foreach (var diagnostic in file.Diagnostics)
                 Diagnostics.Add(new(file.Name, diagnostic.Code, diagnostic.Pos, diagnostic.Length, diagnostic.Message));
@@ -80,71 +80,71 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
             }
             void Declare(NodeId declaration, NodeId nameId, bool exported, bool alias, bool constant, bool blockScoped)
             {
-                string name = file.Store.Get<IdentifierData>(nameId).Text;
+                Utf8String name = file.Store.Get<IdentifierData>(nameId).Text;
                 var symbol = new SliceSymbol<TStore>(file, declaration, name, exported, alias, constant, blockScoped);
                 if (!locals.TryAdd(name, symbol))
                     Report(
                         file,
                         nameId,
                         alias ? DiagnosticCode.DuplicateIdentifier0 : DiagnosticCode.CannotRedeclareBlockScopedVariable0,
-                        $"Duplicate declaration '{name}'.");
+                        Utf8String.ConcatMany(Utf8Literals.DuplicateDeclaration, name, Utf8Literals.QuotePeriod));
             }
         }
-        foreach (var file in Files.Values.OrderBy(file => file.Name, StringComparer.Ordinal))
+        foreach (var file in Files.Values.OrderBy(file => file.Name, Utf8StringComparer.Ordinal))
         {
             foreach (NodeId statement in file.Statements)
             {
                 if (file.Store.Header(statement).Kind != SyntaxKind.ImportDeclaration)
                     continue;
                 var import = file.Store.Get<ImportDeclarationData>(statement);
-                string specifier = file.Store.Get<StringLiteralData>(import.ModuleSpecifier).Text;
-                string? resolved = ResolveModule(file.Name, specifier);
+                Utf8String specifier = file.Store.Get<StringLiteralData>(import.ModuleSpecifier).Text;
+                Utf8String? resolved = ResolveModule(file.Name, specifier);
                 if (resolved is null)
                     Report(
                         file,
                         import.ModuleSpecifier,
                         DiagnosticCode.CannotFindModule0OrItsCorrespondingTypeDeclarations,
-                        $"Cannot find module '{specifier}'.");
+                        Utf8String.ConcatMany(Utf8Literals.CannotFindModule, specifier, Utf8Literals.QuotePeriod));
                 var clause = file.Store.Get<ImportClauseData>(import.ImportClause);
                 var named = file.Store.Get<NamedImportsData>(clause.NamedBindings);
                 foreach (NodeId element in file.Store.Get<NodeListData>(named.Elements).Nodes)
                 {
                     var binding = file.Store.Get<ImportSpecifierData>(element);
-                    string original = file.Store.Get<IdentifierData>(
+                    Utf8String original = file.Store.Get<IdentifierData>(
                         binding.PropertyName.IsNull ? binding.Name : binding.PropertyName).Text;
-                    string local = file.Store.Get<IdentifierData>(binding.Name).Text;
+                    Utf8String local = file.Store.Get<IdentifierData>(binding.Name).Text;
                     if (binding.IsTypeOnly || clause.PhaseModifier == SyntaxKind.TypeKeyword)
                         typeOnlyImports.Add((file.Name, local));
                     SliceSymbol<TStore>? symbol = null;
-                    if (resolved is not null && (!Locals[resolved].TryGetValue(original, out symbol) || !symbol.Exported))
+                    if (resolved is not null && (!Locals[resolved.Value].TryGetValue(original, out symbol) || !symbol.Exported))
                     {
                         Report(
                             file,
                             binding.Name,
                             DiagnosticCode.Module0HasNoExportedMember1,
-                            $"Module has no exported member '{original}'.");
+                            Utf8String.ConcatMany(Utf8Literals.ModuleHasNoExportedMember, original, Utf8Literals.QuotePeriod));
                         symbol = null;
                     }
                     symbol ??= new(file, element, local, false, false, false, false, unresolved: true);
                     if (!Locals[file.Name].TryAdd(local, symbol))
-                        Report(file, binding.Name, DiagnosticCode.DuplicateIdentifier0, $"Duplicate import '{local}'.");
+                        Report(file, binding.Name, DiagnosticCode.DuplicateIdentifier0, Utf8String.ConcatMany(Utf8Literals.DuplicateImport, local, Utf8Literals.QuotePeriod));
                 }
             }
         }
     }
 
-    public string? ResolveModule(string fileName, string specifier)
+    public Utf8String? ResolveModule(Utf8String fileName, Utf8String specifier)
     {
         // Phase-1 resolution is relative virtual .ts files only. Package lookup,
         // extension substitution and host case rules belong to the full resolver.
-        if (!specifier.StartsWith("./", StringComparison.Ordinal) && !specifier.StartsWith("../", StringComparison.Ordinal))
+        if (!specifier.StartsWith("./"u8, StringComparison.Ordinal) && !specifier.StartsWith("../"u8, StringComparison.Ordinal))
             return null;
-        var segments = new List<string>(fileName[..(fileName.LastIndexOf('/') + 1)].Split('/', StringSplitOptions.RemoveEmptyEntries));
-        foreach (string segment in specifier.Split('/'))
+        var segments = new List<Utf8String>(fileName[..(fileName.LastIndexOf((byte)'/') + 1)].Split((byte)'/', StringSplitOptions.RemoveEmptyEntries));
+        foreach (Utf8String segment in specifier.Split((byte)'/'))
         {
-            if (segment == ".")
+            if (segment == Utf8Literals.Dot)
                 continue;
-            if (segment == "..")
+            if (segment == Utf8Literals.ParentDirectory)
             {
                 if (segments.Count == 0)
                     return null;
@@ -153,16 +153,16 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
             else
                 segments.Add(segment);
         }
-        string path = "/" + string.Join('/', segments);
+        Utf8String path = Utf8Literals.Slash + Utf8String.Join((byte)'/', segments);
         if (Files.ContainsKey(path))
             return path;
-        return Files.ContainsKey(path + ".ts") ? path + ".ts" : null;
+        return Files.ContainsKey(path + Utf8Literals.Ts) ? path + Utf8Literals.Ts : (Utf8String?)null;
     }
 
     public void Check()
     {
-        using var profile = Compiler.Diagnostics.NativeProfile.Enter("TypeScript.Check");
-        foreach (var file in Files.Values.OrderBy(file => file.Name, StringComparer.Ordinal))
+        using var profile = Compiler.Diagnostics.NativeProfile.Enter(Utf8Literals.TypeScriptCheck);
+        foreach (var file in Files.Values.OrderBy(file => file.Name, Utf8StringComparer.Ordinal))
         {
             if (file.Diagnostics.Count != 0)
                 continue;
@@ -180,7 +180,7 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
                             file,
                             declaration.Name,
                             DiagnosticCode.Type0IsNotAssignableToType1,
-                            "Initializer is not assignable to the declared type.");
+                            Utf8Literals.InitializerIsNotAssignableToThe);
                 }
             }
         }
@@ -221,7 +221,7 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
                         cyclic.TypeAlias
                             ? DiagnosticCode.TypeAlias0CircularlyReferencesItself
                             : DiagnosticCode.X0ImplicitlyHasTypeAnyBecauseItDoesNotHaveATypeAnnotationAndIsReferencedDirectlyOrIndirectlyInItsOwnInitializer,
-                        $"Declaration '{cyclic.Name}' circularly references itself.");
+                        Utf8String.ConcatMany(Utf8Literals.Declaration, cyclic.Name, Utf8Literals.CircularlyReferencesItself));
                     types[cyclic] = Any;
                     if (ReferenceEquals(cyclic, frame.Symbol))
                         break;
@@ -261,7 +261,7 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
             }
             if (file.Store.Header(id).Kind == SyntaxKind.Identifier)
             {
-                if (file.Store.Get<IdentifierData>(id).Text == "undefined" && !Locals[file.Name].ContainsKey("undefined"))
+                if (file.Store.Get<IdentifierData>(id).Text == Utf8Literals.Undefined && !Locals[file.Name].ContainsKey(Utf8Literals.Undefined))
                     continue;
                 if (Lookup(file, id) is { } dependency)
                     yield return dependency;
@@ -278,10 +278,10 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
 
     private SliceSymbol<TStore>? Lookup(SliceFile<TStore> file, NodeId identifier)
     {
-        string name = file.Store.Get<IdentifierData>(identifier).Text;
+        Utf8String name = file.Store.Get<IdentifierData>(identifier).Text;
         if (Locals[file.Name].TryGetValue(name, out var symbol))
             return symbol;
-        Report(file, identifier, DiagnosticCode.CannotFindName0, $"Cannot find name '{name}'.");
+        Report(file, identifier, DiagnosticCode.CannotFindName0, Utf8String.ConcatMany(Utf8Literals.CannotFindName, name, Utf8Literals.QuotePeriod));
         return null;
     }
 
@@ -362,7 +362,7 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
                 file,
                 name,
                 DiagnosticCode.X0RefersToAValueButIsBeingUsedAsATypeHereDidYouMeanTypeof0,
-                "A value cannot be used as a type.");
+                Utf8Literals.AValueCannotBeUsedAs);
             return Any;
         }
         return types.TryGetValue(symbol, out var type) ? type : Any;
@@ -384,24 +384,24 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
                 return [new(AtomKind.Null)];
             case SyntaxKind.PrefixUnaryExpression:
                 var unary = file.Store.Get<PrefixUnaryExpressionData>(id);
-                string literal = file.Store.Get<NumericLiteralData>(unary.Operand).Text;
-                return [new(AtomKind.NumberLiteral, unary.Operator == SyntaxKind.MinusToken && literal != "0" ? "-" + literal : literal)];
+                Utf8String literal = file.Store.Get<NumericLiteralData>(unary.Operand).Text;
+                return [new(AtomKind.NumberLiteral, unary.Operator == SyntaxKind.MinusToken && literal != Utf8Literals.Zero ? Utf8Literals.Dash + literal : literal)];
             case SyntaxKind.Identifier:
-                string name = file.Store.Get<IdentifierData>(id).Text;
-                if (name == "undefined" && !Locals[file.Name].ContainsKey(name))
+                Utf8String name = file.Store.Get<IdentifierData>(id).Text;
+                if (name == Utf8Literals.Undefined && !Locals[file.Name].ContainsKey(name))
                     return [new(AtomKind.Undefined)];
                 if (typeOnlyImports.Contains((file.Name, name)))
                     Report(
                         file,
                         id,
                         DiagnosticCode.X0CannotBeUsedAsAValueBecauseItWasImportedUsingImportType,
-                        "A type-only import cannot be used as a value.");
+                        Utf8Literals.ATypeOnlyImportCannotBe);
                 var symbol = Lookup(file, id);
                 if (symbol is null)
                     return Any;
                 if (symbol.TypeAlias)
                 {
-                    Report(file, id, DiagnosticCode.X0OnlyRefersToATypeButIsBeingUsedAsAValueHere, "A type cannot be used as a value.");
+                    Report(file, id, DiagnosticCode.X0OnlyRefersToATypeButIsBeingUsedAsAValueHere, Utf8Literals.ATypeCannotBeUsedAs);
                     return Any;
                 }
                 if (symbol.BlockScoped
@@ -411,7 +411,7 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
                         file,
                         id,
                         DiagnosticCode.BlockScopedVariable0UsedBeforeItsDeclaration,
-                        "Block-scoped variable used before its declaration.");
+                        Utf8Literals.BlockScopedVariableUsedBeforeIts);
                 return types.TryGetValue(symbol, out var type) ? type : TypeOf(symbol);
             default:
                 throw new InvalidDataException("Unsupported expression");
@@ -432,12 +432,12 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
         return [.. set];
     }
 
-    private void Report(SliceFile<TStore> file, NodeId id, DiagnosticCode code, string message)
+    private void Report(SliceFile<TStore> file, NodeId id, DiagnosticCode code, Utf8String message)
     {
         NodeHeader header = file.Store.Header(id);
         int pos = header.Pos;
         if (header.Kind == SyntaxKind.Identifier)
-            pos = header.End - Encoding.UTF8.GetByteCount(file.Store.Get<IdentifierData>(id).Text);
+            pos = header.End - file.Store.Get<IdentifierData>(id).Text.Length;
         else if (header.End > header.Pos)
             pos += new SliceLexer<Utf8Source>(new(file.Text.AsMemory(header.Pos, header.End - header.Pos)), []).Scan().Start;
         var diagnostic = new ProjectDiagnostic(file.Name, code, pos, header.End - pos, message);

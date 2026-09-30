@@ -38,7 +38,7 @@ internal sealed partial class Checker
                 Error(
                     location,
                     DiagnosticCode.ThisConditionWillAlwaysReturn0,
-                    current is LiteralType { Value: { } value } && ConstantEvaluator.IsTruthy(value) ? "true" : "false");
+                    current is LiteralType { Value: { } value } && ConstantEvaluator.IsTruthy(value) ? Utf8Literals.True : Utf8Literals.False);
                 continue;
             }
             bool asserted = location is PropertyAccessExpressionNode access

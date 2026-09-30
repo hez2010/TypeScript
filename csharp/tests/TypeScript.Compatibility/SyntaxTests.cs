@@ -17,23 +17,23 @@ internal static class SyntaxTests
         {
             using JsonDocument document = JsonDocument.Parse(line);
             JsonElement request = document.RootElement;
-            string name = request.GetProperty("name").GetString()!;
-            byte[] bytes = request.TryGetProperty("path", out var path)
-                ? File.ReadAllBytes(path.GetString()!)
-                : request.GetProperty("text").GetBytesFromBase64();
-            bool Bool(string key) => request.TryGetProperty(key, out var p) && p.GetBoolean();
-            string mode = request.TryGetProperty("mode", out var modeElement) ? modeElement.GetString()! : "";
-            if (mode == "units")
+            Utf8String name = TypeScript.Compiler.Configuration.JsonStrings.GetString(request.GetProperty("name"u8))!;
+            byte[] bytes = request.TryGetProperty("path"u8, out var path)
+                ? File.ReadAllBytes((JsonStrings.GetString(path)!).ToString())
+                : request.GetProperty("text"u8).GetBytesFromBase64();
+            bool Bool(Utf8String key) => request.TryGetProperty(key, out var p) && p.GetBoolean();
+            Utf8String mode = request.TryGetProperty("mode"u8, out var modeElement) ? JsonStrings.GetString(modeElement)! : ""u8;
+            if (mode == "units"u8)
             {
                 TestSource units = TestDirectives.Parse(SourceEncoding.DecodeBytes(bytes), name);
                 using var payload = new MemoryStream();
                 using (var writer = new Utf8JsonWriter(payload))
                 {
-                    void Text(string value) => writer.WriteBase64StringValue(Wtf8.Encode(value));
-                    void Pairs(IReadOnlyDictionary<string, string> values)
+                    void Text(Utf8String value) => writer.WriteBase64StringValue(value.Span.ToArray());
+                    void Pairs(IReadOnlyDictionary<Utf8String, Utf8String> values)
                     {
                         writer.WriteStartArray();
-                        foreach (var pair in values.OrderBy(v => v.Key, StringComparer.Ordinal))
+                        foreach (var pair in values.OrderBy(v => v.Key, Utf8StringComparer.Ordinal))
                         {
                             writer.WriteStartArray();
                             Text(pair.Key);
@@ -62,15 +62,15 @@ internal static class SyntaxTests
                 using (var writer = new Utf8JsonWriter(result))
                 {
                     writer.WriteStartObject();
-                    writer.WriteString("name", name);
-                    writer.WriteNumber("tokens", units.Units.Length);
-                    writer.WriteNumber("diagnostics", 0);
+                    writer.WriteString("name"u8, name);
+                    writer.WriteNumber("tokens"u8, units.Units.Length);
+                    writer.WriteNumber("diagnostics"u8, 0);
                     writer.WriteString(
-                        "hash",
+                        "hash"u8,
                         Convert.ToHexStringLower(SHA256.HashData(payload.GetBuffer().AsSpan(0, (int)payload.Length))));
-                    if (Bool("details"))
+                    if (Bool("details"u8))
                     {
-                        writer.WritePropertyName("details");
+                        writer.WritePropertyName("details"u8);
                         writer.WriteRawValue(payload.GetBuffer().AsSpan(0, (int)payload.Length));
                     }
                     writer.WriteEndObject();
@@ -78,13 +78,13 @@ internal static class SyntaxTests
                 Console.WriteLine(Encoding.UTF8.GetString(result.ToArray()));
                 continue;
             }
-            var scanner = new Scanner(new SourceText(bytes), !Bool("trivia"), Bool("jsx"));
-            bool hasFileName = request.TryGetProperty("fileName", out var fileName);
-            SourceFileNode? file = mode == "parse"
+            var scanner = new Scanner(new SourceText(bytes), !Bool("trivia"u8), Bool("jsx"u8));
+            bool hasFileName = request.TryGetProperty("fileName"u8, out var fileName);
+            SourceFileNode? file = mode == "parse"u8
                 ? Parser.ParseSourceFile(
                     new(
-                        hasFileName ? CompilerPath.Resolve("/fixtures", fileName.GetString()!) : name,
-                        hasFileName ? ScriptKind.Unknown : Bool("jsx") ? ScriptKind.TSX : ScriptKind.TS),
+                        hasFileName ? CompilerPath.Resolve("/fixtures"u8, JsonStrings.GetString(fileName)!) : name,
+                        hasFileName ? ScriptKind.Unknown : Bool("jsx"u8) ? ScriptKind.TSX : ScriptKind.TS),
                     scanner.Source)
                 : null;
             using var buffer = new MemoryStream();
@@ -96,7 +96,7 @@ internal static class SyntaxTests
                 if (file is not null)
                 {
                     var visited = new HashSet<SyntaxNode>(ReferenceEqualityComparer.Instance);
-                    Func<int, int> position = file.Source.ToUtf16Position;
+                    Func<int, int> position = static value => value;
                     foreach (SyntaxNode node in file.DescendantsAndSelf())
                     {
                         if (!visited.Add(node))
@@ -109,10 +109,10 @@ internal static class SyntaxTests
                                 throw new InvalidDataException($"{name}: {node.Kind} child {childIndex} has the wrong parent.");
                         writer.WriteStartArray();
                         writer.WriteNumberValue((int)node.Kind);
-                        writer.WriteNumberValue(file.Source.ToUtf16Position(node.Pos));
-                        writer.WriteNumberValue(file.Source.ToUtf16Position(node.End));
+                        writer.WriteNumberValue(node.Pos);
+                        writer.WriteNumberValue(node.End);
                         writer.WriteNumberValue((uint)node.Flags);
-                        TextSlice value = node switch
+                        Utf8String value = node switch
                         {
                             IdentifierNode n => n.Text,
                             PrivateIdentifierNode n => n.Text,
@@ -125,9 +125,9 @@ internal static class SyntaxTests
                             TemplateMiddleNode n => n.Text,
                             TemplateTailNode n => n.Text,
                             JsxTextNode n => n.Text,
-                            _ => "",
+                            _ => ""u8,
                         };
-                        writer.WriteBase64StringValue(Wtf8.Encode(value));
+                        writer.WriteBase64StringValue(value.Span.ToArray());
                         writer.WriteNumberValue(node.ChildCount);
                         AstScalarProperties.Write(writer, node);
                         AstScalarProperties.WriteLists(writer, node, position);
@@ -140,13 +140,13 @@ internal static class SyntaxTests
                     {
                         SyntaxKind kind = mode switch
                         {
-                            "jsdoc" => scanner.ScanJSDocToken(),
-                            "jsx" => scanner.ScanJsxToken(),
+                            _ when mode == "jsdoc"u8 => scanner.ScanJSDocToken(),
+                            _ when mode == "jsx"u8 => scanner.ScanJsxToken(),
                             _ => scanner.Scan()
                         };
-                        if (mode == "greater")
+                        if (mode == "greater"u8)
                             kind = scanner.RescanGreaterThanToken();
-                        if (mode == "regex" && kind is SyntaxKind.SlashToken or SyntaxKind.SlashEqualsToken)
+                        if (mode == "regex"u8 && kind is SyntaxKind.SlashToken or SyntaxKind.SlashEqualsToken)
                             kind = scanner.RescanSlashToken();
                         writer.WriteStartArray();
                         writer.WriteNumberValue((int)kind);
@@ -157,7 +157,7 @@ internal static class SyntaxTests
                         bool hasValue = kind is SyntaxKind.Identifier or SyntaxKind.PrivateIdentifier
                             || kind is >= SyntaxKind.FirstKeyword and <= SyntaxKind.LastKeyword
                             || kind is >= SyntaxKind.NumericLiteral and <= SyntaxKind.TemplateTail;
-                        writer.WriteBase64StringValue(hasValue ? Wtf8.Encode(scanner.Value) : []);
+                        writer.WriteBase64StringValue(hasValue ? scanner.Value.Span.ToArray() : []);
                         writer.WriteEndArray();
                         tokens++;
                         if (kind == SyntaxKind.EndOfFile)
@@ -167,8 +167,8 @@ internal static class SyntaxTests
                 writer.WriteStartArray();
                 foreach (var error in file?.ParseDiagnostics ?? scanner.Diagnostics)
                 {
-                    int start = file is null ? error.Start : file.Source.ToUtf16Position(error.Start);
-                    int length = file is null ? error.Length : file.Source.ToUtf16Position(error.Start + error.Length) - start;
+                    int start = file is null ? error.Start : error.Start;
+                    int length = file is null ? error.Length : (error.Start + error.Length) - start;
                     writer.WriteStartArray();
                     writer.WriteNumberValue((int)error.Code);
                     writer.WriteNumberValue(start);
@@ -180,8 +180,8 @@ internal static class SyntaxTests
                 if (file is not null)
                     foreach (var error in file.JSDiagnostics.OrderBy(d => d.Code).ThenBy(d => d.Start).ThenBy(d => d.Length))
                     {
-                        int start = file.Source.ToUtf16Position(error.Start);
-                        int length = file.Source.ToUtf16Position(error.Start + error.Length) - start;
+                        int start = error.Start;
+                        int length = (error.Start + error.Length) - start;
                         writer.WriteStartArray();
                         writer.WriteNumberValue((int)error.Code);
                         writer.WriteNumberValue(start);
@@ -195,19 +195,19 @@ internal static class SyntaxTests
             using (var writer = new Utf8JsonWriter(output))
             {
                 writer.WriteStartObject();
-                writer.WriteString("name", name);
-                writer.WriteNumber("tokens", tokens);
-                writer.WriteNumber("diagnostics", file?.ParseDiagnostics.Count ?? scanner.Diagnostics.Count);
-                writer.WriteNumber("jsDiagnostics", file?.JSDiagnostics.Count ?? 0);
-                writer.WriteString("hash", Convert.ToHexStringLower(SHA256.HashData(buffer.GetBuffer().AsSpan(0, (int)buffer.Length))));
-                if (Bool("details"))
+                writer.WriteString("name"u8, name);
+                writer.WriteNumber("tokens"u8, tokens);
+                writer.WriteNumber("diagnostics"u8, file?.ParseDiagnostics.Count ?? scanner.Diagnostics.Count);
+                writer.WriteNumber("jsDiagnostics"u8, file?.JSDiagnostics.Count ?? 0);
+                writer.WriteString("hash"u8, Convert.ToHexStringLower(SHA256.HashData(buffer.GetBuffer().AsSpan(0, (int)buffer.Length))));
+                if (Bool("details"u8))
                 {
-                    writer.WritePropertyName("details");
+                    writer.WritePropertyName("details"u8);
                     writer.WriteRawValue(buffer.GetBuffer().AsSpan(0, (int)buffer.Length));
                 }
-                if (Bool("jsDetails") && file is not null)
+                if (Bool("jsDetails"u8) && file is not null)
                 {
-                    writer.WriteStartArray("jsDetails");
+                    writer.WriteStartArray("jsDetails"u8);
                     foreach (var error in file.JSDiagnostics.OrderBy(d => d.Code).ThenBy(d => d.Start).ThenBy(d => d.Length))
                         WriteJavaScriptDiagnostic(writer, file.Source, error);
                     writer.WriteEndArray();
@@ -223,13 +223,13 @@ internal static class SyntaxTests
         SourceText source,
         TypeScript.Compiler.Diagnostics.Diagnostic diagnostic)
     {
-        int start = source.ToUtf16Position(diagnostic.Start);
+        int start = diagnostic.Start;
         writer.WriteStartArray();
         writer.WriteNumberValue((int)diagnostic.Code);
         writer.WriteNumberValue(start);
-        writer.WriteNumberValue(source.ToUtf16Position(diagnostic.Start + diagnostic.Length) - start);
+        writer.WriteNumberValue((diagnostic.Start + diagnostic.Length) - start);
         writer.WriteStartArray();
-        foreach (TextSlice argument in diagnostic.Arguments)
+        foreach (Utf8String argument in diagnostic.Arguments)
             writer.WriteStringValue(argument.Span);
         writer.WriteEndArray();
         writer.WriteStartArray();

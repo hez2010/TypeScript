@@ -10,7 +10,7 @@ public sealed class TypeContext
 {
     private uint typeCount, signatureCount;
     internal Stack<(TypeMapper Mapper, Type? Original)>? MappingScratch;
-    private readonly Dictionary<TextSlice, LiteralType> strings = new();
+    private readonly Dictionary<Utf8String, LiteralType> strings = new();
     private readonly Dictionary<double, LiteralType> numbers = [];
     private readonly Dictionary<BigInteger, LiteralType> bigints = [];
     private readonly Dictionary<(Symbol Enum, object Value), LiteralType> enumLiterals = [];
@@ -76,47 +76,47 @@ public sealed class TypeContext
     {
         StrictNullChecks = strictNullChecks;
         ExactOptionalPropertyTypes = exactOptionalPropertyTypes;
-        AnyType = new(this, TypeFlags.Any, "any");
-        AutoType = new(this, TypeFlags.Any, "any", ObjectFlags.NonInferrableType);
-        WildcardType = new(this, TypeFlags.Any, "any");
-        BlockedStringType = new(this, TypeFlags.Any, "any");
-        ErrorType = new(this, TypeFlags.Any, "error");
-        UnresolvedType = new(this, TypeFlags.Any, "unresolved");
-        NonInferrableAnyType = new(this, TypeFlags.Any, "any", ObjectFlags.ContainsWideningType);
-        IntrinsicMarkerType = new(this, TypeFlags.Any, "intrinsic");
-        UnknownType = new(this, TypeFlags.Unknown, "unknown");
-        UndefinedType = new(this, TypeFlags.Undefined, "undefined");
+        AnyType = new(this, TypeFlags.Any, Utf8Literals.Any);
+        AutoType = new(this, TypeFlags.Any, Utf8Literals.Any, ObjectFlags.NonInferrableType);
+        WildcardType = new(this, TypeFlags.Any, Utf8Literals.Any);
+        BlockedStringType = new(this, TypeFlags.Any, Utf8Literals.Any);
+        ErrorType = new(this, TypeFlags.Any, Utf8Literals.Error);
+        UnresolvedType = new(this, TypeFlags.Any, Utf8Literals.UnresolvedKeyword);
+        NonInferrableAnyType = new(this, TypeFlags.Any, Utf8Literals.Any, ObjectFlags.ContainsWideningType);
+        IntrinsicMarkerType = new(this, TypeFlags.Any, Utf8Literals.Intrinsic);
+        UnknownType = new(this, TypeFlags.Unknown, Utf8Literals.Unknown);
+        UndefinedType = new(this, TypeFlags.Undefined, Utf8Literals.Undefined);
         UndefinedWideningType = Widening(UndefinedType);
-        MissingType = new(this, TypeFlags.Undefined, "undefined");
-        OptionalType = new(this, TypeFlags.Undefined, "undefined");
-        NullType = new(this, TypeFlags.Null, "null");
+        MissingType = new(this, TypeFlags.Undefined, Utf8Literals.Undefined);
+        OptionalType = new(this, TypeFlags.Undefined, Utf8Literals.Undefined);
+        NullType = new(this, TypeFlags.Null, Utf8Literals.Null);
         NullWideningType = Widening(NullType);
-        StringType = new(this, TypeFlags.String, "string");
-        NumberType = new(this, TypeFlags.Number, "number");
-        BigIntType = new(this, TypeFlags.BigInt, "bigint");
+        StringType = new(this, TypeFlags.String, Utf8Literals.StringKeyword);
+        NumberType = new(this, TypeFlags.Number, Utf8Literals.NumberKeyword);
+        BigIntType = new(this, TypeFlags.BigInt, Utf8Literals.Bigint);
         RegularFalseType = new(this, TypeFlags.BooleanLiteral, false);
         FalseType = GetFreshLiteralType(RegularFalseType);
         RegularTrueType = new(this, TypeFlags.BooleanLiteral, true);
         TrueType = GetFreshLiteralType(RegularTrueType);
         BooleanType = GetUnionFromSortedTypes([RegularFalseType, RegularTrueType], ObjectFlags.PrimitiveUnion);
-        ESSymbolType = new(this, TypeFlags.ESSymbol, "symbol");
-        VoidType = new(this, TypeFlags.Void, "void");
-        NeverType = new(this, TypeFlags.Never, "never");
-        SilentNeverType = new(this, TypeFlags.Never, "never", ObjectFlags.NonInferrableType);
-        ImplicitNeverType = new(this, TypeFlags.Never, "never");
-        UnreachableNeverType = new(this, TypeFlags.Never, "never");
-        NonPrimitiveType = new(this, TypeFlags.NonPrimitive, "object");
+        ESSymbolType = new(this, TypeFlags.ESSymbol, Utf8Literals.SymbolKeyword);
+        VoidType = new(this, TypeFlags.Void, Utf8Literals.VoidKeyword);
+        NeverType = new(this, TypeFlags.Never, Utf8Literals.Never);
+        SilentNeverType = new(this, TypeFlags.Never, Utf8Literals.Never, ObjectFlags.NonInferrableType);
+        ImplicitNeverType = new(this, TypeFlags.Never, Utf8Literals.Never);
+        UnreachableNeverType = new(this, TypeFlags.Never, Utf8Literals.Never);
+        NonPrimitiveType = new(this, TypeFlags.NonPrimitive, Utf8Literals.Object);
         StringOrNumberType = GetUnionFromSortedTypes([StringType, NumberType], ObjectFlags.PrimitiveUnion);
         StringNumberSymbolType = GetUnionFromSortedTypes([StringType, NumberType, ESSymbolType], ObjectFlags.PrimitiveUnion);
         NumberOrBigIntType = GetUnionFromSortedTypes([NumberType, BigIntType], ObjectFlags.PrimitiveUnion);
-        NumericStringType = NewTemplateLiteralType(["", ""], [NumberType]);
+        NumericStringType = NewTemplateLiteralType([Utf8String.Empty, Utf8String.Empty], [NumberType]);
         TemplateConstraintType = GetUnionFromSortedTypes(strictNullChecks
             ? [UndefinedType, NullType, StringType, NumberType, BigIntType, RegularFalseType, RegularTrueType]
             : [StringType, NumberType, BigIntType, RegularFalseType, RegularTrueType], ObjectFlags.PrimitiveUnion);
-        UniqueLiteralType = new(this, TypeFlags.Never, "never");
+        UniqueLiteralType = new(this, TypeFlags.Never, Utf8Literals.Never);
         EmptyObjectType = NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved);
         EmptyTypeLiteralType = NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved,
-            new Symbol(SymbolFlags.TypeLiteral | SymbolFlags.Transient, Symbol.InternalPrefix + "type"));
+            new Symbol(SymbolFlags.TypeLiteral | SymbolFlags.Transient, Symbol.InternalType));
         UnknownEmptyObjectType = NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved);
         UnknownUnionType = strictNullChecks ? GetUnionFromSortedTypes([UndefinedType, NullType, UnknownEmptyObjectType], 0) : UnknownType;
         EmptyGenericType = NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved);
@@ -158,7 +158,7 @@ public sealed class TypeContext
     private IntrinsicType Widening(IntrinsicType type) => StrictNullChecks ? type
         : new(this, type.Flags, type.IntrinsicName, ObjectFlags.ContainsWideningType);
 
-    public LiteralType GetStringLiteralType(TextSlice value)
+    public LiteralType GetStringLiteralType(Utf8String value)
     {
         if (!strings.TryGetValue(value, out var type))
             strings.Add(value, type = new(this, TypeFlags.StringLiteral, value));
@@ -181,7 +181,7 @@ public sealed class TypeContext
         return type;
     }
 
-    public LiteralType GetEnumLiteralType(TextSlice value, Symbol enumSymbol, Symbol member)
+    public LiteralType GetEnumLiteralType(Utf8String value, Symbol enumSymbol, Symbol member)
         => EnumLiteral(value, TypeFlags.StringLiteral, enumSymbol, member);
 
     public LiteralType GetEnumLiteralType(double value, Symbol enumSymbol, Symbol member)
@@ -213,7 +213,7 @@ public sealed class TypeContext
     internal UniqueSymbolType GetUniqueSymbolType(Symbol symbol)
     {
         if (!uniqueSymbols.TryGetValue(symbol, out var type))
-            uniqueSymbols.Add(symbol, type = new(this, symbol, TextSlice.ConcatMany(Symbol.InternalPrefix + "@", symbol.Name, "@", TextSlice.Format(symbol.Id))));
+            uniqueSymbols.Add(symbol, type = new(this, symbol, Utf8String.ConcatMany(Symbol.InternalUnique, symbol.Name, Utf8Literals.At, Utf8String.Format(symbol.Id))));
         return type;
     }
 
@@ -330,7 +330,7 @@ public sealed class TypeContext
         return result;
     }
 
-    internal TemplateLiteralType NewTemplateLiteralType(ReadOnlySpan<TextSlice> texts, ReadOnlySpan<Type> types)
+    internal TemplateLiteralType NewTemplateLiteralType(ReadOnlySpan<Utf8String> texts, ReadOnlySpan<Type> types)
     {
         RequireOwned(types);
         if (types.Length == 0 || texts.Length != types.Length + 1)

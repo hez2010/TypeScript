@@ -23,18 +23,18 @@ internal static class CheckerTypeNodeTests
             checks++;
         }
         var options = new CompilerOptions();
-        options.SetRaw("noLib", "true");
-        const string text = "interface Array<T> {} interface ReadonlyArray<T> {} type A = A[]; type B<T=string,U=T> = [T,U]; type C=B<number>; type D<X> = X; type Missing = NotFound<string>; type Bad = Bad; type Generic<T> = {value:T};";
-        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
-        { ["/project/input.ts"] = Wtf8.Encode(text) }),
-            "/project",
-            new("/project/tsconfig.json", options, ["/project/input.ts"], [], [], []));
+        options.SetRaw("noLib"u8, "true"u8);
+        Utf8String text = "interface Array<T> {} interface ReadonlyArray<T> {} type A = A[]; type B<T=string,U=T> = [T,U]; type C=B<number>; type D<X> = X; type Missing = NotFound<string>; type Bad = Bad; type Generic<T> = {value:T};"u8;
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        { ["/project/input.ts"u8] = text.Span.ToArray() }),
+            "/project"u8,
+            new("/project/tsconfig.json"u8, options, ["/project/input.ts"u8], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
         var scopeHost = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scopeHost);
         var host = new Checker(context, links, scopeHost);
-        var a = (TypeReference)await host.Declared.GetAsync(symbols.Globals["A"]);
+        var a = (TypeReference)await host.Declared.GetAsync(symbols.Globals["A"u8]);
         Check(a.ResolvedTypeArguments is null && a.Node is ArrayTypeNode);
         host.BeforeNode = _ => throw new OperationCanceledException();
         try
@@ -49,24 +49,24 @@ internal static class CheckerTypeNodeTests
         Check(a.ResolvedTypeArguments is null && host.Instantiation.Resolutions.Count == 0);
         host.BeforeNode = null;
         Check((await host.References.TypeArgumentsAsync(a))[0] == a);
-        Check(await host.Declared.GetAsync(symbols.Globals["A"]) == a);
-        var c = (TypeReference)await host.Declared.GetAsync(symbols.Globals["C"]);
+        Check(await host.Declared.GetAsync(symbols.Globals["A"u8]) == a);
+        var c = (TypeReference)await host.Declared.GetAsync(symbols.Globals["C"u8]);
         var arguments = await host.References.TypeArgumentsAsync(c);
         Check(arguments.SequenceEqual([context.NumberType, context.NumberType]));
-        var b = symbols.Globals["B"];
+        var b = symbols.Globals["B"u8];
         var bType = await host.Declared.GetAsync(b);
         var bParameters = links.TypeAliases.Get(b).TypeParameters!;
         Check(TypeReferences.Minimum(bParameters) == 0);
         Check(await host.References.AliasInstantiationAsync(b, bParameters) == bType);
-        var missing = await host.Declared.GetAsync(symbols.Globals["Missing"]);
-        Check(missing is IntrinsicType { IntrinsicName: { Span: "error" }, Alias: { TypeArguments.Count: 1 } });
+        var missing = await host.Declared.GetAsync(symbols.Globals["Missing"u8]);
+        Check(missing is IntrinsicType { IntrinsicName: { Span: var matchedText }, Alias: { TypeArguments.Count: 1 } } && matchedText.SequenceEqual("error"u8));
         Check((missing.Alias!.Symbol.CheckFlags & CheckFlags.Unresolved) != 0);
         Check(
-            await host.Declared.GetAsync(symbols.Globals["Bad"]) == context.ErrorType
+            await host.Declared.GetAsync(symbols.Globals["Bad"u8]) == context.ErrorType
                 && host.Diagnostics.Contains(DiagnosticCode.TypeAlias0CircularlyReferencesItself));
         Check(host.Instantiation.Resolutions.Count == 0);
 
-        var d = symbols.Globals["D"];
+        var d = symbols.Globals["D"u8];
         host.BeforeNode = _ => throw new OperationCanceledException();
         try
         {
@@ -84,11 +84,11 @@ internal static class CheckerTypeNodeTests
         host.BeforeNode = null;
         var dType = await host.Declared.GetAsync(d);
         Check(dType is TypeParameter && await host.References.AliasInstantiationAsync(d, [context.StringType]) == context.StringType);
-        var generic = (ObjectType)await host.Declared.GetAsync(symbols.Globals["Generic"]);
-        Check(generic.Alias?.Symbol == symbols.Globals["Generic"] && generic.Members is null);
-        var instance = (ObjectType)await host.References.AliasInstantiationAsync(symbols.Globals["Generic"], [context.StringType]);
+        var generic = (ObjectType)await host.Declared.GetAsync(symbols.Globals["Generic"u8]);
+        Check(generic.Alias?.Symbol == symbols.Globals["Generic"u8] && generic.Members is null);
+        var instance = (ObjectType)await host.References.AliasInstantiationAsync(symbols.Globals["Generic"u8], [context.StringType]);
         Check(instance.Target == generic && instance.Members is null);
-        Check(await host.References.AliasInstantiationAsync(symbols.Globals["Generic"], [context.StringType]) == instance);
+        Check(await host.References.AliasInstantiationAsync(symbols.Globals["Generic"u8], [context.StringType]) == instance);
 
         var p = scopeHost.Scopes.Parameter(scopeHost.Scopes.Local(d).Single().Symbol!);
         var alias = context.CreateAlias(d, [p]);
@@ -111,7 +111,7 @@ internal static class CheckerTypeNodeTests
         for (int i = 0; i < 20_000; i++)
             nested = new ParenthesizedTypeNode { Type = nested };
         Check(TypeNodes.ArrayElementNode(nested)?.Kind == SyntaxKind.StringKeyword);
-        var leaf = new ArrayTypeNode { ElementType = new TypeReferenceNode { TypeName = new IdentifierNode { Text = "D" } } };
+        var leaf = new ArrayTypeNode { ElementType = new TypeReferenceNode { TypeName = new IdentifierNode { Text = "D"u8 } } };
         leaf.SetParents();
         SyntaxNode outer = leaf;
         for (int i = 0; i < 20_000; i++)

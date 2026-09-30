@@ -15,7 +15,7 @@ internal sealed partial class Checker
     private async ValueTask CheckInterfaceSourceAsync(InterfaceDeclarationNode node, CancellationToken cancellation)
     {
         if (!AllowsBlockScopedDeclaration(node.Parent) && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
-            Error(node, DiagnosticCode.X0DeclarationsCanOnlyBeDeclaredInsideABlock, "interface");
+            Error(node, DiagnosticCode.X0DeclarationsCanOnlyBeDeclaredInsideABlock, Utf8Literals.Interface);
         HeritageGrammar(node, node.HeritageClauses, isInterface: true);
         ExportedDeclaration(node, false);
         await CheckMergedExportsAsync(node, cancellation).ConfigureAwait(false);
@@ -37,7 +37,7 @@ internal sealed partial class Checker
                 if (bases.Count >= 2)
                 {
                     await Members.ResolveAsync(type, cancellation).ConfigureAwait(false);
-                    var seen = new Dictionary<TextSlice, (Symbol Property, Type Owner)>(TextSliceComparer.Ordinal);
+                    var seen = new Dictionary<Utf8String, (Symbol Property, Type Owner)>(Utf8StringComparer.Ordinal);
                     if (type.DeclaredMembers is { } declaredMembers)
                         foreach (var (name, property) in declaredMembers)
                             if (await Members.NamedAsync(name, property, cancellation).ConfigureAwait(false))
@@ -60,8 +60,8 @@ internal sealed partial class Checker
                                 cancellation).ConfigureAwait(false) == Ternary.False)
                             {
                                 identical = false;
-                                TextSlice first = await TypeDisplay.GetAsync(existing.Owner, cancellation);
-                                TextSlice second = await TypeDisplay.GetAsync(baseType, cancellation);
+                                Utf8String first = await TypeDisplay.GetAsync(existing.Owner, cancellation);
+                                Utf8String second = await TypeDisplay.GetAsync(baseType, cancellation);
                                 var detail = CheckerDiagnostic.Create(node.Name,
                                     Messages.Named_property_0_of_types_1_and_2_are_not_identical,
                                     TypeDisplay.SymbolName(property), first, second);
@@ -174,7 +174,6 @@ internal sealed partial class Checker
                 Error(declaration.Name!, DiagnosticCode.AllDeclarationsOf0MustHaveIdenticalTypeParameters, TypeDisplay.SymbolName(symbol));
     }
 
-    private static bool ReservedTypeName(TextSlice name) =>
-        name.Span is "any" or "unknown" or "never" or "number" or "bigint" or "boolean" or "string" or "symbol" or "void" or "object"
-            or "undefined";
+    private static bool ReservedTypeName(Utf8String name) =>
+        name.Span.SequenceEqual("any"u8) || name.Span.SequenceEqual("unknown"u8) || name.Span.SequenceEqual("never"u8) || name.Span.SequenceEqual("number"u8) || name.Span.SequenceEqual("bigint"u8) || name.Span.SequenceEqual("boolean"u8) || name.Span.SequenceEqual("string"u8) || name.Span.SequenceEqual("symbol"u8) || name.Span.SequenceEqual("void"u8) || name.Span.SequenceEqual("object"u8) || name.Span.SequenceEqual("undefined"u8);
 }

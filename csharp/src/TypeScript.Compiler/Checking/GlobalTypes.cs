@@ -8,20 +8,20 @@ using K = TypeScript.Compiler.Syntax.SyntaxKind;
 namespace TypeScript.Compiler.Checking;
 
 internal sealed class GlobalTypes(TypeContext context, CheckerLinks links, CheckerSymbols symbols,
-    TypeParameterScopes scopes, Action<SyntaxNode?, DiagnosticMessage, TextSlice[]> error)
+    TypeParameterScopes scopes, Action<SyntaxNode?, DiagnosticMessage, Utf8String[]> error)
 {
-    private readonly Dictionary<TextSlice, Type> types = new();
-    private readonly Dictionary<(TextSlice Name, int Arity), Symbol?> aliases = [];
-    private IReadOnlyDictionary<TextSlice, Type>? typesView;
-    internal IReadOnlyDictionary<TextSlice, Type> Types => typesView ??= types.AsReadOnly();
+    private readonly Dictionary<Utf8String, Type> types = new();
+    private readonly Dictionary<(Utf8String Name, int Arity), Symbol?> aliases = [];
+    private IReadOnlyDictionary<Utf8String, Type>? typesView;
+    internal IReadOnlyDictionary<Utf8String, Type> Types => typesView ??= types.AsReadOnly();
     internal Type? AnyArrayType { get; private set; }
     internal Type? AutoArrayType { get; private set; }
     internal Type? AnyReadonlyArrayType { get; private set; }
 
-    private static TextSlice[] MissingArguments(TextSlice name)
+    private static Utf8String[] MissingArguments(Utf8String name)
         => LibraryFeatures.NameLibrary(name) is { } library ? [name, library] : [name];
 
-    internal async ValueTask<Symbol?> AliasAsync(TextSlice name, int arity, DeclaredTypes declared, CancellationToken cancellation = default)
+    internal async ValueTask<Symbol?> AliasAsync(Utf8String name, int arity, DeclaredTypes declared, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
         if (aliases.TryGetValue((name, arity), out var cached))
@@ -36,7 +36,7 @@ internal sealed class GlobalTypes(TypeContext context, CheckerLinks links, Check
             if (links.TypeAliases.Get(symbol).TypeParameters?.Count != arity)
             {
                 error(declaration, Messages.Global_type_0_must_have_1_type_parameter_s,
-                    [name, TextSlice.Format(arity)]);
+                    [name, Utf8String.Format(arity)]);
                 symbol = null;
             }
         }
@@ -45,7 +45,7 @@ internal sealed class GlobalTypes(TypeContext context, CheckerLinks links, Check
         return symbol;
     }
 
-    internal async ValueTask<Type> GetAsync(TextSlice name, int arity, bool reportErrors, CancellationToken cancellation = default)
+    internal async ValueTask<Type> GetAsync(Utf8String name, int arity, bool reportErrors, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
         var symbol = symbols.Lookup(symbols.Globals, name, SymbolFlags.Type);
@@ -62,7 +62,7 @@ internal sealed class GlobalTypes(TypeContext context, CheckerLinks links, Check
                 return type;
             if (reportErrors)
                 error(Declaration(symbol), Messages.Global_type_0_must_have_1_type_parameter_s,
-                    [name, TextSlice.Format(arity)]);
+                    [name, Utf8String.Format(arity)]);
         }
         else if (reportErrors)
             error(Declaration(symbol), Messages.Global_type_0_must_be_a_class_or_interface_type, [name]);
@@ -72,29 +72,29 @@ internal sealed class GlobalTypes(TypeContext context, CheckerLinks links, Check
     internal async ValueTask InitializeAsync(CancellationToken cancellation = default)
     {
         links.Values.Get(symbols.UndefinedSymbol).ResolvedType = context.UndefinedWideningType;
-        links.Values.Get(symbols.ArgumentsSymbol).ResolvedType = await GetAsync("IArguments", 0, true, cancellation).ConfigureAwait(false);
+        links.Values.Get(symbols.ArgumentsSymbol).ResolvedType = await GetAsync(Utf8Literals.IArguments, 0, true, cancellation).ConfigureAwait(false);
         links.Values.Get(symbols.UnknownSymbol).ResolvedType = context.ErrorType;
         links.Values.Get(symbols.GlobalThisSymbol).ResolvedType = context.NewObjectType(ObjectFlags.Anonymous, symbols.GlobalThisSymbol);
-        types["Array"] = await GetAsync("Array", 1, true, cancellation).ConfigureAwait(false);
-        types["Object"] = await GetAsync("Object", 0, true, cancellation).ConfigureAwait(false);
-        types["Function"] = await GetAsync("Function", 0, true, cancellation).ConfigureAwait(false);
+        types[Utf8Literals.Array] = await GetAsync(Utf8Literals.Array, 1, true, cancellation).ConfigureAwait(false);
+        types[Utf8Literals.ObjectType] = await GetAsync(Utf8Literals.ObjectType, 0, true, cancellation).ConfigureAwait(false);
+        types[Utf8Literals.FunctionType] = await GetAsync(Utf8Literals.FunctionType, 0, true, cancellation).ConfigureAwait(false);
         bool strict = symbols.Program.Configuration.Options.EffectiveStrictBindCallApply;
-        types["CallableFunction"] = strict
-            ? await GetAsync("CallableFunction", 0, true, cancellation).ConfigureAwait(false)
-            : types["Function"];
-        types["NewableFunction"] = strict
-            ? await GetAsync("NewableFunction", 0, true, cancellation).ConfigureAwait(false)
-            : types["Function"];
-        foreach (TextSlice name in new[] { "String", "Number", "Boolean", "RegExp" })
+        types[Utf8Literals.CallableFunction] = strict
+            ? await GetAsync(Utf8Literals.CallableFunction, 0, true, cancellation).ConfigureAwait(false)
+            : types[Utf8Literals.FunctionType];
+        types[Utf8Literals.NewableFunction] = strict
+            ? await GetAsync(Utf8Literals.NewableFunction, 0, true, cancellation).ConfigureAwait(false)
+            : types[Utf8Literals.FunctionType];
+        foreach (Utf8String name in new Utf8String[] { Utf8Literals.String, Utf8Literals.Number, Utf8Literals.Boolean, Utf8Literals.RegExp })
             types[name] = await GetAsync(name, 0, true, cancellation).ConfigureAwait(false);
-        AnyArrayType = Reference(types["Array"], context.AnyType);
-        AutoArrayType = Reference(types["Array"], context.AutoType);
+        AnyArrayType = Reference(types[Utf8Literals.Array], context.AnyType);
+        AutoArrayType = Reference(types[Utf8Literals.Array], context.AutoType);
         if (AutoArrayType == context.EmptyObjectType)
             AutoArrayType = context.NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved);
-        var readonlyArray = await GetAsync("ReadonlyArray", 1, false, cancellation).ConfigureAwait(false);
-        types["ReadonlyArray"] = readonlyArray == context.EmptyGenericType ? types["Array"] : readonlyArray;
-        AnyReadonlyArrayType = Reference(types["ReadonlyArray"], context.AnyType);
-        types["ThisType"] = await GetAsync("ThisType", 1, false, cancellation).ConfigureAwait(false);
+        var readonlyArray = await GetAsync(Utf8Literals.ReadonlyArray, 1, false, cancellation).ConfigureAwait(false);
+        types[Utf8Literals.ReadonlyArray] = readonlyArray == context.EmptyGenericType ? types[Utf8Literals.Array] : readonlyArray;
+        AnyReadonlyArrayType = Reference(types[Utf8Literals.ReadonlyArray], context.AnyType);
+        types[Utf8Literals.ThisType] = await GetAsync(Utf8Literals.ThisType, 1, false, cancellation).ConfigureAwait(false);
     }
 
     private Type Reference(Type target, Type argument)

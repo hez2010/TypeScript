@@ -17,7 +17,7 @@ public sealed class ReferenceResolverHooks
     public Func<SyntaxNode, Symbol?>? GetSymbolOfDeclaration { get; init; }
     public Func<Symbol, S, SyntaxNode?>? GetTypeOnlyAliasDeclaration { get; init; }
     public Func<Symbol, Symbol?>? GetExportSymbolOfValueSymbolIfExported { get; init; }
-    public Func<ElementAccessExpressionNode, TextSlice?>? GetElementAccessExpressionName { get; init; }
+    public Func<ElementAccessExpressionNode, Utf8String?>? GetElementAccessExpressionName { get; init; }
 }
 
 /// <summary>Shared declaration/export queries for checking and emit.</summary>
@@ -135,8 +135,8 @@ public sealed class ReferenceResolver(CompilerOptions options, Func<SyntaxNode, 
             or K.MethodDeclaration or K.GetAccessor or K.SetAccessor or K.ModuleDeclaration).ToArray() ?? [];
     }
 
-    public TextSlice GetElementAccessExpressionName(ElementAccessExpressionNode? node)
-        => node is null ? "" : hooks.GetElementAccessExpressionName?.Invoke(node) ?? "";
+    public Utf8String GetElementAccessExpressionName(ElementAccessExpressionNode? node)
+        => node is null ? Utf8String.Empty : hooks.GetElementAccessExpressionName?.Invoke(node) ?? Utf8String.Empty;
 
     public SyntaxNode? GetReferencedMemberValueDeclaration(SyntaxNode node)
         => Exported(ResolvedSymbol(node) ?? Merged(BoundSymbol(node)))?.ValueDeclaration;
@@ -168,8 +168,8 @@ public sealed class ReferenceResolver(CompilerOptions options, Func<SyntaxNode, 
                 var assignment = (BinaryExpressionNode)node;
                 return assignment.OperatorToken?.Kind == K.EqualsToken && assignment.Left is { } left
                     && (left.Flags & NodeFlags.JavaScriptFile) != 0 && AliasExpression(assignment.Right)
-                    && (ModuleExports(left) && assignment.Right is not IdentifierNode { Text.Span: "exports" }
-                        || (ModuleExports(AccessBase(left)) || AccessBase(left) is IdentifierNode { Text.Span: "exports" })
+                    && (ModuleExports(left) && !(assignment.Right is IdentifierNode { Text.Span: var matchedText } && matchedText.SequenceEqual("exports"u8))
+                        || (ModuleExports(AccessBase(left)) || AccessBase(left) is IdentifierNode { Text.Span: var matchedText2 } && matchedText2.SequenceEqual("exports"u8))
                             && AccessName(left) is not null);
         }
         return false;
@@ -191,15 +191,15 @@ public sealed class ReferenceResolver(CompilerOptions options, Func<SyntaxNode, 
         _ => null
     };
 
-    private static TextSlice? AccessName(SyntaxNode? node) => node switch
+    private static Utf8String? AccessName(SyntaxNode? node) => node switch
     {
         PropertyAccessExpressionNode { Name: IdentifierNode name } => name.Text,
         ElementAccessExpressionNode { ArgumentExpression: StringLiteralNode name } => name.Text,
         ElementAccessExpressionNode { ArgumentExpression: NumericLiteralNode name } => name.Text,
         ElementAccessExpressionNode { ArgumentExpression: NoSubstitutionTemplateLiteralNode name } => name.Text,
-        _ => (TextSlice?)null
+        _ => (Utf8String?)null
     };
 
     private static bool ModuleExports(SyntaxNode? node) =>
-        AccessBase(node) is IdentifierNode { Text.Span: "module" } && AccessName(node) == "exports";
+        AccessBase(node) is IdentifierNode { Text.Span: var matchedText3 } && matchedText3.SequenceEqual("module"u8) && AccessName(node) == Utf8Literals.Exports;
 }

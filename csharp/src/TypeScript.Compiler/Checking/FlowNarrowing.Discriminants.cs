@@ -137,7 +137,7 @@ internal sealed partial class FlowNarrowing
                 state,
                 type,
                 left,
-                (right.Kind == SyntaxKind.TrueKeyword) == (op is SyntaxKind.EqualsEqualsToken or SyntaxKind.EqualsEqualsEqualsToken) == assumeTrue,
+                (right.Kind == SyntaxKind.TrueKeyword) == op is SyntaxKind.EqualsEqualsToken or SyntaxKind.EqualsEqualsEqualsToken == assumeTrue,
                 cancellation).ConfigureAwait(false);
         if (left.Kind is SyntaxKind.TrueKeyword or SyntaxKind.FalseKeyword
             && right is not (PropertyAccessExpressionNode or ElementAccessExpressionNode))
@@ -145,20 +145,20 @@ internal sealed partial class FlowNarrowing
                 state,
                 type,
                 right,
-                (left.Kind == SyntaxKind.TrueKeyword) == (op is SyntaxKind.EqualsEqualsToken or SyntaxKind.EqualsEqualsEqualsToken) == assumeTrue,
+                (left.Kind == SyntaxKind.TrueKeyword) == op is SyntaxKind.EqualsEqualsToken or SyntaxKind.EqualsEqualsEqualsToken == assumeTrue,
                 cancellation).ConfigureAwait(false);
         return type;
     }
 
     private async ValueTask<bool> ConstructorReferenceAsync(FlowState state, SyntaxNode expression, CancellationToken cancellation)
     {
-        TextSlice? name = expression switch
+        Utf8String? name = expression switch
         {
             PropertyAccessExpressionNode property => SyntaxNameText.Get(property.Name),
             ElementAccessExpressionNode element => StringLike(element.ArgumentExpression!),
             _ => null
         };
-        return name == "constructor"
+        return name == Utf8Literals.Constructor
             && await references.MatchesAsync(state.Reference, FlowReferences.Receiver(expression)!, cancellation).ConfigureAwait(false);
     }
 
@@ -188,7 +188,7 @@ internal sealed partial class FlowNarrowing
     {
         if (op is SyntaxKind.EqualsEqualsEqualsToken or SyntaxKind.ExclamationEqualsEqualsToken && type is UnionType union)
         {
-            TextSlice key = await discriminants.KeyAsync(union, cancellation).ConfigureAwait(false);
+            Utf8String key = await discriminants.KeyAsync(union, cancellation).ConfigureAwait(false);
             if (key.Length != 0 && await host.AccessNameAsync(access, cancellation).ConfigureAwait(false) == key)
             {
                 var candidateKey = await algebra.RegularTypeAsync(

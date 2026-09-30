@@ -12,7 +12,7 @@ public sealed partial class CompilerProgram
     private ProgramModuleSpecifierHost? moduleSpecifierHost;
     private ModuleSpecifierGenerator? moduleSpecifierGenerator;
 
-    internal ModuleSpecifierResult GetModuleSpecifiers(SourceFileNode source, string target, ModuleSpecifierPreferences? preferences = null,
+    internal ModuleSpecifierResult GetModuleSpecifiers(SourceFileNode source, Utf8String target, ModuleSpecifierPreferences? preferences = null,
         ReferenceResolutionMode mode = 0, CancellationToken cancellation = default)
     {
         if (!ReferenceEquals(GetFile(source.FileName)?.Syntax, source))
@@ -20,7 +20,7 @@ public sealed partial class CompilerProgram
         lock (moduleSpecifierGate)
         {
             var host = ModuleSpecifierHost(cancellation);
-            string original = ProjectReferences.Outputs.TryGetValue(CompilerPath.Resolve(CurrentDirectory, target), out var output)
+            Utf8String original = ProjectReferences.Outputs.TryGetValue(CompilerPath.Resolve(CurrentDirectory, target), out var output)
                 ? output.Source : target;
             return moduleSpecifierGenerator!.ForFile(source, original, preferences, mode, cancellation: cancellation);
         }
@@ -28,7 +28,7 @@ public sealed partial class CompilerProgram
 
     internal IReadOnlyList<ModuleSpecifierPath> GetModuleSpecifierPaths(
         SourceFileNode source,
-        string target,
+        Utf8String target,
         CancellationToken cancellation = default)
     {
         if (!ReferenceEquals(GetFile(source.FileName)?.Syntax, source))
@@ -67,14 +67,14 @@ public sealed partial class CompilerProgram
             return true;
         if (options.OutDir is not { Length: > 0 } outputDirectory)
             return false;
-        string? root = options.RootDir ?? (Configuration.FileName.Length == 0
-            ? null
+        Utf8String? root = options.RootDir ?? (Configuration.FileName.Length == 0
+            ? (Utf8String?)null
             : CompilerPath.DirectoryName(Configuration.FileName));
         if (root is not null)
         {
-            string output = CompilerPath.Resolve(
+            Utf8String output = CompilerPath.Resolve(
                 outputDirectory,
-                CompilerPath.Relative(CompilerPath.Resolve(CurrentDirectory, root), source.FileName, fileSystem.CaseSensitive));
+                CompilerPath.Relative(CompilerPath.Resolve(CurrentDirectory, root.Value), source.FileName, fileSystem.CaseSensitive));
             if (CompilerPath.Relative(source.FileName, output, fileSystem.CaseSensitive).Length == 0)
                 return false;
         }
@@ -84,28 +84,28 @@ public sealed partial class CompilerProgram
     private sealed class ProgramModuleSpecifierHost : IModuleSpecifierHost
     {
         private readonly CompilerProgram program;
-        private readonly Dictionary<string, IReadOnlyList<string>> redirects = new(StringComparer.Ordinal);
-        private readonly Dictionary<string, IReadOnlyList<string>> links = new(StringComparer.Ordinal);
+        private readonly Dictionary<Utf8String, IReadOnlyList<Utf8String>> redirects = new(Utf8StringComparer.Ordinal);
+        private readonly Dictionary<Utf8String, IReadOnlyList<Utf8String>> links = new(Utf8StringComparer.Ordinal);
         public IFileSystem FileSystem => program.fileSystem;
-        public string CurrentDirectory => program.CurrentDirectory;
-        public string ConfigFileName => program.Configuration.FileName;
-        public string CommonSourceDirectory => program.CommonSourceDirectory;
-        public string GlobalTypingsCache => program.GlobalTypingsCache;
-        public IReadOnlyList<string> ContentMapperExtensions { get; }
+        public Utf8String CurrentDirectory => program.CurrentDirectory;
+        public Utf8String ConfigFileName => program.Configuration.FileName;
+        public Utf8String CommonSourceDirectory => program.CommonSourceDirectory;
+        public Utf8String GlobalTypingsCache => program.GlobalTypingsCache;
+        public IReadOnlyList<Utf8String> ContentMapperExtensions { get; }
 
         internal ProgramModuleSpecifierHost(CompilerProgram program, CancellationToken cancellation)
         {
             this.program = program;
             ContentMapperExtensions = Array.AsReadOnly(
                 program.Configuration.ContentMappers.SelectMany(m => m.Extensions).Distinct().ToArray());
-            var redirectLists = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+            var redirectLists = new Dictionary<Utf8String, List<Utf8String>>(Utf8StringComparer.Ordinal);
             foreach (var entry in program.Redirects)
             {
                 cancellation.ThrowIfCancellationRequested();
                 if (program.ProjectReferences.Find(entry.Key) is { } reference
                     && (Key(reference.Source) == Key(entry.Value) || Key(reference.Output) == Key(entry.Value)))
                     continue;
-                string key = Key(entry.Value);
+                Utf8String key = Key(entry.Value);
                 if (!redirectLists.TryGetValue(key, out var list))
                     redirectLists[key] = list = [];
                 list.Add(entry.Key);
@@ -113,8 +113,8 @@ public sealed partial class CompilerProgram
             foreach (var entry in redirectLists)
                 redirects[entry.Key] = entry.Value.AsReadOnly();
 
-            var linkLists = new Dictionary<string, List<string>>(StringComparer.Ordinal);
-            var known = new HashSet<string>(StringComparer.Ordinal);
+            var linkLists = new Dictionary<Utf8String, List<Utf8String>>(Utf8StringComparer.Ordinal);
+            var known = new HashSet<Utf8String>(Utf8StringComparer.Ordinal);
             foreach (var file in program.files.Values)
                 foreach (var resolution in file.Resolutions)
                 {
@@ -127,7 +127,7 @@ public sealed partial class CompilerProgram
                 CurrentDirectory,
                 ConfigFileName,
                 GlobalTypingsCache);
-            var seen = new HashSet<string>(StringComparer.Ordinal);
+            var seen = new HashSet<Utf8String>(Utf8StringComparer.Ordinal);
             foreach (var file in program.SourceFiles)
             {
                 cancellation.ThrowIfCancellationRequested();
@@ -137,35 +137,35 @@ public sealed partial class CompilerProgram
                     continue;
                 if (resolver.Packages.Get(file.PackageDirectory).Contents is not { } package)
                     continue;
-                foreach (string dependency in package.RuntimeDependencies())
+                foreach (Utf8String dependency in package.RuntimeDependencies())
                 {
                     cancellation.ThrowIfCancellationRequested();
-                    if (known.Contains(Key(CompilerPath.Combine(file.PackageDirectory, "node_modules", dependency))))
+                    if (known.Contains(Key(CompilerPath.Combine(file.PackageDirectory, Utf8Literals.NodeModules, dependency))))
                         continue;
-                    if (!dependency.StartsWith("@types", StringComparison.Ordinal)
+                    if (!dependency.StartsWith("@types"u8, StringComparison.Ordinal)
                         && known.Contains(
-                            Key(CompilerPath.Combine(file.PackageDirectory, "node_modules/@types", ModuleResolver.Mangle(dependency)))))
+                            Key(CompilerPath.Combine(file.PackageDirectory, Utf8Literals.NodeModulesTypes, ModuleResolver.Mangle(dependency)))))
                         continue;
                     if (resolver.ResolvePackageDirectoryInfo(
                         dependency,
-                        CompilerPath.Combine(file.PackageDirectory, "package.json")) is { OriginalPath.Length: > 0 } resolved)
+                        CompilerPath.Combine(file.PackageDirectory, Utf8Literals.PackageJson)) is { OriginalPath.Length: > 0 } resolved)
                         Process(
-                            CompilerPath.Combine(resolved.OriginalPath, "package.json"),
-                            CompilerPath.Combine(resolved.FileName, "package.json"));
+                            CompilerPath.Combine(resolved.OriginalPath, Utf8Literals.PackageJson),
+                            CompilerPath.Combine(resolved.FileName, Utf8Literals.PackageJson));
                 }
             }
             foreach (var entry in linkLists)
                 links[entry.Key] = entry.Value.AsReadOnly();
 
-            void Process(string original, string resolved)
+            void Process(Utf8String original, Utf8String resolved)
             {
                 if (original.Length == 0 || resolved.Length == 0)
                     return;
-                string a = CompilerPath.Resolve(CurrentDirectory, resolved), b = CompilerPath.Resolve(CurrentDirectory, original);
+                Utf8String a = CompilerPath.Resolve(CurrentDirectory, resolved), b = CompilerPath.Resolve(CurrentDirectory, original);
                 bool directory = false;
                 while (a.Length > CompilerPath.RootLength(a) && b.Length > CompilerPath.RootLength(b))
                 {
-                    string aParent = CompilerPath.DirectoryName(a), bParent = CompilerPath.DirectoryName(b);
+                    Utf8String aParent = CompilerPath.DirectoryName(a), bParent = CompilerPath.DirectoryName(b);
                     if (Boundary(CompilerPath.BaseName(aParent)) || Boundary(CompilerPath.BaseName(bParent))
                         || Canonical(CompilerPath.BaseName(a)) != Canonical(CompilerPath.BaseName(b)))
                         break;
@@ -175,34 +175,34 @@ public sealed partial class CompilerProgram
                 }
                 if (!directory || ModuleSpecifierGenerator.Ignored(Key(b)) || !known.Add(Key(b)))
                     return;
-                string key = Key(a);
+                Utf8String key = Key(a);
                 if (!linkLists.TryGetValue(key, out var list))
                     linkLists[key] = list = [];
                 list.Add(b);
             }
-            bool Boundary(string name) => name.Length != 0 && (Canonical(name) == "node_modules" || name.StartsWith('@'));
+            bool Boundary(Utf8String name) => name.Length != 0 && (Canonical(name) == Utf8Literals.NodeModules || name.StartsWith((byte)'@'));
         }
 
-        private string Canonical(string path) => ModuleSpecifierGenerator.CanonicalFileName(path, FileSystem.CaseSensitive);
+        private Utf8String Canonical(Utf8String path) => ModuleSpecifierGenerator.CanonicalFileName(path, FileSystem.CaseSensitive);
 
-        private string Key(string path) => Canonical(CompilerPath.Resolve(CurrentDirectory, path).TrimEnd('/'));
+        private Utf8String Key(Utf8String path) => Canonical(CompilerPath.Resolve(CurrentDirectory, path).TrimEnd((byte)'/'));
 
-        public string OriginalSourceFileName(SourceFileNode source) =>
+        public Utf8String OriginalSourceFileName(SourceFileNode source) =>
             program.ProjectReferences.Outputs.TryGetValue(source.FileName, out var reference) ? reference.Source : source.FileName;
 
-        public string ProjectOutput(string sourceFileName) =>
-            program.ProjectReferences.Sources.TryGetValue(sourceFileName, out var reference) ? reference.Output : "";
+        public Utf8String ProjectOutput(Utf8String sourceFileName) =>
+            program.ProjectReferences.Sources.TryGetValue(sourceFileName, out var reference) ? reference.Output : Utf8String.Empty;
 
-        public IReadOnlyList<string> RedirectTargets(string target) => redirects.GetValueOrDefault(Key(target)) ?? [];
+        public IReadOnlyList<Utf8String> RedirectTargets(Utf8String target) => redirects.GetValueOrDefault(Key(target)) ?? [];
 
-        public IReadOnlyList<string> SymlinkDirectories(string realDirectory) => links.GetValueOrDefault(Key(realDirectory)) ?? [];
+        public IReadOnlyList<Utf8String> SymlinkDirectories(Utf8String realDirectory) => links.GetValueOrDefault(Key(realDirectory)) ?? [];
 
         public ReferenceResolutionMode ResolutionMode(SourceFileNode source, SyntaxNode? import) =>
             program.ResolutionModeForUsage(source, import);
 
         public ResolvedModule? ResolvedImport(SourceFileNode source, SyntaxNode import)
         {
-            TextSlice text = import is StringLiteralNode literal ? literal.Text : ((NoSubstitutionTemplateLiteralNode)import).Text;
+            Utf8String text = import is StringLiteralNode literal ? literal.Text : ((NoSubstitutionTemplateLiteralNode)import).Text;
             var mode = ResolutionMode(source, import);
             return program.GetFile(source.FileName)!.Resolutions.FirstOrDefault(
                 r => !r.TypeReference && r.Specifier == text && r.Mode == mode)?.Resolution;

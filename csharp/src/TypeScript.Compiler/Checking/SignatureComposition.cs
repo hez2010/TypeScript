@@ -216,11 +216,11 @@ internal sealed class SignatureComposition(TypeContext context, CheckerLinks lin
             bool rest = hasRest && !extraRest && i == count - 1;
             bool optional = i >= await parameters.MinimumAsync(longest, cancellation: cancellation).ConfigureAwait(false)
                 && i >= await parameters.MinimumAsync(shorter, cancellation: cancellation).ConfigureAwait(false);
-            TextSlice leftName = i < leftCount ? await parameters.NameAsync(left, i, cancellation).ConfigureAwait(false) : "";
-            TextSlice rightName = i < rightCount ? await parameters.NameAsync(right, i, cancellation).ConfigureAwait(false) : "";
-            TextSlice name = leftName == rightName || rightName.Length == 0 ? leftName : leftName.Length == 0 ? rightName : "";
+            Utf8String leftName = i < leftCount ? await parameters.NameAsync(left, i, cancellation).ConfigureAwait(false) : Utf8String.Empty;
+            Utf8String rightName = i < rightCount ? await parameters.NameAsync(right, i, cancellation).ConfigureAwait(false) : Utf8String.Empty;
+            Utf8String name = leftName == rightName || rightName.Length == 0 ? leftName : leftName.Length == 0 ? rightName : Utf8String.Empty;
             if (name.Length == 0)
-                name = TextSlice.Concat("arg", TextSlice.Format(i));
+                name = Utf8String.Concat("arg"u8, Utf8String.Format(i));
             var symbol = new Symbol(
                 SymbolFlags.FunctionScopedVariable | SymbolFlags.Transient | (optional && !rest ? SymbolFlags.Optional : 0),
                 name)
@@ -235,7 +235,7 @@ internal sealed class SignatureComposition(TypeContext context, CheckerLinks lin
         {
             var symbol = new Symbol(
                 SymbolFlags.FunctionScopedVariable | SymbolFlags.Transient,
-                "args")
+                Utf8Literals.Args)
             { CheckFlags = CheckFlags.RestParameter };
             allocated.Add(symbol);
             var type = await tuples.ArrayAsync(
@@ -257,7 +257,7 @@ internal sealed class SignatureComposition(TypeContext context, CheckerLinks lin
         var readOnlyArray = host.ArrayTarget(true);
         if (array.Symbol is null || readOnlyArray.Symbol is null)
             return [];
-        TextSlice? name = null;
+        Utf8String? name = null;
         for (int i = 0; i < type.Types.Count; i++)
         {
             var part = type.Types[i];

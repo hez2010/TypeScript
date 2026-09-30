@@ -101,7 +101,7 @@ internal sealed class VariableTypes(TypeContext context, TypeAlgebra algebra, Ty
                 && symbols.Declaration(setter)?.Declarations.OfType<GetAccessorDeclarationNode>().FirstOrDefault() is { } getter)
             {
                 var signature = await signatures.FromDeclarationAsync(getter, cancellation).ConfigureAwait(false);
-                if (parameter.Name is IdentifierNode { Text.Span: "this" } && signature.ThisParameter is { } thisParameter)
+                if (parameter.Name is IdentifierNode { Text.Span: var matchedText } && matchedText.SequenceEqual("this"u8) && signature.ThisParameter is { } thisParameter)
                     return await host.SymbolTypeAsync(thisParameter, cancellation).ConfigureAwait(false);
                 return await signatures.ReturnAsync(signature, cancellation).ConfigureAwait(false);
             }

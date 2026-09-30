@@ -18,7 +18,7 @@ internal interface IObjectRelationHost
 
     ValueTask<IndexInfo?> ApplicableIndexAsync(Type type, Type key, CancellationToken cancellation);
 
-    ValueTask<IndexInfo?> ApplicableIndexAsync(Type type, TextSlice name, CancellationToken cancellation);
+    ValueTask<IndexInfo?> ApplicableIndexAsync(Type type, Utf8String name, CancellationToken cancellation);
 
     ValueTask<Type> PropertyNameTypeAsync(Symbol symbol, CancellationToken cancellation);
 
@@ -75,7 +75,7 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
         return false;
     }
 
-    internal async ValueTask<bool> KnownAsync(Type type, TextSlice name, bool jsx = false, CancellationToken cancellation = default)
+    internal async ValueTask<bool> KnownAsync(Type type, Utf8String name, bool jsx = false, CancellationToken cancellation = default)
     {
         var pending = new Stack<Type>();
         pending.Push(type);
@@ -86,9 +86,9 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
             {
                 if (await properties.ObjectPropertyAsync(current, name, cancellation).ConfigureAwait(false) is not null
                     || await host.ApplicableIndexAsync(current, name, cancellation).ConfigureAwait(false) is not null
-                    || name.Span.StartsWith(Symbol.InternalPrefix + "@", StringComparison.Ordinal)
+                    || name.Span.StartsWith(Symbol.InternalUnique, StringComparison.Ordinal)
                         && (await host.IndexesAsync(current, cancellation).ConfigureAwait(false)).Any(i => i.KeyType == context.StringType)
-                    || jsx && name.Span.Contains('-'))
+                    || jsx && name.Span.Contains((byte)'-'))
                     return true;
             }
             else if (current is SubstitutionType substitution)
@@ -127,7 +127,7 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
     }
 
     internal async ValueTask<Ternary> PropertiesAsync(RelationOperation operation, Type source, Type target, bool optionalsOnly,
-        IntersectionState intersection, CancellationToken cancellation = default, IReadOnlySet<TextSlice>? excluded = null)
+        IntersectionState intersection, CancellationToken cancellation = default, IReadOnlySet<Utf8String>? excluded = null)
     {
         if (target is TypeReference { Target: TupleType targetTuple })
         {
@@ -336,7 +336,7 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
         TypeReference target,
         IntersectionState intersection,
         CancellationToken cancellation,
-        IReadOnlySet<TextSlice>? excluded)
+        IReadOnlySet<Utf8String>? excluded)
     {
         var sourceTuple = source.Target as TupleType;
         var targetTuple = (TupleType)target.Target!;
@@ -423,7 +423,7 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
             {
                 if (((sourceFlags | targetFlags) & ElementFlags.Variable) != 0)
                     canExclude = false;
-                if (canExclude && excluded!.Contains(TextSlice.Format(i)))
+                if (canExclude && excluded!.Contains(Utf8String.Format(i)))
                     continue;
             }
             var sourceType = values.NonMissing(sourceArguments[i], (sourceFlags & targetFlags & ElementFlags.Optional) != 0);
@@ -553,7 +553,7 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
         Ternary result = Ternary.True;
         foreach (var property in list)
         {
-            if ((source.ObjectFlags & ObjectFlags.JsxAttributes) != 0 && property.Name.Span.Contains('-'))
+            if ((source.ObjectFlags & ObjectFlags.JsxAttributes) != 0 && property.Name.Span.Contains((byte)'-'))
                 continue;
             if (!await indexes.ApplicableTypeAsync(
                 await host.PropertyNameTypeAsync(property, cancellation).ConfigureAwait(false),

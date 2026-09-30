@@ -18,20 +18,20 @@ internal sealed partial class Checker
         bool reported = false;
         foreach (var attribute in attributes.Properties!.OfType<JsxAttributeNode>())
         {
-            TextSlice name = JsxName(attribute.Name!);
-            if (!name.Span.Contains('-'))
+            Utf8String name = JsxName(attribute.Name!);
+            if (!name.Span.Contains((byte)'-'))
                 reported |= await LiteralElaboration.ElementAsync(source, target, relation,
                 attribute.Name!, attribute.Initializer, context.GetStringLiteralType(name), null, cancellation);
         }
         if (attributes.Parent is not JsxOpeningElementNode { Parent: JsxElementNode element })
             return reported;
-        TextSlice nameOfChildren = await JsxPropertyNameAsync("ElementChildrenAttribute", attributes, cancellation) ?? "children";
+        Utf8String nameOfChildren = await JsxPropertyNameAsync(Utf8Literals.ElementChildrenAttribute, attributes, cancellation) ?? Utf8Literals.Children;
         var nameType = context.GetStringLiteralType(nameOfChildren);
         var childrenTarget = await Indexed.GetAsync(target, nameType, cancellation: cancellation);
         var children = JsxSemanticChildren(element);
         if (children.Count == 0)
             return reported;
-        var iterable = await program.Globals.GetAsync("Iterable", 3, false, cancellation);
+        var iterable = await program.Globals.GetAsync(Utf8Literals.Iterable, 3, false, cancellation);
         var anyIterable = iterable == context.EmptyGenericType
             ? null
             : context.CreateTypeReference((InterfaceType)iterable, [context.AnyType, context.AnyType, context.AnyType]);
@@ -97,7 +97,7 @@ internal sealed partial class Checker
                             cancellation);
                     else
                     {
-                        TextSlice propertyName = TextSlice.Format(i);
+                        Utf8String propertyName = Utf8String.Format(i);
                         bool targetOptional = (await Properties.PropertyAsync(indexedParts, propertyName, cancellation: cancellation))
                             is { Flags: var flags } && (flags & SymbolFlags.Optional) != 0;
                         bool sourceOptional = (await Properties.PropertyAsync(tuple, propertyName, cancellation: cancellation))

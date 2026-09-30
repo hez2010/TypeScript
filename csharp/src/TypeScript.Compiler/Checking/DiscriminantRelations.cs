@@ -6,7 +6,7 @@ namespace TypeScript.Compiler.Checking;
 internal sealed class DiscriminantRelations(TypeContext context, TypeAlgebra algebra, TypeProperties properties, SymbolTypes values,
     MappedTypes mapped, ObjectRelations objects, IStructuralRelationHost host)
 {
-    internal async ValueTask<bool> PropertyAsync(UnionType type, TextSlice name, CancellationToken cancellation = default)
+    internal async ValueTask<bool> PropertyAsync(UnionType type, Utf8String name, CancellationToken cancellation = default)
     {
         var property = await properties.CachedPropertyAsync(type, name, cancellation: cancellation).ConfigureAwait(false);
         if (property is null || (property.CheckFlags & CheckFlags.SyntheticProperty) == 0)
@@ -35,7 +35,7 @@ internal sealed class DiscriminantRelations(TypeContext context, TypeAlgebra alg
 
     internal async ValueTask<Type?> MatchAsync(UnionType target, Type source, CancellationToken cancellation = default)
     {
-        TextSlice name = await KeyAsync(target, cancellation).ConfigureAwait(false);
+        Utf8String name = await KeyAsync(target, cancellation).ConfigureAwait(false);
         if (name.Length == 0)
             return null;
         var property = await properties.PropertyAsync(source, name, cancellation: cancellation).ConfigureAwait(false);
@@ -48,13 +48,13 @@ internal sealed class DiscriminantRelations(TypeContext context, TypeAlgebra alg
         return match == context.UnknownType ? null : match;
     }
 
-    internal async ValueTask<TextSlice> KeyAsync(UnionType type, CancellationToken cancellation)
+    internal async ValueTask<Utf8String> KeyAsync(UnionType type, CancellationToken cancellation)
     {
-        const string missing = Symbol.InternalPrefix + "missing";
+        Utf8String missing = Symbol.InternalMissing;
         if (type.KeyPropertyName is null or { IsEmpty: true })
         {
             var types = type.Types;
-            TextSlice? candidate = null;
+            Utf8String? candidate = null;
             Dictionary<Type, Type>? map = null;
             if (types.Count >= 10
                 && (type.ObjectFlags & ObjectFlags.PrimitiveUnion) == 0
@@ -74,16 +74,16 @@ internal sealed class DiscriminantRelations(TypeContext context, TypeAlgebra alg
                         break;
                 }
                 if (candidate is not null)
-                    map = await MapAsync(types, (candidate).Value, cancellation).ConfigureAwait(false);
+                    map = await MapAsync(types, candidate.Value, cancellation).ConfigureAwait(false);
             }
             cancellation.ThrowIfCancellationRequested();
             type.KeyPropertyName = map is null ? missing : candidate;
             type.ConstituentMap = map;
         }
-        return type.KeyPropertyName == missing ? "" : type.KeyPropertyName!.Value;
+        return type.KeyPropertyName == missing ? Utf8String.Empty : type.KeyPropertyName!.Value;
     }
 
-    private async ValueTask<Dictionary<Type, Type>?> MapAsync(IReadOnlyList<Type> types, TextSlice name, CancellationToken cancellation)
+    private async ValueTask<Dictionary<Type, Type>?> MapAsync(IReadOnlyList<Type> types, Utf8String name, CancellationToken cancellation)
     {
         var result = new Dictionary<Type, Type>();
         int count = 0;
@@ -139,7 +139,7 @@ internal sealed class DiscriminantRelations(TypeContext context, TypeAlgebra alg
             combinations *= count;
         }
         var candidates = new IReadOnlyList<Type>[sourceProperties.Count];
-        var excluded = new HashSet<TextSlice>();
+        var excluded = new HashSet<Utf8String>();
         for (int i = 0; i < candidates.Length; i++)
         {
             var property = sourceProperties[i];

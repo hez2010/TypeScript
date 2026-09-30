@@ -6,8 +6,8 @@ using TypeScript.Compiler.Text;
 namespace TypeScript.Compiler.Ast;
 
 public readonly record struct SourceCommentRange(SyntaxKind Kind, int Pos, int End, bool HasTrailingNewLine);
-public readonly record struct PragmaArgument(string Name, string Value, int Pos, int End);
-public readonly record struct SourcePragma(string Name, SourceCommentRange Range, IReadOnlyDictionary<string, PragmaArgument> Arguments);
+public readonly record struct PragmaArgument(Utf8String Name, Utf8String Value, int Pos, int End);
+public readonly record struct SourcePragma(Utf8String Name, SourceCommentRange Range, IReadOnlyDictionary<Utf8String, PragmaArgument> Arguments);
 public enum ReferenceResolutionMode
 {
     Unspecified = 0,
@@ -15,18 +15,18 @@ public enum ReferenceResolutionMode
     Import = 99
 }
 public readonly record struct FileReference(
-    string FileName,
+    Utf8String FileName,
     int Pos,
     int End,
     ReferenceResolutionMode ResolutionMode = ReferenceResolutionMode.Unspecified,
     bool Preserve = false);
 public readonly record struct CheckJsDirective(bool Enabled, SourceCommentRange Range);
-public readonly record struct AmdDependency(string Path, string? Name);
+public readonly record struct AmdDependency(Utf8String Path, Utf8String? Name);
 
 public sealed partial class SourceFileNode
 {
-    public string FileName { get; internal set; } = "";
-    public SourceText Source { get; internal set; } = new("");
+    public Utf8String FileName { get; internal set; } = Utf8String.Empty;
+    public SourceText Source { get; internal set; } = new(Utf8String.Empty);
     internal int NodeCount { get; set; }
     public ScriptKind ScriptKind { get; internal set; }
     public bool IsDeclarationFile { get; internal set; }
@@ -41,12 +41,12 @@ public sealed partial class SourceFileNode
     public IReadOnlyList<FileReference> LibReferenceDirectives { get; internal set; } = [];
     public CheckJsDirective? CheckJsDirective { get; internal set; }
     public IReadOnlyList<AmdDependency> AmdDependencies { get; internal set; } = [];
-    public string? ModuleName { get; internal set; }
+    public Utf8String? ModuleName { get; internal set; }
     public bool HasNoDefaultLib { get; internal set; }
     public SyntaxNode? ExternalModuleIndicator { get; internal set; }
     public IReadOnlyList<SyntaxNode> Imports { get; internal set; } = [];
     public IReadOnlyList<SyntaxNode> ModuleAugmentations { get; internal set; } = [];
-    public IReadOnlyList<string> AmbientModuleNames { get; internal set; } = [];
+    public IReadOnlyList<Utf8String> AmbientModuleNames { get; internal set; } = [];
     private ConcurrentDictionary<SyntaxNode, JSDocNode[]>? documentation;
 
     internal void SetDocumentation(IDictionary<SyntaxNode, JSDocNode[]> values)
@@ -73,14 +73,11 @@ public sealed partial class SourceFileNode
             return cached;
         var parser = new DocumentationParser(Source, ScriptKind, cancellation: cancellation);
         var nodes = await parser.LeadingAsync(
-            Source.ToUtf16Position(node.Pos),
-            Source.ToUtf16Position(node.End),
+            node.Pos,
+            node.End,
             node.Kind).ConfigureAwait(false);
-        Stack<SyntaxNode>? pending = Source.IsAsciiOnly ? null : new();
         foreach (JSDocNode comment in nodes)
         {
-            if (pending is not null)
-                comment.ConvertTreePositions(Source, pending);
             comment.Parent = node;
         }
         return documentation.GetOrAdd(node, nodes);
