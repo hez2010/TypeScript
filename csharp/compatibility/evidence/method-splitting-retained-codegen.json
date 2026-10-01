@@ -1,0 +1,2725 @@
+{
+  "timestamp": "2026-10-01T01:30:25.073Z",
+  "baselineCommit": "a49422f3f4cfadc0d1440cddc7aaae71ca69940a",
+  "sourceFingerprint": "d8e4edbf6ba2925924b2cfdc5d16eef7e10596c51b7b26ad109b6bfc4b396bc6",
+  "compilerSha256": "54c14d447506c79a3918ee59f39bb7b1820e207458ff9cf6cd306ae471866470",
+  "generatorSha256": "53b5671480d09c2b7820accc61d1cec95615979405840f5e607f76f61eb24263",
+  "runtime": {
+    "directory": "built/method-splitting-retained/all-managed",
+    "hashes": {
+      "TypeScript.Compiler.dll": "54c14d447506c79a3918ee59f39bb7b1820e207458ff9cf6cd306ae471866470",
+      "TypeScript.Compatibility.dll": "20cb1220e3078ceed471ce9e4ef317b281e02fe2e190090c74473244e3d73e70",
+      "coreclr.dll": "62712ef9eae7b196a7875a49c7f677c35352e39d62e6848616f53ae4712eacc4",
+      "clrjit.dll": "7d8b21ac52d4a18a4f0ac0efa0046f063a80b42836b3312e4b0d8f9ca9c67096",
+      "System.Private.CoreLib.dll": "f23fda6918814d9e7d021aa91d3f42e20f7fd40797c8fa8803a87ac120a56a7e",
+      "TypeScript.Compatibility.runtimeconfig.json": "ec0a19e14f3487420fe00a635e70f8146102c64cd9a72753f5b5cce1bcfe079d"
+    }
+  },
+  "native": {
+    "before": {
+      "path": "built/utf8-optimization/artifacts-satori-final/obj/TypeScript.Compatibility/release_win-x64/native/TypeScript.Compatibility.map.xml",
+      "sha256": "e6e273860bdb1ff395ea0c485cc15a3f155ec5d6ce9fa84fd6959600388c2551",
+      "families": {
+        "printer": {
+          "bytes": 114431,
+          "methods": [
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit",
+              "bytes": 114431,
+              "codeHash": "9e0c5dbab80e77c60d555c1cdd28f44bd88f554a843ee64329aa8beeffc3fe30"
+            }
+          ]
+        },
+        "library": {
+          "bytes": 31123,
+          "methods": [
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibrary",
+              "bytes": 31123,
+              "codeHash": "7803c127b68955f4b60087d4bfe9a77bacd2918c672428047374b9537f88139c"
+            }
+          ]
+        },
+        "binder": {
+          "bytes": 8288,
+          "methods": [
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Binding_Binder__DeclareNode",
+              "bytes": 8288,
+              "codeHash": "5b7d1f2c40ffc18b2225a9dc7f20d66776500e53d8c93b2706cca663098d999f"
+            }
+          ]
+        },
+        "checker": {
+          "bytes": 19449,
+          "methods": [
+            {
+              "name": "Internal_CompilerGenerated__Module___&lt;Resume&gt;TypeScript_Compiler_TypeScript_Compiler_Checking_Checker__&lt;AsyncCallable&gt;TypeScript_Compiler_TypeScript_Compiler_Checking_Checker__CheckSourceElementAsync",
+              "bytes": 28,
+              "codeHash": "44ddb5fc067056aeb83475fc6a121006023e926cdfc533010c00432f8f3c19e9"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker__&lt;AsyncCallable&gt;TypeScript_Compiler_TypeScript_Compiler_Checking_Checker__CheckSourceElementAsync",
+              "bytes": 19421,
+              "codeHash": "aaf727b067b39f8c9b0929065b583353aab79fbbcc8ddf8db99a497f658658b4"
+            }
+          ]
+        }
+      }
+    },
+    "after": {
+      "path": "built/method-splitting-retained/artifacts-satori-final/obj/TypeScript.Compatibility/release_win-x64/native/TypeScript.Compatibility.map.xml",
+      "sha256": "ef4e5b9656a30dd684bc5165dcf0e495110351ce5973bfcf5cd4b0c019da904f",
+      "families": {
+        "printer": {
+          "bytes": 80568,
+          "methods": [
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit",
+              "bytes": 5315,
+              "codeHash": "607370974880bebcea20d1d520124e16748d16a83fd68559ba6c0c7e5ddadba4"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_0",
+              "bytes": 255,
+              "codeHash": "0ae5d0881114758b7c1a09db4c8f9bfee5cbe3fda0430b4763791dda196b18a0"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_1",
+              "bytes": 255,
+              "codeHash": "0ae5d0881114758b7c1a09db4c8f9bfee5cbe3fda0430b4763791dda196b18a0"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_2",
+              "bytes": 504,
+              "codeHash": "2b069f6d40aab89db20198c1eb1abcfff365bf5b17d5e5f477df604ba524fd0f"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_3",
+              "bytes": 202,
+              "codeHash": "a9bf51a19e56366bf9851591bccb627a28718072daf3fed39d81635941238399"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_4",
+              "bytes": 180,
+              "codeHash": "7d59e5d06813c404e75a552ccb2e044c60a9128606b9083d55f427357e20a500"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_5",
+              "bytes": 180,
+              "codeHash": "7d59e5d06813c404e75a552ccb2e044c60a9128606b9083d55f427357e20a500"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_6",
+              "bytes": 487,
+              "codeHash": "221b944f8203770c2283804f0c118d327319b80f11e52c743c61b1e8b15acf7d"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_7",
+              "bytes": 480,
+              "codeHash": "4e22a284d4fbbfa454371afade6998927182fec6b743cad17e9eaa227a43c185"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_8",
+              "bytes": 480,
+              "codeHash": "d03591132749c037c1bd94bed47b990fa7a63d86ff059680785b9830609f38e6"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_9",
+              "bytes": 515,
+              "codeHash": "86774977ed92bbcccd780dee0b203fea8db7e7141d93437a624aa565c93112bb"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_10",
+              "bytes": 466,
+              "codeHash": "87c6cc626ecd7401b015dfe9bd5622a3a3ee37175f053cc5aa95ad931de4815e"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_11",
+              "bytes": 427,
+              "codeHash": "d4f176435b643887520ecb326888357e918dec8f382f6634167fd2a7ba1e7785"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_12",
+              "bytes": 536,
+              "codeHash": "49b8a91b12288b866d1ac4591b3648de5145a48cc78b7ed2accfc3e319b4e7a2"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_13",
+              "bytes": 805,
+              "codeHash": "ac69b8587e68ba05828c707a29474713e4ad926b038509ab9bca892bd7cdfb12"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_14",
+              "bytes": 638,
+              "codeHash": "f2fa4bca72f3c6a05f03107d2c62b4eeb807b419b97c4a8cf556fdb662be1e2f"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_15",
+              "bytes": 368,
+              "codeHash": "c2e89e83f06134ed6ce314101cfca39614527aa049d350457d68f79d875232b5"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_16",
+              "bytes": 540,
+              "codeHash": "229b304b9e134b7cc25cb43e46366083e29640c14672ce027e473cbe9365b403"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_17",
+              "bytes": 553,
+              "codeHash": "ecd74d964cd504c7c8ab64e6393470d6da585aac688da2b2cf5e2cb3d67d6d87"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_18",
+              "bytes": 263,
+              "codeHash": "7855fa676d101dd909a2713e0824590675f897db30d45cd90d5505eed7313966"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_19",
+              "bytes": 247,
+              "codeHash": "c3754df73d09c77ec467956c3577619cc8c1b2cc2186e0f3d89639f64e6500a2"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_20",
+              "bytes": 466,
+              "codeHash": "97af7defcd367dd69483dd2f014e586df62c5cbf601e04bc8ba6872d32be7e9b"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_21",
+              "bytes": 1210,
+              "codeHash": "c45143782aca514e680cbfe8938bc0bf8d570efc620ea4844282cf4277b4f608"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_22",
+              "bytes": 622,
+              "codeHash": "651ffd348f54f54e773a773bf4f3d67d5ffa084926c6301d6d2b2de5e21fc639"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_23",
+              "bytes": 570,
+              "codeHash": "0a7eabcbf2852b219cafc2974f848ca3b205407881a7bfafe342c9c9e725c319"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_24",
+              "bytes": 309,
+              "codeHash": "b155183a77622964cb600e5eb76a0ce8d82f4079078e8975e507eb32871ebd85"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_25",
+              "bytes": 354,
+              "codeHash": "c3e7ae1eff65d873c52f8b15f8e39f33fd5595c2dca371161e96f2d990632cbf"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_26",
+              "bytes": 354,
+              "codeHash": "5dd82824a0d52d2196679b2aa89ee7a30feefbf36120e7f72263f7ee04cdacdb"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_27",
+              "bytes": 354,
+              "codeHash": "f15c36680964a3224aa268eeb72f2ade37065215efaa65a23282c63d8dc6b6eb"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_28",
+              "bytes": 354,
+              "codeHash": "c3baacd740d6ab8eeec3549f30569ec081d79dc49962eabd3f077b28a44884d7"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_29",
+              "bytes": 339,
+              "codeHash": "38404f73c993adb36af93d2f70360a1039d6eb06ee3beab4782a73b924916e61"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_30",
+              "bytes": 611,
+              "codeHash": "2e980504289a9d32fdfc925af84415f2da4986bb159ba6f2afbef87643043922"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_31",
+              "bytes": 427,
+              "codeHash": "46b30d90f79f4a5e25003b6a1ce3fa127097f0fef27c726e6ef18de3474ac807"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_32",
+              "bytes": 427,
+              "codeHash": "fdf301e86e1caa3bf0c8e857f4ae6e9c2db651fc06a3a31bfe9d5f43b56490ee"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_33",
+              "bytes": 549,
+              "codeHash": "f245f7cb23a3028efc598369f5505ade6a6e80d49560bc1279fb37b82a4c1d53"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_34",
+              "bytes": 225,
+              "codeHash": "bda0bbcf893633587bacaf8b2ff4bf2539f5e3e2ba516ae9e919717f0f98780d"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_35",
+              "bytes": 371,
+              "codeHash": "e8757310c92cbcc184b33f5c2efeaae894bf876a2d28669093c47d38b230ee45"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_36",
+              "bytes": 602,
+              "codeHash": "d953718f12b733250500b838db7358fb6ff3974a127557123cdb9188a5e28d42"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_37",
+              "bytes": 605,
+              "codeHash": "b9033975ffa28578c11d18d0cc7f38dd642f5820c78a5e77bb3e610cf1cad1d4"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_38",
+              "bytes": 420,
+              "codeHash": "3e0c4b08bf89112c0e677d6171aaa409ce2b29d7a5f1a93f5a81509403be4eac"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_39",
+              "bytes": 354,
+              "codeHash": "49e347990c27d18766e97372503074282958f241382c13d8dc4b0e0a4a093b32"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_40",
+              "bytes": 354,
+              "codeHash": "49e347990c27d18766e97372503074282958f241382c13d8dc4b0e0a4a093b32"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_41",
+              "bytes": 905,
+              "codeHash": "83d8cc7d283bd49b67e89b389ce3224708eec08a255adad8182cb7582d776d58"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_42",
+              "bytes": 813,
+              "codeHash": "7321100f5f414fb7fc2773e93ef49438b0ee7407c8bcb389670ddb2fab339475"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_43",
+              "bytes": 813,
+              "codeHash": "7321100f5f414fb7fc2773e93ef49438b0ee7407c8bcb389670ddb2fab339475"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_44",
+              "bytes": 599,
+              "codeHash": "b572635daf8963ad3167e01172d337577d14772b65c0fccbd78d654fbc5494e5"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_45",
+              "bytes": 618,
+              "codeHash": "d42a5ba6b6537abd4c66ea2107a79ef720c6bab8db475f0a60492ac44d520e89"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_46",
+              "bytes": 618,
+              "codeHash": "5059f919424fa78831057da69efae03d978c3925966a78fe5dee83d154ef193b"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_47",
+              "bytes": 530,
+              "codeHash": "7ba74af050660478c663d9d954362bc83086145bcd53ca7dfd46d3a85c0c6f06"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_48",
+              "bytes": 493,
+              "codeHash": "105b8198c51b334e263bd1baa319c2e82b5183402388b6cbfb53782ad287ced7"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_49",
+              "bytes": 573,
+              "codeHash": "7c0c25dbbfd142600ca1ee83ed086e06f8cf78f090096547e8b55137af84901b"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_50",
+              "bytes": 985,
+              "codeHash": "d18f9da206bf7888f2007625fee12a586d6e26ae00efb00b952810dfda480fa0"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_51",
+              "bytes": 985,
+              "codeHash": "d18f9da206bf7888f2007625fee12a586d6e26ae00efb00b952810dfda480fa0"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_52",
+              "bytes": 354,
+              "codeHash": "3d450736cab9dbd41a4761a6459d661e7424927330e5ddc2a59aeac416089abc"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_53",
+              "bytes": 613,
+              "codeHash": "7a35e3b558bda21932b0fb4fe34726a8c6f0fa555e21ce8efade6b0cebd69098"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_54",
+              "bytes": 147,
+              "codeHash": "56cc49d06ace05e17387f6e978ba3702dd4763bd76a53695aea0ec5f61dd03fc"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_55",
+              "bytes": 147,
+              "codeHash": "56cc49d06ace05e17387f6e978ba3702dd4763bd76a53695aea0ec5f61dd03fc"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_57",
+              "bytes": 339,
+              "codeHash": "01f679460c21492520fc0043f549c181a0835abb1bf617eeec5954dea51b6b27"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_58",
+              "bytes": 642,
+              "codeHash": "780a0e0628d17dc17c8c9e84d53b5db448118e661d704fd7026428c03da61319"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_59",
+              "bytes": 466,
+              "codeHash": "01d24554486a99076e21227babf897902312a2bc3379d5948c96919c28f851e5"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_60",
+              "bytes": 394,
+              "codeHash": "6f295ce4f0a15c082bbdee22e8d13090929a25b0c826365ae56caeda648ccbda"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_61",
+              "bytes": 391,
+              "codeHash": "ae8a6bca09a046c71891224e846b4ff8e14aab87d3127797fa8bb5727bd0e2de"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_62",
+              "bytes": 368,
+              "codeHash": "c2e89e83f06134ed6ce314101cfca39614527aa049d350457d68f79d875232b5"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_63",
+              "bytes": 342,
+              "codeHash": "0bde8c3da51676b13ecc76b6baae90d911b43348a2c9b1e79454efdc11069c2d"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_64",
+              "bytes": 729,
+              "codeHash": "a84d4632c934181da4e6c67f0c533786cef5ac34d0db4d1794639e57f00c2260"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_65",
+              "bytes": 908,
+              "codeHash": "0b082e089c6ef1356803436b40e752d546f8805a690aabbf1313e94fbdc8956d"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_66",
+              "bytes": 549,
+              "codeHash": "ea43c43f63b60a7efe666eebbcfb22a4a6ef8c184b38117bec3bdd7c940cd9f9"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_67",
+              "bytes": 669,
+              "codeHash": "48b9b7d5140c9ba76264b6675259515cc338097e924397357a6f1e67f50fa746"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_68",
+              "bytes": 1103,
+              "codeHash": "ee5465d709828bf4143485c5ede095a4c0eff406ab157366372782ee2b88cb87"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_69",
+              "bytes": 1171,
+              "codeHash": "bdcf7e0919f49c86d1fab746efe15c0751d5c501a78f6e45c0d5d6852bacc540"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_70",
+              "bytes": 764,
+              "codeHash": "9c8c8b4df4cc9ceda044be30d728bb4eb9fd82df381cf2d2d9978e5acc10f0cc"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_71",
+              "bytes": 764,
+              "codeHash": "27e0d2104a77750322ee7acd97e41087750fc07311659d6fe6add8ba6ea03d95"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_72",
+              "bytes": 427,
+              "codeHash": "860328ebe73c6869436766d6a6bb441c91866c2d0b50c0ade3d79b03661c48c5"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_73",
+              "bytes": 549,
+              "codeHash": "f19b15af80d91512abc8f28b01b84a530fb1c24a272dfa20e10916ee774422e8"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_74",
+              "bytes": 549,
+              "codeHash": "f3385ce009d95e246eb71916a09500058d4f9cee35f2c0f1a7110f646d0e9cf8"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_75",
+              "bytes": 147,
+              "codeHash": "56cc49d06ace05e17387f6e978ba3702dd4763bd76a53695aea0ec5f61dd03fc"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_76",
+              "bytes": 888,
+              "codeHash": "a5c2c74f47bca3777c29006b0e6c695101d29dfc5eb6074b1b9dbed2d59faf67"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_77",
+              "bytes": 1078,
+              "codeHash": "29c04176c633cc7dc4b8f1355a81307ce955fdf4dbb4befbc3aa159be10af144"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_78",
+              "bytes": 995,
+              "codeHash": "047365bcc25ce1f9e9ec7501e18c2553bfa16fa859edf5804a8ff8bb36e26fc1"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_79",
+              "bytes": 780,
+              "codeHash": "644b647b552f81403724d8a0dd6ef831ba39ebf335b060535d28b57b6b828971"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_80",
+              "bytes": 774,
+              "codeHash": "be981cb6f6f35c58312652c2a09af0adf7d1646b87d0172954610ec8156e20d0"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_81",
+              "bytes": 613,
+              "codeHash": "8247e31df95e94f997fc8f5291b8cd1bcbb904a469f3eb9365fadc2ae49f428b"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_82",
+              "bytes": 225,
+              "codeHash": "bda0bbcf893633587bacaf8b2ff4bf2539f5e3e2ba516ae9e919717f0f98780d"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_84",
+              "bytes": 1168,
+              "codeHash": "f9b7570ac88f497e9ab3731ad4753a75f0023526731ef57439812c57f7240e84"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_85",
+              "bytes": 966,
+              "codeHash": "8bf88c6622307c30f5752b3bbc2030083aea13b27b686baf288f4ec28cda64cf"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_86",
+              "bytes": 354,
+              "codeHash": "850361c7959e66b81f7f467f6cca55a61ac8ed0442896ad17c62a78a0fd2125f"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_87",
+              "bytes": 144,
+              "codeHash": "e67998d2af9fa780837a04ff7c07d47d2403bf771f0dc87c54a20e709e9f5ef8"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_88",
+              "bytes": 836,
+              "codeHash": "c020f6f4613f608bba0da715bc9157886db90441c9d3a0fae0118f01f817ceff"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_89",
+              "bytes": 837,
+              "codeHash": "c7ac23e7a67648b5d3b4d647895bc63514a149f78a5bed91637afe574b6979f7"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_90",
+              "bytes": 466,
+              "codeHash": "93d8a791280a39731e8baf4b9708c91f1c0375957a9d8921b1ddb8f5b5511daa"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_91",
+              "bytes": 1488,
+              "codeHash": "a0b60442220ac8e1e951f0f328fcc7b821d922b8850ceb578b7dfbcb1d7165d0"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_92",
+              "bytes": 616,
+              "codeHash": "4665d4adaf81c8aea53db3f3f5547874b0868793b31c671511b60ba3e3461141"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_93",
+              "bytes": 144,
+              "codeHash": "e67998d2af9fa780837a04ff7c07d47d2403bf771f0dc87c54a20e709e9f5ef8"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_94",
+              "bytes": 836,
+              "codeHash": "c020f6f4613f608bba0da715bc9157886db90441c9d3a0fae0118f01f817ceff"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_95",
+              "bytes": 354,
+              "codeHash": "850361c7959e66b81f7f467f6cca55a61ac8ed0442896ad17c62a78a0fd2125f"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_96",
+              "bytes": 466,
+              "codeHash": "32ddace81a01306e6d0254ce96bd788f5442abf796a7a7ad32b93232573dea6f"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_97",
+              "bytes": 567,
+              "codeHash": "c39b03ccf1183012115281eb18bed0bb286fc691461bc496d34596a59154807e"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_98",
+              "bytes": 427,
+              "codeHash": "860328ebe73c6869436766d6a6bb441c91866c2d0b50c0ade3d79b03661c48c5"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_99",
+              "bytes": 354,
+              "codeHash": "4e5a24af15924d83b99a2d6f5daac01d7881d371135b2bd2011054bdb0ae8b89"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_100",
+              "bytes": 688,
+              "codeHash": "57428441d5b5053e3ccb6bf360a8529696ace89caa02935c97b41d6617d8766b"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_101",
+              "bytes": 225,
+              "codeHash": "bda0bbcf893633587bacaf8b2ff4bf2539f5e3e2ba516ae9e919717f0f98780d"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_102",
+              "bytes": 407,
+              "codeHash": "af84e621aebbee46bab191fa7b70a43f94ae400ed410622fd6f2a2c8f51dc32e"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_103",
+              "bytes": 78,
+              "codeHash": "c568e5c8e18bd828ee41d122502acdab814b2e1c334acb1b83b734cc708e8507"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_104",
+              "bytes": 339,
+              "codeHash": "320535a4090934c3b9bf3426afc91222aafed9a5ed6823fe32250d21d02d50d3"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_105",
+              "bytes": 611,
+              "codeHash": "8a54d5f59dc528779410c8846cc8a0097e32cbe4b617678f9acd61c006e13d11"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_106",
+              "bytes": 573,
+              "codeHash": "98601670d46c32f801a13fb5f4c84bf78047a671aa6a95584cd1c7e9873e252e"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_107",
+              "bytes": 339,
+              "codeHash": "6f6b746db42bb4489271fac59eb9cf87d1e758d2d31c85869250da63aaf7ee3b"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_108",
+              "bytes": 354,
+              "codeHash": "49e347990c27d18766e97372503074282958f241382c13d8dc4b0e0a4a093b32"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_109",
+              "bytes": 179,
+              "codeHash": "fd79a237b7f103d16adf01849cd7c8aa94795e97d015a9eb3d2359d4c84f74ff"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_110",
+              "bytes": 179,
+              "codeHash": "246c62a7dc74b0f32d4eaf6fb23489948b826e4535df79b63a12504486d15a11"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_111",
+              "bytes": 825,
+              "codeHash": "39297d085272dbbfac65832d6b5fb2a722e3b124a68805678ba163f712fb08b6"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_112",
+              "bytes": 354,
+              "codeHash": "0c626c693aca19fb06aa8e2424cda2746ae86afaca71893c96f6f87efcd2a918"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_113",
+              "bytes": 466,
+              "codeHash": "97af7defcd367dd69483dd2f014e586df62c5cbf601e04bc8ba6872d32be7e9b"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_114",
+              "bytes": 536,
+              "codeHash": "49b8a91b12288b866d1ac4591b3648de5145a48cc78b7ed2accfc3e319b4e7a2"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_115",
+              "bytes": 539,
+              "codeHash": "717efbe086c6200e4bed81af323572af91b7ea5bd6daf6e6f5f5aaf7136d235b"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_116",
+              "bytes": 1730,
+              "codeHash": "b17d8db698aba99d05a88845d4ffe332b0295362961b731a4bf9eb540874003d"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_117",
+              "bytes": 2558,
+              "codeHash": "22e170bd42ee06c499de906c392f12deb26a720fe1333387a980e6f87774287c"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_118",
+              "bytes": 136,
+              "codeHash": "a9699d7265173ddd8bf9f0d48c922d5b7a34f34a31e1d8851e00fabb2b1ea6c9"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_119",
+              "bytes": 826,
+              "codeHash": "a15552c68d1dec90b1cd1a7a209a3e7ee3656687691e1d1de941d5af9361556e"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_120",
+              "bytes": 460,
+              "codeHash": "9702129aded68acc51190e737a35af9171af2972ed1a17a0cd1324ad38f29fb4"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_121",
+              "bytes": 628,
+              "codeHash": "cf8b1f4552410ca164ac10afb87fa7babcd3c5406435987408df328003f37f66"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_122",
+              "bytes": 573,
+              "codeHash": "7c0c25dbbfd142600ca1ee83ed086e06f8cf78f090096547e8b55137af84901b"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_123",
+              "bytes": 626,
+              "codeHash": "54eaa8442a3ca0f03d71e629a08e7029efc45626bdca7f5383c0aa572d9e99e5"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_124",
+              "bytes": 425,
+              "codeHash": "67afa5f3ea6ed943b607b68c41a670d713c94ab970e49d26a97421ee3deba314"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_125",
+              "bytes": 544,
+              "codeHash": "068d10213641bae079f218a0578704b6b6ae2c6053343a43930cd100a749ccb0"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_126",
+              "bytes": 525,
+              "codeHash": "73c0b374222300dc4a20984d38f8bcb1c7539ec015f9c8a5c0a4e9e929fe3510"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_127",
+              "bytes": 263,
+              "codeHash": "7855fa676d101dd909a2713e0824590675f897db30d45cd90d5505eed7313966"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_128",
+              "bytes": 247,
+              "codeHash": "c3754df73d09c77ec467956c3577619cc8c1b2cc2186e0f3d89639f64e6500a2"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_129",
+              "bytes": 350,
+              "codeHash": "2becae92e61c3ccf4f1746ab4bb46837fe38d1114d0a737f91427009da3b987c"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_130",
+              "bytes": 584,
+              "codeHash": "7230e6826311ae7fb100a4b559ee15d793549edccac3bb73c4ed891e7aa631c7"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_131",
+              "bytes": 584,
+              "codeHash": "ad4ca15539cf84713087d1c08557b148af280e9e997f2b950fdefa80b78dc50b"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_132",
+              "bytes": 466,
+              "codeHash": "9b4690d98ce2ad0513f039e04090ee700ba155a856444ebbb571fe706c18fff5"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_133",
+              "bytes": 271,
+              "codeHash": "11fc5495a4e98806ca715f0493cec49e02fea38cdbff67ed30f3621d7f5dcbc8"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_134",
+              "bytes": 576,
+              "codeHash": "41c1e21127a1b959cc031727730b86022d752ae4feec981207e67ad6ef66771c"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_135",
+              "bytes": 466,
+              "codeHash": "9b682d9b3e19d872ff2944a24821a9d37b6fcb8c6464ca897ca23aeb1e7757bd"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_136",
+              "bytes": 539,
+              "codeHash": "6c1e672dc4e44787cdfa29a6a48b0b07ce4d2435cbc1f8b4d4a491b7d4e9ad11"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_137",
+              "bytes": 180,
+              "codeHash": "7d59e5d06813c404e75a552ccb2e044c60a9128606b9083d55f427357e20a500"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_138",
+              "bytes": 479,
+              "codeHash": "33e2a20edc2636a4746bff3e21bbc133ae169b978048a88af27f1760d960ad52"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker_SymbolNodePrinter__Emit_139",
+              "bytes": 427,
+              "codeHash": "56347141f73ee2486ef594ff8fb51eb3ff1530c14019b19a3b6c301c20cefe31"
+            }
+          ]
+        },
+        "library": {
+          "bytes": 22287,
+          "methods": [
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibrary",
+              "bytes": 3733,
+              "codeHash": "3229c629e7b61d8e930616fcde7f283e5862c3bd2bd2317a0f4a2b917b215b13"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryArray",
+              "bytes": 1047,
+              "codeHash": "0f21ba98612ea9694e3c377d29da0949e5d28ecad0d7ad61d779610ceca2dc21"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryArrayBuffer",
+              "bytes": 346,
+              "codeHash": "383fbd3a0550b84e2bc9b7bc2b706d648492e6294918e35b93853bf0f13dfe89"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryAtomics",
+              "bytes": 725,
+              "codeHash": "f03aedbf592efa19c40f23d1e66f4f2649300ef0b40374ab94a563e520a8d25b"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibrarySharedArrayBuffer",
+              "bytes": 362,
+              "codeHash": "95b66d5c5862b857c798432f169aaf80b5d48d9c561bfe4ade73655cdc3dd771"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryRegExp",
+              "bytes": 476,
+              "codeHash": "fc8fc4cc04ea22caf41ba7a0e5e62815543bfc23f9556361b69958fa5bc52c45"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryRegExpConstructor",
+              "bytes": 153,
+              "codeHash": "97ac270619451a773fab8b27a98d7080d6d4d4f102aad171b705a3cd28d28f6c"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryReflect",
+              "bytes": 743,
+              "codeHash": "15736f418e072649cfba00e1b3054f965c62dec6b9c5ace3ee9788b1f5071c93"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryArrayConstructor",
+              "bytes": 272,
+              "codeHash": "a24b48d9739403684b62fa9de4c40cf7eebac9c10bb677955921e6fe0d585c8d"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryObjectConstructor",
+              "bytes": 924,
+              "codeHash": "b13c53f855fe9345c50fa83929cbb89ae484a773d4d326bdd1a57e2033cb7a48"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryNumberConstructor",
+              "bytes": 345,
+              "codeHash": "f7ae25ba82a6ce7069c1208a319aace45527a1667776abef6ec69a6cd81c2857"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryMath",
+              "bytes": 801,
+              "codeHash": "969496d0f863f3fed8d8688b79695a8b2e65c7e8d26e37248905f8c22fce13d1"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryMap",
+              "bytes": 389,
+              "codeHash": "aaaa5c65673ef34825358a89ca5af5bdfbf85b2eb2a3ec2d4bcf943d4aa45f6a"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryMapConstructor",
+              "bytes": 153,
+              "codeHash": "eb66c87331fce64c1ee95121965bd87c7128b977c25ad8dcd1ff6ae1f7e8d935"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibrarySet",
+              "bytes": 616,
+              "codeHash": "02946cbafa215f5af2d25edc0cc297ecfabbf17d1afcb413292dce29fc700535"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryPromiseConstructor",
+              "bytes": 813,
+              "codeHash": "03cbb17d79a86c61a0cdf387edc26a8c08b17fbc6026e963588fb3bc3ebb76da"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibrarySymbol",
+              "bytes": 313,
+              "codeHash": "a736fe1570b70d98975c3e6cea01126f6abdc8ec4bac15cea7cdf0667d384b94"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryWeakMap",
+              "bytes": 213,
+              "codeHash": "dbd4252b9d8825523ef414416e56d071b7985a7d0cff875043d1ff122e2eb701"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryString",
+              "bytes": 1838,
+              "codeHash": "b3a4736d3978650bb8f1883df81647d60c3cc91137bb69a865d170e73132312e"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryStringConstructor",
+              "bytes": 205,
+              "codeHash": "7e9bdba36ff4bde42d15bbd38771de21c5a3bf7c7ad94f4d2a82c7bdd8e0f048"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryDateTimeFormat",
+              "bytes": 155,
+              "codeHash": "87ee619da35e1d83505d56d13cb42380288771cf1247fa84102514c872c01238"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryPromise",
+              "bytes": 150,
+              "codeHash": "011ea86a34859b490634ddb24df15c978a9ec51e6d287c5ffd905fff6725176c"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryRegExpMatchArray",
+              "bytes": 150,
+              "codeHash": "1bbc44b56423434b5722cbf10a0ee6c0c0a6aaa7cdcc96e67444a003d563f699"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryRegExpExecArray",
+              "bytes": 150,
+              "codeHash": "1bbc44b56423434b5722cbf10a0ee6c0c0a6aaa7cdcc96e67444a003d563f699"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryIntl",
+              "bytes": 815,
+              "codeHash": "1719e6f8c6127eeb93f9ab69eccba3bae42442a4332ef077e1e56f87587c8c1d"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryNumberFormat",
+              "bytes": 155,
+              "codeHash": "e9081a078000e732073b2962c0e173083993c8be1e43b94cc5842054643b3555"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibrarySymbolConstructor",
+              "bytes": 310,
+              "codeHash": "3711d5686f18d90e979b7168a2ad60d75a7ea4b2e98756f4501bd2f077783554"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryDataView",
+              "bytes": 441,
+              "codeHash": "c394c996b1fec55b0123dd239a45abc673f82510a121aa78e73b242e969c3970"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryRelativeTimeFormat",
+              "bytes": 238,
+              "codeHash": "40752f038b6159ac4167d4c4f580a9c09cd6161e4ccaf74ea2052c834ea27036"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryInt8Array",
+              "bytes": 417,
+              "codeHash": "0b8885e2f157b6295a0bc0d76ac48cd6db367018bc16119e758a1835ea8d1cbb"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryUint8Array",
+              "bytes": 417,
+              "codeHash": "0b8885e2f157b6295a0bc0d76ac48cd6db367018bc16119e758a1835ea8d1cbb"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryUint8ClampedArray",
+              "bytes": 417,
+              "codeHash": "0b8885e2f157b6295a0bc0d76ac48cd6db367018bc16119e758a1835ea8d1cbb"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryInt16Array",
+              "bytes": 417,
+              "codeHash": "0b8885e2f157b6295a0bc0d76ac48cd6db367018bc16119e758a1835ea8d1cbb"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryUint16Array",
+              "bytes": 417,
+              "codeHash": "0b8885e2f157b6295a0bc0d76ac48cd6db367018bc16119e758a1835ea8d1cbb"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryInt32Array",
+              "bytes": 417,
+              "codeHash": "0b8885e2f157b6295a0bc0d76ac48cd6db367018bc16119e758a1835ea8d1cbb"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryUint32Array",
+              "bytes": 417,
+              "codeHash": "0b8885e2f157b6295a0bc0d76ac48cd6db367018bc16119e758a1835ea8d1cbb"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryFloat32Array",
+              "bytes": 417,
+              "codeHash": "0b8885e2f157b6295a0bc0d76ac48cd6db367018bc16119e758a1835ea8d1cbb"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryFloat64Array",
+              "bytes": 417,
+              "codeHash": "0b8885e2f157b6295a0bc0d76ac48cd6db367018bc16119e758a1835ea8d1cbb"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryBigInt64Array",
+              "bytes": 417,
+              "codeHash": "0b8885e2f157b6295a0bc0d76ac48cd6db367018bc16119e758a1835ea8d1cbb"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryBigUint64Array",
+              "bytes": 417,
+              "codeHash": "0b8885e2f157b6295a0bc0d76ac48cd6db367018bc16119e758a1835ea8d1cbb"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryError",
+              "bytes": 150,
+              "codeHash": "1ae59eed587bf74ee791e3d542e140286d05a97f1325ac9c8ecb63453bb68bf1"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryErrorConstructor",
+              "bytes": 153,
+              "codeHash": "91e98d5bf72a0e268dd584950de57dc3146bf175722dc60f68850f4a682c6318"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryUint8ArrayConstructor",
+              "bytes": 198,
+              "codeHash": "de8b435b89bf688065c0c49dc2f7619aa08ca1a51e1ba45788d4411817c051b3"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_LibraryFeatures__PropertyLibraryDate",
+              "bytes": 168,
+              "codeHash": "e7575af8077a310466f56c17d8a239bb81db5c8c75393f674c13499b32789ece"
+            }
+          ]
+        },
+        "binder": {
+          "bytes": 8288,
+          "methods": [
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Binding_Binder__DeclareNode",
+              "bytes": 8288,
+              "codeHash": "5b7d1f2c40ffc18b2225a9dc7f20d66776500e53d8c93b2706cca663098d999f"
+            }
+          ]
+        },
+        "checker": {
+          "bytes": 19449,
+          "methods": [
+            {
+              "name": "Internal_CompilerGenerated__Module___&lt;Resume&gt;TypeScript_Compiler_TypeScript_Compiler_Checking_Checker__&lt;AsyncCallable&gt;TypeScript_Compiler_TypeScript_Compiler_Checking_Checker__CheckSourceElementAsync",
+              "bytes": 28,
+              "codeHash": "44ddb5fc067056aeb83475fc6a121006023e926cdfc533010c00432f8f3c19e9"
+            },
+            {
+              "name": "TypeScript_Compiler_TypeScript_Compiler_Checking_Checker__&lt;AsyncCallable&gt;TypeScript_Compiler_TypeScript_Compiler_Checking_Checker__CheckSourceElementAsync",
+              "bytes": 19421,
+              "codeHash": "aaf727b067b39f8c9b0929065b583353aab79fbbcc8ddf8db99a497f658658b4"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "jit": {
+    "before": {
+      "path": "built/method-splitting-retained/before-disasm.txt",
+      "sha256": "4c53239b20e33517b4cacfa02d4b9384de514659d73caa600946cd0013520d5d",
+      "archive": {
+        "path": "csharp/compatibility/evidence/method-splitting-before-disasm.txt.gz",
+        "sha256": "412e137bd98b255bd0f811fb7413cdb3b9cdccc51d72d1253c2dd47bc6a3f662"
+      },
+      "methods": [
+        {
+          "name": "TypeScript.Compiler.Binding.Binder:DeclareNode(TypeScript.Compiler.Ast.SyntaxNode):this (FullOpts)",
+          "bytes": 8360,
+          "mainStackReservationBytes": 488,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Binding.Binder:Declare(TypeScript.Compiler.Binding.SymbolTable,TypeScript.Compiler.Binding.Symbol,TypeScript.Compiler.Ast.SyntaxNode,uint,uint,System.Nullable`1[TypeScript.Compiler.Text.Utf8String],bool):TypeScript.Compiler.Binding.Symbol:this (FullOpts)",
+          "bytes": 4043,
+          "mainStackReservationBytes": 616,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker:CheckSourceElementAsync(TypeScript.Compiler.Ast.SyntaxNode,System.Threading.CancellationToken):this (FullOpts)",
+          "bytes": 19812,
+          "mainStackReservationBytes": 488,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.SyntaxNode):this (FullOpts)",
+          "bytes": 113458,
+          "mainStackReservationBytes": 63080,
+          "literalSpanConstructorCalls": 16,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 369
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker:CheckClassSourceAsync(TypeScript.Compiler.Ast.SyntaxNode,bool,System.Threading.CancellationToken):this (FullOpts)",
+          "bytes": 19671,
+          "mainStackReservationBytes": 504,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker:CheckConstructorSourceAsync(TypeScript.Compiler.Ast.ConstructorDeclarationNode,System.Threading.CancellationToken):this (FullOpts)",
+          "bytes": 2787,
+          "mainStackReservationBytes": 152,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker:CheckPropertySourceAsync(TypeScript.Compiler.Ast.PropertyDeclarationNode,System.Threading.CancellationToken):this (FullOpts)",
+          "bytes": 1058,
+          "mainStackReservationBytes": 80,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker:CheckMethodSourceAsync(TypeScript.Compiler.Ast.MethodDeclarationNode,System.Threading.CancellationToken):this (FullOpts)",
+          "bytes": 2515,
+          "mainStackReservationBytes": 120,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker:CheckAccessorSourceAsync(TypeScript.Compiler.Ast.SyntaxNode,System.Threading.CancellationToken):this (FullOpts)",
+          "bytes": 2750,
+          "mainStackReservationBytes": 200,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker:CheckInterfaceSourceAsync(TypeScript.Compiler.Ast.InterfaceDeclarationNode,System.Threading.CancellationToken):this (FullOpts)",
+          "bytes": 10695,
+          "mainStackReservationBytes": 584,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker:CheckIndexSignatureSourceAsync(TypeScript.Compiler.Ast.IndexSignatureDeclarationNode,System.Threading.CancellationToken):this (FullOpts)",
+          "bytes": 608,
+          "mainStackReservationBytes": 72,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker:CheckNamespaceSourceAsync(TypeScript.Compiler.Ast.ModuleDeclarationNode,System.Threading.CancellationToken):this (FullOpts)",
+          "bytes": 2411,
+          "mainStackReservationBytes": 168,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker:CheckDeferredSourceAsync(TypeScript.Compiler.Ast.SyntaxNode,System.Threading.CancellationToken):this (FullOpts)",
+          "bytes": 3780,
+          "mainStackReservationBytes": 200,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        }
+      ]
+    },
+    "before-library-full": {
+      "path": "built/method-splitting-retained/before-library-full-disasm.txt",
+      "sha256": "3be9d8ae71bf2bc95234eba5e1952afeeece301425bcbb47e27f8cab2241a56c",
+      "archive": {
+        "path": "csharp/compatibility/evidence/method-splitting-before-library-full-disasm.txt.gz",
+        "sha256": "3b11b4d29bcf652b5ab8c20675211f000887d9f6e77c557aa18a9f16ab73a00b"
+      },
+      "methods": [
+        {
+          "name": "TypeScript.Compiler.Binding.Binder:DeclareNode(TypeScript.Compiler.Ast.SyntaxNode):this (FullOpts)",
+          "bytes": 8360,
+          "mainStackReservationBytes": 488,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Binding.Binder:Declare(TypeScript.Compiler.Binding.SymbolTable,TypeScript.Compiler.Binding.Symbol,TypeScript.Compiler.Ast.SyntaxNode,uint,uint,System.Nullable`1[TypeScript.Compiler.Text.Utf8String],bool):TypeScript.Compiler.Binding.Symbol:this (FullOpts)",
+          "bytes": 4043,
+          "mainStackReservationBytes": 616,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker:CheckSourceElementAsync(TypeScript.Compiler.Ast.SyntaxNode,System.Threading.CancellationToken):this (FullOpts)",
+          "bytes": 19812,
+          "mainStackReservationBytes": 488,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker:CheckInterfaceSourceAsync(TypeScript.Compiler.Ast.InterfaceDeclarationNode,System.Threading.CancellationToken):this (FullOpts)",
+          "bytes": 10695,
+          "mainStackReservationBytes": 584,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker:CheckIndexSignatureSourceAsync(TypeScript.Compiler.Ast.IndexSignatureDeclarationNode,System.Threading.CancellationToken):this (FullOpts)",
+          "bytes": 608,
+          "mainStackReservationBytes": 72,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker:CheckDeferredSourceAsync(TypeScript.Compiler.Ast.SyntaxNode,System.Threading.CancellationToken):this (FullOpts)",
+          "bytes": 3780,
+          "mainStackReservationBytes": 200,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.SyntaxNode):this (FullOpts)",
+          "bytes": 113458,
+          "mainStackReservationBytes": 63080,
+          "literalSpanConstructorCalls": 16,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 369
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibrary(System.Nullable`1[TypeScript.Compiler.Text.Utf8String],System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 33472,
+          "mainStackReservationBytes": 6784,
+          "literalSpanConstructorCalls": 286,
+          "sequenceEqualCalls": 286,
+          "printerPartHelperCalls": 0
+        }
+      ]
+    },
+    "all-library-full": {
+      "path": "built/method-splitting-retained/all-library-full-disasm.txt",
+      "sha256": "69dc915131c251bc5fccdc2e381625c902f21ebc95abfe1614c8c5e52fdafacc",
+      "archive": {
+        "path": "csharp/compatibility/evidence/method-splitting-retained-all-library-full-disasm.txt.gz",
+        "sha256": "223d8de7077b06c12266e9ac575bb4e947d85ccdc8bc0dd70493d17ebd5d7ef2"
+      },
+      "methods": [
+        {
+          "name": "TypeScript.Compiler.Binding.Binder:DeclareNode(TypeScript.Compiler.Ast.SyntaxNode):this (FullOpts)",
+          "bytes": 8360,
+          "mainStackReservationBytes": 488,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Binding.Binder:Declare(TypeScript.Compiler.Binding.SymbolTable,TypeScript.Compiler.Binding.Symbol,TypeScript.Compiler.Ast.SyntaxNode,uint,uint,System.Nullable`1[TypeScript.Compiler.Text.Utf8String],bool):TypeScript.Compiler.Binding.Symbol:this (FullOpts)",
+          "bytes": 4043,
+          "mainStackReservationBytes": 616,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker:CheckSourceElementAsync(TypeScript.Compiler.Ast.SyntaxNode,System.Threading.CancellationToken):this (FullOpts)",
+          "bytes": 19812,
+          "mainStackReservationBytes": 488,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker:CheckInterfaceSourceAsync(TypeScript.Compiler.Ast.InterfaceDeclarationNode,System.Threading.CancellationToken):this (FullOpts)",
+          "bytes": 10695,
+          "mainStackReservationBytes": 584,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker:CheckIndexSignatureSourceAsync(TypeScript.Compiler.Ast.IndexSignatureDeclarationNode,System.Threading.CancellationToken):this (FullOpts)",
+          "bytes": 608,
+          "mainStackReservationBytes": 72,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker:CheckDeferredSourceAsync(TypeScript.Compiler.Ast.SyntaxNode,System.Threading.CancellationToken):this (FullOpts)",
+          "bytes": 3780,
+          "mainStackReservationBytes": 200,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.SyntaxNode):this (FullOpts)",
+          "bytes": 5917,
+          "mainStackReservationBytes": 160,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ArrayTypeNode):this (FullOpts)",
+          "bytes": 300,
+          "mainStackReservationBytes": 264,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibrary(System.Nullable`1[TypeScript.Compiler.Text.Utf8String],System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 3732,
+          "mainStackReservationBytes": 56,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryArray(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 1122,
+          "mainStackReservationBytes": 160,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.TypeReferenceNode):this (FullOpts)",
+          "bytes": 227,
+          "mainStackReservationBytes": 240,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.IdentifierNode):this (FullOpts)",
+          "bytes": 269,
+          "mainStackReservationBytes": 96,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryArrayBuffer(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 352,
+          "mainStackReservationBytes": 24,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryAtomics(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 774,
+          "mainStackReservationBytes": 56,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibrarySharedArrayBuffer(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 349,
+          "mainStackReservationBytes": 56,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryRegExp(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 418,
+          "mainStackReservationBytes": 72,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryRegExpConstructor(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 129,
+          "mainStackReservationBytes": 24,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryReflect(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 803,
+          "mainStackReservationBytes": 24,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryArrayConstructor(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 251,
+          "mainStackReservationBytes": 56,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryObjectConstructor(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 814,
+          "mainStackReservationBytes": 120,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryNumberConstructor(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 358,
+          "mainStackReservationBytes": 24,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryMath(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 936,
+          "mainStackReservationBytes": 56,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryMap(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 372,
+          "mainStackReservationBytes": 56,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryMapConstructor(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 129,
+          "mainStackReservationBytes": 24,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibrarySet(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 632,
+          "mainStackReservationBytes": 56,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryPromiseConstructor(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 683,
+          "mainStackReservationBytes": 120,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibrarySymbol(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 287,
+          "mainStackReservationBytes": 56,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryWeakMap(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 191,
+          "mainStackReservationBytes": 24,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryString(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 1819,
+          "mainStackReservationBytes": 168,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryStringConstructor(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 188,
+          "mainStackReservationBytes": 24,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryDateTimeFormat(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 131,
+          "mainStackReservationBytes": 24,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryPromise(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 129,
+          "mainStackReservationBytes": 24,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryRegExpMatchArray(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 129,
+          "mainStackReservationBytes": 24,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryRegExpExecArray(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 129,
+          "mainStackReservationBytes": 24,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryIntl(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 680,
+          "mainStackReservationBytes": 120,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryNumberFormat(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 131,
+          "mainStackReservationBytes": 24,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibrarySymbolConstructor(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 296,
+          "mainStackReservationBytes": 56,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryDataView(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 424,
+          "mainStackReservationBytes": 56,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryRelativeTimeFormat(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 227,
+          "mainStackReservationBytes": 24,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryInt8Array(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 427,
+          "mainStackReservationBytes": 56,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryUint8Array(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 427,
+          "mainStackReservationBytes": 56,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryUint8ClampedArray(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 427,
+          "mainStackReservationBytes": 56,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryInt16Array(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 427,
+          "mainStackReservationBytes": 56,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryUint16Array(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 427,
+          "mainStackReservationBytes": 56,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryInt32Array(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 427,
+          "mainStackReservationBytes": 56,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryUint32Array(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 427,
+          "mainStackReservationBytes": 56,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryFloat32Array(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 427,
+          "mainStackReservationBytes": 56,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryFloat64Array(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 427,
+          "mainStackReservationBytes": 56,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryBigInt64Array(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 427,
+          "mainStackReservationBytes": 56,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryBigUint64Array(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 427,
+          "mainStackReservationBytes": 56,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryError(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 129,
+          "mainStackReservationBytes": 24,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryErrorConstructor(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 129,
+          "mainStackReservationBytes": 24,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryUint8ArrayConstructor(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 179,
+          "mainStackReservationBytes": 24,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.LibraryFeatures:PropertyLibraryDate(System.ReadOnlySpan`1[byte]):System.Nullable`1[TypeScript.Compiler.Text.Utf8String] (FullOpts)",
+          "bytes": 141,
+          "mainStackReservationBytes": 24,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        }
+      ]
+    },
+    "all-printer-full": {
+      "path": "built/method-splitting-retained/all-printer-full-disasm.txt",
+      "sha256": "2b3cd54e069027d0087ffdab6f34a63dfd8d5bb7ff6905c0b360f520cf55ac0a",
+      "archive": {
+        "path": "csharp/compatibility/evidence/method-splitting-retained-all-printer-full-disasm.txt.gz",
+        "sha256": "eebb24428d41109d3d735f1decaffc70dd1630473a0fe7d88d0d11dec6f537ec"
+      },
+      "methods": [
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.SyntaxNode):this (FullOpts)",
+          "bytes": 5917,
+          "mainStackReservationBytes": 160,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ComputedPropertyNameNode):this (FullOpts)",
+          "bytes": 427,
+          "mainStackReservationBytes": 392,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.StringLiteralNode):this (FullOpts)",
+          "bytes": 548,
+          "mainStackReservationBytes": 160,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.NumericLiteralNode):this (FullOpts)",
+          "bytes": 215,
+          "mainStackReservationBytes": 80,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.BigIntLiteralNode):this (FullOpts)",
+          "bytes": 192,
+          "mainStackReservationBytes": 64,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.RegularExpressionLiteralNode):this (FullOpts)",
+          "bytes": 192,
+          "mainStackReservationBytes": 64,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.MetaPropertyNode):this (FullOpts)",
+          "bytes": 556,
+          "mainStackReservationBytes": 344,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.IdentifierNode):this (FullOpts)",
+          "bytes": 269,
+          "mainStackReservationBytes": 96,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.PropertyAccessExpressionNode):this (FullOpts)",
+          "bytes": 736,
+          "mainStackReservationBytes": 416,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ElementAccessExpressionNode):this (FullOpts)",
+          "bytes": 577,
+          "mainStackReservationBytes": 504,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.CallExpressionNode):this (FullOpts)",
+          "bytes": 371,
+          "mainStackReservationBytes": 440,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.SpreadElementNode):this (FullOpts)",
+          "bytes": 310,
+          "mainStackReservationBytes": 264,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.TypeReferenceNode):this (FullOpts)",
+          "bytes": 227,
+          "mainStackReservationBytes": 240,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.NewExpressionNode):this (FullOpts)",
+          "bytes": 533,
+          "mainStackReservationBytes": 520,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.TaggedTemplateExpressionNode):this (FullOpts)",
+          "bytes": 525,
+          "mainStackReservationBytes": 552,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.TemplateExpressionNode):this (FullOpts)",
+          "bytes": 265,
+          "mainStackReservationBytes": 304,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.TemplateHeadNode):this (FullOpts)",
+          "bytes": 505,
+          "mainStackReservationBytes": 160,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.TemplateSpanNode):this (FullOpts)",
+          "bytes": 248,
+          "mainStackReservationBytes": 248,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.BinaryExpressionNode):this (FullOpts)",
+          "bytes": 1109,
+          "mainStackReservationBytes": 600,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.TemplateTailNode):this (FullOpts)",
+          "bytes": 540,
+          "mainStackReservationBytes": 176,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.NoSubstitutionTemplateLiteralNode):this (FullOpts)",
+          "bytes": 531,
+          "mainStackReservationBytes": 160,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ParenthesizedExpressionNode):this (FullOpts)",
+          "bytes": 427,
+          "mainStackReservationBytes": 392,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ConditionalExpressionNode):this (FullOpts)",
+          "bytes": 587,
+          "mainStackReservationBytes": 584,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.PrefixUnaryExpressionNode):this (FullOpts)",
+          "bytes": 543,
+          "mainStackReservationBytes": 424,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.PostfixUnaryExpressionNode):this (FullOpts)",
+          "bytes": 311,
+          "mainStackReservationBytes": 288,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.DeleteExpressionNode):this (FullOpts)",
+          "bytes": 310,
+          "mainStackReservationBytes": 264,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.TypeOfExpressionNode):this (FullOpts)",
+          "bytes": 310,
+          "mainStackReservationBytes": 264,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.VoidExpressionNode):this (FullOpts)",
+          "bytes": 310,
+          "mainStackReservationBytes": 264,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.AwaitExpressionNode):this (FullOpts)",
+          "bytes": 310,
+          "mainStackReservationBytes": 264,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.NonNullExpressionNode):this (FullOpts)",
+          "bytes": 300,
+          "mainStackReservationBytes": 264,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.AsExpressionNode):this (FullOpts)",
+          "bytes": 383,
+          "mainStackReservationBytes": 360,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.SatisfiesExpressionNode):this (FullOpts)",
+          "bytes": 383,
+          "mainStackReservationBytes": 360,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.TypeAssertionNode):this (FullOpts)",
+          "bytes": 514,
+          "mainStackReservationBytes": 488,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ArrayLiteralExpressionNode):this (FullOpts)",
+          "bytes": 286,
+          "mainStackReservationBytes": 200,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ObjectLiteralExpressionNode):this (FullOpts)",
+          "bytes": 488,
+          "mainStackReservationBytes": 312,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.PropertyAssignmentNode):this (FullOpts)",
+          "bytes": 578,
+          "mainStackReservationBytes": 648,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ShorthandPropertyAssignmentNode):this (FullOpts)",
+          "bytes": 424,
+          "mainStackReservationBytes": 536,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.SpreadAssignmentNode):this (FullOpts)",
+          "bytes": 310,
+          "mainStackReservationBytes": 264,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.GetAccessorDeclarationNode):this (FullOpts)",
+          "bytes": 594,
+          "mainStackReservationBytes": 744,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.BlockNode):this (FullOpts)",
+          "bytes": 116,
+          "mainStackReservationBytes": 112,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ReturnStatementNode):this (FullOpts)",
+          "bytes": 610,
+          "mainStackReservationBytes": 520,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.SetAccessorDeclarationNode):this (FullOpts)",
+          "bytes": 594,
+          "mainStackReservationBytes": 744,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ParameterDeclarationNode):this (FullOpts)",
+          "bytes": 497,
+          "mainStackReservationBytes": 632,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ExpressionStatementNode):this (FullOpts)",
+          "bytes": 300,
+          "mainStackReservationBytes": 264,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.MethodDeclarationNode):this (FullOpts)",
+          "bytes": 605,
+          "mainStackReservationBytes": 824,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.TypeParameterDeclarationNode):this (FullOpts)",
+          "bytes": 658,
+          "mainStackReservationBytes": 648,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ArrowFunctionNode):this (FullOpts)",
+          "bytes": 881,
+          "mainStackReservationBytes": 920,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.FunctionExpressionNode):this (FullOpts)",
+          "bytes": 798,
+          "mainStackReservationBytes": 968,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.YieldExpressionNode):this (FullOpts)",
+          "bytes": 574,
+          "mainStackReservationBytes": 504,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ClassExpressionNode):this (FullOpts)",
+          "bytes": 963,
+          "mainStackReservationBytes": 992,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.HeritageClauseNode):this (FullOpts)",
+          "bytes": 601,
+          "mainStackReservationBytes": 408,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ExpressionWithTypeArgumentsNode):this (FullOpts)",
+          "bytes": 227,
+          "mainStackReservationBytes": 240,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.PropertyDeclarationNode):this (FullOpts)",
+          "bytes": 547,
+          "mainStackReservationBytes": 648,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.PrivateIdentifierNode):this (FullOpts)",
+          "bytes": 269,
+          "mainStackReservationBytes": 96,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ConstructorDeclarationNode):this (FullOpts)",
+          "bytes": 506,
+          "mainStackReservationBytes": 648,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ClassStaticBlockDeclarationNode):this (FullOpts)",
+          "bytes": 310,
+          "mainStackReservationBytes": 264,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.VariableStatementNode):this (FullOpts)",
+          "bytes": 366,
+          "mainStackReservationBytes": 360,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.VariableDeclarationListNode):this (FullOpts)",
+          "bytes": 361,
+          "mainStackReservationBytes": 344,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.VariableDeclarationNode):this (FullOpts)",
+          "bytes": 371,
+          "mainStackReservationBytes": 440,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.BindingPatternNode):this (FullOpts)",
+          "bytes": 293,
+          "mainStackReservationBytes": 208,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.BindingElementNode):this (FullOpts)",
+          "bytes": 702,
+          "mainStackReservationBytes": 648,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.IfStatementNode):this (FullOpts)",
+          "bytes": 887,
+          "mainStackReservationBytes": 800,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ForStatementNode):this (FullOpts)",
+          "bytes": 1102,
+          "mainStackReservationBytes": 952,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ContinueStatementNode):this (FullOpts)",
+          "bytes": 735,
+          "mainStackReservationBytes": 608,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ForInOrOfStatementNode):this (FullOpts)",
+          "bytes": 1160,
+          "mainStackReservationBytes": 1000,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.WhileStatementNode):this (FullOpts)",
+          "bytes": 514,
+          "mainStackReservationBytes": 488,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.BreakStatementNode):this (FullOpts)",
+          "bytes": 735,
+          "mainStackReservationBytes": 608,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.DoStatementNode):this (FullOpts)",
+          "bytes": 635,
+          "mainStackReservationBytes": 600,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.SwitchStatementNode):this (FullOpts)",
+          "bytes": 514,
+          "mainStackReservationBytes": 488,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.CaseBlockNode):this (FullOpts)",
+          "bytes": 116,
+          "mainStackReservationBytes": 112,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.CaseOrDefaultClauseNode):this (FullOpts)",
+          "bytes": 829,
+          "mainStackReservationBytes": 712,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.TryStatementNode):this (FullOpts)",
+          "bytes": 1049,
+          "mainStackReservationBytes": 888,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ThrowStatementNode):this (FullOpts)",
+          "bytes": 427,
+          "mainStackReservationBytes": 392,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.CatchClauseNode):this (FullOpts)",
+          "bytes": 986,
+          "mainStackReservationBytes": 824,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.LabeledStatementNode):this (FullOpts)",
+          "bytes": 383,
+          "mainStackReservationBytes": 360,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ModuleBlockNode):this (FullOpts)",
+          "bytes": 116,
+          "mainStackReservationBytes": 112,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.TypeAliasDeclarationNode):this (FullOpts)",
+          "bytes": 759,
+          "mainStackReservationBytes": 792,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.InterfaceDeclarationNode):this (FullOpts)",
+          "bytes": 752,
+          "mainStackReservationBytes": 848,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.PropertySignatureDeclarationNode):this (FullOpts)",
+          "bytes": 547,
+          "mainStackReservationBytes": 648,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.EnumDeclarationNode):this (FullOpts)",
+          "bytes": 595,
+          "mainStackReservationBytes": 600,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.EnumMemberNode):this (FullOpts)",
+          "bytes": 227,
+          "mainStackReservationBytes": 240,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.TypeQueryNode):this (FullOpts)",
+          "bytes": 376,
+          "mainStackReservationBytes": 368,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.UnionTypeNode):this (FullOpts)",
+          "bytes": 144,
+          "mainStackReservationBytes": 160,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.LiteralTypeNode):this (FullOpts)",
+          "bytes": 137,
+          "mainStackReservationBytes": 152,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ArrayTypeNode):this (FullOpts)",
+          "bytes": 300,
+          "mainStackReservationBytes": 264,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ParenthesizedTypeNode):this (FullOpts)",
+          "bytes": 427,
+          "mainStackReservationBytes": 392,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.IntersectionTypeNode):this (FullOpts)",
+          "bytes": 144,
+          "mainStackReservationBytes": 160,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.TupleTypeNode):this (FullOpts)",
+          "bytes": 541,
+          "mainStackReservationBytes": 280,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.NamedTupleMemberNode):this (FullOpts)",
+          "bytes": 529,
+          "mainStackReservationBytes": 552,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.TypeOperatorNode):this (FullOpts)",
+          "bytes": 556,
+          "mainStackReservationBytes": 344,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.TypeLiteralNode):this (FullOpts)",
+          "bytes": 80,
+          "mainStackReservationBytes": 96,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.MethodSignatureDeclarationNode):this (FullOpts)",
+          "bytes": 601,
+          "mainStackReservationBytes": 744,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.CallSignatureDeclarationNode):this (FullOpts)",
+          "bytes": 399,
+          "mainStackReservationBytes": 456,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ConstructSignatureDeclarationNode):this (FullOpts)",
+          "bytes": 533,
+          "mainStackReservationBytes": 584,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.IndexSignatureDeclarationNode):this (FullOpts)",
+          "bytes": 513,
+          "mainStackReservationBytes": 520,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.FunctionTypeNode):this (FullOpts)",
+          "bytes": 433,
+          "mainStackReservationBytes": 456,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ConstructorTypeNode):this (FullOpts)",
+          "bytes": 617,
+          "mainStackReservationBytes": 680,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ConditionalTypeNode):this (FullOpts)",
+          "bytes": 795,
+          "mainStackReservationBytes": 792,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.InferTypeNode):this (FullOpts)",
+          "bytes": 310,
+          "mainStackReservationBytes": 264,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.IndexedAccessTypeNode):this (FullOpts)",
+          "bytes": 500,
+          "mainStackReservationBytes": 488,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.MappedTypeNode):this (FullOpts)",
+          "bytes": 2595,
+          "mainStackReservationBytes": 1992,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.TemplateLiteralTypeNode):this (FullOpts)",
+          "bytes": 265,
+          "mainStackReservationBytes": 304,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.TemplateLiteralTypeSpanNode):this (FullOpts)",
+          "bytes": 248,
+          "mainStackReservationBytes": 248,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ImportTypeNode):this (FullOpts)",
+          "bytes": 1713,
+          "mainStackReservationBytes": 1352,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ImportAttributeNode):this (FullOpts)",
+          "bytes": 383,
+          "mainStackReservationBytes": 360,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.TemplateMiddleNode):this (FullOpts)",
+          "bytes": 505,
+          "mainStackReservationBytes": 160,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.TypePredicateNode):this (FullOpts)",
+          "bytes": 758,
+          "mainStackReservationBytes": 624,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.JsxSelfClosingElementNode):this (FullOpts)",
+          "bytes": 571,
+          "mainStackReservationBytes": 584,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.JsxAttributesNode):this (FullOpts)",
+          "bytes": 203,
+          "mainStackReservationBytes": 160,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.JsxAttributeNode):this (FullOpts)",
+          "bytes": 548,
+          "mainStackReservationBytes": 464,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.JsxExpressionNode):this (FullOpts)",
+          "bytes": 500,
+          "mainStackReservationBytes": 488,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.JsxSpreadAttributeNode):this (FullOpts)",
+          "bytes": 427,
+          "mainStackReservationBytes": 392,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.JsxFragmentNode):this (FullOpts)",
+          "bytes": 449,
+          "mainStackReservationBytes": 448,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.JsxElementNode):this (FullOpts)",
+          "bytes": 352,
+          "mainStackReservationBytes": 408,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.JsxOpeningElementNode):this (FullOpts)",
+          "bytes": 571,
+          "mainStackReservationBytes": 584,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.JsxTextNode):this (FullOpts)",
+          "bytes": 192,
+          "mainStackReservationBytes": 64,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.JsxClosingElementNode):this (FullOpts)",
+          "bytes": 427,
+          "mainStackReservationBytes": 392,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.JsxNamespacedNameNode):this (FullOpts)",
+          "bytes": 383,
+          "mainStackReservationBytes": 360,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ImportDeclarationNode):this (FullOpts)",
+          "bytes": 1162,
+          "mainStackReservationBytes": 1064,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ImportClauseNode):this (FullOpts)",
+          "bytes": 952,
+          "mainStackReservationBytes": 664,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.NamedImportsNode):this (FullOpts)",
+          "bytes": 113,
+          "mainStackReservationBytes": 112,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ImportSpecifierNode):this (FullOpts)",
+          "bytes": 778,
+          "mainStackReservationBytes": 632,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ImportAttributesNode):this (FullOpts)",
+          "bytes": 556,
+          "mainStackReservationBytes": 360,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ExportDeclarationNode):this (FullOpts)",
+          "bytes": 1438,
+          "mainStackReservationBytes": 1240,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.NamedExportsNode):this (FullOpts)",
+          "bytes": 113,
+          "mainStackReservationBytes": 112,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ExportSpecifierNode):this (FullOpts)",
+          "bytes": 778,
+          "mainStackReservationBytes": 632,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ImportEqualsDeclarationNode):this (FullOpts)",
+          "bytes": 785,
+          "mainStackReservationBytes": 712,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ExternalModuleReferenceNode):this (FullOpts)",
+          "bytes": 427,
+          "mainStackReservationBytes": 392,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.ExportAssignmentNode):this (FullOpts)",
+          "bytes": 573,
+          "mainStackReservationBytes": 504,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        },
+        {
+          "name": "TypeScript.Compiler.Checking.Checker+SymbolNodePrinter:Emit(TypeScript.Compiler.Ast.NamespaceExportNode):this (FullOpts)",
+          "bytes": 310,
+          "mainStackReservationBytes": 264,
+          "literalSpanConstructorCalls": 0,
+          "sequenceEqualCalls": 0,
+          "printerPartHelperCalls": 0
+        }
+      ]
+    }
+  },
+  "libraryProbes": {
+    "before-library-full": {
+      "exitCode": 0,
+      "sourceFiles": 2,
+      "diagnosticCount": 321,
+      "graphSha256": "a75693ad816fea84bc17350ccc803125e4d26cfd3110f37e32dbc2c68727e88b"
+    },
+    "all-library-full": {
+      "exitCode": 0,
+      "sourceFiles": 2,
+      "diagnosticCount": 321,
+      "graphSha256": "a75693ad816fea84bc17350ccc803125e4d26cfd3110f37e32dbc2c68727e88b"
+    }
+  },
+  "libraryProbeSourceSha256": "64c40e55f176f3b91186546258379167236f0fe6144ffd2f36c8c28d3900d9b6",
+  "scope": "NativeAOT families include each original method and its new split methods; checker totals also include their async resume stubs. Existing unrelated helpers are excluded. Printer overloads inlined or merged by NativeAOT have no separate MethodCode entry. JIT disassembly uses the same Satori CoreCLR with tiering disabled; it covers methods exercised by the recorded probes, not all compiler methods. Stack reservations describe the entry frame, not maximum stack depth or combined caller-plus-callee frames. Code size and folding establish code-generation changes, not elapsed-time improvements."
+}

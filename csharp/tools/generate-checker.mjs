@@ -61,6 +61,8 @@ const typePattern = /\t\t"([^"]+)": \{([\s\S]*?)\n\t\t\},/g;
 const entryPattern = /\{lib: "([^"]+)", props: \[\]string\{([\s\S]*?)\}\},/g;
 let featureTypes = 0;
 const nameLibraries = [];
+// Keep property comparisons small enough for the JIT to fold their UTF-8 literals.
+const propertyLibraries = [];
 const libraries = new Set();
 const libraryField = name => `Library${name.replaceAll(".", "_")}`;
 for (const type of featureMap.matchAll(typePattern)) {
@@ -69,17 +71,18 @@ for (const type of featureMap.matchAll(typePattern)) {
     const entries = [...type[2].matchAll(entryPattern)];
     if (!entries.length) throw Error(`Empty feature entries for ${type[1]}`);
     nameLibraries.push(`        if (name.SequenceEqual(${JSON.stringify(type[1])}u8)) return ${libraryField(entries[0][1])};`);
-    features.push(`        if (name.SequenceEqual(${JSON.stringify(type[1])}u8))`, "        {");
+    const propertyBody = [];
     for (const entry of entries) {
         libraries.add(entry[1]);
         const properties = [...entry[2].matchAll(/"([^"]+)"/g)].map(p => JSON.stringify(p[1]));
         if (entry[2].replaceAll(/"[^"]+"|[\s,]/g, "")) throw Error(`Unrecognized feature properties for ${type[1]}`);
-        if (properties.length) features.push(`            if (${properties.map(p => `property.SequenceEqual(${p}u8)`).join(" || ")}) return ${libraryField(entry[1])};`);
+        if (properties.length) propertyBody.push(`        if (${properties.map(p => `property.SequenceEqual(${p}u8)`).join(" || ")}) return ${libraryField(entry[1])};`);
     }
-    features.push("            return null;", "        }");
+    features.push(`        if (name.SequenceEqual(${JSON.stringify(type[1])}u8)) return ${propertyBody.length ? `PropertyLibrary${type[1]}(property)` : "null"};`);
+    if (propertyBody.length) propertyLibraries.push(`    private static Utf8String? PropertyLibrary${type[1]}(ReadOnlySpan<byte> property)`, "    {", ...propertyBody, "        return null;", "    }", "");
 }
 if (!featureTypes || featureMap.replaceAll(typePattern, "").replace(/^var getFeatureMap = sync.OnceValue\(func\(\) map\[string\]\[\]FeatureMapEntry \{\s*return map\[string\]\[\]FeatureMapEntry\{/, "").replaceAll(/[\s}]/g, "")) throw Error("Unrecognized library feature map");
-features.push("        return null;", "    }", "", "    internal static Utf8String? NameLibrary(ReadOnlySpan<byte> name)", "    {", ...nameLibraries, "        return null;", "    }", "", ...[...libraries].sort().map(name => `    private static readonly Utf8String ${libraryField(name)} = ${JSON.stringify(name)}u8;`), "}", "");
+features.push("        return null;", "    }", "", ...propertyLibraries, "    internal static Utf8String? NameLibrary(ReadOnlySpan<byte> name)", "    {", ...nameLibraries, "        return null;", "    }", "", ...[...libraries].sort().map(name => `    private static readonly Utf8String ${libraryField(name)} = ${JSON.stringify(name)}u8;`), "}", "");
 const featureFile = path.join(root, "csharp/src/TypeScript.Compiler/Checking/LibraryFeatures.generated.cs"), featureText = features.join("\n");
 if (process.argv.includes("--check")) {
     if ((await readFile(featureFile, "utf8")).replaceAll("\r\n", "\n") !== featureText) throw Error(`Stale ${featureFile}`);

@@ -9,309 +9,362 @@ internal static class LibraryFeatures
     internal static Utf8String? PropertyLibrary(Utf8String? type, ReadOnlySpan<byte> property)
     {
         var name = type.GetValueOrDefault().Span;
-        if (name.SequenceEqual("Array"u8))
-        {
-            if (property.SequenceEqual("find"u8) || property.SequenceEqual("findIndex"u8) || property.SequenceEqual("fill"u8) || property.SequenceEqual("copyWithin"u8) || property.SequenceEqual("entries"u8) || property.SequenceEqual("keys"u8) || property.SequenceEqual("values"u8)) return Libraryes2015;
-            if (property.SequenceEqual("includes"u8)) return Libraryes2016;
-            if (property.SequenceEqual("flat"u8) || property.SequenceEqual("flatMap"u8)) return Libraryes2019;
-            if (property.SequenceEqual("at"u8)) return Libraryes2022;
-            if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
-            return null;
-        }
-        if (name.SequenceEqual("Iterator"u8))
-        {
-            return null;
-        }
-        if (name.SequenceEqual("AsyncIterator"u8))
-        {
-            return null;
-        }
-        if (name.SequenceEqual("ArrayBuffer"u8))
-        {
-            if (property.SequenceEqual("maxByteLength"u8) || property.SequenceEqual("resizable"u8) || property.SequenceEqual("resize"u8) || property.SequenceEqual("detached"u8) || property.SequenceEqual("transfer"u8) || property.SequenceEqual("transferToFixedLength"u8)) return Libraryes2024;
-            return null;
-        }
-        if (name.SequenceEqual("Atomics"u8))
-        {
-            if (property.SequenceEqual("add"u8) || property.SequenceEqual("and"u8) || property.SequenceEqual("compareExchange"u8) || property.SequenceEqual("exchange"u8) || property.SequenceEqual("isLockFree"u8) || property.SequenceEqual("load"u8) || property.SequenceEqual("or"u8) || property.SequenceEqual("store"u8) || property.SequenceEqual("sub"u8) || property.SequenceEqual("wait"u8) || property.SequenceEqual("notify"u8) || property.SequenceEqual("xor"u8)) return Libraryes2017;
-            if (property.SequenceEqual("waitAsync"u8)) return Libraryes2024;
-            return null;
-        }
-        if (name.SequenceEqual("SharedArrayBuffer"u8))
-        {
-            if (property.SequenceEqual("byteLength"u8) || property.SequenceEqual("slice"u8)) return Libraryes2017;
-            if (property.SequenceEqual("growable"u8) || property.SequenceEqual("maxByteLength"u8) || property.SequenceEqual("grow"u8)) return Libraryes2024;
-            return null;
-        }
-        if (name.SequenceEqual("AsyncIterable"u8))
-        {
-            return null;
-        }
-        if (name.SequenceEqual("AsyncIterableIterator"u8))
-        {
-            return null;
-        }
-        if (name.SequenceEqual("AsyncGenerator"u8))
-        {
-            return null;
-        }
-        if (name.SequenceEqual("AsyncGeneratorFunction"u8))
-        {
-            return null;
-        }
-        if (name.SequenceEqual("RegExp"u8))
-        {
-            if (property.SequenceEqual("flags"u8) || property.SequenceEqual("sticky"u8) || property.SequenceEqual("unicode"u8)) return Libraryes2015;
-            if (property.SequenceEqual("dotAll"u8)) return Libraryes2018;
-            if (property.SequenceEqual("unicodeSets"u8)) return Libraryes2024;
-            return null;
-        }
-        if (name.SequenceEqual("RegExpConstructor"u8))
-        {
-            if (property.SequenceEqual("escape"u8)) return Libraryes2025;
-            return null;
-        }
-        if (name.SequenceEqual("Reflect"u8))
-        {
-            if (property.SequenceEqual("apply"u8) || property.SequenceEqual("construct"u8) || property.SequenceEqual("defineProperty"u8) || property.SequenceEqual("deleteProperty"u8) || property.SequenceEqual("get"u8) || property.SequenceEqual("getOwnPropertyDescriptor"u8) || property.SequenceEqual("getPrototypeOf"u8) || property.SequenceEqual("has"u8) || property.SequenceEqual("isExtensible"u8) || property.SequenceEqual("ownKeys"u8) || property.SequenceEqual("preventExtensions"u8) || property.SequenceEqual("set"u8) || property.SequenceEqual("setPrototypeOf"u8)) return Libraryes2015;
-            return null;
-        }
-        if (name.SequenceEqual("ArrayConstructor"u8))
-        {
-            if (property.SequenceEqual("from"u8) || property.SequenceEqual("of"u8)) return Libraryes2015;
-            if (property.SequenceEqual("fromAsync"u8)) return Libraryesnext;
-            return null;
-        }
-        if (name.SequenceEqual("ObjectConstructor"u8))
-        {
-            if (property.SequenceEqual("assign"u8) || property.SequenceEqual("getOwnPropertySymbols"u8) || property.SequenceEqual("keys"u8) || property.SequenceEqual("is"u8) || property.SequenceEqual("setPrototypeOf"u8)) return Libraryes2015;
-            if (property.SequenceEqual("values"u8) || property.SequenceEqual("entries"u8) || property.SequenceEqual("getOwnPropertyDescriptors"u8)) return Libraryes2017;
-            if (property.SequenceEqual("fromEntries"u8)) return Libraryes2019;
-            if (property.SequenceEqual("hasOwn"u8)) return Libraryes2022;
-            if (property.SequenceEqual("groupBy"u8)) return Libraryes2024;
-            return null;
-        }
-        if (name.SequenceEqual("NumberConstructor"u8))
-        {
-            if (property.SequenceEqual("isFinite"u8) || property.SequenceEqual("isInteger"u8) || property.SequenceEqual("isNaN"u8) || property.SequenceEqual("isSafeInteger"u8) || property.SequenceEqual("parseFloat"u8) || property.SequenceEqual("parseInt"u8)) return Libraryes2015;
-            return null;
-        }
-        if (name.SequenceEqual("Math"u8))
-        {
-            if (property.SequenceEqual("clz32"u8) || property.SequenceEqual("imul"u8) || property.SequenceEqual("sign"u8) || property.SequenceEqual("log10"u8) || property.SequenceEqual("log2"u8) || property.SequenceEqual("log1p"u8) || property.SequenceEqual("expm1"u8) || property.SequenceEqual("cosh"u8) || property.SequenceEqual("sinh"u8) || property.SequenceEqual("tanh"u8) || property.SequenceEqual("acosh"u8) || property.SequenceEqual("asinh"u8) || property.SequenceEqual("atanh"u8) || property.SequenceEqual("hypot"u8) || property.SequenceEqual("trunc"u8) || property.SequenceEqual("fround"u8) || property.SequenceEqual("cbrt"u8)) return Libraryes2015;
-            if (property.SequenceEqual("f16round"u8)) return Libraryes2025;
-            return null;
-        }
-        if (name.SequenceEqual("Map"u8))
-        {
-            if (property.SequenceEqual("entries"u8) || property.SequenceEqual("keys"u8) || property.SequenceEqual("values"u8)) return Libraryes2015;
-            if (property.SequenceEqual("getOrInsert"u8) || property.SequenceEqual("getOrInsertComputed"u8)) return Libraryesnext;
-            return null;
-        }
-        if (name.SequenceEqual("MapConstructor"u8))
-        {
-            if (property.SequenceEqual("groupBy"u8)) return Libraryes2024;
-            return null;
-        }
-        if (name.SequenceEqual("Set"u8))
-        {
-            if (property.SequenceEqual("entries"u8) || property.SequenceEqual("keys"u8) || property.SequenceEqual("values"u8)) return Libraryes2015;
-            if (property.SequenceEqual("union"u8) || property.SequenceEqual("intersection"u8) || property.SequenceEqual("difference"u8) || property.SequenceEqual("symmetricDifference"u8) || property.SequenceEqual("isSubsetOf"u8) || property.SequenceEqual("isSupersetOf"u8) || property.SequenceEqual("isDisjointFrom"u8)) return Libraryes2025;
-            return null;
-        }
-        if (name.SequenceEqual("PromiseConstructor"u8))
-        {
-            if (property.SequenceEqual("all"u8) || property.SequenceEqual("race"u8) || property.SequenceEqual("reject"u8) || property.SequenceEqual("resolve"u8)) return Libraryes2015;
-            if (property.SequenceEqual("allSettled"u8)) return Libraryes2020;
-            if (property.SequenceEqual("any"u8)) return Libraryes2021;
-            if (property.SequenceEqual("withResolvers"u8)) return Libraryes2024;
-            if (property.SequenceEqual("try"u8)) return Libraryes2025;
-            return null;
-        }
-        if (name.SequenceEqual("Symbol"u8))
-        {
-            if (property.SequenceEqual("for"u8) || property.SequenceEqual("keyFor"u8)) return Libraryes2015;
-            if (property.SequenceEqual("description"u8)) return Libraryes2019;
-            return null;
-        }
-        if (name.SequenceEqual("WeakMap"u8))
-        {
-            if (property.SequenceEqual("getOrInsert"u8) || property.SequenceEqual("getOrInsertComputed"u8)) return Libraryesnext;
-            return null;
-        }
-        if (name.SequenceEqual("WeakSet"u8))
-        {
-            return null;
-        }
-        if (name.SequenceEqual("String"u8))
-        {
-            if (property.SequenceEqual("codePointAt"u8) || property.SequenceEqual("includes"u8) || property.SequenceEqual("endsWith"u8) || property.SequenceEqual("normalize"u8) || property.SequenceEqual("repeat"u8) || property.SequenceEqual("startsWith"u8) || property.SequenceEqual("anchor"u8) || property.SequenceEqual("big"u8) || property.SequenceEqual("blink"u8) || property.SequenceEqual("bold"u8) || property.SequenceEqual("fixed"u8) || property.SequenceEqual("fontcolor"u8) || property.SequenceEqual("fontsize"u8) || property.SequenceEqual("italics"u8) || property.SequenceEqual("link"u8) || property.SequenceEqual("small"u8) || property.SequenceEqual("strike"u8) || property.SequenceEqual("sub"u8) || property.SequenceEqual("sup"u8)) return Libraryes2015;
-            if (property.SequenceEqual("padStart"u8) || property.SequenceEqual("padEnd"u8)) return Libraryes2017;
-            if (property.SequenceEqual("trimStart"u8) || property.SequenceEqual("trimEnd"u8) || property.SequenceEqual("trimLeft"u8) || property.SequenceEqual("trimRight"u8)) return Libraryes2019;
-            if (property.SequenceEqual("matchAll"u8)) return Libraryes2020;
-            if (property.SequenceEqual("replaceAll"u8)) return Libraryes2021;
-            if (property.SequenceEqual("at"u8)) return Libraryes2022;
-            if (property.SequenceEqual("isWellFormed"u8) || property.SequenceEqual("toWellFormed"u8)) return Libraryes2024;
-            return null;
-        }
-        if (name.SequenceEqual("StringConstructor"u8))
-        {
-            if (property.SequenceEqual("fromCodePoint"u8) || property.SequenceEqual("raw"u8)) return Libraryes2015;
-            return null;
-        }
-        if (name.SequenceEqual("DateTimeFormat"u8))
-        {
-            if (property.SequenceEqual("formatToParts"u8)) return Libraryes2017;
-            return null;
-        }
-        if (name.SequenceEqual("Promise"u8))
-        {
-            if (property.SequenceEqual("finally"u8)) return Libraryes2018;
-            return null;
-        }
-        if (name.SequenceEqual("RegExpMatchArray"u8))
-        {
-            if (property.SequenceEqual("groups"u8)) return Libraryes2018;
-            return null;
-        }
-        if (name.SequenceEqual("RegExpExecArray"u8))
-        {
-            if (property.SequenceEqual("groups"u8)) return Libraryes2018;
-            return null;
-        }
-        if (name.SequenceEqual("Intl"u8))
-        {
-            if (property.SequenceEqual("PluralRules"u8)) return Libraryes2018;
-            if (property.SequenceEqual("RelativeTimeFormat"u8) || property.SequenceEqual("Locale"u8) || property.SequenceEqual("DisplayNames"u8)) return Libraryes2020;
-            if (property.SequenceEqual("ListFormat"u8) || property.SequenceEqual("DateTimeFormat"u8)) return Libraryes2021;
-            if (property.SequenceEqual("Segmenter"u8)) return Libraryes2022;
-            if (property.SequenceEqual("DurationFormat"u8)) return Libraryes2025;
-            return null;
-        }
-        if (name.SequenceEqual("NumberFormat"u8))
-        {
-            if (property.SequenceEqual("formatToParts"u8)) return Libraryes2018;
-            return null;
-        }
-        if (name.SequenceEqual("SymbolConstructor"u8))
-        {
-            if (property.SequenceEqual("matchAll"u8)) return Libraryes2020;
-            if (property.SequenceEqual("metadata"u8) || property.SequenceEqual("dispose"u8) || property.SequenceEqual("asyncDispose"u8)) return Libraryesnext;
-            return null;
-        }
-        if (name.SequenceEqual("DataView"u8))
-        {
-            if (property.SequenceEqual("setBigInt64"u8) || property.SequenceEqual("setBigUint64"u8) || property.SequenceEqual("getBigInt64"u8) || property.SequenceEqual("getBigUint64"u8)) return Libraryes2020;
-            if (property.SequenceEqual("setFloat16"u8) || property.SequenceEqual("getFloat16"u8)) return Libraryes2025;
-            return null;
-        }
-        if (name.SequenceEqual("BigInt"u8))
-        {
-            return null;
-        }
-        if (name.SequenceEqual("RelativeTimeFormat"u8))
-        {
-            if (property.SequenceEqual("format"u8) || property.SequenceEqual("formatToParts"u8) || property.SequenceEqual("resolvedOptions"u8)) return Libraryes2020;
-            return null;
-        }
-        if (name.SequenceEqual("Int8Array"u8))
-        {
-            if (property.SequenceEqual("at"u8)) return Libraryes2022;
-            if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
-            return null;
-        }
-        if (name.SequenceEqual("Uint8Array"u8))
-        {
-            if (property.SequenceEqual("at"u8)) return Libraryes2022;
-            if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
-            return null;
-        }
-        if (name.SequenceEqual("Uint8ClampedArray"u8))
-        {
-            if (property.SequenceEqual("at"u8)) return Libraryes2022;
-            if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
-            return null;
-        }
-        if (name.SequenceEqual("Int16Array"u8))
-        {
-            if (property.SequenceEqual("at"u8)) return Libraryes2022;
-            if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
-            return null;
-        }
-        if (name.SequenceEqual("Uint16Array"u8))
-        {
-            if (property.SequenceEqual("at"u8)) return Libraryes2022;
-            if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
-            return null;
-        }
-        if (name.SequenceEqual("Int32Array"u8))
-        {
-            if (property.SequenceEqual("at"u8)) return Libraryes2022;
-            if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
-            return null;
-        }
-        if (name.SequenceEqual("Uint32Array"u8))
-        {
-            if (property.SequenceEqual("at"u8)) return Libraryes2022;
-            if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
-            return null;
-        }
-        if (name.SequenceEqual("Float16Array"u8))
-        {
-            return null;
-        }
-        if (name.SequenceEqual("Float32Array"u8))
-        {
-            if (property.SequenceEqual("at"u8)) return Libraryes2022;
-            if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
-            return null;
-        }
-        if (name.SequenceEqual("Float64Array"u8))
-        {
-            if (property.SequenceEqual("at"u8)) return Libraryes2022;
-            if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
-            return null;
-        }
-        if (name.SequenceEqual("BigInt64Array"u8))
-        {
-            if (property.SequenceEqual("at"u8)) return Libraryes2022;
-            if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
-            return null;
-        }
-        if (name.SequenceEqual("BigUint64Array"u8))
-        {
-            if (property.SequenceEqual("at"u8)) return Libraryes2022;
-            if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
-            return null;
-        }
-        if (name.SequenceEqual("Error"u8))
-        {
-            if (property.SequenceEqual("cause"u8)) return Libraryes2022;
-            return null;
-        }
-        if (name.SequenceEqual("ErrorConstructor"u8))
-        {
-            if (property.SequenceEqual("isError"u8)) return Libraryesnext;
-            return null;
-        }
-        if (name.SequenceEqual("Uint8ArrayConstructor"u8))
-        {
-            if (property.SequenceEqual("fromBase64"u8) || property.SequenceEqual("fromHex"u8)) return Libraryesnext;
-            return null;
-        }
-        if (name.SequenceEqual("DisposableStack"u8))
-        {
-            return null;
-        }
-        if (name.SequenceEqual("AsyncDisposableStack"u8))
-        {
-            return null;
-        }
-        if (name.SequenceEqual("Date"u8))
-        {
-            if (property.SequenceEqual("toTemporalInstant"u8)) return Libraryesnext;
-            return null;
-        }
+        if (name.SequenceEqual("Array"u8)) return PropertyLibraryArray(property);
+        if (name.SequenceEqual("Iterator"u8)) return null;
+        if (name.SequenceEqual("AsyncIterator"u8)) return null;
+        if (name.SequenceEqual("ArrayBuffer"u8)) return PropertyLibraryArrayBuffer(property);
+        if (name.SequenceEqual("Atomics"u8)) return PropertyLibraryAtomics(property);
+        if (name.SequenceEqual("SharedArrayBuffer"u8)) return PropertyLibrarySharedArrayBuffer(property);
+        if (name.SequenceEqual("AsyncIterable"u8)) return null;
+        if (name.SequenceEqual("AsyncIterableIterator"u8)) return null;
+        if (name.SequenceEqual("AsyncGenerator"u8)) return null;
+        if (name.SequenceEqual("AsyncGeneratorFunction"u8)) return null;
+        if (name.SequenceEqual("RegExp"u8)) return PropertyLibraryRegExp(property);
+        if (name.SequenceEqual("RegExpConstructor"u8)) return PropertyLibraryRegExpConstructor(property);
+        if (name.SequenceEqual("Reflect"u8)) return PropertyLibraryReflect(property);
+        if (name.SequenceEqual("ArrayConstructor"u8)) return PropertyLibraryArrayConstructor(property);
+        if (name.SequenceEqual("ObjectConstructor"u8)) return PropertyLibraryObjectConstructor(property);
+        if (name.SequenceEqual("NumberConstructor"u8)) return PropertyLibraryNumberConstructor(property);
+        if (name.SequenceEqual("Math"u8)) return PropertyLibraryMath(property);
+        if (name.SequenceEqual("Map"u8)) return PropertyLibraryMap(property);
+        if (name.SequenceEqual("MapConstructor"u8)) return PropertyLibraryMapConstructor(property);
+        if (name.SequenceEqual("Set"u8)) return PropertyLibrarySet(property);
+        if (name.SequenceEqual("PromiseConstructor"u8)) return PropertyLibraryPromiseConstructor(property);
+        if (name.SequenceEqual("Symbol"u8)) return PropertyLibrarySymbol(property);
+        if (name.SequenceEqual("WeakMap"u8)) return PropertyLibraryWeakMap(property);
+        if (name.SequenceEqual("WeakSet"u8)) return null;
+        if (name.SequenceEqual("String"u8)) return PropertyLibraryString(property);
+        if (name.SequenceEqual("StringConstructor"u8)) return PropertyLibraryStringConstructor(property);
+        if (name.SequenceEqual("DateTimeFormat"u8)) return PropertyLibraryDateTimeFormat(property);
+        if (name.SequenceEqual("Promise"u8)) return PropertyLibraryPromise(property);
+        if (name.SequenceEqual("RegExpMatchArray"u8)) return PropertyLibraryRegExpMatchArray(property);
+        if (name.SequenceEqual("RegExpExecArray"u8)) return PropertyLibraryRegExpExecArray(property);
+        if (name.SequenceEqual("Intl"u8)) return PropertyLibraryIntl(property);
+        if (name.SequenceEqual("NumberFormat"u8)) return PropertyLibraryNumberFormat(property);
+        if (name.SequenceEqual("SymbolConstructor"u8)) return PropertyLibrarySymbolConstructor(property);
+        if (name.SequenceEqual("DataView"u8)) return PropertyLibraryDataView(property);
+        if (name.SequenceEqual("BigInt"u8)) return null;
+        if (name.SequenceEqual("RelativeTimeFormat"u8)) return PropertyLibraryRelativeTimeFormat(property);
+        if (name.SequenceEqual("Int8Array"u8)) return PropertyLibraryInt8Array(property);
+        if (name.SequenceEqual("Uint8Array"u8)) return PropertyLibraryUint8Array(property);
+        if (name.SequenceEqual("Uint8ClampedArray"u8)) return PropertyLibraryUint8ClampedArray(property);
+        if (name.SequenceEqual("Int16Array"u8)) return PropertyLibraryInt16Array(property);
+        if (name.SequenceEqual("Uint16Array"u8)) return PropertyLibraryUint16Array(property);
+        if (name.SequenceEqual("Int32Array"u8)) return PropertyLibraryInt32Array(property);
+        if (name.SequenceEqual("Uint32Array"u8)) return PropertyLibraryUint32Array(property);
+        if (name.SequenceEqual("Float16Array"u8)) return null;
+        if (name.SequenceEqual("Float32Array"u8)) return PropertyLibraryFloat32Array(property);
+        if (name.SequenceEqual("Float64Array"u8)) return PropertyLibraryFloat64Array(property);
+        if (name.SequenceEqual("BigInt64Array"u8)) return PropertyLibraryBigInt64Array(property);
+        if (name.SequenceEqual("BigUint64Array"u8)) return PropertyLibraryBigUint64Array(property);
+        if (name.SequenceEqual("Error"u8)) return PropertyLibraryError(property);
+        if (name.SequenceEqual("ErrorConstructor"u8)) return PropertyLibraryErrorConstructor(property);
+        if (name.SequenceEqual("Uint8ArrayConstructor"u8)) return PropertyLibraryUint8ArrayConstructor(property);
+        if (name.SequenceEqual("DisposableStack"u8)) return null;
+        if (name.SequenceEqual("AsyncDisposableStack"u8)) return null;
+        if (name.SequenceEqual("Date"u8)) return PropertyLibraryDate(property);
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryArray(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("find"u8) || property.SequenceEqual("findIndex"u8) || property.SequenceEqual("fill"u8) || property.SequenceEqual("copyWithin"u8) || property.SequenceEqual("entries"u8) || property.SequenceEqual("keys"u8) || property.SequenceEqual("values"u8)) return Libraryes2015;
+        if (property.SequenceEqual("includes"u8)) return Libraryes2016;
+        if (property.SequenceEqual("flat"u8) || property.SequenceEqual("flatMap"u8)) return Libraryes2019;
+        if (property.SequenceEqual("at"u8)) return Libraryes2022;
+        if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryArrayBuffer(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("maxByteLength"u8) || property.SequenceEqual("resizable"u8) || property.SequenceEqual("resize"u8) || property.SequenceEqual("detached"u8) || property.SequenceEqual("transfer"u8) || property.SequenceEqual("transferToFixedLength"u8)) return Libraryes2024;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryAtomics(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("add"u8) || property.SequenceEqual("and"u8) || property.SequenceEqual("compareExchange"u8) || property.SequenceEqual("exchange"u8) || property.SequenceEqual("isLockFree"u8) || property.SequenceEqual("load"u8) || property.SequenceEqual("or"u8) || property.SequenceEqual("store"u8) || property.SequenceEqual("sub"u8) || property.SequenceEqual("wait"u8) || property.SequenceEqual("notify"u8) || property.SequenceEqual("xor"u8)) return Libraryes2017;
+        if (property.SequenceEqual("waitAsync"u8)) return Libraryes2024;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibrarySharedArrayBuffer(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("byteLength"u8) || property.SequenceEqual("slice"u8)) return Libraryes2017;
+        if (property.SequenceEqual("growable"u8) || property.SequenceEqual("maxByteLength"u8) || property.SequenceEqual("grow"u8)) return Libraryes2024;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryRegExp(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("flags"u8) || property.SequenceEqual("sticky"u8) || property.SequenceEqual("unicode"u8)) return Libraryes2015;
+        if (property.SequenceEqual("dotAll"u8)) return Libraryes2018;
+        if (property.SequenceEqual("unicodeSets"u8)) return Libraryes2024;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryRegExpConstructor(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("escape"u8)) return Libraryes2025;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryReflect(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("apply"u8) || property.SequenceEqual("construct"u8) || property.SequenceEqual("defineProperty"u8) || property.SequenceEqual("deleteProperty"u8) || property.SequenceEqual("get"u8) || property.SequenceEqual("getOwnPropertyDescriptor"u8) || property.SequenceEqual("getPrototypeOf"u8) || property.SequenceEqual("has"u8) || property.SequenceEqual("isExtensible"u8) || property.SequenceEqual("ownKeys"u8) || property.SequenceEqual("preventExtensions"u8) || property.SequenceEqual("set"u8) || property.SequenceEqual("setPrototypeOf"u8)) return Libraryes2015;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryArrayConstructor(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("from"u8) || property.SequenceEqual("of"u8)) return Libraryes2015;
+        if (property.SequenceEqual("fromAsync"u8)) return Libraryesnext;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryObjectConstructor(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("assign"u8) || property.SequenceEqual("getOwnPropertySymbols"u8) || property.SequenceEqual("keys"u8) || property.SequenceEqual("is"u8) || property.SequenceEqual("setPrototypeOf"u8)) return Libraryes2015;
+        if (property.SequenceEqual("values"u8) || property.SequenceEqual("entries"u8) || property.SequenceEqual("getOwnPropertyDescriptors"u8)) return Libraryes2017;
+        if (property.SequenceEqual("fromEntries"u8)) return Libraryes2019;
+        if (property.SequenceEqual("hasOwn"u8)) return Libraryes2022;
+        if (property.SequenceEqual("groupBy"u8)) return Libraryes2024;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryNumberConstructor(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("isFinite"u8) || property.SequenceEqual("isInteger"u8) || property.SequenceEqual("isNaN"u8) || property.SequenceEqual("isSafeInteger"u8) || property.SequenceEqual("parseFloat"u8) || property.SequenceEqual("parseInt"u8)) return Libraryes2015;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryMath(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("clz32"u8) || property.SequenceEqual("imul"u8) || property.SequenceEqual("sign"u8) || property.SequenceEqual("log10"u8) || property.SequenceEqual("log2"u8) || property.SequenceEqual("log1p"u8) || property.SequenceEqual("expm1"u8) || property.SequenceEqual("cosh"u8) || property.SequenceEqual("sinh"u8) || property.SequenceEqual("tanh"u8) || property.SequenceEqual("acosh"u8) || property.SequenceEqual("asinh"u8) || property.SequenceEqual("atanh"u8) || property.SequenceEqual("hypot"u8) || property.SequenceEqual("trunc"u8) || property.SequenceEqual("fround"u8) || property.SequenceEqual("cbrt"u8)) return Libraryes2015;
+        if (property.SequenceEqual("f16round"u8)) return Libraryes2025;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryMap(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("entries"u8) || property.SequenceEqual("keys"u8) || property.SequenceEqual("values"u8)) return Libraryes2015;
+        if (property.SequenceEqual("getOrInsert"u8) || property.SequenceEqual("getOrInsertComputed"u8)) return Libraryesnext;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryMapConstructor(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("groupBy"u8)) return Libraryes2024;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibrarySet(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("entries"u8) || property.SequenceEqual("keys"u8) || property.SequenceEqual("values"u8)) return Libraryes2015;
+        if (property.SequenceEqual("union"u8) || property.SequenceEqual("intersection"u8) || property.SequenceEqual("difference"u8) || property.SequenceEqual("symmetricDifference"u8) || property.SequenceEqual("isSubsetOf"u8) || property.SequenceEqual("isSupersetOf"u8) || property.SequenceEqual("isDisjointFrom"u8)) return Libraryes2025;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryPromiseConstructor(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("all"u8) || property.SequenceEqual("race"u8) || property.SequenceEqual("reject"u8) || property.SequenceEqual("resolve"u8)) return Libraryes2015;
+        if (property.SequenceEqual("allSettled"u8)) return Libraryes2020;
+        if (property.SequenceEqual("any"u8)) return Libraryes2021;
+        if (property.SequenceEqual("withResolvers"u8)) return Libraryes2024;
+        if (property.SequenceEqual("try"u8)) return Libraryes2025;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibrarySymbol(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("for"u8) || property.SequenceEqual("keyFor"u8)) return Libraryes2015;
+        if (property.SequenceEqual("description"u8)) return Libraryes2019;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryWeakMap(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("getOrInsert"u8) || property.SequenceEqual("getOrInsertComputed"u8)) return Libraryesnext;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryString(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("codePointAt"u8) || property.SequenceEqual("includes"u8) || property.SequenceEqual("endsWith"u8) || property.SequenceEqual("normalize"u8) || property.SequenceEqual("repeat"u8) || property.SequenceEqual("startsWith"u8) || property.SequenceEqual("anchor"u8) || property.SequenceEqual("big"u8) || property.SequenceEqual("blink"u8) || property.SequenceEqual("bold"u8) || property.SequenceEqual("fixed"u8) || property.SequenceEqual("fontcolor"u8) || property.SequenceEqual("fontsize"u8) || property.SequenceEqual("italics"u8) || property.SequenceEqual("link"u8) || property.SequenceEqual("small"u8) || property.SequenceEqual("strike"u8) || property.SequenceEqual("sub"u8) || property.SequenceEqual("sup"u8)) return Libraryes2015;
+        if (property.SequenceEqual("padStart"u8) || property.SequenceEqual("padEnd"u8)) return Libraryes2017;
+        if (property.SequenceEqual("trimStart"u8) || property.SequenceEqual("trimEnd"u8) || property.SequenceEqual("trimLeft"u8) || property.SequenceEqual("trimRight"u8)) return Libraryes2019;
+        if (property.SequenceEqual("matchAll"u8)) return Libraryes2020;
+        if (property.SequenceEqual("replaceAll"u8)) return Libraryes2021;
+        if (property.SequenceEqual("at"u8)) return Libraryes2022;
+        if (property.SequenceEqual("isWellFormed"u8) || property.SequenceEqual("toWellFormed"u8)) return Libraryes2024;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryStringConstructor(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("fromCodePoint"u8) || property.SequenceEqual("raw"u8)) return Libraryes2015;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryDateTimeFormat(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("formatToParts"u8)) return Libraryes2017;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryPromise(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("finally"u8)) return Libraryes2018;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryRegExpMatchArray(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("groups"u8)) return Libraryes2018;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryRegExpExecArray(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("groups"u8)) return Libraryes2018;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryIntl(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("PluralRules"u8)) return Libraryes2018;
+        if (property.SequenceEqual("RelativeTimeFormat"u8) || property.SequenceEqual("Locale"u8) || property.SequenceEqual("DisplayNames"u8)) return Libraryes2020;
+        if (property.SequenceEqual("ListFormat"u8) || property.SequenceEqual("DateTimeFormat"u8)) return Libraryes2021;
+        if (property.SequenceEqual("Segmenter"u8)) return Libraryes2022;
+        if (property.SequenceEqual("DurationFormat"u8)) return Libraryes2025;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryNumberFormat(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("formatToParts"u8)) return Libraryes2018;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibrarySymbolConstructor(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("matchAll"u8)) return Libraryes2020;
+        if (property.SequenceEqual("metadata"u8) || property.SequenceEqual("dispose"u8) || property.SequenceEqual("asyncDispose"u8)) return Libraryesnext;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryDataView(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("setBigInt64"u8) || property.SequenceEqual("setBigUint64"u8) || property.SequenceEqual("getBigInt64"u8) || property.SequenceEqual("getBigUint64"u8)) return Libraryes2020;
+        if (property.SequenceEqual("setFloat16"u8) || property.SequenceEqual("getFloat16"u8)) return Libraryes2025;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryRelativeTimeFormat(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("format"u8) || property.SequenceEqual("formatToParts"u8) || property.SequenceEqual("resolvedOptions"u8)) return Libraryes2020;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryInt8Array(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("at"u8)) return Libraryes2022;
+        if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryUint8Array(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("at"u8)) return Libraryes2022;
+        if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryUint8ClampedArray(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("at"u8)) return Libraryes2022;
+        if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryInt16Array(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("at"u8)) return Libraryes2022;
+        if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryUint16Array(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("at"u8)) return Libraryes2022;
+        if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryInt32Array(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("at"u8)) return Libraryes2022;
+        if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryUint32Array(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("at"u8)) return Libraryes2022;
+        if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryFloat32Array(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("at"u8)) return Libraryes2022;
+        if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryFloat64Array(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("at"u8)) return Libraryes2022;
+        if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryBigInt64Array(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("at"u8)) return Libraryes2022;
+        if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryBigUint64Array(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("at"u8)) return Libraryes2022;
+        if (property.SequenceEqual("findLastIndex"u8) || property.SequenceEqual("findLast"u8) || property.SequenceEqual("toReversed"u8) || property.SequenceEqual("toSorted"u8) || property.SequenceEqual("toSpliced"u8) || property.SequenceEqual("with"u8)) return Libraryes2023;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryError(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("cause"u8)) return Libraryes2022;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryErrorConstructor(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("isError"u8)) return Libraryesnext;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryUint8ArrayConstructor(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("fromBase64"u8) || property.SequenceEqual("fromHex"u8)) return Libraryesnext;
+        return null;
+    }
+
+    private static Utf8String? PropertyLibraryDate(ReadOnlySpan<byte> property)
+    {
+        if (property.SequenceEqual("toTemporalInstant"u8)) return Libraryesnext;
         return null;
     }
 

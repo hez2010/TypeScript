@@ -111,3 +111,51 @@ The gap to Go is smaller but remains substantial: NativeAOT takes 1.14–1.56 ti
 The [validation record](../csharp/compatibility/evidence/utf8-optimization-validation.json) ties results to the final source and binaries. Release CoreCLR passed all 13,446 semantic cases with fresh programs in each mode, with the unchanged full output hash, and all 1,649,908 comparisons across 31 API families. The four pre-existing Go API failures remain excluded. Fresh stock and Satori NativeAOT builds completed with zero warnings and errors and passed their runtime checks and 5,019 foundation assertions. Satori passed all 74 safety suites and all 12,895 strict scanner cases; stock also passed the 41-case parser safety suite. Full semantic and API matrices were not repeated under NativeAOT.
 
 One exploratory tiered modifier batch failed the retained-heap growth budget; its failure remains in the experiment record. A separate 200-request follow-up showed bounded alternating heap levels for both versions and passed the budget. That follow-up ran alongside validation, so its elapsed times are excluded from performance conclusions.
+
+## Large-method splitting
+
+This pass starts from `a49422f3f4cfadc0d1440cddc7aaae71ca69940a` and retains two splits. `SymbolNodePrinter.Emit` delegates to typed emitters, and `LibraryFeatures.PropertyLibrary` delegates by type name. The library generator produces the split methods. Case order and printer argument evaluation remain unchanged.
+
+The [code-generation record](../csharp/compatibility/evidence/method-splitting-retained-codegen.json) includes Satori CoreCLR disassembly with tiering disabled and complete NativeAOT method-family sizes. The printer previously reserved and cleared a 63,080-byte stack frame on every dispatch. Its dispatcher now reserves 160 bytes; temporary storage belongs to the selected typed emitter. The largest emitter frame observed across the printer corpus is 1,992 bytes. These are individual frame reservations, not combined stack-depth limits. The 369 calls to printer part-construction helpers in the original dispatcher are absent from all 130 printer methods exercised by that corpus.
+
+The original library lookup contained 286 literal span-constructor calls and 286 `SequenceEqual` calls. A probe covering all 44 split methods finds none: the UTF-8 literal comparisons fold. Their combined JIT code shrinks from 33,472 to 21,890 bytes.
+
+Complete NativeAOT code sizes, including the new helpers:
+
+| Method family | Before | After | Change |
+| --- | ---: | ---: | ---: |
+| Symbol-node printer | 114,431 bytes | 80,568 bytes | -29.6% |
+| Library property lookup | 31,123 bytes | 22,287 bytes | -28.4% |
+
+### Rejected dispatch extraction
+
+An earlier candidate also extracted compound cases from `Binder.DeclareNode` and `Checker.CheckSourceElementAsync`. Although their dispatchers and main stack frames became smaller, their complete NativeAOT code grew by 14.9% and 13.3%. Six [NativeAOT process pairs](../csharp/compatibility/evidence/method-splitting-replications.json) showed little total-time change on the original workloads and median slowdowns of 1.6–3.2% on the five text controls, concentrated in checking. An [isolated CoreCLR comparison](../csharp/compatibility/evidence/method-splitting-performance.json) also slowed all five controls with tiering enabled; untiered results were mixed. Those extractions are not retained. Their [disassembly](../csharp/compatibility/evidence/method-splitting-codegen.json) and [validation](../csharp/compatibility/evidence/method-splitting-validation.json) remain available as experiment records.
+
+One native attempt ended with an access violation in the unchanged baseline executable. Its partial samples and error log are preserved and excluded from timing aggregates; a separate retry completed. The cause was not established by this work.
+
+### Validation of the retained splits
+
+The [final validation record](../csharp/compatibility/evidence/method-splitting-retained-validation.json) binds results to the printer/library source and rebuilt binaries. Release CoreCLR passes all 13,446 fresh-program semantic cases in each mode, with the unchanged full output hash, and 1,649,908 comparisons across 31 API families. The four existing Go API failures remain excluded. All 391 printer cases match Go exactly. Fresh stock and Satori NativeAOT builds complete with zero warnings and errors and pass runtime checks and 5,019 foundation assertions each. Satori passes all 74 safety suites; stock also passes the 41-case parser safety suite. The full semantic and API matrices were not repeated under NativeAOT.
+
+### Performance of the retained splits
+
+The [final NativeAOT comparison](../csharp/compatibility/evidence/method-splitting-retained-replications.json) uses six fresh process pairs, with process positions reversed in three pairs. Each of ten workloads receives 30 warmups and 20 measured fresh-program requests per backend in default checker mode. The SDK, Satori runtime libraries, Server GC, native instruction selection, Go reference, and access to all 24 logical processors match the baseline. All 9,000 requests pass the correctness and memory budgets, with no desktop input recorded during measurement.
+
+Times are medians of six process medians, in milliseconds. The reduction column is the median of six paired percentage reductions; it need not equal the reduction calculated from the aggregate time columns. Negative reductions mean slower execution.
+
+| Workload | Before | Split | Go | Paired reduction |
+| --- | ---: | ---: | ---: | ---: |
+| JSX signatures | 27.78 | 27.69 | 17.60 | -0.03% |
+| Large conditional type | 68.85 | 68.92 | 60.15 | -0.29% |
+| Static members | 24.18 | 24.41 | 17.26 | -0.14% |
+| Node modules with JS | 24.10 | 23.93 | 17.28 | 0.08% |
+| Large diagnostic program | 23.50 | 23.40 | 16.41 | 0.67% |
+| 5,000 ASCII exports | 8.92 | 9.00 | 6.89 | -0.57% |
+| Unicode strings | 8.88 | 8.94 | 6.82 | 0.06% |
+| Unicode identifiers | 9.41 | 9.49 | 7.01 | -1.00% |
+| Malformed-byte run | 8.88 | 9.12 | 6.86 | -1.93% |
+| Sparse malformed bytes | 9.01 | 9.13 | 6.88 | -1.36% |
+
+These measurements do not establish a broad throughput improvement. The original workloads are close, and small regressions remain in the controls; the Unicode-identifier control is slower in all six pairs. Allocations are essentially unchanged. The retained benefits are the much smaller printer stack reservation and the verified reductions in generated code and literal-comparison calls. NativeAOT remains 1.15–1.57 times Go's elapsed time on the original workloads. The existing program-construction gap remains: for the large diagnostic program, construction takes 20.32 ms versus Go's 15.07 ms, while checking takes 3.18 ms versus 1.04 ms. Separate phase medians need not sum to total medians.
+
+The [final CoreCLR comparisons](../csharp/compatibility/evidence/method-splitting-retained-performance.json) use identical Satori runtime files, default checker concurrency, 60 warmups, and 30 measured fresh-program requests, with tiering enabled and disabled. Both 2,700-request batches pass all budgets and record no desktop input. Tiered changes range from 1.8% slower to 1.4% faster; untiered changes range from 5.6% slower to 3.5% faster. These are single process pairs per workload and setting, with mixed results rather than evidence of a broad throughput improvement.
