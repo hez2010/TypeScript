@@ -14,7 +14,7 @@ internal sealed partial class Checker
         Return
     }
 
-    private void ReportInferenceFallbacks(SyntaxNode declaration, bool returnType, TypeSyntaxContext state, CancellationToken cancellation)
+    private async ValueTask ReportInferenceFallbacksAsync(SyntaxNode declaration, bool returnType, TypeSyntaxContext state, CancellationToken cancellation)
     {
         if (!state.HasTracker || state.SuppressInferenceFallback || state.Symbols.Enclosing is null
             || (declaration.Flags & NodeFlags.Synthesized) != 0)
@@ -29,6 +29,11 @@ internal sealed partial class Checker
             {
                 if (node is ITypedNode { Type: not null })
                     continue;
+                if (await Signatures.PredicateAsync(await Signatures.FromDeclarationAsync(node, cancellation), cancellation) is not null)
+                {
+                    state.Tracker.ReportInferenceFallback(node);
+                    continue;
+                }
                 var expression = SemanticSyntax.Generator(node) || SemanticSyntax.HasModifier(node, SyntaxKind.AsyncKeyword)
                     ? null : SingleReturnExpression(node, cancellation);
                 if (node is GetAccessorDeclarationNode && (expression is null || PlainInferredExpression(expression)))
@@ -45,8 +50,14 @@ internal sealed partial class Checker
             }
             if (item.Kind == InferenceSyntaxKind.Declaration)
             {
-                if (node is ITypedNode { Type: not null })
+                if (node is ITypedNode { Type: { } annotation })
+                {
+                    if (node != declaration && node is ParameterDeclarationNode parameter
+                        && await ParameterRequiresImplicitUndefinedAsync(parameter, state.Symbols.Enclosing, cancellation)
+                        && CouldReferToUndefined(annotation))
+                        state.Tracker.ReportInferenceFallback(parameter);
                     continue;
+                }
                 if (node is GetAccessorDeclarationNode or SetAccessorDeclarationNode)
                 {
                     if (AccessorSyntaxAnnotation(node) is null)
@@ -60,13 +71,30 @@ internal sealed partial class Checker
                     }
                     continue;
                 }
-                var initializer = (node as IInitializedNode)?.Initializer;
+                if (node is BindingElementNode or ParameterDeclarationNode { Name: BindingPatternNode })
+                {
+                    state.Tracker.ReportInferenceFallback(node);
+                    continue;
+                }
+                if (node is ParameterDeclarationNode { Parent: SetAccessorDeclarationNode accessor })
+                {
+                    pending.Push((accessor, InferenceSyntaxKind.Declaration));
+                    continue;
+                }
+                var initializer = node is ExportAssignmentNode export ? export.Expression : (node as IInitializedNode)?.Initializer;
+                var assertedInitializer = initializer;
+                while (assertedInitializer is ParenthesizedExpressionNode parentheses) assertedInitializer = parentheses.Expression;
+                if (node != declaration && node is ParameterDeclarationNode inferredParameter
+                    && assertedInitializer is AsExpressionNode or TypeAssertionNode && !SemanticSyntax.ConstAssertion(assertedInitializer)
+                    && CouldReferToUndefined(((ITypedNode)assertedInitializer).Type!)
+                    && await ParameterRequiresImplicitUndefinedAsync(inferredParameter, state.Symbols.Enclosing, cancellation))
+                    state.Tracker.ReportInferenceFallback(inferredParameter);
                 if (initializer is null || ContextualReturnExpression(node)
                     || PlainInferredExpression(initializer)
                     || initializer is TemplateExpressionNode && (node is VariableDeclarationNode
                         && (node.Parent?.Flags & NodeFlags.Const) != 0
                         || SemanticSyntax.HasModifier(node, SyntaxKind.ReadonlyKeyword)))
-                    state.Tracker.ReportInferenceFallback(node);
+                    state.Tracker.ReportInferenceFallback(node is ExportAssignmentNode assignment ? assignment.Expression! : node);
                 else
                     pending.Push((initializer, InferenceSyntaxKind.Expression));
                 continue;
@@ -133,8 +161,18 @@ internal sealed partial class Checker
             }
             if (!PrimitiveInferenceExpression(node) && !(node is IdentifierNode { Text.Span: var matchedText } && matchedText.SequenceEqual("undefined"u8))
                 && node.Kind != SyntaxKind.OmittedExpression && (node is not TemplateExpressionNode || ReusableConstArray(node)))
+            {
+                var target = node;
+                if (node is TemplateExpressionNode)
+                {
+                    while (target.Parent is ParenthesizedExpressionNode || target.Parent is { } assertion && SemanticSyntax.ConstAssertion(assertion))
+                        target = target.Parent;
+                    if (target.Parent is VariableDeclarationNode or PropertyDeclarationNode) target = target.Parent;
+                    else target = node;
+                }
                 state.Tracker.ReportInferenceFallback(!returnType && ConstantEvaluator.EntityName(node)
-                    && QuerySyntax.Declaration(node.Parent) ? node.Parent! : node);
+                    && QuerySyntax.Declaration(node.Parent) ? node.Parent! : target);
+            }
         }
 
         void PushFunction(SyntaxNode function)
@@ -147,6 +185,16 @@ internal sealed partial class Checker
                     pending.Push((parameters[i], InferenceSyntaxKind.Declaration));
         }
     }
+
+    private static bool CouldReferToUndefined(SyntaxNode node) => node switch
+    {
+        ParenthesizedTypeNode parentheses => CouldReferToUndefined(parentheses.Type!),
+        UnionTypeNode union => union.Types!.Any(CouldReferToUndefined),
+        IntersectionTypeNode intersection => intersection.Types!.Any(CouldReferToUndefined),
+        TypeReferenceNode or TypeQueryNode or IndexedAccessTypeNode or ConditionalTypeNode or ImportTypeNode
+            or OptionalTypeNode or RestTypeNode or TypeOperatorNode or TypePredicateNode => true,
+        _ => node.Kind == SyntaxKind.UndefinedKeyword
+    };
 
     private static bool PrimitiveInferenceExpression(SyntaxNode node) => node is StringLiteralNode or NoSubstitutionTemplateLiteralNode
         or NumericLiteralNode or BigIntLiteralNode

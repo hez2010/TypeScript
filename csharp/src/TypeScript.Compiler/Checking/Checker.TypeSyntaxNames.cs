@@ -210,16 +210,23 @@ internal sealed partial class Checker
     }
 
     private async ValueTask<SyntaxNode> ReuseGeneratedAnnotationSyntaxAsync(SyntaxNode node,
-        IReadOnlyDictionary<SyntaxNode, TypeParameter> parameters, TypeSyntaxContext state, CancellationToken cancellation)
+        IReadOnlyDictionary<SyntaxNode, Type> parameters, TypeSyntaxContext state, CancellationToken cancellation)
     {
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
             ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
         cancellation.ThrowIfCancellationRequested();
-        if (parameters.TryGetValue(node, out var parameter))
+        if (node is IndexedAccessTypeNode or TypeOperatorNode { Operator: TypeScript.Compiler.Syntax.SyntaxKind.KeyOfKeyword })
+            return await RecoverTypeSyntaxAsync(node, state, cancellation);
+        if (node is TypeReferenceNode { TypeName: { } typeName } && parameters.TryGetValue(typeName, out var replacement)
+            && replacement is not TypeParameter)
+            return await TypeSyntaxAsync(replacement, state, cancellation);
+        if (parameters.TryGetValue(node, out var typeParameter) && typeParameter is TypeParameter parameter)
         {
             if (parameter.Symbol is { } symbol)
                 state.Tracker.TrackSymbol(symbol, state.Symbols.Enclosing, SymbolFlags.Type);
             var identifier = state.Factory.NewIdentifier(TypeSyntaxParameterName(parameter, state, cancellation));
+            if (SemanticSyntax.Source(node) == SemanticSyntax.Source(state.Symbols.Enclosing))
+                (identifier.Pos, identifier.End) = (node.Pos, node.End);
             state.NoAsciiEscape.Add(identifier);
             return identifier;
         }
@@ -231,8 +238,8 @@ internal sealed partial class Checker
             if (first is IdentifierNode identifier && !parameters.ContainsKey(identifier))
             {
                 var meaning = reference.TypeName is QualifiedNameNode ? SymbolFlags.Namespace : SymbolFlags.Type;
-                if (await program.EntityNames.ResolveAsync(identifier, meaning, true, true, cancellation: cancellation) is { } symbol)
-                    state.Tracker.TrackSymbol(symbol, state.Symbols.Enclosing, meaning);
+                if (await program.EntityNames.ResolveAsync(identifier, meaning, true, true, state.Symbols.Enclosing, cancellation) is { } symbol)
+                    await TrackTypeSymbolAsync(symbol, state.Symbols.Enclosing, meaning, state, cancellation);
             }
         }
         if (node is TypeQueryNode query)

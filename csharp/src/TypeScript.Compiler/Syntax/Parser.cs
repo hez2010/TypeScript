@@ -343,11 +343,14 @@ public sealed partial class Parser
     private IdentifierNode Identifier(
         bool allowKeywords = false,
         bool binding = false,
-        DiagnosticMessage? privateIdentifierDiagnostic = null)
+        DiagnosticMessage? privateIdentifierDiagnostic = null,
+        DiagnosticMessage? missingDiagnostic = null)
     {
         int start = Pos;
         if (IsIdentifier || binding && IsBindingIdentifier || allowKeywords && Token is >= K.FirstKeyword and <= K.LastKeyword)
         {
+            if ((scanner.Flags & TokenFlags.PrecedingJSDocLeadingAsterisks) != 0)
+                start = scanner.TokenStart;
             var node = factory.NewIdentifier(scanner.Value);
             if (!binding && Token == K.AwaitKeyword && statementDepth == 0 && (context & NodeFlags.AwaitContext) == 0)
                 possibleTopLevelAwait = true;
@@ -362,10 +365,12 @@ public sealed partial class Parser
             Next(false);
             return Finish(node, start);
         }
-        if (binding && Token is >= K.FirstReservedWord and <= K.LastReservedWord)
+        if (Token == K.EndOfFile && (context & NodeFlags.JSDoc) == 0)
+            ErrorAt(missingDiagnostic ?? Messages.Identifier_expected, Pos, 0);
+        else if (binding && Token is >= K.FirstReservedWord and <= K.LastReservedWord)
             Error(Messages.Identifier_expected_0_is_a_reserved_word_that_cannot_be_used_here, TokenFacts.Text(Token));
         else
-            Error(Messages.Identifier_expected);
+            Error(missingDiagnostic ?? Messages.Identifier_expected);
         return Finish(factory.NewIdentifier(Utf8String.Empty), start, start);
     }
 

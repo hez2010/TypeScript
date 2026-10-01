@@ -85,8 +85,9 @@ public sealed partial class CompilerProgram
         if (common.Length == 0 && ordered.All(f => !SourceFileMayBeEmitted(f.Syntax)))
             common = CurrentDirectory;
         CommonSourceDirectory = common.Length == 0 ? Utf8String.Empty : CompilerPath.EnsureTrailingSeparator(common);
-        Diagnostics = builder.diagnostics.Concat(ModulePathOptionDiagnostics()).OrderBy(
-            d => d.FileName ?? Utf8String.Empty, Utf8StringComparer.Ordinal).ThenBy(d => d.Start).ThenBy(d => d.Code).ToArray();
+        blockedEmitPaths = new(files.Comparer);
+        Diagnostics = DiagnosticCollection.SortAndDeduplicate(builder.diagnostics.Concat(CompilerOptionDiagnostics())
+            .Concat(ModulePathOptionDiagnostics()).Concat(VerifyOutputPaths()));
         IncludeDiagnostics = Array.AsReadOnly(builder.includeDiagnostics.ToArray());
     }
 
@@ -107,7 +108,7 @@ public sealed partial class CompilerProgram
     public static ValueTask<CompilerProgram> CreateAsync(IFileSystem fileSystem, Utf8String currentDirectory, ParsedConfig config,
         CompilerProgram? previous = null, bool useProjectReferenceSources = false, int concurrency = 4,
         Utf8String? defaultLibraryDirectory = null, ContentMapperProject? mapperProject = null, CancellationToken cancellation = default,
-        Utf8String globalTypingsCache = default) =>
+        Utf8String globalTypingsCache = default, bool skipModuleResolution = false) =>
         new Builder(
             fileSystem,
             currentDirectory,
@@ -117,7 +118,7 @@ public sealed partial class CompilerProgram
             concurrency,
             defaultLibraryDirectory,
             mapperProject,
-            cancellation, globalTypingsCache).Build();
+            cancellation, globalTypingsCache, skipModuleResolution).Build();
 
     private sealed partial class Builder
     {
@@ -132,6 +133,7 @@ public sealed partial class CompilerProgram
         private readonly int concurrency;
         private readonly SemaphoreSlim parseSlots;
         private readonly CancellationToken cancellation;
+        private readonly bool skipModuleResolution;
         internal readonly ProjectReferences references;
         internal readonly Dictionary<Utf8String, ProgramFile> files;
         internal readonly Dictionary<Utf8String, Utf8String> redirects;
@@ -179,10 +181,11 @@ public sealed partial class CompilerProgram
             Utf8String? libraryDirectory,
             ContentMapperProject? mapperProject,
             CancellationToken cancellation,
-            Utf8String globalTypingsCache)
+            Utf8String globalTypingsCache, bool skipModuleResolution)
         {
             ArgumentOutOfRangeException.ThrowIfLessThan(concurrency, 1);
             this.fs = fs;
+            this.skipModuleResolution = skipModuleResolution;
             this.cwd = CompilerPath.Normalize(cwd);
             GlobalTypingsCache = globalTypingsCache;
             this.previous = previous;
@@ -271,7 +274,7 @@ public sealed partial class CompilerProgram
                 roots.Add(path);
                 pending.Enqueue((new(FileIncludeKind.Root, path), false, 0, null));
             }
-            foreach (Utf8String type in Resolver(config).AutomaticTypeDirectives())
+            foreach (Utf8String type in skipModuleResolution ? [] : Resolver(config).AutomaticTypeDirectives())
             {
                 var result = await Resolver(config).ResolveAsync(
                     type,
@@ -415,7 +418,6 @@ public sealed partial class CompilerProgram
                                             .. diagnostic.Arguments.Skip(1)] : diagnostic.Arguments,
                                     FileName = reason.ContainingFile.Length == 0 ? (Utf8String?)null : reason.ContainingFile
                                 });
-            VerifyOutputPaths(ordered);
             return new(this, ordered);
         }
 
@@ -520,7 +522,7 @@ public sealed partial class CompilerProgram
                         dependencies.Add(path);
                         pending.Enqueue((new(kind, path, entry.Path, pos, length), lib, depth ?? currentDepth, package));
                     }
-                    if (options.NoResolve != true)
+                    if (!skipModuleResolution && options.NoResolve != true)
                     {
                         foreach (var reference in syntax.ReferencedFiles)
                         {
@@ -565,7 +567,7 @@ public sealed partial class CompilerProgram
                                     { FileName = entry.Path });
                         }
                     }
-                    if (options.NoLib != true)
+                    if (!skipModuleResolution && options.NoLib != true)
                         foreach (var reference in syntax.LibReferenceDirectives)
                             Include(
                                 await LibraryPath(reference.FileName).ConfigureAwait(false),
@@ -592,7 +594,7 @@ public sealed partial class CompilerProgram
                     imports.AddRange(syntax.Imports.Select(n => (Node: (SyntaxNode?)n, Name: ImportText(n))));
                     foreach (var import in imports)
                     {
-                        if (import.Name.Length == 0)
+                        if (skipModuleResolution || import.Name.Length == 0)
                             continue;
                         var mode = UsageMode(import.Node, entry.Path, options, parsed.Format, parsed.PackageType);
                         var resolved = await resolver.ResolveAsync(
@@ -628,7 +630,7 @@ public sealed partial class CompilerProgram
                         Include(resolved.FileName, FileIncludeKind.Import, import.Node?.Pos ?? 0, depth: depth, package: resolved.PackageId,
                             length: import.Node is null ? 0 : import.Node.End - import.Node.Pos);
                     }
-                    foreach (var augmentation in syntax.ModuleAugmentations.OfType<StringLiteralNode>())
+                    foreach (var augmentation in skipModuleResolution ? [] : syntax.ModuleAugmentations.OfType<StringLiteralNode>())
                     {
                         var mode = UsageMode(augmentation, entry.Path, options, parsed.Format, parsed.PackageType);
                         var resolved = await resolver.ResolveAsync(
@@ -685,7 +687,7 @@ public sealed partial class CompilerProgram
                 await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
             cancellation.ThrowIfCancellationRequested();
             var resolver = Resolver(project);
-            var scope = library ? null : resolver.Packages.Scope(CompilerPath.DirectoryName(path));
+            var scope = library || skipModuleResolution ? null : resolver.Packages.Scope(CompilerPath.DirectoryName(path));
             Utf8String ext = ModuleResolver.Extension(path);
             bool explicitFormat = path.EndsWith(".mts"u8, StringComparison.Ordinal) || path.EndsWith(".cts"u8, StringComparison.Ordinal)
                 || path.EndsWith(".mjs"u8, StringComparison.Ordinal) || path.EndsWith(".cjs"u8, StringComparison.Ordinal);
@@ -695,7 +697,8 @@ public sealed partial class CompilerProgram
                 : Utf8String.Empty;
             var format = ext == ".mts"u8 || ext == ".mjs"u8 || ext == ".d.mts"u8 || !(ext == ".cts"u8 || ext == ".cjs"u8 || ext == ".d.cts"u8) && type == Utf8Literals.Module
                 ? ReferenceResolutionMode.Import : ReferenceResolutionMode.Require;
-            if (ext == Utf8Literals.Json)
+            if (!(ext == ".mts"u8 || ext == ".mjs"u8 || ext == ".d.mts"u8 || ext == ".cts"u8 || ext == ".cjs"u8 || ext == ".d.cts"u8
+                || ext == ".ts"u8 || ext == ".tsx"u8 || ext == ".d.ts"u8 || ext == ".js"u8 || ext == ".jsx"u8))
                 format = ReferenceResolutionMode.Unspecified;
             var options = project.Options;
             ModuleDetectionKind detection = options.EmitModuleDetectionKind;

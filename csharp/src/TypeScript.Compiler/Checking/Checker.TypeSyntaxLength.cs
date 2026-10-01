@@ -51,9 +51,14 @@ internal sealed partial class Checker
     {
         if (countLength)
             state.Length.Add(3);
-        return state.Length.NoTruncation ? state.Factory.NewKeywordTypeNode(K.AnyKeyword)
-            : state.Factory.NewTypeReferenceNode(state.Factory.NewIdentifier(count is { } n
-                ? Utf8Literals.EllipsisSpace + Utf8String.Format(n) + Utf8Literals.More : Utf8Literals.Ellipsis), null);
+        if (state.Length.NoTruncation)
+        {
+            var node = state.Factory.NewKeywordTypeNode(K.AnyKeyword);
+            state.Elided.Add(node);
+            return node;
+        }
+        return state.Factory.NewTypeReferenceNode(state.Factory.NewIdentifier(count is { } n
+            ? Utf8Literals.EllipsisSpace + Utf8String.Format(n) + Utf8Literals.More : Utf8Literals.Ellipsis), null);
     }
 
     private static void AddReusedSyntaxLength(SyntaxNode node, TypeSyntaxContext state)

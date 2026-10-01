@@ -65,7 +65,7 @@ internal sealed partial class Checker
     private async ValueTask<SyntaxNode?> ReuseTypeAnnotationSyntaxAsync(SyntaxNode annotation, TypeSyntaxContext state,
         CancellationToken cancellation)
     {
-        Dictionary<SyntaxNode, TypeParameter> parameters = [];
+        Dictionary<SyntaxNode, Type> parameters = [];
         foreach (var node in annotation.DescendantsAndSelf())
         {
             cancellation.ThrowIfCancellationRequested();
@@ -104,9 +104,7 @@ internal sealed partial class Checker
             if (original is not null && (original.Flags & SymbolFlags.TypeParameter) != 0)
             {
                 var parameter = program.Scopes.Parameter(original);
-                if (state.Mapper is not null && await state.Mapper.MapAsync(parameter, cancellation) != parameter)
-                    return null;
-                parameters[identifier] = parameter;
+                parameters[identifier] = state.Mapper is null ? parameter : await state.Mapper.MapAsync(parameter, cancellation);
                 continue;
             }
             if (state.Symbols.Enclosing is null)

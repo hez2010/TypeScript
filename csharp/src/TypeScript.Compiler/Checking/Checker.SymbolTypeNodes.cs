@@ -8,7 +8,35 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
-    private void TrackComputedName(SyntaxNode expression, TypeSyntaxContext state, bool existing, CancellationToken cancellation)
+    private async ValueTask<SyntaxNode> SymbolExpressionSyntaxAsync(Symbol symbol, SymbolDisplayContext scope, TypeSyntaxContext state,
+        CancellationToken cancellation)
+    {
+        var chain = (await DisplaySymbolChainAsync(symbol, SymbolFlags.Value, true, scope, cancellation))!;
+        SyntaxNode? expression = null;
+        for (int i = 0; i < chain.Count; i++)
+        {
+            var part = chain[i];
+            var name = DisplayNameAsWritten(part, scope, i == 0, cancellation);
+            if (Quoted(name) && part.Declarations.Any(NonGlobalExternalModule))
+                expression = state.Factory.NewStringLiteral(await DisplayModuleSpecifierAsync(part, scope, cancellation), TokenFlags.None);
+            else if (expression is null || IdentifierName(name))
+            {
+                var identifier = state.Factory.NewIdentifier(name);
+                state.NoAsciiEscape.Add(identifier);
+                expression = expression is null ? identifier : state.Factory.NewPropertyAccessExpression(expression, null, identifier, NodeFlags.None);
+            }
+            else
+            {
+                if (name.Span.StartsWith((byte)'[')) name = name[1..^1];
+                var key = Quoted(name) ? (SyntaxNode)state.Factory.NewStringLiteral(UnquoteSymbolText(name), TokenFlags.None)
+                    : state.Factory.NewNumericLiteral(name, TokenFlags.None);
+                expression = state.Factory.NewElementAccessExpression(expression, null, key, NodeFlags.None);
+            }
+        }
+        return expression!;
+    }
+
+    private async ValueTask TrackComputedNameAsync(SyntaxNode expression, TypeSyntaxContext state, bool existing, CancellationToken cancellation)
     {
         var first = expression;
         while (first is QualifiedNameNode or PropertyAccessExpressionNode)
@@ -20,7 +48,7 @@ internal sealed partial class Checker
         var symbol = resolver.Resolve(state.Symbols.Enclosing, identifier.Text, meaning, isUse: true)
             ?? resolver.Resolve(identifier, identifier.Text, meaning, isUse: true);
         if (symbol is not null)
-            state.Tracker.TrackSymbol(symbol, state.Symbols.Enclosing, existing ? meaning : SymbolFlags.Value);
+            await TrackTypeSymbolAsync(symbol, state.Symbols.Enclosing, existing ? meaning : SymbolFlags.Value, state, cancellation);
     }
 
     internal async ValueTask<Utf8String> GetSymbolTypeReferenceAsync(Symbol symbol, SyntaxNode? enclosing, SymbolFlags meaning,
@@ -62,8 +90,9 @@ internal sealed partial class Checker
     private async ValueTask<SyntaxNode> SymbolTypeNodeAsync(Symbol symbol, SymbolFlags meaning, NodeList? arguments,
         SymbolDisplayContext state, bool forbidIndexed, CancellationToken cancellation)
     {
-        var factory = new NodeFactory();
-        state.Types?.Tracker.TrackSymbol(symbol, state.Enclosing, meaning);
+        var factory = new NodeFactory { OnCreate = node => node.Flags |= NodeFlags.Synthesized };
+        if (state.Types is { } tracking)
+            await TrackTypeSymbolAsync(symbol, state.Enclosing, meaning, tracking, cancellation);
         forbidIndexed |= state.ForbidIndexedAccess;
         List<Symbol> chain = state.Enclosing is null && !state.FullyQualified || (symbol.Flags & SymbolFlags.TypeParameter) != 0
             || state.Types is { InternalFlags: var internalFlags }
@@ -237,9 +266,8 @@ internal sealed partial class Checker
         if (state.Enclosing is not null && DisplayOriginalSpecifier(state.Enclosing) is { } original
             && await ModuleSpecifierAttributesAsync(original, cancellation) is { } supplied)
         {
-            var usageMode = program.Symbols.Program.ResolutionModeForUsage(SemanticSyntax.Source(state.Enclosing)!, original);
             var resolved = await ResolveImportModuleAsync(state.Enclosing, factory.NewStringLiteral(specifier, TokenFlags.None), supplied,
-                cancellation, ignoreErrors: true, resolutionMode: usageMode);
+                cancellation, ignoreErrors: true);
             if (resolved is not null && program.Symbols.Merger.GetMergedSymbol(resolved) == program.Symbols.Merger.GetMergedSymbol(symbol))
                 attributes = supplied;
         }

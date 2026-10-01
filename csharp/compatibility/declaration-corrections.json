@@ -1,0 +1,87 @@
+{
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "entries": [
+    {
+      "case": "js-expando-alias-after-variable-false",
+      "policy": "preserve-expando-member-exports",
+      "inputHash": "57578322108bc1de2ed902716025958297ecdb2bd31e819d73ad5c56477d2382",
+      "referenceHash": "ede778181db911f01939a4927d36182186b4f96c08e56d2ebe2f4206e50f8c3f",
+      "candidateHash": "e4eefb75f634c59fa1418b81edaf8cd5e7f0493dbea6ad8cba31b5cb65fe76a0",
+      "consumerEvidence": "phase5-declaration-consumers.json",
+      "consumerResultHash": "f8c9e2ac48cb53e654d78dfe99fdba5752e6a914439c8caf0ae167a7346082ed",
+      "controls": [
+        "js-expando-alias-after-variable-false-original",
+        "js-expando-alias-after-variable-false-candidate",
+        "js-expando-alias-after-variable-false-reference"
+      ]
+    },
+    {
+      "case": "ts-expando-alias-after-variable-false",
+      "policy": "preserve-expando-member-exports",
+      "inputHash": "571bf5359ca9b6762e4513499a130c0016b8a7b0e26c3504afbae0e1ab82c123",
+      "referenceHash": "8d9bbf84d63f6250aad94c2f6b2292b4404c92711383932076f75c87d662ef68",
+      "candidateHash": "74729b2d491a176d38a1a6a1b1e52dee9abb574608589cf223d4eded65baadd0",
+      "consumerEvidence": "phase5-declaration-consumers.json",
+      "consumerResultHash": "f8c9e2ac48cb53e654d78dfe99fdba5752e6a914439c8caf0ae167a7346082ed",
+      "controls": [
+        "ts-expando-alias-after-variable-false-original",
+        "ts-expando-alias-after-variable-false-candidate",
+        "ts-expando-alias-after-variable-false-reference"
+      ]
+    },
+    {
+      "case": "js-expando-alias-after-variable-true",
+      "policy": "preserve-expando-member-exports",
+      "inputHash": "ec5f2064216ef64e9eccc3e5d73fd081a2fe8fec676a3594e25e5de7ad640291",
+      "referenceHash": "d43de0c0b296973d559efc2027dfe52936e4ac02622aaa17e37f59c19008ab34",
+      "candidateHash": "142161e1e9fb21072881b89870ecb417817b5f35775599228f290a2c87691daa",
+      "consumerEvidence": "phase5-declaration-consumers.json",
+      "consumerResultHash": "f8c9e2ac48cb53e654d78dfe99fdba5752e6a914439c8caf0ae167a7346082ed",
+      "controls": [
+        "js-expando-alias-after-variable-true-original",
+        "js-expando-alias-after-variable-true-candidate",
+        "js-expando-alias-after-variable-true-reference"
+      ]
+    },
+    {
+      "case": "ts-expando-alias-after-variable-true",
+      "policy": "preserve-expando-member-exports",
+      "inputHash": "108cc6ddb73a17148f904c68868e30d3c223f04215dd7d891d2ae3b0ebb9c659",
+      "referenceHash": "a4af08b37a2930a7b1e749a13705a401a5271ae81fe0266f7de3e4d50d850de9",
+      "candidateHash": "ed8a8602081314c86a687c551891b94135b41072ece79f1fe682e482814d72ea",
+      "consumerEvidence": "phase5-declaration-consumers.json",
+      "consumerResultHash": "f8c9e2ac48cb53e654d78dfe99fdba5752e6a914439c8caf0ae167a7346082ed",
+      "controls": [
+        "ts-expando-alias-after-variable-true-original",
+        "ts-expando-alias-after-variable-true-candidate",
+        "ts-expando-alias-after-variable-true-reference"
+      ]
+    },
+    {
+      "case": "js-this-negative-key-false",
+      "policy": "preserve-negative-this-property",
+      "inputHash": "f5fdc47c51ff05abe15d489eee58dff5e55fcf57530ac275fb6acd2b7fbfa0c3",
+      "referenceHash": "14745e71f00c33eded50bd0a48ec35b441d326a7b281ab619303ca600a7233ce",
+      "candidateHash": "55b8a13728fba07d761ed398a576c32771ea8a85b36c8134b0031906d1f5e4c8",
+      "consumerEvidence": "phase5-declaration-consumers.json",
+      "consumerResultHash": "f8c9e2ac48cb53e654d78dfe99fdba5752e6a914439c8caf0ae167a7346082ed",
+      "controls": [
+        "js-this-negative-key-false-original",
+        "js-this-negative-key-false-candidate"
+      ]
+    },
+    {
+      "case": "js-this-negative-key-true",
+      "policy": "preserve-negative-this-property",
+      "inputHash": "25d3a8903a6c5ad65283fd07bbce6fb14649c2a712e049f61d0dec319385426e",
+      "referenceHash": "14745e71f00c33eded50bd0a48ec35b441d326a7b281ab619303ca600a7233ce",
+      "candidateHash": "a8a4047ed2cf50e5a300ff2a255e97855ddc0fcef1143ce9d1e6ce46dc7e3a58",
+      "consumerEvidence": "phase5-declaration-consumers.json",
+      "consumerResultHash": "f8c9e2ac48cb53e654d78dfe99fdba5752e6a914439c8caf0ae167a7346082ed",
+      "controls": [
+        "js-this-negative-key-true-original",
+        "js-this-negative-key-true-candidate"
+      ]
+    }
+  ]
+}

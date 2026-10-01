@@ -292,7 +292,7 @@ public sealed partial class Parser
             case K.ExclamationToken:
                 Next();
                 return Finish(factory.NewJSDocNonNullableType(await PostfixTypeCore().ConfigureAwait(false)), start);
-            case K.DotDotDotToken:
+            case K.DotDotDotToken when (context & NodeFlags.JSDoc) != 0:
                 Next();
                 return Finish(factory.NewJSDocVariadicType(await TypeCore().ConfigureAwait(false)), start);
         }
@@ -573,8 +573,12 @@ public sealed partial class Parser
             var name = Identifier(true);
             var optional = OptionalToken(K.QuestionToken);
             Expected(K.ColonToken);
+            int typeStart = Pos;
+            bool typeRest = Take(K.DotDotDotToken);
+            var memberType = await TypeCore().ConfigureAwait(false);
+            memberType = typeRest ? Finish(factory.NewRestTypeNode(memberType), typeStart) : TupleElementType(memberType);
             return await WithJSDocCore(
-                Finish(factory.NewNamedTupleMember(rest, name, optional, TupleElementType(await TypeCore().ConfigureAwait(false))), start),
+                Finish(factory.NewNamedTupleMember(rest, name, optional, memberType), start),
                 trivia).ConfigureAwait(false);
         }
         SyntaxNode type = await TypeCore().ConfigureAwait(false);

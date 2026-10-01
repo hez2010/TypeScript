@@ -521,7 +521,7 @@ public sealed partial class Parser
                 return await ObjectLiteralCore().ConfigureAwait(false);
         }
 
-        return Identifier();
+        return Identifier(missingDiagnostic: Messages.Expression_expected);
     }
 
     private async ValueTask<SyntaxNode> ObjectLiteralCore()
@@ -616,7 +616,8 @@ public sealed partial class Parser
                 typeArguments = (await TypeArgumentsCore().ConfigureAwait(false));
             }
 
-            if (calls && Token == K.OpenParenToken)
+            if (calls && (Token == K.OpenParenToken || question is not null && typeArguments is not null
+                && Token is not (K.NoSubstitutionTemplateLiteral or K.TemplateHead)))
             {
                 chain |= ContinueOptionalChain(left);
                 if (left.Kind == K.SuperKeyword && typeArguments is not null)

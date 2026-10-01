@@ -14,9 +14,54 @@ internal static class Program
         Utf8String[] args = commandLine.Select(Utf8String.FromString).ToArray();
         try
         {
+            if (args.Length == 1 && args[0] == "--transpile-lines"u8)
+            {
+                TranspileTests.Lines();
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--transpile-safety"u8)
+            {
+                Console.WriteLine($"Transpile safety: {TranspileTests.Safety().GetAwaiter().GetResult()} assertions");
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--program-emit-lines"u8)
+            {
+                ProgramEmissionTests.Lines();
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--program-emit-safety"u8)
+            {
+                Console.WriteLine($"Program emission safety: {ProgramEmissionTests.Safety().GetAwaiter().GetResult()} assertions");
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--declaration-safety"u8)
+            {
+                Console.WriteLine($"Declaration emit: {DeclarationEmissionTests.Safety().GetAwaiter().GetResult()} assertions; depth 20000");
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--declaration-lines"u8)
+            {
+                DeclarationEmissionTests.Lines();
+                return 0;
+            }
             if (args.Length == 1 && args[0] == "--checker-workload-lines"u8)
             {
                 CheckerWorkloadTests.Lines();
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--printer-lines"u8)
+            {
+                EmissionTests.PrinterLines();
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--emit-foundations-lines"u8)
+            {
+                EmissionTests.FoundationLines();
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--emit-foundations-safety"u8)
+            {
+                Console.WriteLine($"Emit foundations: {EmissionTests.FoundationSafety().GetAwaiter().GetResult()} assertions; depth 20000");
                 return 0;
             }
             if (args.Length == 1 && args[0] == "--module-specifiers-lines"u8)

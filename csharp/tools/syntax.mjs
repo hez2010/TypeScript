@@ -37,7 +37,7 @@ if (!process.argv.includes("--no-build")) {
     await writeFile(path.join(output, "phase2-build.log"), await run(dotnet, args, { cwd: path.join(root, "csharp") }));
 }
 const candidate = managed ? dotnet : option("--candidate", path.join(output, "phase2-native/TypeScript.Compatibility.exe"));
-const args = managed ? [path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll"), "--scan-lines"] : ["--scan-lines"];
+const args = managed ? [path.join(option('--managed-directory', path.join(root, 'csharp/tests/TypeScript.Compatibility/bin/Release/net11.0')), 'TypeScript.Compatibility.dll'), "--scan-lines"] : ["--scan-lines"];
 async function probe(command, args, cases) {
     return await new Promise((resolve, reject) => {
         const child = spawn(command, args, { windowsHide: true });

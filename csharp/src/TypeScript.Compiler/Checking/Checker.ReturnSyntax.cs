@@ -43,7 +43,7 @@ internal sealed partial class Checker
             if (objectElements is null)
                 return false;
             var expected = await Properties.GetAsync(type, cancellation);
-            if (expected.Sum(p => p.Declarations.Length) != objectElements.Count)
+            if (expected.Sum(p => Math.Max(1, p.Declarations.Length)) != objectElements.Count)
                 return false;
             foreach (var property in objectElements)
             {
@@ -58,6 +58,7 @@ internal sealed partial class Checker
         }
         if (expression is FunctionExpressionNode or ArrowFunctionNode or MethodDeclarationNode)
         {
+            if ((await Properties.GetAsync(type, cancellation)).Count != 0) return false;
             var signatures = await SignaturesAsync(type, false, cancellation);
             if (signatures.Count != 1)
                 return false;
@@ -174,10 +175,17 @@ internal sealed partial class Checker
         };
         if (text is not null)
         {
+            SyntaxNode? result = null;
             if (IdentifierName(text.Value) && !(method && text == Utf8Literals.New))
-                return state.Factory.NewIdentifier(text.Value);
+                result = name is IdentifierNode ? CloneSyntaxBindingName(name, state) : state.Factory.NewIdentifier(text.Value);
             if (method && text == Utf8Literals.New && name is not StringLiteralNode)
-                return state.Factory.NewStringLiteral(text.Value, TokenFlags.None);
+                result = state.Factory.NewStringLiteral(text.Value, TokenFlags.None);
+            if (result is not null)
+            {
+                if (SemanticSyntax.Source(name) == SemanticSyntax.Source(state.Symbols.Enclosing))
+                    (result.Pos, result.End) = (name.Pos, name.End);
+                return result;
+            }
         }
         return CloneSyntaxBindingName(name, state);
     }

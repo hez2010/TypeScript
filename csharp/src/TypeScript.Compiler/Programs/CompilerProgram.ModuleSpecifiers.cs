@@ -54,15 +54,16 @@ public sealed partial class CompilerProgram
         return moduleSpecifierHost;
     }
 
-    internal bool SourceFileMayBeEmitted(SourceFileNode source)
+    internal bool SourceFileMayBeEmitted(SourceFileNode source, bool forceDeclarations = false, bool forceJavaScript = false)
     {
         var options = Configuration.Options;
-        if (options.NoEmitForJsFiles == true && source.ScriptKind is ScriptKind.JS or ScriptKind.JSX
-            || source.IsDeclarationFile || externalLibraryFiles.Contains(source.FileName)
-            || ProjectReferences.Sources.ContainsKey(source.FileName))
+        if (!forceJavaScript && options.NoEmitForJsFiles == true && source.ScriptKind is ScriptKind.JS or ScriptKind.JSX
+            || source.IsDeclarationFile || externalLibraryFiles.Contains(source.FileName))
             return false;
-        if (GetFile(source.FileName)?.Mapping is not null && options.Declaration != true && options.Composite != true)
+        if (GetFile(source.FileName)?.Mapping is not null && !forceDeclarations && options.Declaration != true && options.Composite != true)
             return false;
+        if (forceDeclarations || forceJavaScript) return true;
+        if (ProjectReferences.Sources.ContainsKey(source.FileName)) return false;
         if (source.ScriptKind != ScriptKind.JSON)
             return true;
         if (options.OutDir is not { Length: > 0 } outputDirectory)

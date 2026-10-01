@@ -33,9 +33,15 @@ internal sealed partial class Checker
         CancellationToken cancellation = default)
     {
         using var query = await EnterQueryAsync(EmitParseNode(node) ? node : null, cancellation);
-        if (declaration is not null)
-            RequireNode(declaration);
+        if (EmitParseNode(declaration))
+            RequireNode(declaration!);
         emitImportReferences[node] = declaration;
+    }
+
+    internal async ValueTask<bool> IsCommonJsModuleForEmitAsync(SourceFileNode file, CancellationToken cancellation = default)
+    {
+        using var query = await EnterQueryAsync(file, cancellation);
+        return program.Symbols.Binding(file)?.CommonJSModuleIndicator is not null;
     }
 
     internal async ValueTask<SyntaxNode?> GetReferencedImportForEmitAsync(IdentifierNode node, CancellationToken cancellation = default)

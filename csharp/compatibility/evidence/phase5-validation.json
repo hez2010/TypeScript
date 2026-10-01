@@ -1,0 +1,114 @@
+{
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "sdk": "11.0.100-rtm.26473.115",
+  "configuration": "Release",
+  "runtime": "CoreCLR",
+  "managedDirectory": "built/csharp/phase5-final-build/bin/TypeScript.Compatibility/release",
+  "candidateHash": "6b068cdfa8b4017fe191d61775f06a8bad6edd54d8aa3058b4eb61dc2d592276",
+  "compilerHash": "c0a035debec04467b5ec526e539795b25c23c33fbaf46f7a944436872a157585",
+  "emissions": {
+    "emission-foundations": {
+      "cases": 378,
+      "strict": 377,
+      "permitted": 1,
+      "failed": 0,
+      "evidenceHash": "005737aa33869dde1a5268182bdd7a003c7b98c70e778d4355a80c4fc24983e6"
+    },
+    "printer": {
+      "cases": 2296,
+      "strict": 2291,
+      "permitted": 5,
+      "failed": 0,
+      "evidenceHash": "849e68bee5196afd12e642827625b431f1bd672a18a418733e183bd0f269150d"
+    },
+    "transforms": {
+      "cases": 7245,
+      "strict": 7005,
+      "permitted": 240,
+      "failed": 0,
+      "evidenceHash": "504d08f0072d078ac4211295dec40fae39b20b0b61b59e5e76613369f4a5472a"
+    },
+    "declarations": {
+      "cases": 428,
+      "strict": 422,
+      "permitted": 6,
+      "failed": 0,
+      "evidenceHash": "16309b49e6f8bd6444f67e7d6c856a285e8897ed90f65467c3c9e9257791300f"
+    },
+    "declaration-consumers": {
+      "cases": 22,
+      "strict": 22,
+      "permitted": 0,
+      "failed": 0,
+      "evidenceHash": "d6399191e93eb8ac1fe00decb9597fb23256c48d154dde78cfb4ebea58092efd"
+    },
+    "emit-fixtures": {
+      "cases": 1760,
+      "strict": 1758,
+      "permitted": 2,
+      "failed": 0,
+      "evidenceHash": "0febccc84ff006e4e3f92e3b77330b33d5817083829dad091f32bcb19ab2e144"
+    },
+    "program-emit": {
+      "cases": 240,
+      "strict": 240,
+      "permitted": 0,
+      "failed": 0,
+      "evidenceHash": "4ef5757dc9605b433f1d7d119138549cb125ad60273dd705ca8b982dc3e42a29"
+    },
+    "transpile": {
+      "cases": 415,
+      "strict": 415,
+      "permitted": 0,
+      "failed": 0,
+      "evidenceHash": "84b1490908fe21a0d70de1ab7467739f7a2b291dd0dfc233607c6874f24cdb4a"
+    }
+  },
+  "api": {
+    "suites": 31,
+    "configurations": 1949,
+    "comparedQueries": 1649908,
+    "referenceFailures": 4,
+    "candidateFailures": 0,
+    "evidence": "phase5-checker-apis.json"
+  },
+  "safety": {
+    "suites": 78,
+    "failed": 0,
+    "evidence": "phase5-safety.json"
+  },
+  "build": {
+    "warnings": 0,
+    "errors": 0,
+    "analyzersEnabled": true,
+    "logHash": "26ffe1f3def7890b7a54b5ba24859205a285b1926b144bda5fe3fc581dc79ec8"
+  },
+  "nativePublish": {
+    "path": "built/csharp/phase5-native-final/TypeScript.Compatibility.exe",
+    "hash": "91665fe33f54f1f00bcc7dfbd4378091aaa2bb6a36ce01c1ae0ddbc3497f0f17",
+    "bytes": 31741440,
+    "warnings": 0,
+    "errors": 0,
+    "rid": "win-x64",
+    "instructionSet": "native",
+    "restoreLockedMode": true,
+    "executed": false,
+    "logHash": "092760bb11a0c785fe123b0322f3f95c8b2365e48168f6dfc984e3cf4cc42231"
+  },
+  "performanceMeasurements": false,
+  "semantic": {
+    "single": {
+      "configurations": 13446,
+      "detailedDiagnosticMatches": 13446,
+      "failed": 0,
+      "evidence": "phase5-checker-regression-single.json"
+    },
+    "default": {
+      "configurations": 13446,
+      "detailedDiagnosticMatches": 13446,
+      "failed": 0,
+      "evidence": "phase5-checker-regression-default.json"
+    }
+  },
+  "phase5Complete": true
+}

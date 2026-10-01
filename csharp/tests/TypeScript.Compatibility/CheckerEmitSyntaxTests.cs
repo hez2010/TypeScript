@@ -3,6 +3,7 @@ using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Checking;
 using TypeScript.Compiler.Configuration;
+using TypeScript.Compiler.Emission;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Programs;
 using TypeScript.Compiler.Syntax;
@@ -250,7 +251,77 @@ internal static class CheckerEmitSyntaxTests
         var concurrent = await Task.WhenAll(
             Enumerable.Range(0, 8).Select(_ => checker.SerializeReturnTypeForEmitAsync(f, scope, flags).AsTask()));
         Check(concurrent.All(v => v == "T_1"u8) && checker.TypeSyntaxScopeCount == 0);
+        var emission = new EmitContext();
+        var returnNode = await checker.CreateReturnTypeForEmitAsync(f, scope, emission, flags, null, 0);
+        Check(returnNode is TypeReferenceNode { TypeName: IdentifierNode { Text: var returnedName } } && returnedName == "T_1"u8);
+        var literalNode = await checker.CreateLiteralConstForEmitAsync(variables["text"u8], emission);
+        Check(literalNode is StringLiteralNode { Text: var literalText } && literalText == "é"u8);
+        Check(new SyntaxPrinter(context: emission).Print(literalNode!) == "\"\\u00E9\""u8);
+        ((IdentifierNode)((TypeReferenceNode)returnNode!).TypeName!).Text = "changed"u8;
+        Check(await checker.SerializeReturnTypeForEmitAsync(f, scope, flags) == "T_1"u8);
+        try
+        {
+            await checker.CreateReturnTypeForEmitAsync(f, scope, emission, flags, null, 0, stop.Token);
+            throw new InvalidOperationException("Canceled syntax node query completed");
+        }
+        catch (OperationCanceledException) { checks++; }
         Check(snapshot.All(p => p.Parent == p.Node.Parent && p.Pos == p.Node.Pos && p.End == p.Node.End && p.Flags == p.Node.Flags));
+        return checks + await DeclarationTrackingSafety();
+    }
+
+    private static async Task<int> DeclarationTrackingSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition) throw new InvalidOperationException($"Declaration tracking assertion {checks + 1}");
+            checks++;
+        }
+        var options = new CompilerOptions();
+        options.SetRaw("noLib"u8, "true"u8);
+        var files = new Dictionary<Utf8String, byte[]>
+        {
+            ["/project/main.ts"u8] = Wtf8.Encode("import {Shape} from './other';declare const input:Shape;export function output(){return input;}export const record={item:input};"),
+            ["/project/other.ts"u8] = Wtf8.Encode("export interface Shape { value: string; }")
+        };
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project"u8,
+            new("/project/tsconfig.json"u8, options, files.Keys.ToArray(), [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var source = program.GetFile("/project/main.ts"u8)!.Syntax;
+        var function = source.Statements!.OfType<FunctionDeclarationNode>().Single();
+        var import = source.Statements!.OfType<ImportDeclarationNode>().Single();
+        var name = ((NamedImportsNode)import.ImportClause!.NamedBindings!).Elements![0];
+        Check(!await checker.IsDeclarationVisibleAsync(name));
+        var tracker = new DeclarationSymbolTracker(_ => { })
+        {
+            DiagnosticSelector = result => DeclarationDiagnostics.ForNode(function, result),
+            ErrorName = function.Name
+        };
+        const NodeBuilderFlags flags = NodeBuilderFlags.NoTruncation | NodeBuilderFlags.UseStructuralFallback
+            | NodeBuilderFlags.UseTypeOfFunction | NodeBuilderFlags.GenerateNamesForShadowedTypeParams;
+        var emission = new EmitContext();
+        var result = await checker.CreateReturnTypeForEmitAsync(function, function, emission, flags, tracker, NodeBuilderInternalFlags.AllowUnresolvedNames);
+        Check(result is TypeReferenceNode { TypeName: IdentifierNode { Text: var text } } && text == "Shape"u8);
+        Check(tracker.Diagnostics.Count == 0 && tracker.LateStatements.Contains(import));
+        Check(await checker.IsDeclarationVisibleAsync(name));
+        var snapshot = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
+        var objectNode = (await checker.CreateDeclarationTypeForEmitAsync(
+            ((VariableDeclarationListNode)((VariableStatementNode)source.Statements![1]).DeclarationList!).Declarations![0],
+            source, emission, flags, tracker, NodeBuilderInternalFlags.AllowUnresolvedNames))!;
+        var another = await checker.CreateReturnTypeForEmitAsync(function, function, new(), flags, tracker, NodeBuilderInternalFlags.AllowUnresolvedNames);
+        Check(another is TypeReferenceNode && !ReferenceEquals(result, another));
+        var record = source.DescendantsAndSelf().OfType<VariableDeclarationNode>().Last();
+        var structured = (TypeLiteralNode)(await checker.CreateExpressionTypeForEmitAsync(record.Name!, source, emission,
+            flags, tracker, NodeBuilderInternalFlags.AllowUnresolvedNames))!;
+        int cacheCount = checker.SerializedTypeSyntaxCount;
+        Check(cacheCount > 0 && structured.Members is { Count: 1 });
+        ((IdentifierNode)((PropertySignatureDeclarationNode)structured.Members![0]).Name!).Text = "changed"u8;
+        var refreshed = (TypeLiteralNode)(await checker.CreateExpressionTypeForEmitAsync(record.Name!, source, new(),
+            flags, tracker, NodeBuilderInternalFlags.AllowUnresolvedNames))!;
+        Check(refreshed.Members![0] is PropertySignatureDeclarationNode { Name: IdentifierNode { Text: var propertyName } }
+            && propertyName == "item"u8 && checker.SerializedTypeSyntaxCount == cacheCount);
+        Check(snapshot.All(p => p.Parent == p.Node.Parent && p.Pos == p.Node.Pos && p.End == p.Node.End && p.Flags == p.Node.Flags));
+        Check(checker.TypeSyntaxScopeCount == 0 && objectNode.Kind == SyntaxKind.TypeReference);
         return checks;
     }
 

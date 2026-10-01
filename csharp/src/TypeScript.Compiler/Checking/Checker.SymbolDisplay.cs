@@ -342,7 +342,7 @@ internal sealed partial class Checker
         return Utf8String.FromBuilder(result);
     }
 
-    private static Utf8String QuoteSymbolText(Utf8String text, int quote, bool ascii)
+    internal static Utf8String QuoteSymbolText(Utf8String text, int quote, bool ascii)
     {
         var result = new Utf8StringBuilder().AppendCodePoint(quote);
         Span<byte> escape = stackalloc byte[4];

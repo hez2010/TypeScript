@@ -1,0 +1,310 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": 2296,
+    "strictMatches": 2291,
+    "permittedDifferences": 5,
+    "failed": 0,
+    "runtime": [
+        {
+            "name": "runtime-multiply-rounding",
+            "expectedResult": 0,
+            "referenceResult": 1e-308,
+            "candidateResult": 0
+        },
+        {
+            "name": "runtime-addition-rounding",
+            "expectedResult": 10000000000000002,
+            "referenceResult": 10000000000000000,
+            "candidateResult": 10000000000000002
+        },
+        {
+            "name": "runtime-conversion-order-|",
+            "expectedResult": [
+                3,
+                [
+                    "c",
+                    "b",
+                    "a"
+                ]
+            ],
+            "referenceResult": [
+                3,
+                [
+                    "a",
+                    "b",
+                    "c"
+                ]
+            ],
+            "candidateResult": [
+                3,
+                [
+                    "c",
+                    "b",
+                    "a"
+                ]
+            ]
+        },
+        {
+            "name": "runtime-conversion-order-^",
+            "expectedResult": [
+                0,
+                [
+                    "c",
+                    "b",
+                    "a"
+                ]
+            ],
+            "referenceResult": [
+                0,
+                [
+                    "a",
+                    "b",
+                    "c"
+                ]
+            ],
+            "candidateResult": [
+                0,
+                [
+                    "c",
+                    "b",
+                    "a"
+                ]
+            ]
+        },
+        {
+            "name": "runtime-conversion-order-&",
+            "expectedResult": [
+                0,
+                [
+                    "c",
+                    "b",
+                    "a"
+                ]
+            ],
+            "referenceResult": [
+                0,
+                [
+                    "a",
+                    "b",
+                    "c"
+                ]
+            ],
+            "candidateResult": [
+                0,
+                [
+                    "c",
+                    "b",
+                    "a"
+                ]
+            ]
+        }
+    ],
+    "sourceHash": "413b37f8ba0c6036e88f5f1f98f19894d25361a13a149a422c40363a46470028",
+    "bridgeHash": "7afb7edf26c1e5a76c9365d0d64a6f0db25dcee424a0aa3ce83eee26184c66df",
+    "oracleHash": "ae80652a91eab309e10267b89ae53fd4c822307e21b4ff46eaed2722021c8da5",
+    "candidateHash": "6b068cdfa8b4017fe191d61775f06a8bad6edd54d8aa3058b4eb61dc2d592276",
+    "compilerHash": "c0a035debec04467b5ec526e539795b25c23c33fbaf46f7a944436872a157585",
+    "casesHash": "f473698115a69e662014ea443e6190036caa2a9a7a4e0df1b91d32b73b3f130c",
+    "referenceHash": "33c1dd1de9a8541a781e47e5752f8101e4c1d6fd50d033d8725091b235117190",
+    "resultHash": "8ea8139367a300e715872e1eb1ecfdcb4f38849dcb09a15510692ffed6b2f72f",
+    "intentionalDifferences": [
+        {
+            "name": "runtime-multiply-rounding",
+            "input": {
+                "name": "runtime-multiply-rounding",
+                "text": "const a = 1e308, b = 1e-308, c = 1e-308; globalThis.result = a * (b * c);",
+                "synthetic": true,
+                "removeComments": true,
+                "runtime": true
+            },
+            "reference": {
+                "textBase64": "Y29uc3QgYSA9IDFlKzMwOCwgYiA9IDFlLTMwOCwgYyA9IDFlLTMwODsKZ2xvYmFsVGhpcy5yZXN1bHQgPSBhICogYiAqIGM7Cg=="
+            },
+            "candidate": {
+                "textBase64": "Y29uc3QgYSA9IDFlKzMwOCwgYiA9IDFlLTMwOCwgYyA9IDFlLTMwODsKZ2xvYmFsVGhpcy5yZXN1bHQgPSBhICogKGIgKiBjKTsK"
+            },
+            "referenceText": "const a = 1e+308, b = 1e-308, c = 1e-308;\nglobalThis.result = a * b * c;\n",
+            "candidateText": "const a = 1e+308, b = 1e-308, c = 1e-308;\nglobalThis.result = a * (b * c);\n",
+            "policy": "preserve-binary-association",
+            "caseHash": "ae77241d25f9b7fe3c791ed605db65e49419633b3eb2ea51726392ea93dfdedb",
+            "rationale": "Preserve the AST's right operand grouping: floating-point arithmetic and observable operand conversion are not associative.",
+            "independentEvidence": {
+                "engine": "v24.21.0",
+                "expectedResult": 0,
+                "referenceResult": 1e-308,
+                "candidateResult": 0
+            }
+        },
+        {
+            "name": "runtime-addition-rounding",
+            "input": {
+                "name": "runtime-addition-rounding",
+                "text": "globalThis.result = 1e16 + (1 + 1);",
+                "synthetic": true,
+                "removeComments": true,
+                "runtime": true
+            },
+            "reference": {
+                "textBase64": "Z2xvYmFsVGhpcy5yZXN1bHQgPSAxMDAwMDAwMDAwMDAwMDAwMCArIDEgKyAxOwo="
+            },
+            "candidate": {
+                "textBase64": "Z2xvYmFsVGhpcy5yZXN1bHQgPSAxMDAwMDAwMDAwMDAwMDAwMCArICgxICsgMSk7Cg=="
+            },
+            "referenceText": "globalThis.result = 10000000000000000 + 1 + 1;\n",
+            "candidateText": "globalThis.result = 10000000000000000 + (1 + 1);\n",
+            "policy": "preserve-binary-association",
+            "caseHash": "523e07393f47c5f22b500e45a06b9375367ad7e42d90909942e4c941d9ef8b93",
+            "rationale": "Preserve the AST's right operand grouping: floating-point arithmetic and observable operand conversion are not associative.",
+            "independentEvidence": {
+                "engine": "v24.21.0",
+                "expectedResult": 10000000000000002,
+                "referenceResult": 10000000000000000,
+                "candidateResult": 10000000000000002
+            }
+        },
+        {
+            "name": "runtime-conversion-order-|",
+            "input": {
+                "name": "runtime-conversion-order-|",
+                "text": "const trace = []; const a = { valueOf() { trace.push('a'); return 1; } }, b = { valueOf() { trace.push('b'); return 2; } }; function c() { trace.push('c'); return 3; } const value = a | (b | c()); globalThis.result = [value, trace];",
+                "synthetic": true,
+                "removeComments": true,
+                "runtime": true
+            },
+            "reference": {
+                "textBase64": "Y29uc3QgdHJhY2UgPSBbXTsKY29uc3QgYSA9IHsgdmFsdWVPZigpIHsgdHJhY2UucHVzaCgnYScpOyByZXR1cm4gMTsgfSB9LCBiID0geyB2YWx1ZU9mKCkgeyB0cmFjZS5wdXNoKCdiJyk7IHJldHVybiAyOyB9IH07CmZ1bmN0aW9uIGMoKSB7IHRyYWNlLnB1c2goJ2MnKTsgcmV0dXJuIDM7IH0KY29uc3QgdmFsdWUgPSBhIHwgYiB8IGMoKTsKZ2xvYmFsVGhpcy5yZXN1bHQgPSBbdmFsdWUsIHRyYWNlXTsK"
+            },
+            "candidate": {
+                "textBase64": "Y29uc3QgdHJhY2UgPSBbXTsKY29uc3QgYSA9IHsgdmFsdWVPZigpIHsgdHJhY2UucHVzaCgnYScpOyByZXR1cm4gMTsgfSB9LCBiID0geyB2YWx1ZU9mKCkgeyB0cmFjZS5wdXNoKCdiJyk7IHJldHVybiAyOyB9IH07CmZ1bmN0aW9uIGMoKSB7IHRyYWNlLnB1c2goJ2MnKTsgcmV0dXJuIDM7IH0KY29uc3QgdmFsdWUgPSBhIHwgKGIgfCBjKCkpOwpnbG9iYWxUaGlzLnJlc3VsdCA9IFt2YWx1ZSwgdHJhY2VdOwo="
+            },
+            "referenceText": "const trace = [];\nconst a = { valueOf() { trace.push('a'); return 1; } }, b = { valueOf() { trace.push('b'); return 2; } };\nfunction c() { trace.push('c'); return 3; }\nconst value = a | b | c();\nglobalThis.result = [value, trace];\n",
+            "candidateText": "const trace = [];\nconst a = { valueOf() { trace.push('a'); return 1; } }, b = { valueOf() { trace.push('b'); return 2; } };\nfunction c() { trace.push('c'); return 3; }\nconst value = a | (b | c());\nglobalThis.result = [value, trace];\n",
+            "policy": "preserve-binary-association",
+            "caseHash": "da9dcc0d398b4ec80d7795e76cd680022106bf870882dc31e81fb5fe39c0e9d2",
+            "rationale": "Preserve the AST's right operand grouping: floating-point arithmetic and observable operand conversion are not associative.",
+            "independentEvidence": {
+                "engine": "v24.21.0",
+                "expectedResult": [
+                    3,
+                    [
+                        "c",
+                        "b",
+                        "a"
+                    ]
+                ],
+                "referenceResult": [
+                    3,
+                    [
+                        "a",
+                        "b",
+                        "c"
+                    ]
+                ],
+                "candidateResult": [
+                    3,
+                    [
+                        "c",
+                        "b",
+                        "a"
+                    ]
+                ]
+            }
+        },
+        {
+            "name": "runtime-conversion-order-^",
+            "input": {
+                "name": "runtime-conversion-order-^",
+                "text": "const trace = []; const a = { valueOf() { trace.push('a'); return 1; } }, b = { valueOf() { trace.push('b'); return 2; } }; function c() { trace.push('c'); return 3; } const value = a ^ (b ^ c()); globalThis.result = [value, trace];",
+                "synthetic": true,
+                "removeComments": true,
+                "runtime": true
+            },
+            "reference": {
+                "textBase64": "Y29uc3QgdHJhY2UgPSBbXTsKY29uc3QgYSA9IHsgdmFsdWVPZigpIHsgdHJhY2UucHVzaCgnYScpOyByZXR1cm4gMTsgfSB9LCBiID0geyB2YWx1ZU9mKCkgeyB0cmFjZS5wdXNoKCdiJyk7IHJldHVybiAyOyB9IH07CmZ1bmN0aW9uIGMoKSB7IHRyYWNlLnB1c2goJ2MnKTsgcmV0dXJuIDM7IH0KY29uc3QgdmFsdWUgPSBhIF4gYiBeIGMoKTsKZ2xvYmFsVGhpcy5yZXN1bHQgPSBbdmFsdWUsIHRyYWNlXTsK"
+            },
+            "candidate": {
+                "textBase64": "Y29uc3QgdHJhY2UgPSBbXTsKY29uc3QgYSA9IHsgdmFsdWVPZigpIHsgdHJhY2UucHVzaCgnYScpOyByZXR1cm4gMTsgfSB9LCBiID0geyB2YWx1ZU9mKCkgeyB0cmFjZS5wdXNoKCdiJyk7IHJldHVybiAyOyB9IH07CmZ1bmN0aW9uIGMoKSB7IHRyYWNlLnB1c2goJ2MnKTsgcmV0dXJuIDM7IH0KY29uc3QgdmFsdWUgPSBhIF4gKGIgXiBjKCkpOwpnbG9iYWxUaGlzLnJlc3VsdCA9IFt2YWx1ZSwgdHJhY2VdOwo="
+            },
+            "referenceText": "const trace = [];\nconst a = { valueOf() { trace.push('a'); return 1; } }, b = { valueOf() { trace.push('b'); return 2; } };\nfunction c() { trace.push('c'); return 3; }\nconst value = a ^ b ^ c();\nglobalThis.result = [value, trace];\n",
+            "candidateText": "const trace = [];\nconst a = { valueOf() { trace.push('a'); return 1; } }, b = { valueOf() { trace.push('b'); return 2; } };\nfunction c() { trace.push('c'); return 3; }\nconst value = a ^ (b ^ c());\nglobalThis.result = [value, trace];\n",
+            "policy": "preserve-binary-association",
+            "caseHash": "eed2e8748bcc888f99f4275d5ad3a317e92d28f565d365cab58aa6ca89258cf4",
+            "rationale": "Preserve the AST's right operand grouping: floating-point arithmetic and observable operand conversion are not associative.",
+            "independentEvidence": {
+                "engine": "v24.21.0",
+                "expectedResult": [
+                    0,
+                    [
+                        "c",
+                        "b",
+                        "a"
+                    ]
+                ],
+                "referenceResult": [
+                    0,
+                    [
+                        "a",
+                        "b",
+                        "c"
+                    ]
+                ],
+                "candidateResult": [
+                    0,
+                    [
+                        "c",
+                        "b",
+                        "a"
+                    ]
+                ]
+            }
+        },
+        {
+            "name": "runtime-conversion-order-&",
+            "input": {
+                "name": "runtime-conversion-order-&",
+                "text": "const trace = []; const a = { valueOf() { trace.push('a'); return 1; } }, b = { valueOf() { trace.push('b'); return 2; } }; function c() { trace.push('c'); return 3; } const value = a & (b & c()); globalThis.result = [value, trace];",
+                "synthetic": true,
+                "removeComments": true,
+                "runtime": true
+            },
+            "reference": {
+                "textBase64": "Y29uc3QgdHJhY2UgPSBbXTsKY29uc3QgYSA9IHsgdmFsdWVPZigpIHsgdHJhY2UucHVzaCgnYScpOyByZXR1cm4gMTsgfSB9LCBiID0geyB2YWx1ZU9mKCkgeyB0cmFjZS5wdXNoKCdiJyk7IHJldHVybiAyOyB9IH07CmZ1bmN0aW9uIGMoKSB7IHRyYWNlLnB1c2goJ2MnKTsgcmV0dXJuIDM7IH0KY29uc3QgdmFsdWUgPSBhICYgYiAmIGMoKTsKZ2xvYmFsVGhpcy5yZXN1bHQgPSBbdmFsdWUsIHRyYWNlXTsK"
+            },
+            "candidate": {
+                "textBase64": "Y29uc3QgdHJhY2UgPSBbXTsKY29uc3QgYSA9IHsgdmFsdWVPZigpIHsgdHJhY2UucHVzaCgnYScpOyByZXR1cm4gMTsgfSB9LCBiID0geyB2YWx1ZU9mKCkgeyB0cmFjZS5wdXNoKCdiJyk7IHJldHVybiAyOyB9IH07CmZ1bmN0aW9uIGMoKSB7IHRyYWNlLnB1c2goJ2MnKTsgcmV0dXJuIDM7IH0KY29uc3QgdmFsdWUgPSBhICYgKGIgJiBjKCkpOwpnbG9iYWxUaGlzLnJlc3VsdCA9IFt2YWx1ZSwgdHJhY2VdOwo="
+            },
+            "referenceText": "const trace = [];\nconst a = { valueOf() { trace.push('a'); return 1; } }, b = { valueOf() { trace.push('b'); return 2; } };\nfunction c() { trace.push('c'); return 3; }\nconst value = a & b & c();\nglobalThis.result = [value, trace];\n",
+            "candidateText": "const trace = [];\nconst a = { valueOf() { trace.push('a'); return 1; } }, b = { valueOf() { trace.push('b'); return 2; } };\nfunction c() { trace.push('c'); return 3; }\nconst value = a & (b & c());\nglobalThis.result = [value, trace];\n",
+            "policy": "preserve-binary-association",
+            "caseHash": "323556fd0fd646511f29260dee05d4ed20e539d576ed8f904d460ab467bd0284",
+            "rationale": "Preserve the AST's right operand grouping: floating-point arithmetic and observable operand conversion are not associative.",
+            "independentEvidence": {
+                "engine": "v24.21.0",
+                "expectedResult": [
+                    0,
+                    [
+                        "c",
+                        "b",
+                        "a"
+                    ]
+                ],
+                "referenceResult": [
+                    0,
+                    [
+                        "a",
+                        "b",
+                        "c"
+                    ]
+                ],
+                "candidateResult": [
+                    0,
+                    [
+                        "c",
+                        "b",
+                        "a"
+                    ]
+                ]
+            }
+        }
+    ]
+}

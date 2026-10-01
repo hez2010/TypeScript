@@ -117,7 +117,9 @@ public abstract class SyntaxNode(SyntaxKind kind)
             var clone = item.Node.ShallowClone();
             clone.Parent = null;
             clone.RewriteChildren(copies);
-            copies.Add(item.Node, clone);
+            // Type serialization can share a child between separate syntax branches.
+            // Each completed branch keeps its own clone when a later occurrence replaces this entry.
+            copies[item.Node] = clone;
             factory?.Cloned(clone, item.Node);
         }
         var result = (T)copies[this];
@@ -131,13 +133,13 @@ public abstract class SyntaxNode(SyntaxKind kind)
     }
 }
 
-public sealed class NodeList(SyntaxNode[] nodes, int pos = -1, int end = -1, bool isMissing = false) : IReadOnlyList<SyntaxNode>
+public sealed class NodeList(SyntaxNode[] nodes, int pos = -1, int end = -1, bool isMissing = false, bool? trailingComma = null) : IReadOnlyList<SyntaxNode>
 {
     private readonly SyntaxNode[] nodes = nodes;
     public int Pos { get; private set; } = pos;
     public int End { get; private set; } = end;
     public bool IsMissing { get; } = isMissing;
-    public bool HasTrailingComma => Count != 0 && this[Count - 1].End < End;
+    public bool HasTrailingComma => trailingComma ?? (Count != 0 && this[Count - 1].End < End);
     public int Count => nodes.Length;
     public SyntaxNode this[int index] => nodes[index];
 
@@ -152,7 +154,7 @@ public sealed class NodeList(SyntaxNode[] nodes, int pos = -1, int end = -1, boo
     IEnumerator IEnumerable.GetEnumerator() => nodes.GetEnumerator();
 
     internal NodeList Map(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies) =>
-        new(Array.ConvertAll(nodes, n => copies[n]), Pos, End, IsMissing);
+        new(Array.ConvertAll(nodes, n => copies[n]), Pos, End, IsMissing, HasTrailingComma);
 
 }
 

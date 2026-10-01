@@ -17,7 +17,8 @@ public sealed partial class Parser
         var parser = new Parser(new(Utf8Literals.Documentation, scriptKind), source, cancellation, start, end, true);
         await parser.ParseStack;
         parser.Expected(K.ImportKeyword);
-        int clauseStart = parser.Pos;
+        int clauseFullStart = parser.Pos;
+        int clauseStart = parser.scanner.TokenStart;
         IdentifierNode? name = parser.IsIdentifier ? parser.Identifier() : null;
         ImportClauseNode? clause = null;
         if (name is not null || parser.Token is K.AsteriskToken or K.OpenBraceToken)
@@ -25,7 +26,7 @@ public sealed partial class Parser
             SyntaxNode? bindings = null;
             if (name is null || parser.Take(K.CommaToken))
             {
-                int bindingsStart = parser.Pos;
+                int bindingsStart = name is null ? clauseStart : parser.Pos;
                 if (parser.Take(K.AsteriskToken))
                 {
                     parser.Expected(K.AsKeyword);
@@ -70,7 +71,7 @@ public sealed partial class Parser
         if (clause is null && specifier.Pos == specifier.End)
         {
             var tokenScanner = new Scanner(source, false);
-            tokenScanner.SetTextRange(clauseStart, end);
+            tokenScanner.SetTextRange(clauseFullStart, end);
             tokenScanner.ScanJSDocToken();
             for (int i = 0; i < parser.diagnostics.Count; i++)
                 if (parser.diagnostics[i] is { Code: DiagnosticCode.ExpressionExpected, Length: 0 } diagnostic)

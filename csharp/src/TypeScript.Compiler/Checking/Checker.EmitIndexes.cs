@@ -33,7 +33,22 @@ internal sealed partial class Checker
         NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default,
         INodeBuilderSymbolTracker? tracker = null,
         NodeBuilderInternalFlags internalFlags = NodeBuilderInternalFlags.None) =>
-        EmitSyntaxQueryAsync<IReadOnlyList<Utf8String>>(container, enclosing, flags, async state =>
+        LateBoundIndexesForEmitAsync(container, enclosing, flags,
+            (node, state) => PrintEmitSyntax(node, enclosing, state, cancellation), Utf8String.Empty, tracker, internalFlags, cancellation);
+
+    internal async ValueTask<NodeList?> CreateLateBoundIndexesForEmitAsync(SyntaxNode container, SyntaxNode? enclosing,
+        Emission.EmitContext emission, NodeBuilderFlags flags, INodeBuilderSymbolTracker? tracker,
+        NodeBuilderInternalFlags internalFlags, CancellationToken cancellation = default)
+    {
+        var nodes = await LateBoundIndexesForEmitAsync<SyntaxNode?>(container, enclosing, flags,
+            (node, state) => CopyEmitSyntax(node, state, emission, cancellation), null, tracker, internalFlags, cancellation);
+        return nodes.Count == 0 ? null : new(nodes.OfType<SyntaxNode>().ToArray());
+    }
+
+    private ValueTask<IReadOnlyList<T>> LateBoundIndexesForEmitAsync<T>(SyntaxNode container, SyntaxNode? enclosing,
+        NodeBuilderFlags flags, Func<SyntaxNode, TypeSyntaxContext, T> project, T failure, INodeBuilderSymbolTracker? tracker,
+        NodeBuilderInternalFlags internalFlags, CancellationToken cancellation) =>
+        EmitSyntaxQueryAsync<IReadOnlyList<T>>(container, enclosing, flags, async state =>
         {
             var symbol = program.Symbols.Binding(container)?.Get(container)?.Symbol ?? program.Symbols.Declaration(container);
             if (symbol is null)
@@ -42,7 +57,7 @@ internal sealed partial class Checker
             var members = await MembersAsync(symbol, cancellation);
             var instanceInfos = members.TryGetValue(Symbol.InternalIndex, out var indexSymbol)
                 ? await IndexInfosAsync(indexSymbol, members.Values.ToArray(), cancellation) : [];
-            var results = new List<Utf8String>();
+            var results = new List<T>();
             TypeSyntaxContext FreshContext() => new(enclosing, (flags & NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope) != 0,
                 (flags & NodeBuilderFlags.UseOnlyExternalAliasing) != 0, flags, tracker, internalFlags);
             foreach (var (infos, isStatic) in new[] { (staticInfos, true), (instanceInfos, false) })
@@ -68,22 +83,25 @@ internal sealed partial class Checker
                             if (await LateMembers.BindableAsync(component, cancellation))
                                 continue;
                             state = FreshContext();
+                            await TrackComputedNameAsync(((ComputedPropertyNameNode)SemanticSyntax.Name(component)!).Expression!, state, true, cancellation);
                             var componentSymbol = program.Symbols.Binding(component)?.Get(component)?.Symbol
                                 ?? program.Symbols.Declaration(component);
                             var type = componentSymbol is null ? context.ErrorType : await Values.GetAsync(componentSymbol, cancellation);
                             var name = CloneSyntaxBindingName(SemanticSyntax.Name(component)!, state);
                             var postfix = component is PropertyDeclarationNode property ? property.PostfixToken
-                                : component is PropertySignatureDeclarationNode signature ? signature.PostfixToken : null;
+                                : component is PropertySignatureDeclarationNode signature ? signature.PostfixToken
+                                : component is MethodDeclarationNode method ? method.PostfixToken
+                                : component is MethodSignatureDeclarationNode methodSignature ? methodSignature.PostfixToken : null;
                             var node = state.Factory.NewPropertyDeclaration(IndexModifiers(info, isStatic, state), name,
                                 postfix?.Kind == K.QuestionToken ? state.Factory.NewToken(K.QuestionToken) : null,
                                 await TypeSyntaxAsync(type, state, cancellation), null);
-                            results.Add(FinishTypeSyntax(state) ? PrintEmitSyntax(node, enclosing, state, cancellation) : Utf8String.Empty);
+                            results.Add(FinishTypeSyntax(state) ? project(node, state) : failure);
                         }
                         continue;
                     }
                     state = FreshContext();
                     var index = await IndexSignatureSyntaxAsync(info, state, cancellation, isStatic);
-                    results.Add(FinishTypeSyntax(state) ? PrintEmitSyntax(index, enclosing, state, cancellation) : Utf8String.Empty);
+                    results.Add(FinishTypeSyntax(state) ? project(index, state) : failure);
                 }
             return results;
         }, [], cancellation, tracker, internalFlags);
@@ -121,8 +139,8 @@ internal sealed partial class Checker
                     if (await LateMembers.BindableAsync(component, cancellation))
                         continue;
                     var computed = (ComputedPropertyNameNode)SemanticSyntax.Name(component)!;
-                    TrackComputedName(computed.Expression!, state, true, cancellation);
-                    TrackComputedName(computed.Expression!, state, false, cancellation);
+                    await TrackComputedNameAsync(computed.Expression!, state, true, cancellation);
+                    await TrackComputedNameAsync(computed.Expression!, state, false, cancellation);
                     var symbol = program.Symbols.Binding(component)?.Get(component)?.Symbol ?? program.Symbols.Declaration(component);
                     var typeNode = valueNode is null
                         ? await TypeSyntaxAsync(
@@ -131,7 +149,9 @@ internal sealed partial class Checker
                             cancellation)
                         : CloneSyntaxBindingName(valueNode, state);
                     var postfix = component is PropertyDeclarationNode property ? property.PostfixToken
-                        : component is PropertySignatureDeclarationNode signature ? signature.PostfixToken : null;
+                        : component is PropertySignatureDeclarationNode signature ? signature.PostfixToken
+                        : component is MethodDeclarationNode method ? method.PostfixToken
+                        : component is MethodSignatureDeclarationNode methodSignature ? methodSignature.PostfixToken : null;
                     nodes.Add(state.Factory.NewPropertySignatureDeclaration(IndexModifiers(info, false, state),
                         CloneSyntaxBindingName(SemanticSyntax.Name(component)!, state),
                         postfix is null ? null : state.Factory.NewToken(postfix.Kind),

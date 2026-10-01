@@ -52,12 +52,13 @@ const output = path.join(
 );
 const option = name => process.argv[process.argv.indexOf(name) + 1];
 const dotnet = process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet";
-const dll = path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll");
+const dll = path.join(process.argv.includes("--managed-directory") ? option("--managed-directory")
+    : path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0"), "TypeScript.Compatibility.dll");
 const oracle = path.join(root, "built/csharp/checker-program-oracle.exe");
 const hash = value => createHash("sha256").update(value).digest("hex");
 await mkdir(output, { recursive: true });
 const oracleHash = hash(await readFile(oracle));
-const candidateHash = hash(Buffer.concat([await readFile(dll), await readFile(path.join(root, "csharp/src/TypeScript.Compiler/bin/Release/net11.0/TypeScript.Compiler.dll"))]));
+const candidateHash = hash(Buffer.concat([await readFile(dll), await readFile(path.join(path.dirname(dll), "TypeScript.Compiler.dll"))]));
 const library = `interface IArguments {} interface Object {} interface Function {} interface CallableFunction extends Function {}
 interface NewableFunction extends Function {} interface String {} interface Number {} interface Boolean {} interface RegExp {}
 interface Array<T> { length: number; [n: number]: T; } interface ReadonlyArray<T> { readonly length: number; readonly [n: number]: T; }

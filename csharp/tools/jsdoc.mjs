@@ -33,7 +33,8 @@ if (!process.argv.includes("--no-build")) {
 }
 const native = option("--native");
 const candidate = native ?? dotnet;
-const args = native ? [] : [path.join(root, "csharp/tests/TypeScript.SourceMetadata/bin/Release/net11.0/TypeScript.SourceMetadata.dll")];
+const args = native ? [] : [path.join(option("--managed-directory", path.join(root,
+    "csharp/tests/TypeScript.SourceMetadata/bin/Release/net11.0")), "TypeScript.SourceMetadata.dll")];
 await run(process.execPath, [path.join(root, "csharp/tools/verify-documentation-policy.mjs")]);
 async function probe(command, args, requests) {
     return await new Promise((resolve, reject) => {

@@ -4,7 +4,9 @@ This directory executes the early work in [the rewrite plan](../docs/csharp-rewr
 
 Phases 2 and 3 are implemented and validated on Windows x64. The [phase-2 report](../docs/csharp-phase-2-results.md) covers syntax and foundation hosts; the [phase-3 report](../docs/csharp-phase-3-results.md) covers resolution, program graphs and reuse, project references, content mappers, binding, NativeAOT gates, and the strict-difference audit.
 
-Phase 4 is complete. The [checker completion report](../docs/csharp-phase-4-progress.md) records full semantic corpus parity, checker/query/emit-resolver coverage, provisional workload measurements, and warning-free NativeAOT publishing. The full semantic and API matrices use Release CoreCLR; the current NativeAOT artifacts also execute safety, host, resolution, mapper, and workload checks. Transformations/emission and full product integration remain later phases.
+Phase 4 is complete. The [checker completion report](../docs/csharp-phase-4-progress.md) records full semantic corpus parity, checker/query/emit-resolver coverage, provisional workload measurements, and warning-free NativeAOT publishing. The full semantic and API matrices use Release CoreCLR; historical NativeAOT artifacts also execute safety, host, resolution, mapper, and workload checks.
+
+Phase 5 is complete on Windows x64. It implements JavaScript and declaration emission, source maps, transforms and helpers, declaration signatures, output callbacks and single-file transpilation. The [emit and transpilation report](../docs/csharp-phase-5-progress.md) records differential comparisons, independent JavaScript execution probes, reviewed reference corrections and regression controls. Use `CompilerProgram.EmitAsync` for a program, or `Transpiler.TranspileModuleAsync` and `Transpiler.TranspileDeclarationAsync` for one source file. Build, incremental/watch orchestration and full product integration remain later phases. Performance tuning is on hold.
 
 The [Server GC and Satori comparison](../docs/csharp-phase-4-gc-performance.md) measures self-contained Release builds against Go using the current SDK and invariant globalization.
 

@@ -12,6 +12,27 @@ namespace TypeScript.Compiler.Programs;
 
 public sealed partial class CompilerProgram
 {
+    internal static Utf8String DefaultLibrary(CompilerOptions options) => options.Target switch
+    {
+        ScriptTarget.ESNext => Utf8Literals.LibEsnextFullDTs,
+        ScriptTarget.ES2015 => Utf8Literals.LibEs6DTs,
+        ScriptTarget.ES5 => Utf8Literals.LibDTs,
+        >= ScriptTarget.ES2016 and <= ScriptTarget.ES2025 => Utf8String.Concat(Utf8Literals.LibEs, Utf8String.Format(options.EmitTargetYear), Utf8Literals.FullDTs),
+        _ => Utf8Literals.LibEs2025FullDTs
+    };
+
+    internal ModuleOptionKind EmitModuleFormat(SourceFileNode source)
+    {
+        var file = GetFile(source.FileName) ?? throw new ArgumentException("Source belongs to another program", nameof(source));
+        var options = ProjectReferences.Find(source.FileName)?.Project.Options ?? Configuration.Options;
+        return Builder.ImpliedMode(source.FileName, options, file.ImpliedFormat, file.PackageType) switch
+        {
+            ReferenceResolutionMode.Require => ModuleOptionKind.CommonJS,
+            ReferenceResolutionMode.Import => ModuleOptionKind.ESNext,
+            _ => options.EmitModule
+        };
+    }
+
     internal ReferenceResolutionMode ResolutionModeForUsage(SourceFileNode source, SyntaxNode? specifier)
     {
         var file = GetFile(source.FileName) ?? throw new ArgumentException("Source belongs to another program", nameof(source));
@@ -65,15 +86,6 @@ public sealed partial class CompilerProgram
             return Utf8String.Join(", "u8, extensions.Select(extension => "'"u8 + extension + "'"u8));
         }
 
-        private static Utf8String DefaultLibrary(CompilerOptions options) => options.Target switch
-        {
-            ScriptTarget.ESNext => Utf8Literals.LibEsnextFullDTs,
-            ScriptTarget.ES2015 => Utf8Literals.LibEs6DTs,
-            ScriptTarget.ES5 => Utf8Literals.LibDTs,
-            >= ScriptTarget.ES2016 and <= ScriptTarget.ES2025 => Utf8String.Concat(Utf8Literals.LibEs, Utf8String.Format(options.EmitTargetYear), Utf8Literals.FullDTs),
-            _ => Utf8Literals.LibEs2025FullDTs
-        };
-
         private async ValueTask<Utf8String> LibraryPath(Utf8String name)
         {
             if (!name.StartsWith("lib."u8, StringComparison.Ordinal))
@@ -87,7 +99,7 @@ public sealed partial class CompilerProgram
                 }
                 name = definition.ValueIdentities[index].Trim((byte)'"');
             }
-            if (config.Options.LibReplacement != true || name == Utf8Literals.LibDTs)
+            if (skipModuleResolution || config.Options.LibReplacement != true || name == Utf8Literals.LibDTs)
                 return CompilerPath.Combine(libraryDirectory, name);
             Utf8String[] components = name[4..^5].Split((byte)'.');
             Utf8String package = Utf8Literals.TypescriptLib + components[0];
@@ -120,7 +132,7 @@ public sealed partial class CompilerProgram
             Utf8String packageType) =>
             SyntaxAffectsResolution(options) ? ImpliedMode(path, options, implied, packageType) : 0;
 
-        private static ReferenceResolutionMode ImpliedMode(
+        internal static ReferenceResolutionMode ImpliedMode(
             Utf8String path,
             CompilerOptions options,
             ReferenceResolutionMode implied,

@@ -1,0 +1,12 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": 240,
+    "strictPass": 240,
+    "failed": 0,
+    "fixtureHash": "e5e5b6804d0749fab0400745fb34e70d0218f6b65cc49aea1e64916464338566",
+    "bridgeHash": "d474eb41cd61ab4d57a82e508c39f5bd3f26e3a4acb0ca57a81d8517fc73a87c",
+    "candidateHash": "6b068cdfa8b4017fe191d61775f06a8bad6edd54d8aa3058b4eb61dc2d592276",
+    "compilerHash": "c0a035debec04467b5ec526e539795b25c23c33fbaf46f7a944436872a157585",
+    "oracleHash": "e9779b6b46101f4608f89903a202271c78a9ab2464deff664e0cd8043ad557f0",
+    "resultHash": "3e0936675be55e0a901f9335b8d6ed73dafaf1bdf9bdf2b654fad96363d35617"
+}

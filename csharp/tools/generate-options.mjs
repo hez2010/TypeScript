@@ -22,6 +22,9 @@ for (const [name, variable] of Object.entries(enumNames)) {
 const rows = [];
 const compilerSchema = new Map();
 const elementText = (await readFile(path.join(root, "tsc/internal/tsoptions/commandlineoption.go"), "utf8")).replace(/^\s*\/\/.*$/gm, "");
+const deprecated = Object.fromEntries([...elementText.slice(elementText.indexOf("var commandLineOptionDeprecated"))
+    .matchAll(/"([^"]+)":\s*collections\.NewSetFromItems\(([^)]+)\)/g)]
+    .map(match => [match[1], [...match[2].matchAll(/"([^"]+)"/g)].map(value => value[1])]));
 const elements = Object.fromEntries([...elementText.slice(elementText.indexOf("var commandLineOptionElements")).matchAll(/"([^"]+)":\s*\{([^}]+)\}/g)].map(m => [m[1], m[2]]));
 for (const [group, file] of Object.entries(groups)) {
     const text = (await readFile(path.join(root, "tsc/internal/tsoptions", file), "utf8")).replace(/^\s*\/\/.*$/gm, "");
@@ -40,8 +43,9 @@ for (const [group, file] of Object.entries(groups)) {
         const extra = (body + element).match(/extraValidation:\s*extraValidation(\w+)/)?.[1] ?? "None";
         if (group === "Compiler") compilerSchema.set(name, { kind, elementKind });
         const row = `        new(${utf8(name)}, ${utf8(short)}, OptionGroup.${group}, OptionKind.${kind}, ${flag("IsFilePath")}, ${flag("IsTSConfigOnly")}, ${flag("IsCommandLineOnly")}, [${(enums[name] ?? []).map(utf8).join(", ")}], [${(identities[name] ?? []).map(utf8).join(", ")}], ${vary}) { ElementKind = OptionKind.${elementKind}, ElementIsFilePath = ${/IsFilePath:\s*true/.test(element)}, Minimum = ${body.match(/minValue:\s*(\d+)/)?.[1] ?? 0}, AllowConfigDir = ${flag("allowConfigDirTemplateSubstitution") || flag("IsFilePath")}, PreserveFalsy = ${flag("listPreserveFalsyValues")}, Validation = OptionValidation.${extra} },`;
-        rows.push(row);
-        if (group === "Compiler" && match.index < text.indexOf("var optionsForCompiler")) rows.push(row.replace("OptionGroup.Compiler", "OptionGroup.Build"));
+        const withDeprecated = deprecated[name] ? row.replace(" },", `, DeprecatedValues = [${deprecated[name].map(utf8).join(", ")}] },`) : row;
+        rows.push(withDeprecated);
+        if (group === "Compiler" && match.index < text.indexOf("var optionsForCompiler")) rows.push(withDeprecated.replace("OptionGroup.Compiler", "OptionGroup.Build"));
     }
 }
 const compilerOptionsGo = await readFile(path.join(root, "tsc/internal/core/compileroptions.go"), "utf8");

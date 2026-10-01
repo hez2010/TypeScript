@@ -1,0 +1,1464 @@
+{
+  "baseline": {
+    "timestamp": "2026-10-01T10:32:20.490Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "sourceFiles": 839,
+    "libraryFiles": 108,
+    "expandedUnits": 1228,
+    "hosts": 12365,
+    "documentationTrees": 12599,
+    "documentationNodes": 50923,
+    "exact": 335,
+    "permittedDifferences": 95,
+    "failures": 798,
+    "policyNegativeControls": 20,
+    "runtimeKind": "CoreCLR",
+    "runtime": "CoreCLR",
+    "sdk": "11.0.100-rtm.26473.115",
+    "configuration": {
+      "optimizationPreference": "Speed",
+      "runtimeAsync": true
+    },
+    "inputSha256": "ada14063d3e4d255905e7b281d4e90ed9437abdbfbf05bccc6f5d764c79f1b09",
+    "candidateSha256": "44fecba29ce4233921d5d5b92bd4962b275ce7a93eb818a59480a99fdf71ca6c",
+    "oracleSha256": "1c84d87a0ecb358837f63b74db8df552743a29285d59b8f36a83d25622990dda",
+    "invariants": [
+      "acyclic documentation trees",
+      "unique node identity per comment tree",
+      "correct child-parent identity",
+      "source-bounded UTF-8 spans"
+    ]
+  },
+  "candidate": {
+    "timestamp": "2026-10-01T13:13:52.437Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "sourceFiles": 839,
+    "libraryFiles": 108,
+    "expandedUnits": 1228,
+    "hosts": 12365,
+    "documentationTrees": 12599,
+    "documentationNodes": 50923,
+    "exact": 335,
+    "permittedDifferences": 92,
+    "failures": 801,
+    "policyNegativeControls": 20,
+    "runtimeKind": "CoreCLR",
+    "runtime": "CoreCLR",
+    "sdk": "11.0.100-rtm.26473.115",
+    "configuration": {
+      "optimizationPreference": "Speed",
+      "runtimeAsync": true
+    },
+    "inputSha256": "ada14063d3e4d255905e7b281d4e90ed9437abdbfbf05bccc6f5d764c79f1b09",
+    "candidateSha256": "753aae3d85ecfff6dd08fa10a23df6baa8334b6afd00560451b0dc16ea63c81b",
+    "oracleSha256": "1c84d87a0ecb358837f63b74db8df552743a29285d59b8f36a83d25622990dda",
+    "invariants": [
+      "acyclic documentation trees",
+      "unique node identity per comment tree",
+      "correct child-parent identity",
+      "source-bounded UTF-8 spans"
+    ]
+  },
+  "changedCases": 34,
+  "changedFields": 154,
+  "correctedFields": 154,
+  "regressedFields": 0,
+  "otherChanges": 0,
+  "comparison": "Changed candidate documentation nodes matched to reference by syntax kind and source position; existing missing comment-text nodes do not shift comparisons.",
+  "changesHash": "abd9b1ef7716021b8a33c420e27691336dd8a82b71dd72ce5e2834a704ffa44b",
+  "changes": [
+    {
+      "name": "tsc/internal/bundled/libs/lib.dom.d.ts::0",
+      "path": "[0][382][3][0][4][1]",
+      "before": 202617,
+      "after": 202618,
+      "reference": 202618,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/internal/bundled/libs/lib.dom.d.ts::0",
+      "path": "[0][383][3][0][4][1]",
+      "before": 202873,
+      "after": 202874,
+      "reference": 202874,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/internal/bundled/libs/lib.dom.d.ts::0",
+      "path": "[0][384][3][0][4][1]",
+      "before": 203156,
+      "after": 203157,
+      "reference": 203157,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/internal/bundled/libs/lib.dom.d.ts::0",
+      "path": "[0][385][3][0][4][1]",
+      "before": 203467,
+      "after": 203468,
+      "reference": 203468,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/internal/bundled/libs/lib.dom.d.ts::0",
+      "path": "[0][386][3][0][4][1]",
+      "before": 203775,
+      "after": 203776,
+      "reference": 203776,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/internal/bundled/libs/lib.dom.d.ts::0",
+      "path": "[0][387][3][0][4][1]",
+      "before": 204134,
+      "after": 204135,
+      "reference": 204135,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/internal/bundled/libs/lib.dom.d.ts::0",
+      "path": "[0][1113][3][0][4][1]",
+      "before": 438556,
+      "after": 438557,
+      "reference": 438557,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/compiler/importAttributeTypeOnlyImports.ts::2",
+      "path": "[0][0][3][0][0][6].Tags[2]",
+      "before": 62,
+      "after": 61,
+      "reference": 61,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/compiler/importAttributeTypeOnlyImports.ts::2",
+      "path": "[0][0][3][0][1][2]",
+      "before": 62,
+      "after": 61,
+      "reference": 61,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/compiler/importAttributeTypeOnlyImports.ts::2",
+      "path": "[0][0][3][0][3][1]",
+      "before": 11,
+      "after": 12,
+      "reference": 12,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/compiler/importAttributeTypeOnlyImports.ts::2",
+      "path": "[0][0][3][0][4][1]",
+      "before": 11,
+      "after": 12,
+      "reference": 12,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/compiler/importAttributeTypesJsImports.ts::1",
+      "path": "[0][0][3][0][0][6].Tags[2]",
+      "before": 62,
+      "after": 61,
+      "reference": 61,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/compiler/importAttributeTypesJsImports.ts::1",
+      "path": "[0][0][3][0][1][2]",
+      "before": 62,
+      "after": 61,
+      "reference": 61,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/compiler/importAttributeTypesJsImports.ts::1",
+      "path": "[0][0][3][0][3][1]",
+      "before": 11,
+      "after": 12,
+      "reference": 12,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/compiler/importAttributeTypesJsImports.ts::1",
+      "path": "[0][0][3][0][4][1]",
+      "before": 11,
+      "after": 12,
+      "reference": 12,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/compiler/importAttributeTypesJsImports.ts::1",
+      "path": "[0][0][3][1][0][6].Tags[2]",
+      "before": 129,
+      "after": 128,
+      "reference": 128,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/compiler/importAttributeTypesJsImports.ts::1",
+      "path": "[0][0][3][1][1][2]",
+      "before": 129,
+      "after": 128,
+      "reference": 128,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/compiler/importAttributeTypesJsImports.ts::1",
+      "path": "[0][0][3][1][3][1]",
+      "before": 76,
+      "after": 77,
+      "reference": 77,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/compiler/importAttributeTypesJsImports.ts::1",
+      "path": "[0][0][3][1][4][1]",
+      "before": 76,
+      "after": 77,
+      "reference": 77,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/compiler/jsDeclarationEmitDoesNotReuseUnrelatedJSDocImport.ts::6",
+      "path": "[0][0][3][0][0][6].Tags[2]",
+      "before": 91,
+      "after": 89,
+      "reference": 89,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/compiler/jsDeclarationEmitDoesNotReuseUnrelatedJSDocImport.ts::6",
+      "path": "[0][0][3][0][3][1]",
+      "before": 14,
+      "after": 15,
+      "reference": 15,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/compiler/jsDeclarationEmitDoesNotReuseUnrelatedJSDocImport.ts::6",
+      "path": "[0][0][3][0][4][1]",
+      "before": 14,
+      "after": 15,
+      "reference": 15,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/compiler/jsDeclarationEmitDoesNotReuseUnrelatedJSDocImport.ts::6",
+      "path": "[0][0][3][0][8][2]",
+      "before": 91,
+      "after": 89,
+      "reference": 89,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/compiler/jsDeclarationEmitDoesNotReuseUnrelatedJSDocImport.ts::6",
+      "path": "[0][0][3][0][10][1]",
+      "before": 57,
+      "after": 58,
+      "reference": 58,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/compiler/jsDeclarationEmitDoesNotReuseUnrelatedJSDocImport.ts::6",
+      "path": "[0][0][3][0][11][1]",
+      "before": 57,
+      "after": 58,
+      "reference": 58,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/compiler/typedefHoisting.ts::0",
+      "path": "[0][1][3][0][0][6].Tags[2]",
+      "before": 43,
+      "after": 42,
+      "reference": 42,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/compiler/typedefHoisting.ts::0",
+      "path": "[0][1][3][0][1][2]",
+      "before": 43,
+      "after": 42,
+      "reference": 42,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/compiler/typedefHoisting.ts::0",
+      "path": "[0][1][3][0][3][1]",
+      "before": 25,
+      "after": 26,
+      "reference": 26,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/compiler/typedefHoisting.ts::0",
+      "path": "[0][1][3][0][4][1]",
+      "before": 25,
+      "after": 26,
+      "reference": 26,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/extendsTag5.ts::0",
+      "path": "[0][0][3][0][6][1]",
+      "before": 18,
+      "after": 25,
+      "reference": 25,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/extendsTag5.ts::0",
+      "path": "[0][0][3][0][11][1]",
+      "before": 44,
+      "after": 51,
+      "reference": 51,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/extendsTag5.ts::0",
+      "path": "[0][1][3][0][6][1]",
+      "before": 18,
+      "after": 25,
+      "reference": 25,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/extendsTag5.ts::0",
+      "path": "[0][1][3][0][11][1]",
+      "before": 44,
+      "after": 51,
+      "reference": 51,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/extendsTag5.ts::0",
+      "path": "[0][3][3][0][7][1]",
+      "before": 220,
+      "after": 227,
+      "reference": 227,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/extendsTag5.ts::0",
+      "path": "[0][3][3][0][10][1]",
+      "before": 237,
+      "after": 244,
+      "reference": 244,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/extendsTag5.ts::0",
+      "path": "[0][4][3][0][7][1]",
+      "before": 307,
+      "after": 315,
+      "reference": 315,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/extendsTag5.ts::0",
+      "path": "[0][4][3][0][10][1]",
+      "before": 325,
+      "after": 333,
+      "reference": 333,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importDeferJsdoc.ts::1",
+      "path": "[0][0][3][0][3][1]",
+      "before": 14,
+      "after": 15,
+      "reference": 15,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag1.ts::1",
+      "path": "[0][0][3][0][0][6].Tags[2]",
+      "before": 39,
+      "after": 37,
+      "reference": 37,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag1.ts::1",
+      "path": "[0][0][3][0][1][2]",
+      "before": 39,
+      "after": 37,
+      "reference": 37,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag1.ts::1",
+      "path": "[0][0][3][0][3][1]",
+      "before": 14,
+      "after": 15,
+      "reference": 15,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag1.ts::1",
+      "path": "[0][0][3][0][4][1]",
+      "before": 14,
+      "after": 15,
+      "reference": 15,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag11.ts::0",
+      "path": "[0][0][3][0][3][1]",
+      "before": 14,
+      "after": 15,
+      "reference": 15,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag12.ts::0",
+      "path": "[0][0][3][0][3][1]",
+      "before": 14,
+      "after": 15,
+      "reference": 15,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag13.ts::1",
+      "path": "[0][0][3][0][3][1]",
+      "before": 11,
+      "after": 12,
+      "reference": 12,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag14.ts::0",
+      "path": "[0][0][3][0][3][1]",
+      "before": 11,
+      "after": 12,
+      "reference": 12,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag14.ts::0",
+      "path": "[0][0][3][0][4][1]",
+      "before": 11,
+      "after": 12,
+      "reference": 12,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag15.ts::1",
+      "path": "[0][0][3][0][0][6].Tags[2]",
+      "before": 51,
+      "after": 50,
+      "reference": 50,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag15.ts::1",
+      "path": "[0][0][3][0][1][2]",
+      "before": 51,
+      "after": 50,
+      "reference": 50,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag15.ts::1",
+      "path": "[0][0][3][0][3][1]",
+      "before": 11,
+      "after": 12,
+      "reference": 12,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag15.ts::1",
+      "path": "[0][0][3][0][4][1]",
+      "before": 11,
+      "after": 12,
+      "reference": 12,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag15.ts::1",
+      "path": "[0][0][3][1][0][6].Tags[2]",
+      "before": 108,
+      "after": 107,
+      "reference": 107,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag15.ts::1",
+      "path": "[0][0][3][1][1][2]",
+      "before": 108,
+      "after": 107,
+      "reference": 107,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag15.ts::1",
+      "path": "[0][0][3][1][3][1]",
+      "before": 65,
+      "after": 66,
+      "reference": 66,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag15.ts::1",
+      "path": "[0][0][3][1][4][1]",
+      "before": 65,
+      "after": 66,
+      "reference": 66,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag16.ts::1",
+      "path": "[0][0][3][0][0][6].Tags[2]",
+      "before": 34,
+      "after": 33,
+      "reference": 33,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag16.ts::1",
+      "path": "[0][0][3][0][1][2]",
+      "before": 34,
+      "after": 33,
+      "reference": 33,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag16.ts::1",
+      "path": "[0][0][3][0][3][1]",
+      "before": 11,
+      "after": 12,
+      "reference": 12,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag17.ts::3",
+      "path": "[0][0][3][0][0][6].Tags[2]",
+      "before": 71,
+      "after": 70,
+      "reference": 70,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag17.ts::3",
+      "path": "[0][0][3][0][1][2]",
+      "before": 71,
+      "after": 70,
+      "reference": 70,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag17.ts::3",
+      "path": "[0][0][3][0][3][1]",
+      "before": 11,
+      "after": 12,
+      "reference": 12,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag17.ts::3",
+      "path": "[0][0][3][0][4][1]",
+      "before": 11,
+      "after": 12,
+      "reference": 12,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag17.ts::3",
+      "path": "[0][0][3][1][0][6].Tags[2]",
+      "before": 147,
+      "after": 146,
+      "reference": 146,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag17.ts::3",
+      "path": "[0][0][3][1][1][2]",
+      "before": 147,
+      "after": 146,
+      "reference": 146,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag17.ts::3",
+      "path": "[0][0][3][1][3][1]",
+      "before": 85,
+      "after": 86,
+      "reference": 86,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag17.ts::3",
+      "path": "[0][0][3][1][4][1]",
+      "before": 85,
+      "after": 86,
+      "reference": 86,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag18.ts::1",
+      "path": "[0][0][3][0][0][6].Tags[2]",
+      "before": 44,
+      "after": 42,
+      "reference": 42,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag18.ts::1",
+      "path": "[0][0][3][0][1][2]",
+      "before": 44,
+      "after": 42,
+      "reference": 42,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag18.ts::1",
+      "path": "[0][0][3][0][3][1]",
+      "before": 14,
+      "after": 15,
+      "reference": 15,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag18.ts::1",
+      "path": "[0][0][3][0][4][1]",
+      "before": 14,
+      "after": 15,
+      "reference": 15,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag18.ts::1",
+      "path": "[0][0][3][0][6][1]",
+      "before": 16,
+      "after": 23,
+      "reference": 23,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag19.ts::1",
+      "path": "[0][0][3][0][0][6].Tags[2]",
+      "before": 38,
+      "after": 36,
+      "reference": 36,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag19.ts::1",
+      "path": "[0][0][3][0][1][2]",
+      "before": 38,
+      "after": 36,
+      "reference": 36,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag19.ts::1",
+      "path": "[0][0][3][0][3][1]",
+      "before": 14,
+      "after": 15,
+      "reference": 15,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag19.ts::1",
+      "path": "[0][0][3][0][4][1]",
+      "before": 14,
+      "after": 15,
+      "reference": 15,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag2.ts::1",
+      "path": "[0][0][3][0][0][6].Tags[2]",
+      "before": 42,
+      "after": 40,
+      "reference": 40,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag2.ts::1",
+      "path": "[0][0][3][0][1][2]",
+      "before": 42,
+      "after": 40,
+      "reference": 40,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag2.ts::1",
+      "path": "[0][0][3][0][3][1]",
+      "before": 14,
+      "after": 15,
+      "reference": 15,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag2.ts::1",
+      "path": "[0][0][3][0][4][1]",
+      "before": 14,
+      "after": 15,
+      "reference": 15,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag20.ts::1",
+      "path": "[0][0][3][0][0][6].Tags[2]",
+      "before": 41,
+      "after": 39,
+      "reference": 39,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag20.ts::1",
+      "path": "[0][0][3][0][1][2]",
+      "before": 41,
+      "after": 39,
+      "reference": 39,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag20.ts::1",
+      "path": "[0][0][3][0][3][1]",
+      "before": 14,
+      "after": 18,
+      "reference": 18,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag20.ts::1",
+      "path": "[0][0][3][0][4][1]",
+      "before": 14,
+      "after": 18,
+      "reference": 18,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag21.ts::3",
+      "path": "[0][0][3][0][0][6].Tags[2]",
+      "before": 36,
+      "after": 35,
+      "reference": 35,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag21.ts::3",
+      "path": "[0][0][3][0][1][2]",
+      "before": 36,
+      "after": 35,
+      "reference": 35,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag21.ts::3",
+      "path": "[0][0][3][0][3][1]",
+      "before": 11,
+      "after": 12,
+      "reference": 12,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag21.ts::3",
+      "path": "[0][0][3][0][4][1]",
+      "before": 11,
+      "after": 12,
+      "reference": 12,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag22.ts::3",
+      "path": "[0][0][3][0][0][6].Tags[2]",
+      "before": 36,
+      "after": 35,
+      "reference": 35,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag22.ts::3",
+      "path": "[0][0][3][0][1][2]",
+      "before": 36,
+      "after": 35,
+      "reference": 35,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag22.ts::3",
+      "path": "[0][0][3][0][3][1]",
+      "before": 11,
+      "after": 12,
+      "reference": 12,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag22.ts::3",
+      "path": "[0][0][3][0][4][1]",
+      "before": 11,
+      "after": 12,
+      "reference": 12,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag23.ts::1",
+      "path": "[0][0][3][0][0][6].Tags[2]",
+      "before": 35,
+      "after": 33,
+      "reference": 33,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag23.ts::1",
+      "path": "[0][0][3][0][1][2]",
+      "before": 35,
+      "after": 33,
+      "reference": 33,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag23.ts::1",
+      "path": "[0][0][3][0][3][1]",
+      "before": 14,
+      "after": 15,
+      "reference": 15,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag23.ts::1",
+      "path": "[0][0][3][0][4][1]",
+      "before": 14,
+      "after": 15,
+      "reference": 15,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag24.ts::1",
+      "path": "[0][0][3][0][0][6].Tags[2]",
+      "before": 40,
+      "after": 39,
+      "reference": 39,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag24.ts::1",
+      "path": "[0][0][3][0][1][2]",
+      "before": 40,
+      "after": 39,
+      "reference": 39,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag24.ts::1",
+      "path": "[0][0][3][0][3][1]",
+      "before": 11,
+      "after": 12,
+      "reference": 12,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag24.ts::1",
+      "path": "[0][0][3][0][4][1]",
+      "before": 11,
+      "after": 12,
+      "reference": 12,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag25.ts::1",
+      "path": "[0][0][3][0][0][6].Tags[2]",
+      "before": 38,
+      "after": 37,
+      "reference": 37,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag25.ts::1",
+      "path": "[0][0][3][0][1][2]",
+      "before": 38,
+      "after": 37,
+      "reference": 37,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag25.ts::1",
+      "path": "[0][0][3][0][3][1]",
+      "before": 11,
+      "after": 12,
+      "reference": 12,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag25.ts::1",
+      "path": "[0][0][3][0][4][1]",
+      "before": 11,
+      "after": 12,
+      "reference": 12,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag3.ts::1",
+      "path": "[0][0][3][0][0][6].Tags[2]",
+      "before": 35,
+      "after": 33,
+      "reference": 33,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag3.ts::1",
+      "path": "[0][0][3][0][1][2]",
+      "before": 35,
+      "after": 33,
+      "reference": 33,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag3.ts::1",
+      "path": "[0][0][3][0][3][1]",
+      "before": 14,
+      "after": 15,
+      "reference": 15,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag4.ts::1",
+      "path": "[0][0][3][0][0][6].Tags[2]",
+      "before": 39,
+      "after": 37,
+      "reference": 37,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag4.ts::1",
+      "path": "[0][0][3][0][1][2]",
+      "before": 39,
+      "after": 37,
+      "reference": 37,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag4.ts::1",
+      "path": "[0][0][3][0][3][1]",
+      "before": 14,
+      "after": 15,
+      "reference": 15,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag4.ts::1",
+      "path": "[0][0][3][0][4][1]",
+      "before": 14,
+      "after": 15,
+      "reference": 15,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag4.ts::1",
+      "path": "[0][0][3][1][0][6].Tags[2]",
+      "before": 82,
+      "after": 80,
+      "reference": 80,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag4.ts::1",
+      "path": "[0][0][3][1][1][2]",
+      "before": 82,
+      "after": 80,
+      "reference": 80,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag4.ts::1",
+      "path": "[0][0][3][1][3][1]",
+      "before": 57,
+      "after": 58,
+      "reference": 58,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag4.ts::1",
+      "path": "[0][0][3][1][4][1]",
+      "before": 57,
+      "after": 58,
+      "reference": 58,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag5.ts::1",
+      "path": "[0][0][3][0][0][6].Tags[2]",
+      "before": 39,
+      "after": 37,
+      "reference": 37,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag5.ts::1",
+      "path": "[0][0][3][0][1][2]",
+      "before": 39,
+      "after": 37,
+      "reference": 37,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag5.ts::1",
+      "path": "[0][0][3][0][3][1]",
+      "before": 14,
+      "after": 15,
+      "reference": 15,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag5.ts::1",
+      "path": "[0][0][3][0][4][1]",
+      "before": 14,
+      "after": 15,
+      "reference": 15,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag6.ts::1",
+      "path": "[0][0][3][0][0][6].Tags[2]",
+      "before": 58,
+      "after": 56,
+      "reference": 56,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag6.ts::1",
+      "path": "[0][0][3][0][1][2]",
+      "before": 58,
+      "after": 56,
+      "reference": 56,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag6.ts::1",
+      "path": "[0][0][3][0][3][1]",
+      "before": 14,
+      "after": 15,
+      "reference": 15,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag6.ts::1",
+      "path": "[0][0][3][0][4][1]",
+      "before": 14,
+      "after": 15,
+      "reference": 15,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag6.ts::1",
+      "path": "[0][0][3][0][6][1]",
+      "before": 16,
+      "after": 24,
+      "reference": 24,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag6.ts::1",
+      "path": "[0][0][3][0][8][1]",
+      "before": 26,
+      "after": 34,
+      "reference": 34,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag7.ts::1",
+      "path": "[0][0][3][0][0][6].Tags[2]",
+      "before": 46,
+      "after": 44,
+      "reference": 44,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag7.ts::1",
+      "path": "[0][0][3][0][1][2]",
+      "before": 46,
+      "after": 44,
+      "reference": 44,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag7.ts::1",
+      "path": "[0][0][3][0][3][1]",
+      "before": 14,
+      "after": 15,
+      "reference": 15,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag7.ts::1",
+      "path": "[0][0][3][0][4][1]",
+      "before": 14,
+      "after": 15,
+      "reference": 15,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag7.ts::1",
+      "path": "[0][0][3][0][6][1]",
+      "before": 16,
+      "after": 20,
+      "reference": 20,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag7.ts::1",
+      "path": "[0][0][3][0][8][1]",
+      "before": 22,
+      "after": 26,
+      "reference": 26,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag8.ts::1",
+      "path": "[0][0][3][0][0][6].Tags[2]",
+      "before": 46,
+      "after": 44,
+      "reference": 44,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag8.ts::1",
+      "path": "[0][0][3][0][1][2]",
+      "before": 46,
+      "after": 44,
+      "reference": 44,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag8.ts::1",
+      "path": "[0][0][3][0][3][1]",
+      "before": 14,
+      "after": 18,
+      "reference": 18,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag8.ts::1",
+      "path": "[0][0][3][0][4][1]",
+      "before": 14,
+      "after": 18,
+      "reference": 18,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag9.ts::1",
+      "path": "[0][0][3][0][0][6].Tags[2]",
+      "before": 48,
+      "after": 46,
+      "reference": 46,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag9.ts::1",
+      "path": "[0][0][3][0][1][2]",
+      "before": 48,
+      "after": 46,
+      "reference": 46,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag9.ts::1",
+      "path": "[0][0][3][0][3][1]",
+      "before": 14,
+      "after": 18,
+      "reference": 18,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag9.ts::1",
+      "path": "[0][0][3][0][4][1]",
+      "before": 14,
+      "after": 18,
+      "reference": 18,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/typedefTagWrapping.ts::1",
+      "path": "[0][0][3][0][6][1]",
+      "before": 19,
+      "after": 25,
+      "reference": 25,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/typedefTagWrapping.ts::1",
+      "path": "[0][0][3][0][9][1]",
+      "before": 37,
+      "after": 43,
+      "reference": 43,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/typedefTagWrapping.ts::1",
+      "path": "[0][0][3][0][12][1]",
+      "before": 55,
+      "after": 61,
+      "reference": 61,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/typedefTagWrapping.ts::1",
+      "path": "[0][1][3][0][6][1]",
+      "before": 19,
+      "after": 25,
+      "reference": 25,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/typedefTagWrapping.ts::1",
+      "path": "[0][1][3][0][9][1]",
+      "before": 37,
+      "after": 43,
+      "reference": 43,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/typedefTagWrapping.ts::1",
+      "path": "[0][1][3][0][12][1]",
+      "before": 55,
+      "after": 61,
+      "reference": 61,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/typedefTagWrapping.ts::4",
+      "path": "[0][0][3][0][6][1]",
+      "before": 19,
+      "after": 25,
+      "reference": 25,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/typedefTagWrapping.ts::4",
+      "path": "[0][0][3][0][9][1]",
+      "before": 42,
+      "after": 48,
+      "reference": 48,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/typedefTagWrapping.ts::4",
+      "path": "[0][0][3][0][12][1]",
+      "before": 65,
+      "after": 71,
+      "reference": 71,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/typedefTagWrapping.ts::4",
+      "path": "[0][1][3][0][6][1]",
+      "before": 19,
+      "after": 25,
+      "reference": 25,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/typedefTagWrapping.ts::4",
+      "path": "[0][1][3][0][9][1]",
+      "before": 42,
+      "after": 48,
+      "reference": 48,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/typedefTagWrapping.ts::4",
+      "path": "[0][1][3][0][12][1]",
+      "before": 65,
+      "after": 71,
+      "reference": 71,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/typedefTagWrapping.ts::5",
+      "path": "[0][0][3][0][6][1]",
+      "before": 19,
+      "after": 25,
+      "reference": 25,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/typedefTagWrapping.ts::5",
+      "path": "[0][0][3][0][9][1]",
+      "before": 37,
+      "after": 43,
+      "reference": 43,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/typedefTagWrapping.ts::5",
+      "path": "[0][1][3][0][6][1]",
+      "before": 19,
+      "after": 25,
+      "reference": 25,
+      "corrected": true,
+      "regressed": false
+    },
+    {
+      "name": "tsc/testdata/tests/cases/conformance/jsdoc/typedefTagWrapping.ts::5",
+      "path": "[0][1][3][0][9][1]",
+      "before": 37,
+      "after": 43,
+      "reference": 43,
+      "corrected": true,
+      "regressed": false
+    }
+  ],
+  "newUnapprovedCases": [
+    "tsc/testdata/tests/cases/conformance/jsdoc/importTag13.ts::1",
+    "tsc/testdata/tests/cases/conformance/jsdoc/importTag14.ts::0",
+    "tsc/testdata/tests/cases/conformance/jsdoc/importTag22.ts::3"
+  ],
+  "scope": "JSDoc import position corrections against a control built with the original documentation parser files. Existing strict-policy failures are retained; three corrected cases invalidate old approved hashes.",
+  "compilerHash": "c0a035debec04467b5ec526e539795b25c23c33fbaf46f7a944436872a157585"
+}

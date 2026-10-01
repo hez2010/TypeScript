@@ -1,0 +1,1011 @@
+{
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "policies": {
+    "preserve-import-call-receiver": "An imported function binding retains an undefined receiver even when parentheses surround a call or template tag.",
+    "preserve-export-postfix-value": "After a directly exported binding is incremented, copy its updated export value into aliases without reading a removed local.",
+    "preserve-export-binding-scope": "An export specifier refers to a resolved declaration; an inner declaration with the same text must not update that export.",
+    "preserve-export-iteration-targets": "Each for-in or for-of assignment must update every export alias before executing the body.",
+    "preserve-export-destructuring": "Retain native destructuring with setter targets for export aliases, preserving iteration, closing, defaults, evaluation order and the assignment result.",
+    "preserve-inferred-binding-names": "Retain the inferred names of anonymous functions and classes when lowering private storage or replacing a binding with an export property or setter target."
+  },
+  "entries": [
+    {
+      "name": "module-cjs-commonjs-es2015-28-false",
+      "inputHash": "e9457597d1d2927c06ad6c89657755b92847236cc739f402149547bbdd8f92c3",
+      "referenceHash": "e689b8c1e6b24ed6c13f9d9c3164c72f916d85a9189d549cd6ee714c4c974b90",
+      "candidateHash": "9e664a99b7ed9291ee6e8665bc0ca043b2df5fbfad84750ebd1dad2ddfc2e2f4",
+      "policy": "preserve-import-call-receiver",
+      "probes": [
+        "module-edge-parenthesized-import-call-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-commonjs-es2015-28-true",
+      "inputHash": "85f91640a3341eeb9638d797c1a149b2555d22008264f273f454de68b8887389",
+      "referenceHash": "e689b8c1e6b24ed6c13f9d9c3164c72f916d85a9189d549cd6ee714c4c974b90",
+      "candidateHash": "9e664a99b7ed9291ee6e8665bc0ca043b2df5fbfad84750ebd1dad2ddfc2e2f4",
+      "policy": "preserve-import-call-receiver",
+      "probes": [
+        "module-edge-parenthesized-import-call-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-commonjs-es2015-35-false",
+      "inputHash": "e55c49189e71221301db07144cf7fd6980a46171d2c77334fea5931c0ce97edc",
+      "referenceHash": "cbb94dfec64ace95fbfd1e1e0f40d11236fb2e18d1b3c6276fd40d47d5ceb2ef",
+      "candidateHash": "f739a2ae581df2715f362b3cf0ee01704c40b9695465b91e1f5bd6b0a3dab2f7",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-iterator-es2022",
+        "module-edge-aliased-default-present-es2022",
+        "module-edge-object-order-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-commonjs-es2015-35-true",
+      "inputHash": "1e55d5a6d1941f4a55afb412b7fdd2d978ffa62872056877013211368570cd3c",
+      "referenceHash": "cbb94dfec64ace95fbfd1e1e0f40d11236fb2e18d1b3c6276fd40d47d5ceb2ef",
+      "candidateHash": "f739a2ae581df2715f362b3cf0ee01704c40b9695465b91e1f5bd6b0a3dab2f7",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-iterator-es2022",
+        "module-edge-aliased-default-present-es2022",
+        "module-edge-object-order-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-commonjs-es2022-28-false",
+      "inputHash": "d761e7aa89cc65aefcf820b41855204e7d993b07764f325ebc929cbba45e84da",
+      "referenceHash": "659af166e9e5592bbdf12e44aa72e719713e1ab98c7c832dc569a6b9b9b016d2",
+      "candidateHash": "ad8f0dded7609287756036e90114ed9da2b24e63be5783e80286e88247916b38",
+      "policy": "preserve-import-call-receiver",
+      "probes": [
+        "module-edge-parenthesized-import-call-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-commonjs-es2022-28-true",
+      "inputHash": "e831aec2e387478d610ffee59e8b26bdb1e1833955b5a391b8529b780e04a925",
+      "referenceHash": "659af166e9e5592bbdf12e44aa72e719713e1ab98c7c832dc569a6b9b9b016d2",
+      "candidateHash": "ad8f0dded7609287756036e90114ed9da2b24e63be5783e80286e88247916b38",
+      "policy": "preserve-import-call-receiver",
+      "probes": [
+        "module-edge-parenthesized-import-call-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-commonjs-es2022-35-false",
+      "inputHash": "5b05543a76652fac18a51728b983838eb56b4b5cf0866778272e9bede8d8bb0b",
+      "referenceHash": "cbb94dfec64ace95fbfd1e1e0f40d11236fb2e18d1b3c6276fd40d47d5ceb2ef",
+      "candidateHash": "f739a2ae581df2715f362b3cf0ee01704c40b9695465b91e1f5bd6b0a3dab2f7",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-iterator-es2022",
+        "module-edge-aliased-default-present-es2022",
+        "module-edge-object-order-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-commonjs-es2022-35-true",
+      "inputHash": "dc16061f5234e774092a42cf1be6a5a9aee9aa437555863cb9570764c76be52d",
+      "referenceHash": "cbb94dfec64ace95fbfd1e1e0f40d11236fb2e18d1b3c6276fd40d47d5ceb2ef",
+      "candidateHash": "f739a2ae581df2715f362b3cf0ee01704c40b9695465b91e1f5bd6b0a3dab2f7",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-iterator-es2022",
+        "module-edge-aliased-default-present-es2022",
+        "module-edge-object-order-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-node16-es2015-28-false",
+      "inputHash": "c6cfd3e55070ff1ac5f3cbdbf1ce3eef009b98dcd9066938696c380d4e79b146",
+      "referenceHash": "e689b8c1e6b24ed6c13f9d9c3164c72f916d85a9189d549cd6ee714c4c974b90",
+      "candidateHash": "9e664a99b7ed9291ee6e8665bc0ca043b2df5fbfad84750ebd1dad2ddfc2e2f4",
+      "policy": "preserve-import-call-receiver",
+      "probes": [
+        "module-edge-parenthesized-import-call-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-node16-es2015-28-true",
+      "inputHash": "09654f0c6062e27593041c04692057f44cd94314a489f51613c0ec6c8e3247bb",
+      "referenceHash": "e689b8c1e6b24ed6c13f9d9c3164c72f916d85a9189d549cd6ee714c4c974b90",
+      "candidateHash": "9e664a99b7ed9291ee6e8665bc0ca043b2df5fbfad84750ebd1dad2ddfc2e2f4",
+      "policy": "preserve-import-call-receiver",
+      "probes": [
+        "module-edge-parenthesized-import-call-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-node16-es2015-35-false",
+      "inputHash": "dcdb304ed3a30da58b2b571e67ba6799adf9c28b31bdfe45843ec5e951a3d7d2",
+      "referenceHash": "cbb94dfec64ace95fbfd1e1e0f40d11236fb2e18d1b3c6276fd40d47d5ceb2ef",
+      "candidateHash": "f739a2ae581df2715f362b3cf0ee01704c40b9695465b91e1f5bd6b0a3dab2f7",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-iterator-es2022",
+        "module-edge-aliased-default-present-es2022",
+        "module-edge-object-order-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-node16-es2015-35-true",
+      "inputHash": "0af61ed7e41c8ab72b55cf2cd370e3322427ab2b4dc3480f79ebb6be650ff62a",
+      "referenceHash": "cbb94dfec64ace95fbfd1e1e0f40d11236fb2e18d1b3c6276fd40d47d5ceb2ef",
+      "candidateHash": "f739a2ae581df2715f362b3cf0ee01704c40b9695465b91e1f5bd6b0a3dab2f7",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-iterator-es2022",
+        "module-edge-aliased-default-present-es2022",
+        "module-edge-object-order-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-node16-es2022-28-false",
+      "inputHash": "7bc64f0d7ab3ddb3579a4a0871ffae0d634991cbcfd956f6baee7cb1d59f8c22",
+      "referenceHash": "659af166e9e5592bbdf12e44aa72e719713e1ab98c7c832dc569a6b9b9b016d2",
+      "candidateHash": "ad8f0dded7609287756036e90114ed9da2b24e63be5783e80286e88247916b38",
+      "policy": "preserve-import-call-receiver",
+      "probes": [
+        "module-edge-parenthesized-import-call-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-node16-es2022-28-true",
+      "inputHash": "c262715e577e261058f42f40925fa35995558b59e5f643626e9af39c9a7f17e3",
+      "referenceHash": "659af166e9e5592bbdf12e44aa72e719713e1ab98c7c832dc569a6b9b9b016d2",
+      "candidateHash": "ad8f0dded7609287756036e90114ed9da2b24e63be5783e80286e88247916b38",
+      "policy": "preserve-import-call-receiver",
+      "probes": [
+        "module-edge-parenthesized-import-call-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-node16-es2022-35-false",
+      "inputHash": "eb95db34d315afac202169cdf47087b42598545b2fd7a9cb480ec0e01d4f50cd",
+      "referenceHash": "cbb94dfec64ace95fbfd1e1e0f40d11236fb2e18d1b3c6276fd40d47d5ceb2ef",
+      "candidateHash": "f739a2ae581df2715f362b3cf0ee01704c40b9695465b91e1f5bd6b0a3dab2f7",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-iterator-es2022",
+        "module-edge-aliased-default-present-es2022",
+        "module-edge-object-order-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-node16-es2022-35-true",
+      "inputHash": "0013048193069ec1d1fa461102f4b99e670d8688690d7495d4069e13c8e312b9",
+      "referenceHash": "cbb94dfec64ace95fbfd1e1e0f40d11236fb2e18d1b3c6276fd40d47d5ceb2ef",
+      "candidateHash": "f739a2ae581df2715f362b3cf0ee01704c40b9695465b91e1f5bd6b0a3dab2f7",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-iterator-es2022",
+        "module-edge-aliased-default-present-es2022",
+        "module-edge-object-order-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-nodenext-es2015-28-false",
+      "inputHash": "5ee1a91c02808b6c5409d9d2de9012b7e594d771860453d7b67452f3ba1806b4",
+      "referenceHash": "e689b8c1e6b24ed6c13f9d9c3164c72f916d85a9189d549cd6ee714c4c974b90",
+      "candidateHash": "9e664a99b7ed9291ee6e8665bc0ca043b2df5fbfad84750ebd1dad2ddfc2e2f4",
+      "policy": "preserve-import-call-receiver",
+      "probes": [
+        "module-edge-parenthesized-import-call-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-nodenext-es2015-28-true",
+      "inputHash": "a4a93a2293ed3e23e21a025baf408a534d7e3c39cef6aef41a8a27e7e1299fc5",
+      "referenceHash": "e689b8c1e6b24ed6c13f9d9c3164c72f916d85a9189d549cd6ee714c4c974b90",
+      "candidateHash": "9e664a99b7ed9291ee6e8665bc0ca043b2df5fbfad84750ebd1dad2ddfc2e2f4",
+      "policy": "preserve-import-call-receiver",
+      "probes": [
+        "module-edge-parenthesized-import-call-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-nodenext-es2015-35-false",
+      "inputHash": "9a69ad1a33f6f0fd5586da4ae3d1febe4eef82b825c379d018053798f41de0bd",
+      "referenceHash": "cbb94dfec64ace95fbfd1e1e0f40d11236fb2e18d1b3c6276fd40d47d5ceb2ef",
+      "candidateHash": "f739a2ae581df2715f362b3cf0ee01704c40b9695465b91e1f5bd6b0a3dab2f7",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-iterator-es2022",
+        "module-edge-aliased-default-present-es2022",
+        "module-edge-object-order-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-nodenext-es2015-35-true",
+      "inputHash": "eb0e705c0d27bb914b3cfecc6ce055b032704cd5514d44a5e2f9c874d33ac9ba",
+      "referenceHash": "cbb94dfec64ace95fbfd1e1e0f40d11236fb2e18d1b3c6276fd40d47d5ceb2ef",
+      "candidateHash": "f739a2ae581df2715f362b3cf0ee01704c40b9695465b91e1f5bd6b0a3dab2f7",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-iterator-es2022",
+        "module-edge-aliased-default-present-es2022",
+        "module-edge-object-order-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-nodenext-es2022-28-false",
+      "inputHash": "9fbd1eb4ba10f219dedbe244a614b9701b7c7904c141bcf5ee18a34a1915da89",
+      "referenceHash": "659af166e9e5592bbdf12e44aa72e719713e1ab98c7c832dc569a6b9b9b016d2",
+      "candidateHash": "ad8f0dded7609287756036e90114ed9da2b24e63be5783e80286e88247916b38",
+      "policy": "preserve-import-call-receiver",
+      "probes": [
+        "module-edge-parenthesized-import-call-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-nodenext-es2022-28-true",
+      "inputHash": "04d9bc2ea53d98f4c9e13159769d9cf149a8fd44b47d41f61b57f360629674cb",
+      "referenceHash": "659af166e9e5592bbdf12e44aa72e719713e1ab98c7c832dc569a6b9b9b016d2",
+      "candidateHash": "ad8f0dded7609287756036e90114ed9da2b24e63be5783e80286e88247916b38",
+      "policy": "preserve-import-call-receiver",
+      "probes": [
+        "module-edge-parenthesized-import-call-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-nodenext-es2022-35-false",
+      "inputHash": "a0e9a946ecd438b46654d57fc794ecb39300a206d830b03d5b69cd909a84de0a",
+      "referenceHash": "cbb94dfec64ace95fbfd1e1e0f40d11236fb2e18d1b3c6276fd40d47d5ceb2ef",
+      "candidateHash": "f739a2ae581df2715f362b3cf0ee01704c40b9695465b91e1f5bd6b0a3dab2f7",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-iterator-es2022",
+        "module-edge-aliased-default-present-es2022",
+        "module-edge-object-order-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-nodenext-es2022-35-true",
+      "inputHash": "fd829bdc3b9496a103772c3f3fdf04a19740d9c090802f36d79acf0cf8c943a8",
+      "referenceHash": "cbb94dfec64ace95fbfd1e1e0f40d11236fb2e18d1b3c6276fd40d47d5ceb2ef",
+      "candidateHash": "f739a2ae581df2715f362b3cf0ee01704c40b9695465b91e1f5bd6b0a3dab2f7",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-iterator-es2022",
+        "module-edge-aliased-default-present-es2022",
+        "module-edge-object-order-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-none-es2015-28-false",
+      "inputHash": "01dd6b40282e740c4bd02c38f05ff4bb65e4d8c2804f4b960c1565be56485daa",
+      "referenceHash": "e689b8c1e6b24ed6c13f9d9c3164c72f916d85a9189d549cd6ee714c4c974b90",
+      "candidateHash": "9e664a99b7ed9291ee6e8665bc0ca043b2df5fbfad84750ebd1dad2ddfc2e2f4",
+      "policy": "preserve-import-call-receiver",
+      "probes": [
+        "module-edge-parenthesized-import-call-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-none-es2015-28-true",
+      "inputHash": "c12d037d4bb77eb5f989eb3ed7e09a9b38ece7e58b0ed916625e097cbdbbe8bf",
+      "referenceHash": "e689b8c1e6b24ed6c13f9d9c3164c72f916d85a9189d549cd6ee714c4c974b90",
+      "candidateHash": "9e664a99b7ed9291ee6e8665bc0ca043b2df5fbfad84750ebd1dad2ddfc2e2f4",
+      "policy": "preserve-import-call-receiver",
+      "probes": [
+        "module-edge-parenthesized-import-call-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-none-es2015-35-false",
+      "inputHash": "24ebf5bdb6a6d65b8e5a028e55262a83deecf7c8ffa2db474367b54321920c60",
+      "referenceHash": "cbb94dfec64ace95fbfd1e1e0f40d11236fb2e18d1b3c6276fd40d47d5ceb2ef",
+      "candidateHash": "f739a2ae581df2715f362b3cf0ee01704c40b9695465b91e1f5bd6b0a3dab2f7",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-iterator-es2022",
+        "module-edge-aliased-default-present-es2022",
+        "module-edge-object-order-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-none-es2015-35-true",
+      "inputHash": "14293baabdc4db73a400aad7b85e05f8041c743e3a089acb5ed15a01109c5e42",
+      "referenceHash": "cbb94dfec64ace95fbfd1e1e0f40d11236fb2e18d1b3c6276fd40d47d5ceb2ef",
+      "candidateHash": "f739a2ae581df2715f362b3cf0ee01704c40b9695465b91e1f5bd6b0a3dab2f7",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-iterator-es2022",
+        "module-edge-aliased-default-present-es2022",
+        "module-edge-object-order-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-none-es2022-28-false",
+      "inputHash": "77d9c2ab7b0421382b0666d7b42efc9c0f5ad69e08e1a82d988d4c9534d8fb1e",
+      "referenceHash": "659af166e9e5592bbdf12e44aa72e719713e1ab98c7c832dc569a6b9b9b016d2",
+      "candidateHash": "ad8f0dded7609287756036e90114ed9da2b24e63be5783e80286e88247916b38",
+      "policy": "preserve-import-call-receiver",
+      "probes": [
+        "module-edge-parenthesized-import-call-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-none-es2022-28-true",
+      "inputHash": "4645b8f9a2e5a27df326a6b8a4e0e153aa8a2aee3a754a3df980c8880a8b6d3a",
+      "referenceHash": "659af166e9e5592bbdf12e44aa72e719713e1ab98c7c832dc569a6b9b9b016d2",
+      "candidateHash": "ad8f0dded7609287756036e90114ed9da2b24e63be5783e80286e88247916b38",
+      "policy": "preserve-import-call-receiver",
+      "probes": [
+        "module-edge-parenthesized-import-call-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-none-es2022-35-false",
+      "inputHash": "d80b643600acae99807a18612e376692aa1e49f456eb5d5ba4d0e48ddcc3b859",
+      "referenceHash": "cbb94dfec64ace95fbfd1e1e0f40d11236fb2e18d1b3c6276fd40d47d5ceb2ef",
+      "candidateHash": "f739a2ae581df2715f362b3cf0ee01704c40b9695465b91e1f5bd6b0a3dab2f7",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-iterator-es2022",
+        "module-edge-aliased-default-present-es2022",
+        "module-edge-object-order-es2022"
+      ]
+    },
+    {
+      "name": "module-cjs-none-es2022-35-true",
+      "inputHash": "a66081a5cc7b83d9460f8499e67dc57dda6e2aca20aa2573b1b9cff1ca42d191",
+      "referenceHash": "cbb94dfec64ace95fbfd1e1e0f40d11236fb2e18d1b3c6276fd40d47d5ceb2ef",
+      "candidateHash": "f739a2ae581df2715f362b3cf0ee01704c40b9695465b91e1f5bd6b0a3dab2f7",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-iterator-es2022",
+        "module-edge-aliased-default-present-es2022",
+        "module-edge-object-order-es2022"
+      ]
+    },
+    {
+      "name": "module-integration-commonjs-es2015-3-false",
+      "inputHash": "93f5145cd8da7549ff578837ece7ff5861e35d8e0f90061fea2a2371882afe17",
+      "referenceHash": "303d7aafbb1b96a5d171153092080317ddd9beceb0e8fe28b1cc708c3f977ecb",
+      "candidateHash": "f00124cf634c37d9c4cd952ce37510ad7411ceb7bd57c220fd3c43b990415ff7",
+      "policy": "preserve-inferred-binding-names",
+      "probes": [
+        "module-edge-private-class-name-es2015",
+        "module-edge-assign-name-es2022"
+      ]
+    },
+    {
+      "name": "module-integration-commonjs-es2015-3-true",
+      "inputHash": "d00f3b01195469c972ce18a4433cd5a41d8b22100ce733839fb7d272ef6cf401",
+      "referenceHash": "ed1e0eb2dce5beb202d61826cc637ba95094381d78a10171d1a11c13eee5edbe",
+      "candidateHash": "fa0e8b3cf67179c25e341d8358db0ebec633593019623f2ad2dce4dd70b0e0d9",
+      "policy": "preserve-inferred-binding-names",
+      "probes": [
+        "module-edge-private-class-name-es2015",
+        "module-edge-assign-name-es2022"
+      ]
+    },
+    {
+      "name": "module-integration-commonjs-es2022-3-false",
+      "inputHash": "c0e3249f85c3c5337318a7be4b18e13562d6ee32b6c976a84ebda867e5af253c",
+      "referenceHash": "fcb75ed5a3063feedbfa471f3ea840adf642ae3316f80282c3a75761a1da0d52",
+      "candidateHash": "e5c3fd3f4c10c0eb8fabcd1c9b7cf0e4ff081519e54d8ad0cfe1e56dd5e7f382",
+      "policy": "preserve-inferred-binding-names",
+      "probes": [
+        "module-edge-private-class-name-es2015",
+        "module-edge-assign-name-es2022"
+      ]
+    },
+    {
+      "name": "module-integration-commonjs-es2022-3-true",
+      "inputHash": "5f8144880ad20167d1ddec69319d31b67dc62e933a4264fecece1856b78d0aad",
+      "referenceHash": "fcb75ed5a3063feedbfa471f3ea840adf642ae3316f80282c3a75761a1da0d52",
+      "candidateHash": "e5c3fd3f4c10c0eb8fabcd1c9b7cf0e4ff081519e54d8ad0cfe1e56dd5e7f382",
+      "policy": "preserve-inferred-binding-names",
+      "probes": [
+        "module-edge-private-class-name-es2015",
+        "module-edge-assign-name-es2022"
+      ]
+    },
+    {
+      "name": "module-integration-commonjs-esnext-3-false",
+      "inputHash": "2a28f5aec28ea696f38827a89c66502393526fc3b3fc230c6f32b937e982e0bf",
+      "referenceHash": "fcb75ed5a3063feedbfa471f3ea840adf642ae3316f80282c3a75761a1da0d52",
+      "candidateHash": "e5c3fd3f4c10c0eb8fabcd1c9b7cf0e4ff081519e54d8ad0cfe1e56dd5e7f382",
+      "policy": "preserve-inferred-binding-names",
+      "probes": [
+        "module-edge-private-class-name-es2015",
+        "module-edge-assign-name-es2022"
+      ]
+    },
+    {
+      "name": "module-integration-commonjs-esnext-3-true",
+      "inputHash": "60ef60b48da493190728ad1fb1a120fb36ee36d3a586c6cda13cbdbf18dfc3a4",
+      "referenceHash": "fcb75ed5a3063feedbfa471f3ea840adf642ae3316f80282c3a75761a1da0d52",
+      "candidateHash": "e5c3fd3f4c10c0eb8fabcd1c9b7cf0e4ff081519e54d8ad0cfe1e56dd5e7f382",
+      "policy": "preserve-inferred-binding-names",
+      "probes": [
+        "module-edge-private-class-name-es2015",
+        "module-edge-assign-name-es2022"
+      ]
+    },
+    {
+      "name": "module-integration-esnext-es2015-3-false",
+      "inputHash": "01d2c2aea038fb2a13c5ec087b604a3d0ecfb2c3647c952e2790362ffac77506",
+      "referenceHash": "353c22022ca9047715cf687f21b41b50fef62868fedc931061f6043fcac11734",
+      "candidateHash": "9b851c571fd139857b172365a92189698a2652e5f4f783c98b6a17a5cd9718bc",
+      "policy": "preserve-inferred-binding-names",
+      "probes": [
+        "module-edge-private-class-name-es2015",
+        "module-edge-assign-name-es2022"
+      ]
+    },
+    {
+      "name": "module-integration-esnext-es2015-3-true",
+      "inputHash": "04dd28712b4d29574a332f5a74e5aab373c440996b28065a10d5e6daab5e1d4b",
+      "referenceHash": "530a264e1c3bbf1919d9404f11bd1a898c1504313844eeed8a2c024523f20f00",
+      "candidateHash": "af9b2c9cc2663ef8893769934a4ffac5de1d1a75b48cfdf2a43940174b49f77d",
+      "policy": "preserve-inferred-binding-names",
+      "probes": [
+        "module-edge-private-class-name-es2015",
+        "module-edge-assign-name-es2022"
+      ]
+    },
+    {
+      "name": "module-execute-cjs-destructure-alias-es2015",
+      "inputHash": "6f63edae7b5dd2160aed12fad4cf9d28dcdc09dd785dce5c29b259865ff78f40",
+      "referenceHash": "f57dca6678d62239a791dc865b799dda3b82ec7d3bae8aaff0274e7c4589312f",
+      "candidateHash": "abf10bbd6ad8ec32c064125147838b1be8daf4209cf678c43510667c08148f65",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-iterator-es2022",
+        "module-edge-aliased-default-present-es2022",
+        "module-edge-object-order-es2022"
+      ]
+    },
+    {
+      "name": "module-execute-cjs-object-alias-es2015",
+      "inputHash": "2b6e6c3ece8bab3f3cb10f878d5d4e1489007c2b5d381abd4847302d99ca2e54",
+      "referenceHash": "ed46459bcf0e1f086bd808b0cddc9fe46c7dcaa897dcc7713b9be4994f925fdb",
+      "candidateHash": "746861c437a30efb0481ecb8819ce00f150757dfe8a64e12e449651354097374",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-iterator-es2022",
+        "module-edge-aliased-default-present-es2022",
+        "module-edge-object-order-es2022"
+      ]
+    },
+    {
+      "name": "module-execute-cjs-destructure-alias-es2022",
+      "inputHash": "018fd549fc6bb3dc77990324f7aadf1cd0e4e5ce2f8ea2bc4a96d348879bc088",
+      "referenceHash": "f57dca6678d62239a791dc865b799dda3b82ec7d3bae8aaff0274e7c4589312f",
+      "candidateHash": "abf10bbd6ad8ec32c064125147838b1be8daf4209cf678c43510667c08148f65",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-iterator-es2022",
+        "module-edge-aliased-default-present-es2022",
+        "module-edge-object-order-es2022"
+      ]
+    },
+    {
+      "name": "module-execute-cjs-object-alias-es2022",
+      "inputHash": "140e275c3a8128e23b4fb511e19140ea997d65c0bd7238e00ea8dd4674f416fd",
+      "referenceHash": "ed46459bcf0e1f086bd808b0cddc9fe46c7dcaa897dcc7713b9be4994f925fdb",
+      "candidateHash": "746861c437a30efb0481ecb8819ce00f150757dfe8a64e12e449651354097374",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-iterator-es2022",
+        "module-edge-aliased-default-present-es2022",
+        "module-edge-object-order-es2022"
+      ]
+    },
+    {
+      "name": "module-edge-direct-postfix-es2015",
+      "inputHash": "dade22f2d344e542da96468fbdceee7ced5edda1db492840e59d942b25068650",
+      "referenceHash": "4df07a9ebddc074706e13f2baef3539a5d9aa2423590c2d6e9875af7dc198d2d",
+      "candidateHash": "63fa5befef607670f493afef1c392de031c78769bd325c9ad753cc5f63460b1a",
+      "policy": "preserve-export-postfix-value",
+      "probes": [
+        "module-edge-direct-postfix-es2015"
+      ]
+    },
+    {
+      "name": "module-edge-direct-postfix-es2022",
+      "inputHash": "908af38da0efd078a0a6e0a428b37cd7fa9fa9a2e154b62f8907bdd5ef7820ba",
+      "referenceHash": "4df07a9ebddc074706e13f2baef3539a5d9aa2423590c2d6e9875af7dc198d2d",
+      "candidateHash": "63fa5befef607670f493afef1c392de031c78769bd325c9ad753cc5f63460b1a",
+      "policy": "preserve-export-postfix-value",
+      "probes": [
+        "module-edge-direct-postfix-es2022"
+      ]
+    },
+    {
+      "name": "module-edge-direct-postfix-discard-es2015",
+      "inputHash": "199fc1895ced1ff72857a8b52466375e07c9f4d7e38fa40c7d6650b7207a5589",
+      "referenceHash": "13400ee351bfbcca8896f01e086f6aab584a6952b7ca5017c02c528d997e2532",
+      "candidateHash": "d2184261aeb40073e068e45e99d8852637ad66313ff3fcd96068b6bb24b2c257",
+      "policy": "preserve-export-postfix-value",
+      "probes": [
+        "module-edge-direct-postfix-discard-es2015"
+      ]
+    },
+    {
+      "name": "module-edge-direct-postfix-discard-es2022",
+      "inputHash": "45e02c83d01d6c505861022b5bb0254b7e2111540e99c40970442614c1203f3a",
+      "referenceHash": "13400ee351bfbcca8896f01e086f6aab584a6952b7ca5017c02c528d997e2532",
+      "candidateHash": "d2184261aeb40073e068e45e99d8852637ad66313ff3fcd96068b6bb24b2c257",
+      "policy": "preserve-export-postfix-value",
+      "probes": [
+        "module-edge-direct-postfix-discard-es2022"
+      ]
+    },
+    {
+      "name": "module-edge-aliased-iterator-es2015",
+      "inputHash": "47e4cfff7704f4b3373db89d317dd67f671e921748085bd09092f5c91a734651",
+      "referenceHash": "ec2199e2f77216609efd9a2ae34735ac2f4fd4db76041687f19a4d9910f674cd",
+      "candidateHash": "8fbbc24a73d36a05e66b2201e048151e835c69576b991e9a744ad42d2d47a7bb",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-iterator-es2015"
+      ]
+    },
+    {
+      "name": "module-edge-aliased-iterator-es2022",
+      "inputHash": "761ffdff33c63b726968ec46e690f8934c9774d22aaf106eed0e88e4f75df73c",
+      "referenceHash": "ec2199e2f77216609efd9a2ae34735ac2f4fd4db76041687f19a4d9910f674cd",
+      "candidateHash": "8fbbc24a73d36a05e66b2201e048151e835c69576b991e9a744ad42d2d47a7bb",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-iterator-es2022"
+      ]
+    },
+    {
+      "name": "module-edge-aliased-default-es2015",
+      "inputHash": "a38a980d1ca075ad9459e438e5b08766a913172f198c0b2c552b632bca15a12c",
+      "referenceHash": "d6f47ece84541142367a7a33f1e51fd05e493eaa80d39926f495cf8efe02ec75",
+      "candidateHash": "b9160d8678278820eba72b8a1c0401f23837c82b4d14625331f8f0e24bee525f",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-default-es2015"
+      ]
+    },
+    {
+      "name": "module-edge-aliased-default-es2022",
+      "inputHash": "c2559160f86ca94b3f54b86b00e229907e2d2aa70ecbbf3c27605a15a182ceaa",
+      "referenceHash": "d6f47ece84541142367a7a33f1e51fd05e493eaa80d39926f495cf8efe02ec75",
+      "candidateHash": "b9160d8678278820eba72b8a1c0401f23837c82b4d14625331f8f0e24bee525f",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-default-es2022"
+      ]
+    },
+    {
+      "name": "module-edge-aliased-default-present-es2015",
+      "inputHash": "b495683c4b7f9f61a829990e5e8d86cc25536edeead1ddc80b0773a6653bd29f",
+      "referenceHash": "7f73282882213a29381d651134244b0ff7ed969ccec80219d2b4799016204814",
+      "candidateHash": "8af975da97565e41d07c4bc1e95b05c38ea6f0d7c13458aff53989d931a5c7bd",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-default-present-es2015"
+      ]
+    },
+    {
+      "name": "module-edge-aliased-default-present-es2022",
+      "inputHash": "67808c325d98749e76068cf6b1da8e5eead994cbdabf42541c88fcebc0d3f5c3",
+      "referenceHash": "7f73282882213a29381d651134244b0ff7ed969ccec80219d2b4799016204814",
+      "candidateHash": "8af975da97565e41d07c4bc1e95b05c38ea6f0d7c13458aff53989d931a5c7bd",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-default-present-es2022"
+      ]
+    },
+    {
+      "name": "module-edge-aliased-object-default-es2015",
+      "inputHash": "2c167bbaa43d4025dd148f11e814528ad418e16462461bed3aa5144640ccfbec",
+      "referenceHash": "a44d4e2038066d2e76cf5de279a2a768ebf8636effb56a196639964f80ee97b0",
+      "candidateHash": "727e80b3c516d571c6f42ea28d63f2d54625c7f4eb46cb002f819989545de980",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-object-default-es2015"
+      ]
+    },
+    {
+      "name": "module-edge-aliased-object-default-es2022",
+      "inputHash": "a7470ac12b3845c57310cbf2610a6157a9ac4e9cbb0b67703befc1a07e43b2eb",
+      "referenceHash": "a44d4e2038066d2e76cf5de279a2a768ebf8636effb56a196639964f80ee97b0",
+      "candidateHash": "727e80b3c516d571c6f42ea28d63f2d54625c7f4eb46cb002f819989545de980",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-object-default-es2022"
+      ]
+    },
+    {
+      "name": "module-edge-aliased-renamed-default-es2015",
+      "inputHash": "efb419e9f33dd5f07e6f79b8b93a9f5350e846ab68ece25ef8934b793bc69c2c",
+      "referenceHash": "674b976094a6d7f195cc7026ed0697fefde7ecad7092774bc6fdb225ffb32470",
+      "candidateHash": "9efdc30731b95f611a148c5f03e84545e3ce8336fe6debe15b4e423a942cfcaa",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-renamed-default-es2015"
+      ]
+    },
+    {
+      "name": "module-edge-aliased-renamed-default-es2022",
+      "inputHash": "42f596b379a36a591cd0c3a8f1c6ec17b4574536a8f257af4ccd40a183b94bee",
+      "referenceHash": "674b976094a6d7f195cc7026ed0697fefde7ecad7092774bc6fdb225ffb32470",
+      "candidateHash": "9efdc30731b95f611a148c5f03e84545e3ce8336fe6debe15b4e423a942cfcaa",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-renamed-default-es2022"
+      ]
+    },
+    {
+      "name": "module-edge-aliased-renamed-present-es2015",
+      "inputHash": "30daef35cf9c1f12e42c8648286eb7dc84da5c2aca4697903f7a4bed1e97ea91",
+      "referenceHash": "5012347f352783491f793b50716f247e428b8d6a5ff67db4b1e6e2497219f078",
+      "candidateHash": "fee764bc2cd9a999daf9b655b3ca30710bb07483f78967110af01f55a2d1ac61",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-renamed-present-es2015"
+      ]
+    },
+    {
+      "name": "module-edge-aliased-renamed-present-es2022",
+      "inputHash": "53ea10e51a2a117a66b52f95336d3f964c5e71d9a4072d77119106a0d068ed54",
+      "referenceHash": "5012347f352783491f793b50716f247e428b8d6a5ff67db4b1e6e2497219f078",
+      "candidateHash": "fee764bc2cd9a999daf9b655b3ca30710bb07483f78967110af01f55a2d1ac61",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-aliased-renamed-present-es2022"
+      ]
+    },
+    {
+      "name": "module-edge-parenthesized-import-call-es2015",
+      "inputHash": "019a9106d4e5a638a86794c196955522861ecae3ace4ccca1ab8ce6c77b61f89",
+      "referenceHash": "4719292f2d6c0ebb38354618a57e672bba1ceed46aea66bbf79cfb923f3a9239",
+      "candidateHash": "b3481385148085bc7c7465246e3ac141e83c146f2a3b5ee8050818c731def70d",
+      "policy": "preserve-import-call-receiver",
+      "probes": [
+        "module-edge-parenthesized-import-call-es2015"
+      ]
+    },
+    {
+      "name": "module-edge-parenthesized-import-call-es2022",
+      "inputHash": "ca2501dedeee75c8e47d5542f7f7416078398b7678585857737d40369a1ac9b1",
+      "referenceHash": "4719292f2d6c0ebb38354618a57e672bba1ceed46aea66bbf79cfb923f3a9239",
+      "candidateHash": "b3481385148085bc7c7465246e3ac141e83c146f2a3b5ee8050818c731def70d",
+      "policy": "preserve-import-call-receiver",
+      "probes": [
+        "module-edge-parenthesized-import-call-es2022"
+      ]
+    },
+    {
+      "name": "module-edge-nested-block-shadow-es2015",
+      "inputHash": "0ee3ad52576907b2d0f0ae981097c3431b09ae6e2f1ef8d87f6adf3d42aa577e",
+      "referenceHash": "101314ef282e6858dd556809e783986ac03295eee0ab750c28a94135856118d8",
+      "candidateHash": "87b6a44690a87cef0b41641bf8f3afde35d3b223806006ff88568c1bf48f8fca",
+      "policy": "preserve-export-binding-scope",
+      "probes": [
+        "module-edge-nested-block-shadow-es2015"
+      ]
+    },
+    {
+      "name": "module-edge-nested-block-shadow-es2022",
+      "inputHash": "756e4e9713200c9da158f193435bb7e3f0df87c617c1595be4f8c091ca7c2059",
+      "referenceHash": "101314ef282e6858dd556809e783986ac03295eee0ab750c28a94135856118d8",
+      "candidateHash": "87b6a44690a87cef0b41641bf8f3afde35d3b223806006ff88568c1bf48f8fca",
+      "policy": "preserve-export-binding-scope",
+      "probes": [
+        "module-edge-nested-block-shadow-es2022"
+      ]
+    },
+    {
+      "name": "module-edge-default-name-es2015",
+      "inputHash": "37a029bdd65233058a4064c6d135f50854dad6d576e13181df695c4c51d6c31f",
+      "referenceHash": "87ac376c5dd95338200c1148faa4f2de867ed2ebbe4556c0de4cd68fb9378617",
+      "candidateHash": "6e7c982fe990fea42d36476749a61ad130c624e9a67b3256854149dc1d59a538",
+      "policy": "preserve-inferred-binding-names",
+      "probes": [
+        "module-edge-default-name-es2015"
+      ]
+    },
+    {
+      "name": "module-edge-default-name-es2022",
+      "inputHash": "5e5f7b30398512df0a41d1c879251d7fb606486811403a92d9387e6540702d1c",
+      "referenceHash": "87ac376c5dd95338200c1148faa4f2de867ed2ebbe4556c0de4cd68fb9378617",
+      "candidateHash": "6e7c982fe990fea42d36476749a61ad130c624e9a67b3256854149dc1d59a538",
+      "policy": "preserve-inferred-binding-names",
+      "probes": [
+        "module-edge-default-name-es2022"
+      ]
+    },
+    {
+      "name": "module-edge-object-default-name-es2015",
+      "inputHash": "3330fb84336d03aef3a41d4562a7d1180d88ec46870f1727d6fc7d8988741997",
+      "referenceHash": "4658d9659b49f8e7ac3a6f78bcb0306e2362939a8751c5fb718d0b451048d627",
+      "candidateHash": "5b49b239d13ba4cf04fb7327594b932de800a5d1664b8492c98ceb1f4d18afc1",
+      "policy": "preserve-inferred-binding-names",
+      "probes": [
+        "module-edge-object-default-name-es2015"
+      ]
+    },
+    {
+      "name": "module-edge-object-default-name-es2022",
+      "inputHash": "fa37ee712e59117b11de5e63f81a16a9e0c85170879eecffda382695f1c62c45",
+      "referenceHash": "4658d9659b49f8e7ac3a6f78bcb0306e2362939a8751c5fb718d0b451048d627",
+      "candidateHash": "5b49b239d13ba4cf04fb7327594b932de800a5d1664b8492c98ceb1f4d18afc1",
+      "policy": "preserve-inferred-binding-names",
+      "probes": [
+        "module-edge-object-default-name-es2022"
+      ]
+    },
+    {
+      "name": "module-edge-class-default-name-es2015",
+      "inputHash": "43a1a76255305fe8d179f4f9aa02e66eb4f89f796827e8119af82f0a8f96f499",
+      "referenceHash": "9b1e1d31e0f8e0c51b50f72a64ea6a17540b35a22a89371ce3b4c283ac0017b8",
+      "candidateHash": "456f35f2ee7977c25b5b22d4516a1617cdbc6d252e566a39e5ac7c29fcf92664",
+      "policy": "preserve-inferred-binding-names",
+      "probes": [
+        "module-edge-class-default-name-es2015"
+      ]
+    },
+    {
+      "name": "module-edge-class-default-name-es2022",
+      "inputHash": "3e9518a5a6347c0411c46afcb762bf97e7764a329e6130a4b32343db88f6487b",
+      "referenceHash": "723f33797cbc9055acbcec980a518ec96a6a39e99126f7b0d9c99b33c64c9a51",
+      "candidateHash": "40ba71f63d00a022b64fabc8aa691d4c18e260f418af27a38728200a0e4e0b80",
+      "policy": "preserve-inferred-binding-names",
+      "probes": [
+        "module-edge-class-default-name-es2022"
+      ]
+    },
+    {
+      "name": "module-edge-array-value-es2015",
+      "inputHash": "e1f83f3222dc4521361c9f3f5e0959d63f74377809f35cdaa7dbd6f935bcfa63",
+      "referenceHash": "46ffaf23d1ac9e114edacc2333a9418bfb8a280b5a4f337594965a80e45ae31e",
+      "candidateHash": "51fa3c18b5d58198a50f76a420b23580d36bd02ccf547942541eb8d4fa152248",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-array-value-es2015"
+      ]
+    },
+    {
+      "name": "module-edge-array-value-es2022",
+      "inputHash": "976012ddb1208231afe64485ee1909c2e92b410e5301abb9eb0dc3cf4e91a4a2",
+      "referenceHash": "46ffaf23d1ac9e114edacc2333a9418bfb8a280b5a4f337594965a80e45ae31e",
+      "candidateHash": "51fa3c18b5d58198a50f76a420b23580d36bd02ccf547942541eb8d4fa152248",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-array-value-es2022"
+      ]
+    },
+    {
+      "name": "module-edge-nested-iterator-es2015",
+      "inputHash": "993780d8e10a36dc43100106cc5dbfe5cd11f5e04f0753d36c6a5282e3cba4c0",
+      "referenceHash": "409f63dfe485736fc28c352a216dd52a9e0e5b2283a2209a025803c53714171e",
+      "candidateHash": "e9397c8999d11f92b023c9cbd9d863dbb34ebd082601bcaaaef126e665b12386",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-nested-iterator-es2015"
+      ]
+    },
+    {
+      "name": "module-edge-nested-iterator-es2022",
+      "inputHash": "812cb505b0fc18cd3488e86ddda962430f3dadf4b0a63824e29523d3f944556c",
+      "referenceHash": "409f63dfe485736fc28c352a216dd52a9e0e5b2283a2209a025803c53714171e",
+      "candidateHash": "e9397c8999d11f92b023c9cbd9d863dbb34ebd082601bcaaaef126e665b12386",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-nested-iterator-es2022"
+      ]
+    },
+    {
+      "name": "module-edge-iterator-throw-es2015",
+      "inputHash": "6c38220527d6c421d8f3ec26f7139e7a7bbb6e6cbc210a0b4ed5837e319fa370",
+      "referenceHash": "3a102221d6730ee046dd319a3846cce3c045913c2d513a1477e49469e8e0a24e",
+      "candidateHash": "c31db156bc8de63c023e59caba90b4c957f1f65ac1a22a244721805c3b5dba9a",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-iterator-throw-es2015"
+      ]
+    },
+    {
+      "name": "module-edge-iterator-throw-es2022",
+      "inputHash": "ebc1e328a5914d4bc3f39ba118f2eeaf9e18a6d245e76aafa9ac9e1bec0421a3",
+      "referenceHash": "3a102221d6730ee046dd319a3846cce3c045913c2d513a1477e49469e8e0a24e",
+      "candidateHash": "c31db156bc8de63c023e59caba90b4c957f1f65ac1a22a244721805c3b5dba9a",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-iterator-throw-es2022"
+      ]
+    },
+    {
+      "name": "module-edge-array-rest-es2015",
+      "inputHash": "b3213f5b7d551f14df5c7cdadad02cc90f1d39d06e49073524b0a0bb3bbe9d76",
+      "referenceHash": "4ad49f1e19773d0b2ac6e00c311a8a09fb7b6483420ac7226c8e6a22e080688b",
+      "candidateHash": "feb74765e435b0b6955c567b4f767d2ab9cbd2a21e96fd36317ccbe162724e6c",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-array-rest-es2015"
+      ]
+    },
+    {
+      "name": "module-edge-array-rest-es2022",
+      "inputHash": "6f187813dd3074934ec58b0649bd1e6dc3456789f96ea09682ecc5c139ebe1c5",
+      "referenceHash": "4ad49f1e19773d0b2ac6e00c311a8a09fb7b6483420ac7226c8e6a22e080688b",
+      "candidateHash": "feb74765e435b0b6955c567b4f767d2ab9cbd2a21e96fd36317ccbe162724e6c",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-array-rest-es2022"
+      ]
+    },
+    {
+      "name": "module-edge-object-order-es2015",
+      "inputHash": "59ff0c4d1682d7f3b3684e09e669fe0f8e38d2d69cda913a69c4a2c89fcd153b",
+      "referenceHash": "f96957f00c0e671b457526678cfa4d660b11c79b592fc44d88ce69644eb4ba64",
+      "candidateHash": "95ca4b2a883a7042a50bc13dc25ed31f82a1f55a3d2655f1a528e2574c25e793",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-object-order-es2015"
+      ]
+    },
+    {
+      "name": "module-edge-object-order-es2022",
+      "inputHash": "3592591f34e60321d3f1ffc40e4c8288c43d8f87c8ac7295f9554499c5b031a3",
+      "referenceHash": "f96957f00c0e671b457526678cfa4d660b11c79b592fc44d88ce69644eb4ba64",
+      "candidateHash": "95ca4b2a883a7042a50bc13dc25ed31f82a1f55a3d2655f1a528e2574c25e793",
+      "policy": "preserve-export-destructuring",
+      "probes": [
+        "module-edge-object-order-es2022"
+      ]
+    },
+    {
+      "name": "module-edge-assign-name-es2015",
+      "inputHash": "642ac4a8c8ececb648636fdb1b2c265539720756aca8a73d47ad3f3ff8e9aa54",
+      "referenceHash": "21ba0e947a6e730498bf0eb64a5698bcf8439c0b37480c82efdefd7f73b17fa8",
+      "candidateHash": "e2a967fcceecf46b4a7c1cc5532b355ee1dccfb238d3334c9f32d1ef5ba450b5",
+      "policy": "preserve-inferred-binding-names",
+      "probes": [
+        "module-edge-assign-name-es2015"
+      ]
+    },
+    {
+      "name": "module-edge-assign-name-es2022",
+      "inputHash": "e24c7c79a7715994c73cbd2bf542fc2588a0ebab3e236a3c741393c216ce4d89",
+      "referenceHash": "21ba0e947a6e730498bf0eb64a5698bcf8439c0b37480c82efdefd7f73b17fa8",
+      "candidateHash": "e2a967fcceecf46b4a7c1cc5532b355ee1dccfb238d3334c9f32d1ef5ba450b5",
+      "policy": "preserve-inferred-binding-names",
+      "probes": [
+        "module-edge-assign-name-es2022"
+      ]
+    },
+    {
+      "name": "module-edge-private-class-name-es2015",
+      "inputHash": "3b69f5f642c8fc1341be0e27c17425eeeab34a42fb4c6ed8a29de8b67aca4b3d",
+      "referenceHash": "d44326da551a16d2a8c88c88ac912e53d31a85158a9c68a26c977af5f1a87166",
+      "candidateHash": "72a083a4dba8cbf2122b435b91a8b1fa900ef4d83a10580fab8aaf0d708e1b2b",
+      "policy": "preserve-inferred-binding-names",
+      "probes": [
+        "module-edge-private-class-name-es2015"
+      ]
+    },
+    {
+      "name": "module-edge-direct-default-name-es2015",
+      "inputHash": "8bdfba7a12b4d4bc263e9ded92039b256212c63c74fc810f24453ce292a44b01",
+      "referenceHash": "a933b4c9ae181e77568b0bc54a7a17042a0dad8810736d8438f463c2177b006e",
+      "candidateHash": "163b09b90a843a1a3826f51ea00fe643d9a40a5dac016482b00ed84158ca0b7d",
+      "policy": "preserve-inferred-binding-names",
+      "probes": [
+        "module-edge-direct-default-name-es2015"
+      ]
+    },
+    {
+      "name": "module-edge-direct-default-name-es2022",
+      "inputHash": "b44a67babf56dc1d39dc5c267aa260554eb91c78c64dcd496b2b6ee3d70b903c",
+      "referenceHash": "a933b4c9ae181e77568b0bc54a7a17042a0dad8810736d8438f463c2177b006e",
+      "candidateHash": "163b09b90a843a1a3826f51ea00fe643d9a40a5dac016482b00ed84158ca0b7d",
+      "policy": "preserve-inferred-binding-names",
+      "probes": [
+        "module-edge-direct-default-name-es2022"
+      ]
+    },
+    {
+      "name": "module-edge-for-assignment-es2015",
+      "inputHash": "8d747bc64eadb0d43c46a30bef3b034003bdcfe7ce804dd4876b1cbc726e95c7",
+      "referenceHash": "c0e7aff25159c0fd00e9b908da0dbef4ab9b1fa490abf5026054d3cd72714c62",
+      "candidateHash": "62fa20ffa67da19a7403d7a9f295d940fff96e86d00f27a8a1d115fd8b90cdaf",
+      "policy": "preserve-export-iteration-targets",
+      "probes": [
+        "module-edge-for-assignment-es2015"
+      ]
+    },
+    {
+      "name": "module-edge-for-assignment-es2022",
+      "inputHash": "c8e97aec3c825657f48216d138ba73ea73876bdeb57c210a36f13829f14a73b0",
+      "referenceHash": "c0e7aff25159c0fd00e9b908da0dbef4ab9b1fa490abf5026054d3cd72714c62",
+      "candidateHash": "62fa20ffa67da19a7403d7a9f295d940fff96e86d00f27a8a1d115fd8b90cdaf",
+      "policy": "preserve-export-iteration-targets",
+      "probes": [
+        "module-edge-for-assignment-es2022"
+      ]
+    },
+    {
+      "name": "module-edge-for-pattern-es2015",
+      "inputHash": "2c721f7de1d6576324d79393aff6bbc4a5b35e7380fde4ce8e55189c9725d214",
+      "referenceHash": "0ed6c9253bf04ee27b3412fd7d19db70a6174c7ef8c0192d8b52970e7d536037",
+      "candidateHash": "d4a27a8ba347f50cf0e7e6eda0c137f6c524b101971d008db9e0cdeb8ae87892",
+      "policy": "preserve-export-iteration-targets",
+      "probes": [
+        "module-edge-for-pattern-es2015"
+      ]
+    },
+    {
+      "name": "module-edge-for-pattern-es2022",
+      "inputHash": "5130f020845b183699bfcd69fb1384e03eb6fed3a40ae69fdf66568e96d477c1",
+      "referenceHash": "0ed6c9253bf04ee27b3412fd7d19db70a6174c7ef8c0192d8b52970e7d536037",
+      "candidateHash": "d4a27a8ba347f50cf0e7e6eda0c137f6c524b101971d008db9e0cdeb8ae87892",
+      "policy": "preserve-export-iteration-targets",
+      "probes": [
+        "module-edge-for-pattern-es2022"
+      ]
+    },
+    {
+      "name": "module-edge-for-in-assignment-es2015",
+      "inputHash": "2ce8f2b95accc6aabf2e41d04c207cf25393a8a70475a68c6002c2a2ee41b47c",
+      "referenceHash": "32180c320de89b2f8948a33625e420c38a12a4be1c418cf897a65aa59f0f033d",
+      "candidateHash": "090860665e7cf09d69883a1b4385c0afd61c63cb827fe69cbf8dd217e6238e39",
+      "policy": "preserve-export-iteration-targets",
+      "probes": [
+        "module-edge-for-in-assignment-es2015"
+      ]
+    },
+    {
+      "name": "module-edge-for-in-assignment-es2022",
+      "inputHash": "e72dd03371421762e66dc98d5f217970acb82bd1407592eb4ddd6ce45e0c18dd",
+      "referenceHash": "32180c320de89b2f8948a33625e420c38a12a4be1c418cf897a65aa59f0f033d",
+      "candidateHash": "090860665e7cf09d69883a1b4385c0afd61c63cb827fe69cbf8dd217e6238e39",
+      "policy": "preserve-export-iteration-targets",
+      "probes": [
+        "module-edge-for-in-assignment-es2022"
+      ]
+    },
+    {
+      "name": "class-private-3677",
+      "inputHash": "dede2ba83a38b422eecfce1cd67fc4169437062937227b425bb49eef8150edeb",
+      "referenceHash": "10e645ba18b45f0b2b2b1495f55d4de60a26cf4dbb32e362d64da1662f779fd0",
+      "candidateHash": "8dba7a74e6333c4d70dc0eae458856c34c32eed27101d14ad3c6f2f8fcecd9b4",
+      "policy": "preserve-inferred-binding-names",
+      "probes": [
+        "module-edge-private-class-name-es2015"
+      ]
+    },
+    {
+      "name": "class-private-3678",
+      "inputHash": "6411f9548c550daafc2d21f980769e3ee0a8d71fd4b20834e35d1b2aa1458280",
+      "referenceHash": "b582a6509fc9d0d56c95f298067b24cecd51cdacbe9d0c71601d9650f340f160",
+      "candidateHash": "b292a5c5df3e04671ed60d9f7b742f634698bbaca787f822c605fe06f36a131f",
+      "policy": "preserve-inferred-binding-names",
+      "probes": [
+        "module-edge-private-class-name-es2015"
+      ]
+    },
+    {
+      "name": "class-private-3679",
+      "inputHash": "9afad0329852e327e83f30f11b30972da6d7306825e5488a4c07082fda0a3489",
+      "referenceHash": "10e645ba18b45f0b2b2b1495f55d4de60a26cf4dbb32e362d64da1662f779fd0",
+      "candidateHash": "8dba7a74e6333c4d70dc0eae458856c34c32eed27101d14ad3c6f2f8fcecd9b4",
+      "policy": "preserve-inferred-binding-names",
+      "probes": [
+        "module-edge-private-class-name-es2015"
+      ]
+    },
+    {
+      "name": "class-private-3680",
+      "inputHash": "f6ed6f9135e2b907c17adced9ebd27bdb99c1c18c2666327941bc7e61839b113",
+      "referenceHash": "b582a6509fc9d0d56c95f298067b24cecd51cdacbe9d0c71601d9650f340f160",
+      "candidateHash": "b292a5c5df3e04671ed60d9f7b742f634698bbaca787f822c605fe06f36a131f",
+      "policy": "preserve-inferred-binding-names",
+      "probes": [
+        "module-edge-private-class-name-es2015"
+      ]
+    }
+  ]
+}

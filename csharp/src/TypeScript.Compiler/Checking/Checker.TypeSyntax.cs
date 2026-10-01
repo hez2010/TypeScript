@@ -120,17 +120,20 @@ internal sealed partial class Checker
         internal bool ReportedDiagnostic => DiagnosticCount != 0;
         internal List<TrackedTypeSymbol> TrackedSymbols { get; set; } = [];
         internal Dictionary<SerializedTypeKey, SerializedType> PendingTypes { get; } = [];
-        internal Dictionary<SyntaxNode, (bool NoAscii, bool SingleLine)> PendingPrinting { get; } = [];
+        internal Dictionary<SyntaxNode, (bool NoAscii, bool SingleLine, SyntaxNode? CommentSource)> PendingPrinting { get; } = [];
         internal bool SuppressInferenceFallback { get; set; }
         internal TypeSyntaxNames? ParameterNames { get; }
         internal TypeMapper? Mapper { get; set; }
         internal QualifiedTypeParameterNames QualifiedNames { get; } = new();
         internal TypeSyntaxLength Length { get; }
-        internal NodeFactory Factory { get; } = new();
+        internal NodeFactory Factory { get; } = new() { OnCreate = node => node.Flags |= NodeFlags.Synthesized };
         internal SymbolDisplayContext Symbols { get; }
         internal HashSet<SyntaxNode> NoAsciiEscape { get; } = [];
         internal HashSet<SyntaxNode> SingleLine { get; } = [];
+        internal HashSet<SyntaxNode> Elided { get; } = [];
+        internal Dictionary<SyntaxNode, SyntaxNode> CommentSources { get; } = [];
         internal HashSet<Type> Active { get; } = [];
+        internal Dictionary<(bool Constructor, Symbol? Symbol, SyntaxNode? Node), int> SymbolDepth { get; } = [];
         internal List<Symbol> ReverseMappedProperties { get; } = [];
         internal IReadOnlyList<TypeParameter>? InferParameters { get; set; }
     }
@@ -801,7 +804,7 @@ internal sealed partial class Checker
             if (LateName(property.Name)
                 && SemanticSyntax.Name(declaration) is ComputedPropertyNameNode { Expression: { } computedExpression }
                 && ConstantEvaluator.EntityName(computedExpression))
-                TrackComputedName(computedExpression, state, false, cancellation);
+                await TrackComputedNameAsync(computedExpression, state, false, cancellation);
             if ((property.Flags & (SymbolFlags.Accessor | SymbolFlags.Method | SymbolFlags.Function)) == 0
                 && state.Symbols.Enclosing is not null && declaration is ITypedNode { Type: { } annotation }
                 && (value.ObjectFlags & ObjectFlags.RequiresWidening) == 0)
@@ -826,14 +829,7 @@ internal sealed partial class Checker
                 {
                     var sourceScope = new SymbolDisplayContext(declaration ?? state.Symbols.Enclosing, state.Symbols.Flags)
                     { Length = state.Length, ExpressionNames = true };
-                    if (await SymbolTypeNodeAsync(
-                        nameSymbol,
-                        SymbolFlags.Value,
-                        null,
-                        sourceScope,
-                        false,
-                        cancellation) is TypeQueryNode query)
-                        computedName = f.NewComputedPropertyName(query.ExprName);
+                    computedName = f.NewComputedPropertyName(await SymbolExpressionSyntaxAsync(nameSymbol, sourceScope, state, cancellation));
                 }
                 else if ((nameType.Flags & TypeFlags.EnumLiteral) != 0 && state.Symbols.Enclosing is not null
                     && (await SymbolAccessibilityAsync(nameSymbol.Parent ?? nameSymbol, state.Symbols.Enclosing,
@@ -856,11 +852,14 @@ internal sealed partial class Checker
             bool singleQuote = property.Declarations.Length != 0;
             foreach (var propertyDeclaration in property.Declarations)
             {
-                var declarationName = DisplayDeclarationName(propertyDeclaration);
+                var declarationName = propertyDeclaration is BinaryExpressionNode { Left: ElementAccessExpressionNode elementAccess }
+                    ? elementAccess : DisplayDeclarationName(propertyDeclaration);
                 singleQuote &= declarationName is StringLiteralNode quoted && (quoted.TokenFlags & TokenFlags.SingleQuote) != 0;
                 stringNamed &= declarationName is StringLiteralNode
                     || declarationName is ComputedPropertyNameNode computed
-                        && ((await ExpressionTypeForQueryAsync(computed.Expression!, cancellation)).Flags & TypeFlags.StringLike) != 0;
+                        && ((await ExpressionTypeForQueryAsync(computed.Expression!, cancellation)).Flags & TypeFlags.StringLike) != 0
+                    || declarationName is ElementAccessExpressionNode element
+                        && ((await ExpressionTypeForQueryAsync(element.ArgumentExpression!, cancellation)).Flags & TypeFlags.StringLike) != 0;
             }
             SyntaxNode propertyName;
             if (computedName is not null)
@@ -884,7 +883,7 @@ internal sealed partial class Checker
             {
                 var write = await Values.WriteAsync(property, cancellation);
                 if (value != context.ErrorType && write != context.ErrorType && (value != write
-                    || (property.Parent?.Flags & SymbolFlags.Class) != 0 && !property.Declarations.Any(d => d is PropertyDeclarationNode)))
+                    || ((property.Parent?.Flags ?? 0) & SymbolFlags.Class) != 0 && !property.Declarations.Any(d => d is PropertyDeclarationNode)))
                 {
                     foreach (var kind in new[] { K.GetAccessor, K.SetAccessor })
                         if (property.Declarations.FirstOrDefault(d => d.Kind == kind) is { } accessor)
@@ -892,8 +891,25 @@ internal sealed partial class Checker
                             var signature = await Signatures.FromDeclarationAsync(accessor, cancellation);
                             if (links.Values.TryGet(property)?.Mapper is { } mapper)
                                 signature = await Instantiation.Engine.SignatureAsync(signature, mapper, false, cancellation);
-                            members.Add(await SignatureSyntaxAsync(signature, kind, state, cancellation, propertyName));
+                            var accessorNode = await SignatureSyntaxAsync(signature, kind, state, cancellation, propertyName);
+                            state.CommentSources[accessorNode] = accessor;
+                            members.Add(accessorNode);
                         }
+                    continue;
+                }
+            }
+            if ((property.Flags & SymbolFlags.Accessor) != 0 && ((property.Parent?.Flags ?? 0) & SymbolFlags.Class) != 0
+                && property.Declarations.FirstOrDefault(d => d is PropertyDeclarationNode && SemanticSyntax.HasModifier(d, K.AccessorKeyword)) is { } autoAccessor)
+            {
+                var write = await Values.WriteAsync(property, cancellation);
+                if (value != context.ErrorType && write != context.ErrorType)
+                {
+                    var getter = f.NewGetAccessorDeclaration(null, propertyName, null, new([]), await TypeSyntaxAsync(value, state, cancellation), null, null);
+                    state.CommentSources[getter] = autoAccessor;
+                    members.Add(getter);
+                    members.Add(f.NewSetAccessorDeclaration(null, propertyName, null,
+                        new([f.NewParameterDeclaration(null, null, f.NewIdentifier("arg"u8), null, await TypeSyntaxAsync(write, state, cancellation), null)]),
+                        null, null, null));
                     continue;
                 }
             }
@@ -906,7 +922,12 @@ internal sealed partial class Checker
                     false,
                     cancellation);
                 foreach (var signature in signatures)
-                    members.Add(await SignatureSyntaxAsync(signature, K.MethodSignature, state, cancellation, propertyName, question));
+                {
+                    var method = await SignatureSyntaxAsync(signature, K.MethodSignature, state, cancellation, propertyName,
+                        property.ValueDeclaration is MethodDeclarationNode { Parent: ObjectLiteralExpressionNode } ? null : question);
+                    if ((signature.Declaration ?? property.ValueDeclaration) is { } source) state.CommentSources[method] = source;
+                    members.Add(method);
+                }
                 if (signatures.Count != 0 || question is null)
                     continue;
             }
@@ -940,10 +961,12 @@ internal sealed partial class Checker
             }
             if (readOnly)
                 state.Length.Add(9);
-            members.Add(f.NewPropertySignatureDeclaration(readOnly ? new([f.NewToken(K.ReadonlyKeyword)]) : null, propertyName,
+            var propertyNode = f.NewPropertySignatureDeclaration(readOnly ? new([f.NewToken(K.ReadonlyKeyword)]) : null, propertyName,
                 question,
                 propertyTypeNode,
-                null));
+                null);
+            if (property.ValueDeclaration is { } commentSource) state.CommentSources[propertyNode] = commentSource;
+            members.Add(propertyNode);
         }
         return Finish();
 

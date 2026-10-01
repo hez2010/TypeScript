@@ -1,0 +1,413 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": 428,
+    "strictPass": 422,
+    "permittedDifferences": 6,
+    "failed": 0,
+    "fixtureHash": "f898071ec59077f8756f400b7975bf13410400197782051652597d2b42fc7342",
+    "bridgeHash": "b0c0d18da34ea8b006295fb7afbe90d12f7f8801df71db630605c06cebe0087f",
+    "candidateHash": "6b068cdfa8b4017fe191d61775f06a8bad6edd54d8aa3058b4eb61dc2d592276",
+    "compilerHash": "c0a035debec04467b5ec526e539795b25c23c33fbaf46f7a944436872a157585",
+    "oracleHash": "6e5d7658c40cb8eb261523c3b06cf83be58f0358ea2b39017a998f7daa97ee55",
+    "resultHash": "014f1275bd09d7ea0e8de595feada47c4fd01eb88611b2b527e69492fba5839e",
+    "differences": [
+        {
+            "input": {
+                "name": "js-expando-alias-after-variable-false",
+                "file": "/source/input.js",
+                "text": "const value = 1; export function f() {} f.first = \"x\"; f.value = value;",
+                "map": false,
+                "options": {
+                    "strict": true,
+                    "allowJs": true,
+                    "checkJs": true,
+                    "target": "esnext"
+                },
+                "files": {
+                    "/source/other.js": "exports.value = 1; exports.other = \"x\";",
+                    "/source/shape.ts": "export interface Shape {x: number}"
+                }
+            },
+            "reference": {
+                "diagnostics": [],
+                "textBase64": "ZGVjbGFyZSBjb25zdCB2YWx1ZSA9IDE7CmV4cG9ydCBkZWNsYXJlIGZ1bmN0aW9uIGYoKTogdm9pZDsKZXhwb3J0IGRlY2xhcmUgbmFtZXNwYWNlIGYgewogICAgdmFyIGZpcnN0OiBzdHJpbmc7CiAgICBleHBvcnQgeyB2YWx1ZSB9Owp9CmV4cG9ydCB7fTsK"
+            },
+            "candidate": {
+                "textBase64": "ZGVjbGFyZSBjb25zdCB2YWx1ZSA9IDE7CmV4cG9ydCBkZWNsYXJlIGZ1bmN0aW9uIGYoKTogdm9pZDsKZXhwb3J0IGRlY2xhcmUgbmFtZXNwYWNlIGYgewogICAgZXhwb3J0IHZhciBmaXJzdDogc3RyaW5nOwogICAgZXhwb3J0IHsgdmFsdWUgfTsKfQpleHBvcnQge307Cg==",
+                "diagnostics": []
+            },
+            "policy": "preserve-expando-member-exports"
+        },
+        {
+            "input": {
+                "name": "ts-expando-alias-after-variable-false",
+                "text": "const value = 1; export function f() {} f.first = \"x\"; f.value = value;",
+                "map": false,
+                "options": {
+                    "strict": true,
+                    "target": "esnext",
+                    "isolatedDeclarations": true
+                }
+            },
+            "reference": {
+                "diagnostics": [
+                    {
+                        "code": 9023,
+                        "file": "/source/input.ts",
+                        "length": 7,
+                        "message": "Assigning properties to functions without declaring them is not supported with --isolatedDeclarations. Add an explicit declaration for the properties assigned to this function.",
+                        "related": [],
+                        "start": 40
+                    },
+                    {
+                        "code": 9023,
+                        "file": "/source/input.ts",
+                        "length": 7,
+                        "message": "Assigning properties to functions without declaring them is not supported with --isolatedDeclarations. Add an explicit declaration for the properties assigned to this function.",
+                        "related": [],
+                        "start": 55
+                    },
+                    {
+                        "code": 9007,
+                        "file": "/source/input.ts",
+                        "length": 1,
+                        "message": "Function must have an explicit return type annotation with --isolatedDeclarations.",
+                        "related": [
+                            {
+                                "code": 9031,
+                                "file": "/source/input.ts",
+                                "length": 1,
+                                "message": "Add a return type to the function declaration.",
+                                "related": [],
+                                "start": 33
+                            }
+                        ],
+                        "start": 33
+                    },
+                    {
+                        "code": 9023,
+                        "file": "/source/input.ts",
+                        "length": 7,
+                        "message": "Assigning properties to functions without declaring them is not supported with --isolatedDeclarations. Add an explicit declaration for the properties assigned to this function.",
+                        "related": [],
+                        "start": 40
+                    },
+                    {
+                        "code": 9023,
+                        "file": "/source/input.ts",
+                        "length": 7,
+                        "message": "Assigning properties to functions without declaring them is not supported with --isolatedDeclarations. Add an explicit declaration for the properties assigned to this function.",
+                        "related": [],
+                        "start": 55
+                    }
+                ],
+                "textBase64": "ZGVjbGFyZSBjb25zdCB2YWx1ZSA9IDE7CmV4cG9ydCBkZWNsYXJlIGZ1bmN0aW9uIGYoKTogdm9pZDsKZXhwb3J0IGRlY2xhcmUgbmFtZXNwYWNlIGYgewogICAgdmFyIGZpcnN0OiBzdHJpbmc7CiAgICBleHBvcnQgeyB2YWx1ZSB9Owp9CmV4cG9ydCB7fTsK"
+            },
+            "candidate": {
+                "textBase64": "ZGVjbGFyZSBjb25zdCB2YWx1ZSA9IDE7CmV4cG9ydCBkZWNsYXJlIGZ1bmN0aW9uIGYoKTogdm9pZDsKZXhwb3J0IGRlY2xhcmUgbmFtZXNwYWNlIGYgewogICAgZXhwb3J0IHZhciBmaXJzdDogc3RyaW5nOwogICAgZXhwb3J0IHsgdmFsdWUgfTsKfQpleHBvcnQge307Cg==",
+                "diagnostics": [
+                    {
+                        "file": "/source/input.ts",
+                        "code": 9023,
+                        "start": 40,
+                        "length": 7,
+                        "message": "Assigning properties to functions without declaring them is not supported with --isolatedDeclarations. Add an explicit declaration for the properties assigned to this function.",
+                        "related": []
+                    },
+                    {
+                        "file": "/source/input.ts",
+                        "code": 9023,
+                        "start": 55,
+                        "length": 7,
+                        "message": "Assigning properties to functions without declaring them is not supported with --isolatedDeclarations. Add an explicit declaration for the properties assigned to this function.",
+                        "related": []
+                    },
+                    {
+                        "file": "/source/input.ts",
+                        "code": 9007,
+                        "start": 33,
+                        "length": 1,
+                        "message": "Function must have an explicit return type annotation with --isolatedDeclarations.",
+                        "related": [
+                            {
+                                "file": "/source/input.ts",
+                                "code": 9031,
+                                "start": 33,
+                                "length": 1,
+                                "message": "Add a return type to the function declaration.",
+                                "related": []
+                            }
+                        ]
+                    },
+                    {
+                        "file": "/source/input.ts",
+                        "code": 9023,
+                        "start": 40,
+                        "length": 7,
+                        "message": "Assigning properties to functions without declaring them is not supported with --isolatedDeclarations. Add an explicit declaration for the properties assigned to this function.",
+                        "related": []
+                    },
+                    {
+                        "file": "/source/input.ts",
+                        "code": 9023,
+                        "start": 55,
+                        "length": 7,
+                        "message": "Assigning properties to functions without declaring them is not supported with --isolatedDeclarations. Add an explicit declaration for the properties assigned to this function.",
+                        "related": []
+                    }
+                ]
+            },
+            "policy": "preserve-expando-member-exports"
+        },
+        {
+            "input": {
+                "name": "js-expando-alias-after-variable-true",
+                "file": "/source/input.js",
+                "text": "const value = 1; export function f() {} f.first = \"x\"; f.value = value;",
+                "map": true,
+                "options": {
+                    "strict": true,
+                    "allowJs": true,
+                    "checkJs": true,
+                    "target": "esnext"
+                },
+                "files": {
+                    "/source/other.js": "exports.value = 1; exports.other = \"x\";",
+                    "/source/shape.ts": "export interface Shape {x: number}"
+                }
+            },
+            "reference": {
+                "diagnostics": [],
+                "map": {
+                    "version": 3,
+                    "file": "input.d.ts",
+                    "sourceRoot": "",
+                    "sources": [
+                        "../source/input.js"
+                    ],
+                    "names": [],
+                    "mappings": "AAAA,QAAA,MAAM,KAAK,IAAI,CAAC;AAAC,wBAAgB,CAAC,SAAK;yBAAN,CAAC"
+                },
+                "textBase64": "ZGVjbGFyZSBjb25zdCB2YWx1ZSA9IDE7CmV4cG9ydCBkZWNsYXJlIGZ1bmN0aW9uIGYoKTogdm9pZDsKZXhwb3J0IGRlY2xhcmUgbmFtZXNwYWNlIGYgewogICAgdmFyIGZpcnN0OiBzdHJpbmc7CiAgICBleHBvcnQgeyB2YWx1ZSB9Owp9CmV4cG9ydCB7fTsK"
+            },
+            "candidate": {
+                "textBase64": "ZGVjbGFyZSBjb25zdCB2YWx1ZSA9IDE7CmV4cG9ydCBkZWNsYXJlIGZ1bmN0aW9uIGYoKTogdm9pZDsKZXhwb3J0IGRlY2xhcmUgbmFtZXNwYWNlIGYgewogICAgZXhwb3J0IHZhciBmaXJzdDogc3RyaW5nOwogICAgZXhwb3J0IHsgdmFsdWUgfTsKfQpleHBvcnQge307Cg==",
+                "diagnostics": [],
+                "map": {
+                    "version": 3,
+                    "file": "input.d.ts",
+                    "sourceRoot": "",
+                    "sources": [
+                        "../source/input.js"
+                    ],
+                    "names": [],
+                    "mappings": "AAAA,QAAA,MAAM,KAAK,IAAI,CAAC;AAAC,wBAAgB,CAAC,SAAK;yBAAN,CAAC"
+                }
+            },
+            "policy": "preserve-expando-member-exports"
+        },
+        {
+            "input": {
+                "name": "ts-expando-alias-after-variable-true",
+                "text": "const value = 1; export function f() {} f.first = \"x\"; f.value = value;",
+                "map": true,
+                "options": {
+                    "strict": true,
+                    "target": "esnext",
+                    "isolatedDeclarations": true
+                }
+            },
+            "reference": {
+                "diagnostics": [
+                    {
+                        "code": 9023,
+                        "file": "/source/input.ts",
+                        "length": 7,
+                        "message": "Assigning properties to functions without declaring them is not supported with --isolatedDeclarations. Add an explicit declaration for the properties assigned to this function.",
+                        "related": [],
+                        "start": 40
+                    },
+                    {
+                        "code": 9023,
+                        "file": "/source/input.ts",
+                        "length": 7,
+                        "message": "Assigning properties to functions without declaring them is not supported with --isolatedDeclarations. Add an explicit declaration for the properties assigned to this function.",
+                        "related": [],
+                        "start": 55
+                    },
+                    {
+                        "code": 9007,
+                        "file": "/source/input.ts",
+                        "length": 1,
+                        "message": "Function must have an explicit return type annotation with --isolatedDeclarations.",
+                        "related": [
+                            {
+                                "code": 9031,
+                                "file": "/source/input.ts",
+                                "length": 1,
+                                "message": "Add a return type to the function declaration.",
+                                "related": [],
+                                "start": 33
+                            }
+                        ],
+                        "start": 33
+                    },
+                    {
+                        "code": 9023,
+                        "file": "/source/input.ts",
+                        "length": 7,
+                        "message": "Assigning properties to functions without declaring them is not supported with --isolatedDeclarations. Add an explicit declaration for the properties assigned to this function.",
+                        "related": [],
+                        "start": 40
+                    },
+                    {
+                        "code": 9023,
+                        "file": "/source/input.ts",
+                        "length": 7,
+                        "message": "Assigning properties to functions without declaring them is not supported with --isolatedDeclarations. Add an explicit declaration for the properties assigned to this function.",
+                        "related": [],
+                        "start": 55
+                    }
+                ],
+                "map": {
+                    "version": 3,
+                    "file": "input.d.ts",
+                    "sourceRoot": "",
+                    "sources": [
+                        "../source/input.ts"
+                    ],
+                    "names": [],
+                    "mappings": "AAAA,QAAA,MAAM,KAAK,IAAI,CAAC;AAAC,wBAAgB,CAAC,SAAK;yBAAN,CAAC"
+                },
+                "textBase64": "ZGVjbGFyZSBjb25zdCB2YWx1ZSA9IDE7CmV4cG9ydCBkZWNsYXJlIGZ1bmN0aW9uIGYoKTogdm9pZDsKZXhwb3J0IGRlY2xhcmUgbmFtZXNwYWNlIGYgewogICAgdmFyIGZpcnN0OiBzdHJpbmc7CiAgICBleHBvcnQgeyB2YWx1ZSB9Owp9CmV4cG9ydCB7fTsK"
+            },
+            "candidate": {
+                "textBase64": "ZGVjbGFyZSBjb25zdCB2YWx1ZSA9IDE7CmV4cG9ydCBkZWNsYXJlIGZ1bmN0aW9uIGYoKTogdm9pZDsKZXhwb3J0IGRlY2xhcmUgbmFtZXNwYWNlIGYgewogICAgZXhwb3J0IHZhciBmaXJzdDogc3RyaW5nOwogICAgZXhwb3J0IHsgdmFsdWUgfTsKfQpleHBvcnQge307Cg==",
+                "diagnostics": [
+                    {
+                        "file": "/source/input.ts",
+                        "code": 9023,
+                        "start": 40,
+                        "length": 7,
+                        "message": "Assigning properties to functions without declaring them is not supported with --isolatedDeclarations. Add an explicit declaration for the properties assigned to this function.",
+                        "related": []
+                    },
+                    {
+                        "file": "/source/input.ts",
+                        "code": 9023,
+                        "start": 55,
+                        "length": 7,
+                        "message": "Assigning properties to functions without declaring them is not supported with --isolatedDeclarations. Add an explicit declaration for the properties assigned to this function.",
+                        "related": []
+                    },
+                    {
+                        "file": "/source/input.ts",
+                        "code": 9007,
+                        "start": 33,
+                        "length": 1,
+                        "message": "Function must have an explicit return type annotation with --isolatedDeclarations.",
+                        "related": [
+                            {
+                                "file": "/source/input.ts",
+                                "code": 9031,
+                                "start": 33,
+                                "length": 1,
+                                "message": "Add a return type to the function declaration.",
+                                "related": []
+                            }
+                        ]
+                    },
+                    {
+                        "file": "/source/input.ts",
+                        "code": 9023,
+                        "start": 40,
+                        "length": 7,
+                        "message": "Assigning properties to functions without declaring them is not supported with --isolatedDeclarations. Add an explicit declaration for the properties assigned to this function.",
+                        "related": []
+                    },
+                    {
+                        "file": "/source/input.ts",
+                        "code": 9023,
+                        "start": 55,
+                        "length": 7,
+                        "message": "Assigning properties to functions without declaring them is not supported with --isolatedDeclarations. Add an explicit declaration for the properties assigned to this function.",
+                        "related": []
+                    }
+                ],
+                "map": {
+                    "version": 3,
+                    "file": "input.d.ts",
+                    "sourceRoot": "",
+                    "sources": [
+                        "../source/input.ts"
+                    ],
+                    "names": [],
+                    "mappings": "AAAA,QAAA,MAAM,KAAK,IAAI,CAAC;AAAC,wBAAgB,CAAC,SAAK;yBAAN,CAAC"
+                }
+            },
+            "policy": "preserve-expando-member-exports"
+        },
+        {
+            "input": {
+                "name": "js-this-negative-key-false",
+                "file": "/source/input.js",
+                "text": "export class C { [-1] = 1; constructor() { this[-1] = 2; this[-1] = 3; } }",
+                "map": false,
+                "options": {
+                    "strict": true,
+                    "allowJs": true,
+                    "checkJs": true,
+                    "target": "esnext"
+                },
+                "files": {
+                    "/source/other.js": "exports.value = 1; exports.other = \"x\";",
+                    "/source/shape.ts": "export interface Shape {x: number}"
+                }
+            },
+            "reference": {
+                "error": "unexpected PropertyName: KindElementAccessExpression"
+            },
+            "candidate": {
+                "textBase64": "ZXhwb3J0IGRlY2xhcmUgY2xhc3MgQyB7CiAgICBbLTFdOiBudW1iZXI7CiAgICBjb25zdHJ1Y3RvcigpOwp9Cg==",
+                "diagnostics": []
+            },
+            "policy": "preserve-negative-this-property"
+        },
+        {
+            "input": {
+                "name": "js-this-negative-key-true",
+                "file": "/source/input.js",
+                "text": "export class C { [-1] = 1; constructor() { this[-1] = 2; this[-1] = 3; } }",
+                "map": true,
+                "options": {
+                    "strict": true,
+                    "allowJs": true,
+                    "checkJs": true,
+                    "target": "esnext"
+                },
+                "files": {
+                    "/source/other.js": "exports.value = 1; exports.other = \"x\";",
+                    "/source/shape.ts": "export interface Shape {x: number}"
+                }
+            },
+            "reference": {
+                "error": "unexpected PropertyName: KindElementAccessExpression"
+            },
+            "candidate": {
+                "textBase64": "ZXhwb3J0IGRlY2xhcmUgY2xhc3MgQyB7CiAgICBbLTFdOiBudW1iZXI7CiAgICBjb25zdHJ1Y3RvcigpOwp9Cg==",
+                "diagnostics": [],
+                "map": {
+                    "version": 3,
+                    "file": "input.d.ts",
+                    "sourceRoot": "",
+                    "sources": [
+                        "../source/input.js"
+                    ],
+                    "names": [],
+                    "mappings": "AAAA,qBAAa,CAAC;IAAG,CAAC,CAAC,CAAC,CAAC,SAAK;IAAC,cAA6C;CAAE"
+                }
+            },
+            "policy": "preserve-negative-this-property"
+        }
+    ]
+}

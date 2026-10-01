@@ -33,15 +33,31 @@ internal sealed partial class Checker
         SymbolFlags meaning, bool computeAliases = false, bool allowModules = true, CancellationToken cancellation = default) =>
         VisibilityQueryAsync(enclosing, () => ChainOperationAsync(() => ContainerOperationAsync(async () =>
         {
-            var result = await SymbolAccessibilityAsync(symbol, enclosing, meaning, computeAliases, allowModules, cancellation);
-            Utf8String name = result.ErrorSymbol is null
-                ? Utf8String.Empty
-                : await SymbolDisplayNameAsync(result.ErrorSymbol, enclosing, result.ErrorMeaning, cancellation);
-            Utf8String module = result.ErrorModule is null ? Utf8String.Empty : await SymbolDisplayNameAsync(result.ErrorModule,
-                result.Accessibility == SymbolAccessibility.CannotBeNamed ? null : enclosing,
-                result.Accessibility == SymbolAccessibility.CannotBeNamed ? SymbolFlags.All : SymbolFlags.Namespace, cancellation);
-            return new SymbolAccessibilityResult(result.Accessibility, result.AliasesToMakeVisible, name, module, result.ErrorNode);
+            return await SymbolAccessibilityResultAsync(symbol, enclosing, meaning, computeAliases, allowModules, cancellation);
         }, cancellation), cancellation), cancellation);
+
+    private async ValueTask<SymbolAccessibilityResult> SymbolAccessibilityResultAsync(Symbol? symbol, SyntaxNode? enclosing,
+        SymbolFlags meaning, bool computeAliases, bool allowModules, CancellationToken cancellation)
+    {
+        var result = await SymbolAccessibilityAsync(symbol, enclosing, meaning, computeAliases, allowModules, cancellation);
+        Utf8String name = result.ErrorSymbol is null ? Utf8String.Empty
+            : await SymbolDisplayNameAsync(result.ErrorSymbol, enclosing, result.ErrorMeaning, cancellation);
+        Utf8String module = result.ErrorModule is null ? Utf8String.Empty : await SymbolDisplayNameAsync(result.ErrorModule,
+            result.Accessibility == SymbolAccessibility.CannotBeNamed ? null : enclosing,
+            result.Accessibility == SymbolAccessibility.CannotBeNamed ? SymbolFlags.All : SymbolFlags.Namespace, cancellation);
+        return new(result.Accessibility, result.AliasesToMakeVisible, name, module, result.ErrorNode);
+    }
+
+    // Node building already holds the query lease. Resolve accessibility here so trackers never reenter the checker gate.
+    private async ValueTask TrackTypeSymbolAsync(Symbol symbol, SyntaxNode? enclosing, SymbolFlags meaning,
+        TypeSyntaxContext state, CancellationToken cancellation)
+    {
+        if (state.Tracker.NeedsSymbolAccessibility && (symbol.Flags & SymbolFlags.TypeParameter) == 0)
+            state.Tracker.TrackAccessibleSymbol(symbol, enclosing, meaning,
+                await SymbolAccessibilityResultAsync(symbol, enclosing, meaning, true, true, cancellation));
+        else
+            state.Tracker.TrackSymbol(symbol, enclosing, meaning);
+    }
 
     internal ValueTask<SymbolAccessibilityResult> GetEntityNameVisibilityAsync(
         SyntaxNode entityName,

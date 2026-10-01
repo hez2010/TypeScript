@@ -8,6 +8,11 @@ internal interface INodeBuilderSymbolTracker
 {
     bool TrackSymbol(Symbol symbol, SyntaxNode? enclosingDeclaration, SymbolFlags meaning);
 
+    bool NeedsSymbolAccessibility => false;
+
+    bool TrackAccessibleSymbol(Symbol symbol, SyntaxNode? enclosingDeclaration, SymbolFlags meaning,
+        SymbolAccessibilityResult accessibility) => TrackSymbol(symbol, enclosingDeclaration, meaning);
+
     void ReportInaccessibleThisError();
 
     void ReportPrivateInBaseOfClassExpression(Utf8String propertyName);

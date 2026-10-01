@@ -1,0 +1,546 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "checks": 22,
+    "failed": 0,
+    "inputHash": "fff14280ff0346b2487aeda9ce1424a48e22e4296c4f040afa6588d4c5d95526",
+    "resultHash": "f8c9e2ac48cb53e654d78dfe99fdba5752e6a914439c8caf0ae167a7346082ed",
+    "oracleHash": "e9779b6b46101f4608f89903a202271c78a9ab2464deff664e0cd8043ad557f0",
+    "candidateHash": "6b068cdfa8b4017fe191d61775f06a8bad6edd54d8aa3058b4eb61dc2d592276",
+    "compilerHash": "c0a035debec04467b5ec526e539795b25c23c33fbaf46f7a944436872a157585",
+    "evidence": [
+        {
+            "input": {
+                "name": "js-expando-alias-after-variable-false-original",
+                "file": "/source/consumer.ts",
+                "text": "import {f} from \"./input\"; const first: string = f.first; const value: number = f.value;",
+                "checkOnly": "/source/consumer.ts",
+                "files": {
+                    "/source/input.js": "const value = 1; export function f() {} f.first = \"x\"; f.value = value;"
+                },
+                "options": {
+                    "allowJs": true,
+                    "target": "esnext"
+                }
+            },
+            "reference": {
+                "diagnostics": []
+            },
+            "candidate": {
+                "diagnostics": []
+            }
+        },
+        {
+            "input": {
+                "name": "js-expando-alias-after-variable-false-candidate",
+                "file": "/source/consumer.ts",
+                "text": "import {f} from \"./input\"; const first: string = f.first; const value: number = f.value;",
+                "checkOnly": "/source/consumer.ts",
+                "files": {
+                    "/source/input.d.ts": "declare const value = 1;\nexport declare function f(): void;\nexport declare namespace f {\n    export var first: string;\n    export { value };\n}\nexport {};\n"
+                },
+                "options": {
+                    "allowJs": true,
+                    "target": "esnext"
+                }
+            },
+            "reference": {
+                "diagnostics": []
+            },
+            "candidate": {
+                "diagnostics": []
+            }
+        },
+        {
+            "input": {
+                "name": "js-expando-alias-after-variable-false-reference",
+                "file": "/source/consumer.ts",
+                "text": "import {f} from \"./input\"; const first: string = f.first; const value: number = f.value;",
+                "checkOnly": "/source/consumer.ts",
+                "files": {
+                    "/source/input.d.ts": "declare const value = 1;\nexport declare function f(): void;\nexport declare namespace f {\n    var first: string;\n    export { value };\n}\nexport {};\n"
+                },
+                "options": {
+                    "allowJs": true,
+                    "target": "esnext"
+                }
+            },
+            "reference": {
+                "diagnostics": [
+                    {
+                        "code": 2339,
+                        "file": "/source/consumer.ts",
+                        "length": 5,
+                        "message": "Property 'first' does not exist on type 'typeof f'.",
+                        "related": [],
+                        "start": 51
+                    }
+                ]
+            },
+            "candidate": {
+                "diagnostics": [
+                    {
+                        "file": "/source/consumer.ts",
+                        "code": 2339,
+                        "start": 51,
+                        "length": 5,
+                        "message": "Property 'first' does not exist on type 'typeof f'.",
+                        "related": []
+                    }
+                ]
+            }
+        },
+        {
+            "input": {
+                "name": "ts-expando-alias-after-variable-false-original",
+                "file": "/source/consumer.ts",
+                "text": "import {f} from \"./input\"; const first: string = f.first; const value: number = f.value;",
+                "checkOnly": "/source/consumer.ts",
+                "files": {
+                    "/source/input.ts": "const value = 1; export function f() {} f.first = \"x\"; f.value = value;"
+                },
+                "options": {
+                    "allowJs": true,
+                    "target": "esnext"
+                }
+            },
+            "reference": {
+                "diagnostics": []
+            },
+            "candidate": {
+                "diagnostics": []
+            }
+        },
+        {
+            "input": {
+                "name": "ts-expando-alias-after-variable-false-candidate",
+                "file": "/source/consumer.ts",
+                "text": "import {f} from \"./input\"; const first: string = f.first; const value: number = f.value;",
+                "checkOnly": "/source/consumer.ts",
+                "files": {
+                    "/source/input.d.ts": "declare const value = 1;\nexport declare function f(): void;\nexport declare namespace f {\n    export var first: string;\n    export { value };\n}\nexport {};\n"
+                },
+                "options": {
+                    "allowJs": true,
+                    "target": "esnext"
+                }
+            },
+            "reference": {
+                "diagnostics": []
+            },
+            "candidate": {
+                "diagnostics": []
+            }
+        },
+        {
+            "input": {
+                "name": "ts-expando-alias-after-variable-false-reference",
+                "file": "/source/consumer.ts",
+                "text": "import {f} from \"./input\"; const first: string = f.first; const value: number = f.value;",
+                "checkOnly": "/source/consumer.ts",
+                "files": {
+                    "/source/input.d.ts": "declare const value = 1;\nexport declare function f(): void;\nexport declare namespace f {\n    var first: string;\n    export { value };\n}\nexport {};\n"
+                },
+                "options": {
+                    "allowJs": true,
+                    "target": "esnext"
+                }
+            },
+            "reference": {
+                "diagnostics": [
+                    {
+                        "code": 2339,
+                        "file": "/source/consumer.ts",
+                        "length": 5,
+                        "message": "Property 'first' does not exist on type 'typeof f'.",
+                        "related": [],
+                        "start": 51
+                    }
+                ]
+            },
+            "candidate": {
+                "diagnostics": [
+                    {
+                        "file": "/source/consumer.ts",
+                        "code": 2339,
+                        "start": 51,
+                        "length": 5,
+                        "message": "Property 'first' does not exist on type 'typeof f'.",
+                        "related": []
+                    }
+                ]
+            }
+        },
+        {
+            "input": {
+                "name": "js-expando-alias-after-variable-true-original",
+                "file": "/source/consumer.ts",
+                "text": "import {f} from \"./input\"; const first: string = f.first; const value: number = f.value;",
+                "checkOnly": "/source/consumer.ts",
+                "files": {
+                    "/source/input.js": "const value = 1; export function f() {} f.first = \"x\"; f.value = value;"
+                },
+                "options": {
+                    "allowJs": true,
+                    "target": "esnext"
+                }
+            },
+            "reference": {
+                "diagnostics": []
+            },
+            "candidate": {
+                "diagnostics": []
+            }
+        },
+        {
+            "input": {
+                "name": "js-expando-alias-after-variable-true-candidate",
+                "file": "/source/consumer.ts",
+                "text": "import {f} from \"./input\"; const first: string = f.first; const value: number = f.value;",
+                "checkOnly": "/source/consumer.ts",
+                "files": {
+                    "/source/input.d.ts": "declare const value = 1;\nexport declare function f(): void;\nexport declare namespace f {\n    export var first: string;\n    export { value };\n}\nexport {};\n"
+                },
+                "options": {
+                    "allowJs": true,
+                    "target": "esnext"
+                }
+            },
+            "reference": {
+                "diagnostics": []
+            },
+            "candidate": {
+                "diagnostics": []
+            }
+        },
+        {
+            "input": {
+                "name": "js-expando-alias-after-variable-true-reference",
+                "file": "/source/consumer.ts",
+                "text": "import {f} from \"./input\"; const first: string = f.first; const value: number = f.value;",
+                "checkOnly": "/source/consumer.ts",
+                "files": {
+                    "/source/input.d.ts": "declare const value = 1;\nexport declare function f(): void;\nexport declare namespace f {\n    var first: string;\n    export { value };\n}\nexport {};\n"
+                },
+                "options": {
+                    "allowJs": true,
+                    "target": "esnext"
+                }
+            },
+            "reference": {
+                "diagnostics": [
+                    {
+                        "code": 2339,
+                        "file": "/source/consumer.ts",
+                        "length": 5,
+                        "message": "Property 'first' does not exist on type 'typeof f'.",
+                        "related": [],
+                        "start": 51
+                    }
+                ]
+            },
+            "candidate": {
+                "diagnostics": [
+                    {
+                        "file": "/source/consumer.ts",
+                        "code": 2339,
+                        "start": 51,
+                        "length": 5,
+                        "message": "Property 'first' does not exist on type 'typeof f'.",
+                        "related": []
+                    }
+                ]
+            }
+        },
+        {
+            "input": {
+                "name": "ts-expando-alias-after-variable-true-original",
+                "file": "/source/consumer.ts",
+                "text": "import {f} from \"./input\"; const first: string = f.first; const value: number = f.value;",
+                "checkOnly": "/source/consumer.ts",
+                "files": {
+                    "/source/input.ts": "const value = 1; export function f() {} f.first = \"x\"; f.value = value;"
+                },
+                "options": {
+                    "allowJs": true,
+                    "target": "esnext"
+                }
+            },
+            "reference": {
+                "diagnostics": []
+            },
+            "candidate": {
+                "diagnostics": []
+            }
+        },
+        {
+            "input": {
+                "name": "ts-expando-alias-after-variable-true-candidate",
+                "file": "/source/consumer.ts",
+                "text": "import {f} from \"./input\"; const first: string = f.first; const value: number = f.value;",
+                "checkOnly": "/source/consumer.ts",
+                "files": {
+                    "/source/input.d.ts": "declare const value = 1;\nexport declare function f(): void;\nexport declare namespace f {\n    export var first: string;\n    export { value };\n}\nexport {};\n"
+                },
+                "options": {
+                    "allowJs": true,
+                    "target": "esnext"
+                }
+            },
+            "reference": {
+                "diagnostics": []
+            },
+            "candidate": {
+                "diagnostics": []
+            }
+        },
+        {
+            "input": {
+                "name": "ts-expando-alias-after-variable-true-reference",
+                "file": "/source/consumer.ts",
+                "text": "import {f} from \"./input\"; const first: string = f.first; const value: number = f.value;",
+                "checkOnly": "/source/consumer.ts",
+                "files": {
+                    "/source/input.d.ts": "declare const value = 1;\nexport declare function f(): void;\nexport declare namespace f {\n    var first: string;\n    export { value };\n}\nexport {};\n"
+                },
+                "options": {
+                    "allowJs": true,
+                    "target": "esnext"
+                }
+            },
+            "reference": {
+                "diagnostics": [
+                    {
+                        "code": 2339,
+                        "file": "/source/consumer.ts",
+                        "length": 5,
+                        "message": "Property 'first' does not exist on type 'typeof f'.",
+                        "related": [],
+                        "start": 51
+                    }
+                ]
+            },
+            "candidate": {
+                "diagnostics": [
+                    {
+                        "file": "/source/consumer.ts",
+                        "code": 2339,
+                        "start": 51,
+                        "length": 5,
+                        "message": "Property 'first' does not exist on type 'typeof f'.",
+                        "related": []
+                    }
+                ]
+            }
+        },
+        {
+            "input": {
+                "name": "js-this-computed-name-false-original",
+                "file": "/source/consumer.ts",
+                "text": "import {C} from \"./input\"; const value: number = new C().key; const other: number = new C().value;",
+                "checkOnly": "/source/consumer.ts",
+                "files": {
+                    "/source/input.js": "const key = \"value\"; export class C { [key] = 1; constructor() { this.key = 2; } }"
+                },
+                "options": {
+                    "allowJs": true,
+                    "target": "esnext"
+                }
+            },
+            "reference": {
+                "diagnostics": []
+            },
+            "candidate": {
+                "diagnostics": []
+            }
+        },
+        {
+            "input": {
+                "name": "js-this-computed-name-false-candidate",
+                "file": "/source/consumer.ts",
+                "text": "import {C} from \"./input\"; const value: number = new C().key; const other: number = new C().value;",
+                "checkOnly": "/source/consumer.ts",
+                "files": {
+                    "/source/input.d.ts": "declare const key = \"value\";\nexport declare class C {\n    key: number;\n    [key]: number;\n    constructor();\n}\nexport {};\n"
+                },
+                "options": {
+                    "allowJs": true,
+                    "target": "esnext"
+                }
+            },
+            "reference": {
+                "diagnostics": []
+            },
+            "candidate": {
+                "diagnostics": []
+            }
+        },
+        {
+            "input": {
+                "name": "js-this-computed-name-false-reference",
+                "file": "/source/consumer.ts",
+                "text": "import {C} from \"./input\"; const value: number = new C().key; const other: number = new C().value;",
+                "checkOnly": "/source/consumer.ts",
+                "files": {
+                    "/source/input.d.ts": "declare const key = \"value\";\nexport declare class C {\n    key: number;\n    [key]: number;\n    constructor();\n}\nexport {};\n"
+                },
+                "options": {
+                    "allowJs": true,
+                    "target": "esnext"
+                }
+            },
+            "reference": {
+                "diagnostics": []
+            },
+            "candidate": {
+                "diagnostics": []
+            }
+        },
+        {
+            "input": {
+                "name": "js-this-computed-name-true-original",
+                "file": "/source/consumer.ts",
+                "text": "import {C} from \"./input\"; const value: number = new C().key; const other: number = new C().value;",
+                "checkOnly": "/source/consumer.ts",
+                "files": {
+                    "/source/input.js": "const key = \"value\"; export class C { [key] = 1; constructor() { this.key = 2; } }"
+                },
+                "options": {
+                    "allowJs": true,
+                    "target": "esnext"
+                }
+            },
+            "reference": {
+                "diagnostics": []
+            },
+            "candidate": {
+                "diagnostics": []
+            }
+        },
+        {
+            "input": {
+                "name": "js-this-computed-name-true-candidate",
+                "file": "/source/consumer.ts",
+                "text": "import {C} from \"./input\"; const value: number = new C().key; const other: number = new C().value;",
+                "checkOnly": "/source/consumer.ts",
+                "files": {
+                    "/source/input.d.ts": "declare const key = \"value\";\nexport declare class C {\n    key: number;\n    [key]: number;\n    constructor();\n}\nexport {};\n"
+                },
+                "options": {
+                    "allowJs": true,
+                    "target": "esnext"
+                }
+            },
+            "reference": {
+                "diagnostics": []
+            },
+            "candidate": {
+                "diagnostics": []
+            }
+        },
+        {
+            "input": {
+                "name": "js-this-computed-name-true-reference",
+                "file": "/source/consumer.ts",
+                "text": "import {C} from \"./input\"; const value: number = new C().key; const other: number = new C().value;",
+                "checkOnly": "/source/consumer.ts",
+                "files": {
+                    "/source/input.d.ts": "declare const key = \"value\";\nexport declare class C {\n    key: number;\n    [key]: number;\n    constructor();\n}\nexport {};\n"
+                },
+                "options": {
+                    "allowJs": true,
+                    "target": "esnext"
+                }
+            },
+            "reference": {
+                "diagnostics": []
+            },
+            "candidate": {
+                "diagnostics": []
+            }
+        },
+        {
+            "input": {
+                "name": "js-this-negative-key-false-original",
+                "file": "/source/consumer.ts",
+                "text": "import {C} from \"./input\"; const value: number = new C()[-1];",
+                "checkOnly": "/source/consumer.ts",
+                "files": {
+                    "/source/input.js": "export class C { [-1] = 1; constructor() { this[-1] = 2; this[-1] = 3; } }"
+                },
+                "options": {
+                    "allowJs": true,
+                    "target": "esnext"
+                }
+            },
+            "reference": {
+                "diagnostics": []
+            },
+            "candidate": {
+                "diagnostics": []
+            }
+        },
+        {
+            "input": {
+                "name": "js-this-negative-key-false-candidate",
+                "file": "/source/consumer.ts",
+                "text": "import {C} from \"./input\"; const value: number = new C()[-1];",
+                "checkOnly": "/source/consumer.ts",
+                "files": {
+                    "/source/input.d.ts": "export declare class C {\n    [-1]: number;\n    constructor();\n}\n"
+                },
+                "options": {
+                    "allowJs": true,
+                    "target": "esnext"
+                }
+            },
+            "reference": {
+                "diagnostics": []
+            },
+            "candidate": {
+                "diagnostics": []
+            }
+        },
+        {
+            "input": {
+                "name": "js-this-negative-key-true-original",
+                "file": "/source/consumer.ts",
+                "text": "import {C} from \"./input\"; const value: number = new C()[-1];",
+                "checkOnly": "/source/consumer.ts",
+                "files": {
+                    "/source/input.js": "export class C { [-1] = 1; constructor() { this[-1] = 2; this[-1] = 3; } }"
+                },
+                "options": {
+                    "allowJs": true,
+                    "target": "esnext"
+                }
+            },
+            "reference": {
+                "diagnostics": []
+            },
+            "candidate": {
+                "diagnostics": []
+            }
+        },
+        {
+            "input": {
+                "name": "js-this-negative-key-true-candidate",
+                "file": "/source/consumer.ts",
+                "text": "import {C} from \"./input\"; const value: number = new C()[-1];",
+                "checkOnly": "/source/consumer.ts",
+                "files": {
+                    "/source/input.d.ts": "export declare class C {\n    [-1]: number;\n    constructor();\n}\n"
+                },
+                "options": {
+                    "allowJs": true,
+                    "target": "esnext"
+                }
+            },
+            "reference": {
+                "diagnostics": []
+            },
+            "candidate": {
+                "diagnostics": []
+            }
+        }
+    ]
+}

@@ -231,7 +231,7 @@ internal sealed class DocumentationParser(
                     imported.Node?.Attributes,
                     importedComment),
                 start,
-                end);
+                importedComment is null && imported.Diagnostics.Length == 0 && (end == text.Length || text[end] != '@') ? imported.End : end);
         }
         if (tag.Span.SequenceEqual("implements"u8) || tag.Span.SequenceEqual("augments"u8) || tag.Span.SequenceEqual("extends"u8))
         {

@@ -1,0 +1,107 @@
+{
+    "cases": 378,
+    "exact": 377,
+    "permitted": 1,
+    "failed": 0,
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "oracleSourceSha256": "5f96bce8578385c367772f15ae47abc02341d0f72c475f63591948c2423506d2",
+    "oracleSha256": "4b687f10fd08f5ef13f01a551d1e1bd0249cbc87234f4e7b1c4efa3bf64985d1",
+    "candidateHash": "234dc5454777ae1bd6b5ea6489c4ca44fcfdfcc5ff02a1c043e621c1ba69a442",
+    "inputHash": "5ec2b306eea309e9f25afb3f78fe3228b3cc4495fbd9f3b01749674747eab411",
+    "referenceHash": "7eff030ce326fed9786ca3233adbdfbbab4be6c34f980c6d95db3affa3992360",
+    "candidateOutputHash": "db804e17c6e47cb388797ea36a986cfe907f34a5178dade551effa11dd3be639",
+    "differences": [
+        {
+            "input": {
+                "name": "writer-split-crlf",
+                "operation": "writer",
+                "steps": [
+                    {
+                        "kind": "write",
+                        "text": "a\r"
+                    },
+                    {
+                        "kind": "raw",
+                        "text": "\n"
+                    },
+                    {
+                        "kind": "write",
+                        "text": "b"
+                    }
+                ]
+            },
+            "inputHash": "e9214cd9e1229927b537ae0840b5128a810fcede380271c74411aeb9ab9f0955",
+            "reference": [
+                {
+                    "trailingComment": false,
+                    "trailingWhitespace": true,
+                    "textBase64": "YQ0=",
+                    "line": 1,
+                    "column": 0,
+                    "position": 2,
+                    "indent": 0,
+                    "lineStart": true
+                },
+                {
+                    "column": 0,
+                    "position": 3,
+                    "indent": 0,
+                    "lineStart": true,
+                    "trailingComment": false,
+                    "trailingWhitespace": true,
+                    "textBase64": "YQ0K",
+                    "line": 2
+                },
+                {
+                    "position": 4,
+                    "indent": 0,
+                    "lineStart": false,
+                    "trailingComment": false,
+                    "trailingWhitespace": false,
+                    "textBase64": "YQ0KYg==",
+                    "line": 2,
+                    "column": 1
+                }
+            ],
+            "candidate": [
+                {
+                    "textBase64": "YQ0=",
+                    "line": 1,
+                    "column": 0,
+                    "position": 2,
+                    "indent": 0,
+                    "lineStart": true,
+                    "trailingComment": false,
+                    "trailingWhitespace": true
+                },
+                {
+                    "textBase64": "YQ0K",
+                    "line": 1,
+                    "column": 0,
+                    "position": 3,
+                    "indent": 0,
+                    "lineStart": true,
+                    "trailingComment": false,
+                    "trailingWhitespace": true
+                },
+                {
+                    "textBase64": "YQ0KYg==",
+                    "line": 1,
+                    "column": 1,
+                    "position": 4,
+                    "indent": 0,
+                    "lineStart": false,
+                    "trailingComment": false,
+                    "trailingWhitespace": false
+                }
+            ],
+            "policy": "writer-chunked-crlf",
+            "sourceHash": "18745f36a05e29072709042d6062ce54f1b08ff36c27ba80c39f81fb010c8ce2",
+            "evidence": {
+                "nodeVersion": "v24.21.0",
+                "location": "chunked-crlf.js:2:1",
+                "expectedZeroBasedLine": 1
+            }
+        }
+    ]
+}

@@ -39,6 +39,7 @@ public sealed record OptionDefinition(Utf8String Name, Utf8String ShortName, Opt
     public bool AllowConfigDir { get; init; }
     public bool PreserveFalsy { get; init; }
     public OptionValidation Validation { get; init; }
+    public Utf8String[] DeprecatedValues { get; init; } = [];
 
     public Utf8String? ValueIdentity(Utf8String value)
     {
@@ -271,7 +272,8 @@ internal static class OptionValues
             =>
                 error(
                     Messages.Argument_for_0_option_must_be_Colon_1,
-                    [Utf8String.Concat("--"u8, definition.Name), Utf8String.Join(", "u8, definition.Values.Select(v => "'"u8 + v + "'"u8))]);
+                    [Utf8String.Concat("--"u8, definition.Name), Utf8String.Join(", "u8,
+                        definition.Values.Where(v => !definition.DeprecatedValues.Contains(v)).Select(v => "'"u8 + v + "'"u8))]);
 
     internal static JsonElement? Convert(
         OptionDefinition definition,

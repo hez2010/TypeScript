@@ -1,0 +1,21 @@
+{
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "entries": [
+    {
+      "name": "conformance/dependentDestructuredVariables.ts",
+      "policy": "preserve-async-generator-parameter-scope",
+      "inputHash": "746af39d230abb77d1e634031554c196fa27b6287a07fafa16d7a4e37111c24c",
+      "referenceHash": "be69a5934828cbb72d7b3e5dc6537b6d2736cf31d12e4f32f4cde4b5794307fc",
+      "candidateHash": "e30541d12a8a7aadbe353b187f3ead750d3a9ddafa7fd4305d970a111e6fd18f",
+      "runtimeHash": "b7e1eeb1cf5b054f23d2ad0590159fc166f96d88cb4966dce496aeeb572d6d46"
+    },
+    {
+      "name": "compiler/privateFieldsInClassExpressionDeclaration.ts",
+      "policy": "preserve-inferred-binding-names",
+      "inputHash": "3a813b22c748865e330a32c61bdaf7c6aa5877f73b24a071637f057def2b83a5",
+      "referenceHash": "32590c2359ac47844bf48551c4c186efa7d94234882c5f218b7f5e08b9136b7a",
+      "candidateHash": "81f48cf0301e25661ed6abfbbe5058d5e512f3208c86a2e7d4dfbbae6e55b4a3",
+      "runtimeHash": "11ab13e291cee86e471122f85a77953e3c922390b57cf9d7e9542d8cfc7bd51c"
+    }
+  ]
+}

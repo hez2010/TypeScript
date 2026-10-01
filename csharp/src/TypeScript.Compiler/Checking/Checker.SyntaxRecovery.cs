@@ -38,13 +38,20 @@ internal sealed partial class Checker
         var f = state.Factory;
         if (node is ComputedPropertyNameNode { Expression: { } computed }
             && TypeScript.Compiler.Semantics.ConstantEvaluator.EntityName(computed))
-            TrackComputedName(computed, state, true, cancellation);
+            await TrackComputedNameAsync(computed, state, true, cancellation);
         switch (node)
         {
             case TypeLiteralNode literal:
                 var members = new List<SyntaxNode>();
                 foreach (var member in literal.Members!)
                 {
+                    if (SemanticSyntax.Name(member) is ComputedPropertyNameNode { Expression: { } computedExpression }
+                        && TypeScript.Compiler.Semantics.ConstantEvaluator.EntityName(computedExpression)
+                        && ((await ExpressionTypeForQueryAsync(computedExpression, cancellation)).Flags & TypeFlags.Any) == 0
+                        && state.Symbols.Enclosing is { } destination
+                        && (await EntityNameVisibilityAsync(computedExpression, destination, cancellation, computeAliases: false)).Accessibility
+                            != SymbolAccessibility.Accessible)
+                        return await Fallback();
                     if (SemanticSyntax.Name(member) is ComputedPropertyNameNode { Expression: { } key } computedName
                         && key is not (StringLiteralNode or NumericLiteralNode)
                         && !await LateMembers.BindableAsync(member, cancellation))
@@ -57,6 +64,8 @@ internal sealed partial class Checker
                     members.Add(await Visit(member));
                 }
                 var objectNode = f.NewTypeLiteralNode(new(members.ToArray()));
+                if (SemanticSyntax.Source(node) == SemanticSyntax.Source(state.Symbols.Enclosing))
+                    (objectNode.Pos, objectNode.End) = (node.Pos, node.End);
                 if ((state.Flags & NodeBuilderFlags.MultilineObjectLiterals) == 0)
                     state.SingleLine.Add(objectNode);
                 return objectNode;
@@ -84,7 +93,10 @@ internal sealed partial class Checker
                     state.SingleLine.Add(result);
                 return result;
             case TypeReferenceNode reference:
-                return await RecoverTypeReferenceSyntaxAsync(reference, state, cancellation);
+                return (await RecoverTypeReferenceSyntaxAsync(reference, state, cancellation))!;
+            case IndexedAccessTypeNode:
+            case TypeOperatorNode { Operator: K.KeyOfKeyword }:
+                return await ReuseSimpleTypeSyntaxAsync(node, state, cancellation) ?? await Fallback();
             case TypeQueryNode query:
                 return await ReuseTypeQuerySyntaxAsync(query, state, cancellation, countLength: false) ?? await Fallback();
             case ImportTypeNode import:
@@ -92,15 +104,34 @@ internal sealed partial class Checker
                     || import.Attributes?.Token == K.AssertKeyword)
                     return await Fallback();
                 var argument = CloneSyntaxBindingName(import.Argument, state, typeAnnotation: true);
-                if (SemanticSyntax.Source(import) != SemanticSyntax.Source(state.Symbols.Enclosing)
-                    && await ExternalModuleFileForEmitAsync(import, cancellation) is { } targetFile
-                    && program.Symbols.Declaration(targetFile) is { } module)
-                    argument = f.NewLiteralTypeNode(f.NewStringLiteral(
-                        await DisplayModuleSpecifierAsync(module, state.Symbols, cancellation), TokenFlags.None));
                 var typeArguments = new List<SyntaxNode>();
                 if (import.TypeArguments is { } importArguments)
                     foreach (var typeArgument in importArguments)
                         typeArguments.Add(await Visit(typeArgument));
+                if (SemanticSyntax.Source(import) != SemanticSyntax.Source(state.Symbols.Enclosing))
+                {
+                    await Nodes.FromNodeAsync(import, cancellation);
+                    Symbol? importModule = null;
+                    if (links.SymbolNodes.TryGet(import)?.ResolvedSymbol is { } importedSymbol && importedSymbol != UnknownSymbol)
+                    {
+                        var meaning = import.IsTypeOf ? SymbolFlags.Value : SymbolFlags.Type;
+                        if ((await SymbolAccessibilityAsync(importedSymbol, state.Symbols.Enclosing, meaning, false, true, cancellation)).Accessibility
+                            == SymbolAccessibility.Accessible)
+                        {
+                            var chain = await DisplaySymbolChainAsync(importedSymbol, meaning, true, state.Symbols, cancellation, yieldModule: true);
+                            if (chain is { Count: > 0 } && chain[0].Declarations.Any(NonGlobalExternalModule)) importModule = chain[0];
+                        }
+                    }
+                    if (importModule is null && await ExternalModuleFileForEmitAsync(import, cancellation) is { } targetFile)
+                        importModule = program.Symbols.Declaration(targetFile);
+                    if (importModule is not null)
+                    {
+                        var moduleName = await DisplayModuleSpecifierAsync(importModule, state.Symbols, cancellation);
+                        if (moduleName.Span.Contains("/node_modules/"u8, StringComparison.Ordinal))
+                        { state.EncounteredError = true; state.Tracker.ReportLikelyUnsafeImportRequiredError(moduleName, Utf8String.Empty); }
+                        argument = f.NewLiteralTypeNode(f.NewStringLiteral(moduleName, TokenFlags.None));
+                    }
+                }
                 return f.NewImportTypeNode(import.IsTypeOf, argument,
                     import.Attributes is null ? null : (ImportAttributesNode)CloneSyntaxBindingName(import.Attributes, state),
                     import.Qualifier is null ? null : CloneSyntaxBindingName(import.Qualifier, state),
@@ -168,17 +199,47 @@ internal sealed partial class Checker
             await Nodes.FromNodeAsync(node, cancellation), state.Mapper, cancellation: cancellation))!, state, cancellation);
     }
 
-    private async ValueTask<SyntaxNode> RecoverTypeReferenceSyntaxAsync(TypeReferenceNode reference, TypeSyntaxContext state,
-        CancellationToken cancellation)
+    private async ValueTask<SyntaxNode?> ReuseSimpleTypeSyntaxAsync(SyntaxNode node, TypeSyntaxContext state, CancellationToken cancellation)
+    {
+        await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
+            ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
+        SyntaxNode result;
+        switch (node)
+        {
+            case TypeReferenceNode reference:
+                return await RecoverTypeReferenceSyntaxAsync(reference, state, cancellation, allowStructuralFallback: false);
+            case TypeQueryNode query:
+                return await ReuseTypeQuerySyntaxAsync(query, state, cancellation, countLength: false, allowStructuralFallback: false);
+            case IndexedAccessTypeNode indexed:
+                var objectType = await ReuseSimpleTypeSyntaxAsync(indexed.ObjectType!, state, cancellation);
+                if (objectType is null) return null;
+                result = state.Factory.NewIndexedAccessTypeNode(objectType, await RecoverTypeSyntaxAsync(indexed.IndexType!, state, cancellation));
+                break;
+            case TypeOperatorNode { Operator: K.KeyOfKeyword } keyOf:
+                var operand = await ReuseSimpleTypeSyntaxAsync(keyOf.Type!, state, cancellation);
+                if (operand is null) return null;
+                result = state.Factory.NewTypeOperatorNode(K.KeyOfKeyword, operand);
+                break;
+            default:
+                return await RecoverTypeSyntaxAsync(node, state, cancellation);
+        }
+        result.Flags = node.Flags;
+        if (SemanticSyntax.Source(node) == SemanticSyntax.Source(state.Symbols.Enclosing))
+            (result.Pos, result.End) = (node.Pos, node.End);
+        return result;
+    }
+
+    private async ValueTask<SyntaxNode?> RecoverTypeReferenceSyntaxAsync(TypeReferenceNode reference, TypeSyntaxContext state,
+        CancellationToken cancellation, bool allowStructuralFallback = true)
     {
         if (reference.TypeName is IdentifierNode { Text.Span: var matchedText } && matchedText.SequenceEqual(""u8))
             return state.Factory.NewKeywordTypeNode(K.AnyKeyword);
         var type = await Nodes.FromNodeAsync(reference, cancellation);
         if (await DocumentationTypeReferenceAsync(reference, cancellation) is not null)
-            return await TypeSyntaxAsync(type, state, cancellation);
+            return allowStructuralFallback ? await TypeSyntaxAsync(type, state, cancellation) : null;
         var symbol = links.SymbolNodes.TryGet(reference)?.ResolvedSymbol;
         if (symbol is null)
-            return await TypeSyntaxAsync(type, state, cancellation);
+            return allowStructuralFallback ? await TypeSyntaxAsync(type, state, cancellation) : null;
         if (type is TypeReference { Target: InterfaceType target } && await Declared.GetAsync(symbol, cancellation) == target)
         {
             int required = target.AllTypeParameters.Count - target.OuterTypeParameterCount - (target.ThisType is null ? 0 : 1);
@@ -186,19 +247,21 @@ internal sealed partial class Checker
                 (TypeParameter)target.AllTypeParameters[target.OuterTypeParameterCount + required - 1], cancellation) is not null)
                 required--;
             if ((reference.TypeArguments?.Count ?? 0) < required)
-                return await TypeSyntaxAsync(type, state, cancellation);
+                return allowStructuralFallback ? await TypeSyntaxAsync(type, state, cancellation) : null;
         }
         if ((symbol.Flags & SymbolFlags.TypeParameter) != 0 && state.Mapper is not null
             && await state.Mapper.MapAsync(program.Scopes.Parameter(symbol), cancellation) != program.Scopes.Parameter(symbol))
-            return await TypeSyntaxAsync(
+            return allowStructuralFallback ? await TypeSyntaxAsync(
                 (await Instantiation.Engine.InstantiateAsync(type, state.Mapper, cancellation: cancellation))!,
                 state,
-                cancellation);
+                cancellation) : null;
         if ((symbol.Flags & SymbolFlags.TypeParameter) != 0)
         {
             state.Tracker.TrackSymbol(symbol, state.Symbols.Enclosing, SymbolFlags.Type);
-            return state.Factory.NewTypeReferenceNode(state.Factory.NewIdentifier(
-                TypeSyntaxParameterName(program.Scopes.Parameter(symbol), state, cancellation)), await ArgumentsAsync());
+            var name = state.Factory.NewIdentifier(TypeSyntaxParameterName(program.Scopes.Parameter(symbol), state, cancellation));
+            if (SemanticSyntax.Source(reference) == SemanticSyntax.Source(state.Symbols.Enclosing))
+                (name.Pos, name.End) = (reference.TypeName!.Pos, reference.TypeName.End);
+            return WithRange(state.Factory.NewTypeReferenceNode(name, await ArgumentsAsync()));
         }
         var first = reference.TypeName;
         while (first is QualifiedNameNode qualified)
@@ -208,15 +271,30 @@ internal sealed partial class Checker
             var meaning = reference.TypeName is QualifiedNameNode ? SymbolFlags.Namespace : SymbolFlags.Type;
             var original = await program.EntityNames.ResolveAsync(identifier, meaning, true, true, cancellation: cancellation);
             var current = await program.EntityNames.ResolveAsync(identifier, meaning, true, true, state.Symbols.Enclosing, cancellation);
-            if (current == original
+            if ((current == original
                 || current is not null && original is not null && await SameSymbolReferenceAsync(current, original, cancellation))
+                && (current is null || (await SymbolAccessibilityAsync(current, state.Symbols.Enclosing, meaning, false, true, cancellation)).Accessibility
+                    == SymbolAccessibility.Accessible))
             {
                 if (current is not null)
-                    state.Tracker.TrackSymbol(current, state.Symbols.Enclosing, meaning);
-                return state.Factory.NewTypeReferenceNode(CloneSyntaxBindingName(reference.TypeName!, state), await ArgumentsAsync());
+                    await TrackTypeSymbolAsync(current, state.Symbols.Enclosing, meaning, state, cancellation);
+                return WithRange(state.Factory.NewTypeReferenceNode(CloneSyntaxBindingName(reference.TypeName!, state), await ArgumentsAsync()));
             }
         }
+        if ((await SymbolAccessibilityAsync(symbol, state.Symbols.Enclosing, SymbolFlags.Type, false, true, cancellation)).Accessibility
+            != SymbolAccessibility.Accessible)
+        {
+            state.Tracker.ReportInferenceFallback(reference.TypeName!);
+            return allowStructuralFallback ? await TypeSyntaxAsync(type, state, cancellation, expandAlias: true) : null;
+        }
         return await SymbolTypeNodeAsync(symbol, SymbolFlags.Type, await ArgumentsAsync(), state.Symbols, false, cancellation);
+
+        SyntaxNode WithRange(SyntaxNode node)
+        {
+            if (SemanticSyntax.Source(reference) == SemanticSyntax.Source(state.Symbols.Enclosing))
+                (node.Pos, node.End) = (reference.Pos, reference.End);
+            return node;
+        }
 
         async ValueTask<NodeList?> ArgumentsAsync()
         {
