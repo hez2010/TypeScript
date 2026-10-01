@@ -1,0 +1,1260 @@
+{
+  "program-emit": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": 240,
+    "strictPass": 240,
+    "failed": 0,
+    "fixtureHash": "e5e5b6804d0749fab0400745fb34e70d0218f6b65cc49aea1e64916464338566",
+    "bridgeHash": "d474eb41cd61ab4d57a82e508c39f5bd3f26e3a4acb0ca57a81d8517fc73a87c",
+    "candidateHash": "7c2f2c11b9c396cdd570421eb7eb9bac00fc1636d30ef51a0b931ec91944660b",
+    "compilerHash": "a4bdff4cc76540ee7a1b75e7f41def76fbea12922706cdde19a6215735a50c1a",
+    "oracleHash": "e9779b6b46101f4608f89903a202271c78a9ab2464deff664e0cd8043ad557f0",
+    "resultHash": "3e0936675be55e0a901f9335b8d6ed73dafaf1bdf9bdf2b654fad96363d35617"
+  },
+  "transpile": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": 415,
+    "fixtureCases": 83,
+    "strictPass": 415,
+    "failed": 0,
+    "fixtureHash": "286afe949cd6b9011c6705e163c1f80adf9c635174b1d2af1b3ceee655f7d3a1",
+    "bridgeHash": "6a8c6cb154f1573ec1a3c3b0345fa3fa6dc33e14864eb6ab1269d4d2e155a2d7",
+    "candidateHash": "7c2f2c11b9c396cdd570421eb7eb9bac00fc1636d30ef51a0b931ec91944660b",
+    "compilerHash": "a4bdff4cc76540ee7a1b75e7f41def76fbea12922706cdde19a6215735a50c1a",
+    "oracleHash": "f6c49dbf464b357a04f51ef165b03859f9d308f1fa5bfa98e44c90f63e7e6fa8",
+    "resultHash": "6e3acc8b8a2131b6a0c8497de2d1da44d6b4feb656942f0b60176facd4f88a74"
+  },
+  "fixtures": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "scope": "compilerOptions.declaration || compilerOptions.composite",
+    "planned": 1760,
+    "referenceSkipped": 0,
+    "mappedCases": 3,
+    "cases": 1760,
+    "strictPass": 1758,
+    "permittedDifferences": 2,
+    "failed": 0,
+    "fixtureHash": "696ea6a4118ef5136d5e17ec43c3a5b91ec19f4d94fff4c41bccac75b6917090",
+    "planHash": "fe5bfac66824d3ca935b01ff84391a008f9a6bae135a4011fd3c5768805578e8",
+    "candidateHash": "7c2f2c11b9c396cdd570421eb7eb9bac00fc1636d30ef51a0b931ec91944660b",
+    "compilerHash": "a4bdff4cc76540ee7a1b75e7f41def76fbea12922706cdde19a6215735a50c1a",
+    "bridgeHash": "d474eb41cd61ab4d57a82e508c39f5bd3f26e3a4acb0ca57a81d8517fc73a87c",
+    "oracleHash": "e9779b6b46101f4608f89903a202271c78a9ab2464deff664e0cd8043ad557f0",
+    "resultHash": "65d6e05a2325cd8001ca07fe36d5c028b69f85f550acc441665d72d4e5fe16be",
+    "mapperFixture": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+      "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+      "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+    },
+    "differences": [
+      {
+        "input": {
+          "name": "conformance/dependentDestructuredVariables.ts",
+          "source": "D:/source/repos/TypeScript/built/csharp/oracle-source-w04NXA/tsc/testdata/tests/cases/conformance/controlFlow/dependentDestructuredVariables.ts",
+          "corpus": true,
+          "cwd": "/.src",
+          "files": {
+            "/.src/dependentDestructuredVariables.ts": "type Action =\n    | { kind: 'A', payload: number }\n    | { kind: 'B', payload: string };\n\nfunction f10({ kind, payload }: Action) {\n    if (kind === 'A') {\n        payload.toFixed();\n    }\n    if (kind === 'B') {\n        payload.toUpperCase();\n    }\n}\n\nfunction f11(action: Action) {\n    const { kind, payload } = action;\n    if (kind === 'A') {\n        payload.toFixed();\n    }\n    if (kind === 'B') {\n        payload.toUpperCase();\n    }\n}\n\nfunction f12({ kind, payload }: Action) {\n    switch (kind) {\n        case 'A':\n            payload.toFixed();\n            break;\n        case 'B':\n            payload.toUpperCase();\n            break;\n        default:\n            payload;  // never\n    }\n}\n\n// repro #50206\nfunction f13<T extends Action>({ kind, payload }: T) {\n    if (kind === 'A') {\n        payload.toFixed();\n    }\n    if (kind === 'B') {\n        payload.toUpperCase();\n    }\n}\n\nfunction f14<T extends Action>(t: T) {\n    const { kind, payload } = t;\n    if (kind === 'A') {\n        payload.toFixed();\n    }\n    if (kind === 'B') {\n        payload.toUpperCase();\n    }\n}\n\ntype Action2 =\n    | { kind: 'A', payload: number | undefined }\n    | { kind: 'B', payload: string | undefined };\n\nfunction f20({ kind, payload }: Action2) {\n    if (payload) {\n        if (kind === 'A') {\n            payload.toFixed();\n        }\n        if (kind === 'B') {\n            payload.toUpperCase();\n        }\n    }\n}\n\nfunction f21(action: Action2) {\n    const { kind, payload } = action;\n    if (payload) {\n        if (kind === 'A') {\n            payload.toFixed();\n        }\n        if (kind === 'B') {\n            payload.toUpperCase();\n        }\n    }\n}\n\nfunction f22(action: Action2) {\n    if (action.payload) {\n        const { kind, payload } = action;\n        if (kind === 'A') {\n            payload.toFixed();\n        }\n        if (kind === 'B') {\n            payload.toUpperCase();\n        }\n    }\n}\n\nfunction f23({ kind, payload }: Action2) {\n    if (payload) {\n        switch (kind) {\n            case 'A':\n                payload.toFixed();\n                break;\n            case 'B':\n                payload.toUpperCase();\n                break;\n            default:\n                payload;  // never\n        }\n    }\n}\n\ntype Foo =\n    | { kind: 'A', isA: true }\n    | { kind: 'B', isA: false }\n    | { kind: 'C', isA: false };\n\nfunction f30({ kind, isA }: Foo) {\n    if (kind === 'A') {\n        isA;   // true\n    }\n    if (kind === 'B') {\n        isA;   // false\n    }\n    if (kind === 'C') {\n        isA;   // false\n    }\n    if (isA) {\n        kind;  // 'A'\n    }\n    else {\n        kind;  // 'B' | 'C'\n    }\n}\n\ntype Args = ['A', number] | ['B', string]\n\nfunction f40(...[kind, data]: Args) {\n    if (kind === 'A') {\n        data.toFixed();\n    }\n    if (kind === 'B') {\n        data.toUpperCase();\n    }\n}\n\n// Repro from #35283\n\ninterface A<T> { variant: 'a', value: T }\n\ninterface B<T> { variant: 'b', value: Array<T> }\n\ntype AB<T> = A<T> | B<T>;\n\ndeclare function printValue<T>(t: T): void;\n\ndeclare function printValueList<T>(t: Array<T>): void;\n\nfunction unrefined1<T>(ab: AB<T>): void {\n    const { variant, value } = ab;\n    if (variant === 'a') {\n        printValue<T>(value);\n    }\n    else {\n        printValueList<T>(value);\n    }\n}\n\n// Repro from #38020\n\ntype Action3 =\n    | {type: 'add', payload: { toAdd: number } }\n    | {type: 'remove', payload: { toRemove: number } };\n\nconst reducerBroken = (state: number, { type, payload }: Action3) => {\n    switch (type) {\n        case 'add':\n            return state + payload.toAdd;\n        case 'remove':\n            return state - payload.toRemove;\n    }\n}\n\n// Repro from #46143\n\ndeclare var it: Iterator<number>;\nconst { value, done } = it.next();\nif (!done) {\n    value;  // number\n}\n\n// Repro from #46658\n\ndeclare function f50(cb: (...args: Args) => void): void\n\nf50((kind, data) => {\n    if (kind === 'A') {\n        data.toFixed();\n    }\n    if (kind === 'B') {\n        data.toUpperCase();\n    }\n});\n\nconst f51: (...args: ['A', number] | ['B', string]) => void = (kind, payload) => {\n    if (kind === 'A') {\n        payload.toFixed();\n    }\n    if (kind === 'B') {\n        payload.toUpperCase();\n    }\n};\n\nconst f52: (...args: ['A', number] | ['B']) => void = (kind, payload?) => {\n    if (kind === 'A') {\n        payload.toFixed();\n    }\n    else {\n        payload;  // undefined\n    }\n};\n\ndeclare function readFile(path: string, callback: (...args: [err: null, data: unknown[]] | [err: Error, data: undefined]) => void): void;\n\nreadFile('hello', (err, data) => {\n    if (err === null) {\n        data.length;\n    }\n    else {\n        err.message;\n    }\n});\n\ntype ReducerArgs = [\"add\", { a: number, b: number }] | [\"concat\", { firstArr: any[], secondArr: any[] }];\n\nconst reducer: (...args: ReducerArgs) => void = (op, args) => {\n    switch (op) {\n        case \"add\":\n            console.log(args.a + args.b);\n            break;\n        case \"concat\":\n            console.log(args.firstArr.concat(args.secondArr));\n            break;\n    }\n}\n\nreducer(\"add\", { a: 1, b: 3 });\nreducer(\"concat\", { firstArr: [1, 2], secondArr: [3, 4] });\n\n// repro from https://github.com/microsoft/TypeScript/pull/47190#issuecomment-1057603588\n\ntype FooMethod = {\n  method(...args:\n    [type: \"str\", cb: (e: string) => void] |\n    [type: \"num\", cb: (e: number) => void]\n  ): void;\n}\n\nlet fooM: FooMethod = {\n  method(type, cb) {\n    if (type == 'num') {\n      cb(123)\n    } else {\n      cb(\"abc\")\n    }\n  }\n};\n\ntype FooAsyncMethod = {\n  method(...args:\n    [type: \"str\", cb: (e: string) => void] |\n    [type: \"num\", cb: (e: number) => void]\n  ): Promise<any>;\n}\n\nlet fooAsyncM: FooAsyncMethod = {\n  async method(type, cb) {\n    if (type == 'num') {\n      cb(123)\n    } else {\n      cb(\"abc\")\n    }\n  }\n};\n\ntype FooGenMethod = {\n  method(...args:\n    [type: \"str\", cb: (e: string) => void] |\n    [type: \"num\", cb: (e: number) => void]\n  ): Generator<any, any, any>;\n}\n\nlet fooGenM: FooGenMethod = {\n  *method(type, cb) {\n    if (type == 'num') {\n      cb(123)\n    } else {\n      cb(\"abc\")\n    }\n  }\n};\n\ntype FooAsyncGenMethod = {\n  method(...args:\n    [type: \"str\", cb: (e: string) => void] |\n    [type: \"num\", cb: (e: number) => void]\n  ): AsyncGenerator<any, any, any>;\n}\n\nlet fooAsyncGenM: FooAsyncGenMethod = {\n  async *method(type, cb) {\n    if (type == 'num') {\n      cb(123)\n    } else {\n      cb(\"abc\")\n    }\n  }\n};\n\n// Repro from #48345\n\ntype Func = <T extends [\"a\", number] | [\"b\", string]>(...args: T) => void;\n\nconst f60: Func = (kind, payload) => {\n    if (kind === \"a\") {\n        payload.toFixed();  // error\n    }\n    if (kind === \"b\") {\n        payload.toUpperCase();  // error\n    }\n};\n\n// Repro from #48902\n\nfunction foo({\n    value1,\n    test1 = value1.test1,\n    test2 = value1.test2,\n    test3 = value1.test3,\n    test4 = value1.test4,\n    test5 = value1.test5,\n    test6 = value1.test6,\n    test7 = value1.test7,\n    test8 = value1.test8,\n    test9 = value1.test9\n}) {}\n\n// Repro from #49772\n\nfunction fa1(x: [true, number] | [false, string]) {\n    const [guard, value] = x;\n    if (guard) {\n        for (;;) {\n            value;  // number\n        }\n    }\n    else {\n        while (!!true) {\n            value;  // string\n        }\n    }\n}\n\nfunction fa2(x: { guard: true, value: number } | { guard: false, value: string }) {\n    const { guard, value } = x;\n    if (guard) {\n        for (;;) {\n            value;  // number\n        }\n    }\n    else {\n        while (!!true) {\n            value;  // string\n        }\n    }\n}\n\nconst fa3: (...args: [true, number] | [false, string]) => void = (guard, value) => {\n    if (guard) {\n        for (;;) {\n            value;  // number\n        }\n    }\n    else {\n        while (!!true) {\n            value;  // string\n        }\n    }\n}\n\n// Repro from #52152\n\ninterface ClientEvents {\n    warn: [message: string];\n    shardDisconnect: [closeEvent: CloseEvent, shardId: number];\n}\n  \ndeclare class Client {\n    public on<K extends keyof ClientEvents>(event: K, listener: (...args: ClientEvents[K]) => void): void;\n}\n\nconst bot = new Client();\nbot.on(\"shardDisconnect\", (event, shard) => console.log(`Shard ${shard} disconnected (${event.code},${event.wasClean}): ${event.reason}`));\nbot.on(\"shardDisconnect\", event => console.log(`${event.code} ${event.wasClean} ${event.reason}`));\n\n// Destructuring tuple types with different arities\n\nfunction fz1([x, y]: [1, 2] | [3, 4] | [5]) {\n    if (y === 2) {\n        x;  // 1\n    }\n    if (y === 4) {\n        x;  // 3\n    }\n    if (y === undefined) {\n        x;  // 5\n    }\n    if (x === 1) {\n        y;  // 2\n    }\n    if (x === 3) {\n        y;  // 4\n    }\n    if (x === 5) {\n        y;  // undefined\n    }\n}\n\n// Repro from #55661\n\nfunction tooNarrow([x, y]: [1, 1] | [1, 2] | [1]) {\n    if (y === undefined) {\n        const shouldNotBeOk: never = x;  // Error\n    }\n}\n\n// https://github.com/microsoft/TypeScript/issues/56312\n\nfunction parameterReassigned1([x, y]: [1, 2] | [3, 4]) {\n  if (Math.random()) {\n    x = 1;\n  }\n  if (y === 2) {\n    x; // 1 | 3\n  }\n}\n\nfunction parameterReassigned2([x, y]: [1, 2] | [3, 4]) {\n  if (Math.random()) {\n    y = 2;\n  }\n  if (y === 2) {\n    x; // 1 | 3\n  }\n}\n\n// https://github.com/microsoft/TypeScript/pull/56313#discussion_r1416482490\n\nconst parameterReassignedContextualRest1: (...args: [1, 2] | [3, 4]) => void = (x, y) => {\n  if (Math.random()) {\n    y = 2;\n  }\n  if (y === 2) {\n    x; // 1 | 3\n  }\n}\n"
+          },
+          "symlinks": {},
+          "configFileName": "",
+          "roots": [
+            "/.src/dependentDestructuredVariables.ts"
+          ],
+          "options": {
+            "declaration": true,
+            "lib": [
+              "lib.esnext.d.ts",
+              "lib.dom.d.ts"
+            ],
+            "newLine": "crlf",
+            "noErrorTruncation": true,
+            "skipDefaultLibCheck": true,
+            "strict": true,
+            "target": "es6"
+          },
+          "caseInsensitive": false,
+          "contentMappers": 0
+        },
+        "reference": {
+          "diagnostics": [],
+          "emitted": [
+            "/.src/dependentDestructuredVariables.js",
+            "/.src/dependentDestructuredVariables.d.ts"
+          ],
+          "maps": [],
+          "skipped": false,
+          "sources": [
+            [
+              "bundled:///libs/lib.es5.d.ts",
+              "6388847232654d7fcbed7fe89ea511a65ad1f5104b41e905c43f90910e1408b6"
+            ],
+            [
+              "bundled:///libs/lib.es2015.d.ts",
+              "3f88bedbeb09c6f5a6645cb24c7c55f1aa22d19ae96c8e6959cbd8b85a707bc6"
+            ],
+            [
+              "bundled:///libs/lib.es2016.d.ts",
+              "7fe93b39b810eadd916be8db880dd7f0f7012a5cc6ffb62de8f62a2117fa6f1f"
+            ],
+            [
+              "bundled:///libs/lib.es2017.d.ts",
+              "bb0074cc08b84a2374af33d8bf044b80851ccc9e719a5e202eacf40db2c31600"
+            ],
+            [
+              "bundled:///libs/lib.es2018.d.ts",
+              "1a7daebe4f45fb03d9ec53d60008fbf9ac45a697fdc89e4ce218bc94b94f94d6"
+            ],
+            [
+              "bundled:///libs/lib.es2019.d.ts",
+              "f94b133a3cb14a288803be545ac2683e0d0ff6661bcd37e31aaaec54fc382aed"
+            ],
+            [
+              "bundled:///libs/lib.es2020.d.ts",
+              "f59d0650799f8782fd74cf73c19223730c6d1b9198671b1c5b3a38e1188b5953"
+            ],
+            [
+              "bundled:///libs/lib.es2021.d.ts",
+              "8a15b4607d9a499e2dbeed9ec0d3c0d7372c850b2d5f1fb259e8f6d41d468a84"
+            ],
+            [
+              "bundled:///libs/lib.es2022.d.ts",
+              "26e0fe14baee4e127f4365d1ae0b276f400562e45e19e35fd2d4c296684715e6"
+            ],
+            [
+              "bundled:///libs/lib.es2023.d.ts",
+              "1e9332c23e9a907175e0ffc6a49e236f97b48838cc8aec9ce7e4cec21e544b65"
+            ],
+            [
+              "bundled:///libs/lib.es2024.d.ts",
+              "3753fbc1113dc511214802a2342280a8b284ab9094f6420e7aa171e868679f91"
+            ],
+            [
+              "bundled:///libs/lib.es2025.d.ts",
+              "999ca32883495a866aa5737fe1babc764a469e4cde6ee6b136a4b9ae68853e4b"
+            ],
+            [
+              "bundled:///libs/lib.esnext.d.ts",
+              "17f13ecb98cbc39243f2eee1f16d45cd8ec4706b03ee314f1915f1a8b42f6984"
+            ],
+            [
+              "bundled:///libs/lib.dom.d.ts",
+              "d6b1eba8496bdd0eed6fc8a685768fe01b2da4a0388b5fe7df558290bffcf32f"
+            ],
+            [
+              "bundled:///libs/lib.es2015.core.d.ts",
+              "770011bd32a52f929fc98fbf9976c1fa9d80b6445171c02b08627fdba9778933"
+            ],
+            [
+              "bundled:///libs/lib.es2015.collection.d.ts",
+              "f0b6b1d3624fb143656dd86a8dd3e1950b7e65f218319b47bde52f65d47e2e4b"
+            ],
+            [
+              "bundled:///libs/lib.es2015.generator.d.ts",
+              "00343ca5b2e3d48fa5df1db6e32ea2a59afab09590274a6cccb1dbae82e60c7c"
+            ],
+            [
+              "bundled:///libs/lib.es2015.iterable.d.ts",
+              "ebd9f816d4002697cb2864bea1f0b70a103124e18a8cd9645eeccc09bdf80ab4"
+            ],
+            [
+              "bundled:///libs/lib.es2015.promise.d.ts",
+              "2c1afac30a01772cd2a9a298a7ce7706b5892e447bb46bdbeef720f7b5da77ad"
+            ],
+            [
+              "bundled:///libs/lib.es2015.proxy.d.ts",
+              "7b0225f483e4fa685625ebe43dd584bb7973bbd84e66a6ba7bbe175ee1048b4f"
+            ],
+            [
+              "bundled:///libs/lib.es2015.reflect.d.ts",
+              "c0a4b8ac6ce74679c1da2b3795296f5896e31c38e888469a8e0f99dc3305de60"
+            ],
+            [
+              "bundled:///libs/lib.es2015.symbol.d.ts",
+              "83e3871cda2abd4421970fa923cca51a9ce8cdbece6f898285643ab030cb80f3"
+            ],
+            [
+              "bundled:///libs/lib.es2015.symbol.wellknown.d.ts",
+              "c5079c53f0f141a0698faa903e76cb41cd664e3efb01cc17a5c46ec2eb0bef42"
+            ],
+            [
+              "bundled:///libs/lib.es2016.array.include.d.ts",
+              "32cafbc484dea6b0ab62cf8473182bbcb23020d70845b406f80b7526f38ae862"
+            ],
+            [
+              "bundled:///libs/lib.es2016.intl.d.ts",
+              "fca4cdcb6d6c5ef18a869003d02c9f0fd95df8cfaf6eb431cd3376bc034cad36"
+            ],
+            [
+              "bundled:///libs/lib.es2017.arraybuffer.d.ts",
+              "b93ec88115de9a9dc1b602291b85baf825c85666bf25985cc5f698073892b467"
+            ],
+            [
+              "bundled:///libs/lib.es2017.date.d.ts",
+              "f5c06dcc3fe849fcb297c247865a161f995cc29de7aa823afdd75aaaddc1419b"
+            ],
+            [
+              "bundled:///libs/lib.es2017.object.d.ts",
+              "b77e16112127a4b169ef0b8c3a4d730edf459c5f25fe52d5e436a6919206c4d7"
+            ],
+            [
+              "bundled:///libs/lib.es2017.sharedmemory.d.ts",
+              "fbffd9337146eff822c7c00acbb78b01ea7ea23987f6c961eba689349e744f8c"
+            ],
+            [
+              "bundled:///libs/lib.es2017.string.d.ts",
+              "6aaeba1e4f228fda4e9175e34d96807e2c6dc984d0b37a772b3af9365a456681"
+            ],
+            [
+              "bundled:///libs/lib.es2017.intl.d.ts",
+              "c7b3542146734342e440a84b213384bfa188835537ddbda50d30766f0593aff9"
+            ],
+            [
+              "bundled:///libs/lib.es2017.typedarrays.d.ts",
+              "ce6180fa19b1cccd07ee7f7dbb9a367ac19c0ed160573e4686425060b6df7f57"
+            ],
+            [
+              "bundled:///libs/lib.es2018.asyncgenerator.d.ts",
+              "3f02e2476bccb9dbe21280d6090f0df17d2f66b74711489415a8aa4df73c9675"
+            ],
+            [
+              "bundled:///libs/lib.es2018.asynciterable.d.ts",
+              "45e3ab34c1c013c8ab2dc1ba4c80c780744b13b5676800ae2e3be27ae862c40c"
+            ],
+            [
+              "bundled:///libs/lib.es2018.intl.d.ts",
+              "b477b19cafa67ab59a4818c40d821674e641bf11e6200d5567b28cabedbc953d"
+            ],
+            [
+              "bundled:///libs/lib.es2018.promise.d.ts",
+              "e42e397f1a5a77994f0185fd1466520691456c772d06bf843e5084ceb879a0ad"
+            ],
+            [
+              "bundled:///libs/lib.es2018.regexp.d.ts",
+              "f4c2b41f90c95b1c532ecc874bd3c111865793b23aebcc1c3cbbabcd5d76ffb0"
+            ],
+            [
+              "bundled:///libs/lib.es2019.array.d.ts",
+              "ab26191cfad5b66afa11b8bf935ef1cd88fabfcb28d30b2dfa6fad877d050332"
+            ],
+            [
+              "bundled:///libs/lib.es2019.object.d.ts",
+              "2088bc26531e38fb05eedac2951480db5309f6be3fa4a08d2221abb0f5b4200d"
+            ],
+            [
+              "bundled:///libs/lib.es2019.string.d.ts",
+              "cb9d366c425fea79716a8fb3af0d78e6b22ebbab3bd64d25063b42dc9f531c1e"
+            ],
+            [
+              "bundled:///libs/lib.es2019.symbol.d.ts",
+              "500934a8089c26d57ebdb688fc9757389bb6207a3c8f0674d68efa900d2abb34"
+            ],
+            [
+              "bundled:///libs/lib.es2019.intl.d.ts",
+              "689da16f46e647cef0d64b0def88910e818a5877ca5379ede156ca3afb780ac3"
+            ],
+            [
+              "bundled:///libs/lib.es2020.bigint.d.ts",
+              "bc21cc8b6fee4f4c2440d08035b7ea3c06b3511314c8bab6bef7a92de58a2593"
+            ],
+            [
+              "bundled:///libs/lib.es2020.date.d.ts",
+              "7ca53d13d2957003abb47922a71866ba7cb2068f8d154877c596d63c359fed25"
+            ],
+            [
+              "bundled:///libs/lib.es2020.promise.d.ts",
+              "54725f8c4df3d900cb4dac84b64689ce29548da0b4e9b7c2de61d41c79293611"
+            ],
+            [
+              "bundled:///libs/lib.es2020.sharedmemory.d.ts",
+              "e5594bc3076ac29e6c1ebda77939bc4c8833de72f654b6e376862c0473199323"
+            ],
+            [
+              "bundled:///libs/lib.es2020.string.d.ts",
+              "2f3eb332c2d73e729f3364fcc0c2b375e72a121e8157d25a82d67a138c83a95c"
+            ],
+            [
+              "bundled:///libs/lib.es2020.symbol.wellknown.d.ts",
+              "6f4427f9642ce8d500970e4e69d1397f64072ab73b97e476b4002a646ac743b1"
+            ],
+            [
+              "bundled:///libs/lib.es2020.intl.d.ts",
+              "7b4f295ddb7e8c73f608bf54aa5d76b604b4fc44340a2eaa1f34040e7261afd4"
+            ],
+            [
+              "bundled:///libs/lib.es2020.number.d.ts",
+              "b7bf9377723203b5a6a4b920164df22d56a43f593269ba6ae1fdc97774b68855"
+            ],
+            [
+              "bundled:///libs/lib.es2021.promise.d.ts",
+              "db9709688f82c9e5f65a119c64d835f906efe5f559d08b11642d56eb85b79357"
+            ],
+            [
+              "bundled:///libs/lib.es2021.string.d.ts",
+              "4b25b8c874acd1a4cf8444c3617e037d444d19080ac9f634b405583fd10ce1f7"
+            ],
+            [
+              "bundled:///libs/lib.es2021.weakref.d.ts",
+              "37be57d7c90cf1f8112ee2636a068d8fd181289f82b744160ec56a7dc158a9f5"
+            ],
+            [
+              "bundled:///libs/lib.es2021.intl.d.ts",
+              "a917a49ac94cd26b754ab84e113369a75d1a47a710661d7cd25e961cc797065f"
+            ],
+            [
+              "bundled:///libs/lib.es2022.array.d.ts",
+              "6d3261badeb7843d157ef3e6f5d1427d0eeb0af0cf9df84a62cfd29fd47ac86e"
+            ],
+            [
+              "bundled:///libs/lib.es2022.error.d.ts",
+              "195daca651dde22f2167ac0d0a05e215308119a3100f5e6268e8317d05a92526"
+            ],
+            [
+              "bundled:///libs/lib.es2022.intl.d.ts",
+              "8b11e4285cd2bb164a4dc09248bdec69e9842517db4ca47c1ba913011e44ff2f"
+            ],
+            [
+              "bundled:///libs/lib.es2022.object.d.ts",
+              "0508571a52475e245b02bc50fa1394065a0a3d05277fbf5120c3784b85651799"
+            ],
+            [
+              "bundled:///libs/lib.es2022.string.d.ts",
+              "8f9af488f510c3015af3cc8c267a9e9d96c4dd38a1fdff0e11dc5a544711415b"
+            ],
+            [
+              "bundled:///libs/lib.es2022.regexp.d.ts",
+              "fc611fea8d30ea72c6bbfb599c9b4d393ce22e2f5bfef2172534781e7d138104"
+            ],
+            [
+              "bundled:///libs/lib.es2023.array.d.ts",
+              "0bd714129fca875f7d4c477a1a392200b0bcd13fb2e80928cd334b63830ea047"
+            ],
+            [
+              "bundled:///libs/lib.es2023.collection.d.ts",
+              "e2c9037ae6cd2c52d80ceef0b3c5ffdb488627d71529cf4f63776daf11161c9a"
+            ],
+            [
+              "bundled:///libs/lib.es2023.intl.d.ts",
+              "135d5cf4d345f59f1a9caadfafcd858d3d9cc68290db616cc85797224448cccc"
+            ],
+            [
+              "bundled:///libs/lib.es2024.arraybuffer.d.ts",
+              "bc238c3f81c2984751932b6aab223cd5b830e0ac6cad76389e5e9d2ffc03287d"
+            ],
+            [
+              "bundled:///libs/lib.es2024.collection.d.ts",
+              "4a07f9b76d361f572620927e5735b77d6d2101c23cdd94383eb5b706e7b36357"
+            ],
+            [
+              "bundled:///libs/lib.es2024.object.d.ts",
+              "7c4e8dc6ab834cc6baa0227e030606d29e3e8449a9f67cdf5605ea5493c4db29"
+            ],
+            [
+              "bundled:///libs/lib.es2024.promise.d.ts",
+              "de7ba0fd02e06cd9a5bd4ab441ed0e122735786e67dde1e849cced1cd8b46b78"
+            ],
+            [
+              "bundled:///libs/lib.es2024.regexp.d.ts",
+              "6148e4e88d720a06855071c3db02069434142a8332cf9c182cda551adedf3156"
+            ],
+            [
+              "bundled:///libs/lib.es2024.sharedmemory.d.ts",
+              "d63dba625b108316a40c95a4425f8d4294e0deeccfd6c7e59d819efa19e23409"
+            ],
+            [
+              "bundled:///libs/lib.es2024.string.d.ts",
+              "0568d6befee03dd435bed4fc25c4e46865b24bdcb8c563fdc21f580a2c301904"
+            ],
+            [
+              "bundled:///libs/lib.es2025.collection.d.ts",
+              "30d62269b05b584741f19a5369852d5d34895aa2ac4fd948956f886d15f9cc0d"
+            ],
+            [
+              "bundled:///libs/lib.es2025.float16.d.ts",
+              "f128dae7c44d8f35ee42e0a437000a57c9f06cc04f8b4fb42eebf44954d53dc8"
+            ],
+            [
+              "bundled:///libs/lib.es2025.intl.d.ts",
+              "ffbe6d7b295306b2ba88030f65b74c107d8d99bdcf596ea99c62a02f606108b0"
+            ],
+            [
+              "bundled:///libs/lib.es2025.iterator.d.ts",
+              "996fb27b15277369c68a4ba46ed138b4e9e839a02fb4ec756f7997629242fd9f"
+            ],
+            [
+              "bundled:///libs/lib.es2025.promise.d.ts",
+              "79b712591b270d4778c89706ca2cfc56ddb8c3f895840e477388f1710dc5eda9"
+            ],
+            [
+              "bundled:///libs/lib.es2025.regexp.d.ts",
+              "20884846cef428b992b9bd032e70a4ef88e349263f63aeddf04dda837a7dba26"
+            ],
+            [
+              "bundled:///libs/lib.esnext.array.d.ts",
+              "5fcab789c73a97cd43828ee3cc94a61264cf24d4c44472ce64ced0e0f148bdb2"
+            ],
+            [
+              "bundled:///libs/lib.esnext.collection.d.ts",
+              "db59a81f070c1880ad645b2c0275022baa6a0c4f0acdc58d29d349c6efcf0903"
+            ],
+            [
+              "bundled:///libs/lib.esnext.date.d.ts",
+              "673294292640f5722b700e7d814e17aaf7d93f83a48a2c9b38f33cbc940ad8b0"
+            ],
+            [
+              "bundled:///libs/lib.esnext.decorators.d.ts",
+              "d786b48f934cbca483b3c6d0a798cb43bbb4ada283e76fb22c28e53ae05b9e69"
+            ],
+            [
+              "bundled:///libs/lib.esnext.disposable.d.ts",
+              "1ecb8e347cb6b2a8927c09b86263663289418df375f5e68e11a0ae683776978f"
+            ],
+            [
+              "bundled:///libs/lib.esnext.error.d.ts",
+              "142efd4ce210576f777dc34df121777be89eda476942d6d6663b03dcb53be3ff"
+            ],
+            [
+              "bundled:///libs/lib.esnext.intl.d.ts",
+              "379bc41580c2d774f82e828c70308f24a005b490c25ba34d679d84bcf05c3d9d"
+            ],
+            [
+              "bundled:///libs/lib.esnext.sharedmemory.d.ts",
+              "ed484fb2aa8a1a23d0277056ec3336e0a0b52f9b8d6a961f338a642faf43235d"
+            ],
+            [
+              "bundled:///libs/lib.esnext.temporal.d.ts",
+              "4ffedae1d1c2d53fdbca1c96d3c7dda544281f7d262f99b6880634f8fd8d9820"
+            ],
+            [
+              "bundled:///libs/lib.esnext.typedarrays.d.ts",
+              "83a730b125d477dd264df8ba479afab27a3dae7152b005c214ab94dc7ee44fd3"
+            ],
+            [
+              "bundled:///libs/lib.decorators.d.ts",
+              "1ce14b81c5cc821994aa8ec1d42b220dd41b27fcc06373bce3958af7421b77d4"
+            ],
+            [
+              "bundled:///libs/lib.decorators.legacy.d.ts",
+              "b3a048b3e9302ef9a34ef4ebb9aecfb28b66abb3bce577206a79fee559c230da"
+            ],
+            [
+              "/.src/dependentDestructuredVariables.ts",
+              "a5699cdb561292f3f67078f778d44088f08b8b904d9d67cefa1cfabfcacc74e9"
+            ]
+          ],
+          "writes": [
+            {
+              "diagnostics": [],
+              "mapPosition": -1,
+              "path": "/.src/dependentDestructuredVariables.d.ts",
+              "source": "/.src/dependentDestructuredVariables.ts",
+              "textBase64": "dHlwZSBBY3Rpb24gPSB7DQogICAga2luZDogJ0EnOw0KICAgIHBheWxvYWQ6IG51bWJlcjsNCn0gfCB7DQogICAga2luZDogJ0InOw0KICAgIHBheWxvYWQ6IHN0cmluZzsNCn07DQpkZWNsYXJlIGZ1bmN0aW9uIGYxMCh7IGtpbmQsIHBheWxvYWQgfTogQWN0aW9uKTogdm9pZDsNCmRlY2xhcmUgZnVuY3Rpb24gZjExKGFjdGlvbjogQWN0aW9uKTogdm9pZDsNCmRlY2xhcmUgZnVuY3Rpb24gZjEyKHsga2luZCwgcGF5bG9hZCB9OiBBY3Rpb24pOiB2b2lkOw0KZGVjbGFyZSBmdW5jdGlvbiBmMTM8VCBleHRlbmRzIEFjdGlvbj4oeyBraW5kLCBwYXlsb2FkIH06IFQpOiB2b2lkOw0KZGVjbGFyZSBmdW5jdGlvbiBmMTQ8VCBleHRlbmRzIEFjdGlvbj4odDogVCk6IHZvaWQ7DQp0eXBlIEFjdGlvbjIgPSB7DQogICAga2luZDogJ0EnOw0KICAgIHBheWxvYWQ6IG51bWJlciB8IHVuZGVmaW5lZDsNCn0gfCB7DQogICAga2luZDogJ0InOw0KICAgIHBheWxvYWQ6IHN0cmluZyB8IHVuZGVmaW5lZDsNCn07DQpkZWNsYXJlIGZ1bmN0aW9uIGYyMCh7IGtpbmQsIHBheWxvYWQgfTogQWN0aW9uMik6IHZvaWQ7DQpkZWNsYXJlIGZ1bmN0aW9uIGYyMShhY3Rpb246IEFjdGlvbjIpOiB2b2lkOw0KZGVjbGFyZSBmdW5jdGlvbiBmMjIoYWN0aW9uOiBBY3Rpb24yKTogdm9pZDsNCmRlY2xhcmUgZnVuY3Rpb24gZjIzKHsga2luZCwgcGF5bG9hZCB9OiBBY3Rpb24yKTogdm9pZDsNCnR5cGUgRm9vID0gew0KICAgIGtpbmQ6ICdBJzsNCiAgICBpc0E6IHRydWU7DQp9IHwgew0KICAgIGtpbmQ6ICdCJzsNCiAgICBpc0E6IGZhbHNlOw0KfSB8IHsNCiAgICBraW5kOiAnQyc7DQogICAgaXNBOiBmYWxzZTsNCn07DQpkZWNsYXJlIGZ1bmN0aW9uIGYzMCh7IGtpbmQsIGlzQSB9OiBGb28pOiB2b2lkOw0KdHlwZSBBcmdzID0gWydBJywgbnVtYmVyXSB8IFsnQicsIHN0cmluZ107DQpkZWNsYXJlIGZ1bmN0aW9uIGY0MCguLi5ba2luZCwgZGF0YV06IEFyZ3MpOiB2b2lkOw0KaW50ZXJmYWNlIEE8VD4gew0KICAgIHZhcmlhbnQ6ICdhJzsNCiAgICB2YWx1ZTogVDsNCn0NCmludGVyZmFjZSBCPFQ+IHsNCiAgICB2YXJpYW50OiAnYic7DQogICAgdmFsdWU6IEFycmF5PFQ+Ow0KfQ0KdHlwZSBBQjxUPiA9IEE8VD4gfCBCPFQ+Ow0KZGVjbGFyZSBmdW5jdGlvbiBwcmludFZhbHVlPFQ+KHQ6IFQpOiB2b2lkOw0KZGVjbGFyZSBmdW5jdGlvbiBwcmludFZhbHVlTGlzdDxUPih0OiBBcnJheTxUPik6IHZvaWQ7DQpkZWNsYXJlIGZ1bmN0aW9uIHVucmVmaW5lZDE8VD4oYWI6IEFCPFQ+KTogdm9pZDsNCnR5cGUgQWN0aW9uMyA9IHsNCiAgICB0eXBlOiAnYWRkJzsNCiAgICBwYXlsb2FkOiB7DQogICAgICAgIHRvQWRkOiBudW1iZXI7DQogICAgfTsNCn0gfCB7DQogICAgdHlwZTogJ3JlbW92ZSc7DQogICAgcGF5bG9hZDogew0KICAgICAgICB0b1JlbW92ZTogbnVtYmVyOw0KICAgIH07DQp9Ow0KZGVjbGFyZSBjb25zdCByZWR1Y2VyQnJva2VuOiAoc3RhdGU6IG51bWJlciwgeyB0eXBlLCBwYXlsb2FkIH06IEFjdGlvbjMpID0+IG51bWJlcjsNCmRlY2xhcmUgdmFyIGl0OiBJdGVyYXRvcjxudW1iZXI+Ow0KZGVjbGFyZSBjb25zdCB7IHZhbHVlLCBkb25lIH06IEl0ZXJhdG9yUmVzdWx0PG51bWJlciwgYW55PjsNCmRlY2xhcmUgZnVuY3Rpb24gZjUwKGNiOiAoLi4uYXJnczogQXJncykgPT4gdm9pZCk6IHZvaWQ7DQpkZWNsYXJlIGNvbnN0IGY1MTogKC4uLmFyZ3M6IFsnQScsIG51bWJlcl0gfCBbJ0InLCBzdHJpbmddKSA9PiB2b2lkOw0KZGVjbGFyZSBjb25zdCBmNTI6ICguLi5hcmdzOiBbJ0EnLCBudW1iZXJdIHwgWydCJ10pID0+IHZvaWQ7DQpkZWNsYXJlIGZ1bmN0aW9uIHJlYWRGaWxlKHBhdGg6IHN0cmluZywgY2FsbGJhY2s6ICguLi5hcmdzOiBbZXJyOiBudWxsLCBkYXRhOiB1bmtub3duW11dIHwgW2VycjogRXJyb3IsIGRhdGE6IHVuZGVmaW5lZF0pID0+IHZvaWQpOiB2b2lkOw0KdHlwZSBSZWR1Y2VyQXJncyA9IFsiYWRkIiwgew0KICAgIGE6IG51bWJlcjsNCiAgICBiOiBudW1iZXI7DQp9XSB8IFsiY29uY2F0Iiwgew0KICAgIGZpcnN0QXJyOiBhbnlbXTsNCiAgICBzZWNvbmRBcnI6IGFueVtdOw0KfV07DQpkZWNsYXJlIGNvbnN0IHJlZHVjZXI6ICguLi5hcmdzOiBSZWR1Y2VyQXJncykgPT4gdm9pZDsNCnR5cGUgRm9vTWV0aG9kID0gew0KICAgIG1ldGhvZCguLi5hcmdzOiBbDQogICAgICAgIHR5cGU6ICJzdHIiLA0KICAgICAgICBjYjogKGU6IHN0cmluZykgPT4gdm9pZA0KICAgIF0gfCBbDQogICAgICAgIHR5cGU6ICJudW0iLA0KICAgICAgICBjYjogKGU6IG51bWJlcikgPT4gdm9pZA0KICAgIF0pOiB2b2lkOw0KfTsNCmRlY2xhcmUgbGV0IGZvb006IEZvb01ldGhvZDsNCnR5cGUgRm9vQXN5bmNNZXRob2QgPSB7DQogICAgbWV0aG9kKC4uLmFyZ3M6IFsNCiAgICAgICAgdHlwZTogInN0ciIsDQogICAgICAgIGNiOiAoZTogc3RyaW5nKSA9PiB2b2lkDQogICAgXSB8IFsNCiAgICAgICAgdHlwZTogIm51bSIsDQogICAgICAgIGNiOiAoZTogbnVtYmVyKSA9PiB2b2lkDQogICAgXSk6IFByb21pc2U8YW55PjsNCn07DQpkZWNsYXJlIGxldCBmb29Bc3luY006IEZvb0FzeW5jTWV0aG9kOw0KdHlwZSBGb29HZW5NZXRob2QgPSB7DQogICAgbWV0aG9kKC4uLmFyZ3M6IFsNCiAgICAgICAgdHlwZTogInN0ciIsDQogICAgICAgIGNiOiAoZTogc3RyaW5nKSA9PiB2b2lkDQogICAgXSB8IFsNCiAgICAgICAgdHlwZTogIm51bSIsDQogICAgICAgIGNiOiAoZTogbnVtYmVyKSA9PiB2b2lkDQogICAgXSk6IEdlbmVyYXRvcjxhbnksIGFueSwgYW55PjsNCn07DQpkZWNsYXJlIGxldCBmb29HZW5NOiBGb29HZW5NZXRob2Q7DQp0eXBlIEZvb0FzeW5jR2VuTWV0aG9kID0gew0KICAgIG1ldGhvZCguLi5hcmdzOiBbDQogICAgICAgIHR5cGU6ICJzdHIiLA0KICAgICAgICBjYjogKGU6IHN0cmluZykgPT4gdm9pZA0KICAgIF0gfCBbDQogICAgICAgIHR5cGU6ICJudW0iLA0KICAgICAgICBjYjogKGU6IG51bWJlcikgPT4gdm9pZA0KICAgIF0pOiBBc3luY0dlbmVyYXRvcjxhbnksIGFueSwgYW55PjsNCn07DQpkZWNsYXJlIGxldCBmb29Bc3luY0dlbk06IEZvb0FzeW5jR2VuTWV0aG9kOw0KdHlwZSBGdW5jID0gPFQgZXh0ZW5kcyBbImEiLCBudW1iZXJdIHwgWyJiIiwgc3RyaW5nXT4oLi4uYXJnczogVCkgPT4gdm9pZDsNCmRlY2xhcmUgY29uc3QgZjYwOiBGdW5jOw0KZGVjbGFyZSBmdW5jdGlvbiBmb28oeyB2YWx1ZTEsIHRlc3QxLCB0ZXN0MiwgdGVzdDMsIHRlc3Q0LCB0ZXN0NSwgdGVzdDYsIHRlc3Q3LCB0ZXN0OCwgdGVzdDkgfTogew0KICAgIHRlc3QxPzogYW55Ow0KICAgIHRlc3QyPzogYW55Ow0KICAgIHRlc3QzPzogYW55Ow0KICAgIHRlc3Q0PzogYW55Ow0KICAgIHRlc3Q1PzogYW55Ow0KICAgIHRlc3Q2PzogYW55Ow0KICAgIHRlc3Q3PzogYW55Ow0KICAgIHRlc3Q4PzogYW55Ow0KICAgIHRlc3Q5PzogYW55Ow0KICAgIHZhbHVlMTogYW55Ow0KfSk6IHZvaWQ7DQpkZWNsYXJlIGZ1bmN0aW9uIGZhMSh4OiBbdHJ1ZSwgbnVtYmVyXSB8IFtmYWxzZSwgc3RyaW5nXSk6IHZvaWQ7DQpkZWNsYXJlIGZ1bmN0aW9uIGZhMih4OiB7DQogICAgZ3VhcmQ6IHRydWU7DQogICAgdmFsdWU6IG51bWJlcjsNCn0gfCB7DQogICAgZ3VhcmQ6IGZhbHNlOw0KICAgIHZhbHVlOiBzdHJpbmc7DQp9KTogdm9pZDsNCmRlY2xhcmUgY29uc3QgZmEzOiAoLi4uYXJnczogW3RydWUsIG51bWJlcl0gfCBbZmFsc2UsIHN0cmluZ10pID0+IHZvaWQ7DQppbnRlcmZhY2UgQ2xpZW50RXZlbnRzIHsNCiAgICB3YXJuOiBbbWVzc2FnZTogc3RyaW5nXTsNCiAgICBzaGFyZERpc2Nvbm5lY3Q6IFtjbG9zZUV2ZW50OiBDbG9zZUV2ZW50LCBzaGFyZElkOiBudW1iZXJdOw0KfQ0KZGVjbGFyZSBjbGFzcyBDbGllbnQgew0KICAgIG9uPEsgZXh0ZW5kcyBrZXlvZiBDbGllbnRFdmVudHM+KGV2ZW50OiBLLCBsaXN0ZW5lcjogKC4uLmFyZ3M6IENsaWVudEV2ZW50c1tLXSkgPT4gdm9pZCk6IHZvaWQ7DQp9DQpkZWNsYXJlIGNvbnN0IGJvdDogQ2xpZW50Ow0KZGVjbGFyZSBmdW5jdGlvbiBmejEoW3gsIHldOiBbMSwgMl0gfCBbMywgNF0gfCBbNV0pOiB2b2lkOw0KZGVjbGFyZSBmdW5jdGlvbiB0b29OYXJyb3coW3gsIHldOiBbMSwgMV0gfCBbMSwgMl0gfCBbMV0pOiB2b2lkOw0KZGVjbGFyZSBmdW5jdGlvbiBwYXJhbWV0ZXJSZWFzc2lnbmVkMShbeCwgeV06IFsxLCAyXSB8IFszLCA0XSk6IHZvaWQ7DQpkZWNsYXJlIGZ1bmN0aW9uIHBhcmFtZXRlclJlYXNzaWduZWQyKFt4LCB5XTogWzEsIDJdIHwgWzMsIDRdKTogdm9pZDsNCmRlY2xhcmUgY29uc3QgcGFyYW1ldGVyUmVhc3NpZ25lZENvbnRleHR1YWxSZXN0MTogKC4uLmFyZ3M6IFsxLCAyXSB8IFszLCA0XSkgPT4gdm9pZDsNCg=="
+            },
+            {
+              "diagnostics": [],
+              "mapPosition": -1,
+              "path": "/.src/dependentDestructuredVariables.js",
+              "source": "/.src/dependentDestructuredVariables.ts",
+              "textBase64": "InVzZSBzdHJpY3QiOw0KdmFyIF9fYXdhaXRlciA9ICh0aGlzICYmIHRoaXMuX19hd2FpdGVyKSB8fCBmdW5jdGlvbiAodGhpc0FyZywgX2FyZ3VtZW50cywgUCwgZ2VuZXJhdG9yKSB7DQogICAgZnVuY3Rpb24gYWRvcHQodmFsdWUpIHsgcmV0dXJuIHZhbHVlIGluc3RhbmNlb2YgUCA/IHZhbHVlIDogbmV3IFAoZnVuY3Rpb24gKHJlc29sdmUpIHsgcmVzb2x2ZSh2YWx1ZSk7IH0pOyB9DQogICAgcmV0dXJuIG5ldyAoUCB8fCAoUCA9IFByb21pc2UpKShmdW5jdGlvbiAocmVzb2x2ZSwgcmVqZWN0KSB7DQogICAgICAgIGZ1bmN0aW9uIGZ1bGZpbGxlZCh2YWx1ZSkgeyB0cnkgeyBzdGVwKGdlbmVyYXRvci5uZXh0KHZhbHVlKSk7IH0gY2F0Y2ggKGUpIHsgcmVqZWN0KGUpOyB9IH0NCiAgICAgICAgZnVuY3Rpb24gcmVqZWN0ZWQodmFsdWUpIHsgdHJ5IHsgc3RlcChnZW5lcmF0b3JbInRocm93Il0odmFsdWUpKTsgfSBjYXRjaCAoZSkgeyByZWplY3QoZSk7IH0gfQ0KICAgICAgICBmdW5jdGlvbiBzdGVwKHJlc3VsdCkgeyByZXN1bHQuZG9uZSA/IHJlc29sdmUocmVzdWx0LnZhbHVlKSA6IGFkb3B0KHJlc3VsdC52YWx1ZSkudGhlbihmdWxmaWxsZWQsIHJlamVjdGVkKTsgfQ0KICAgICAgICBzdGVwKChnZW5lcmF0b3IgPSBnZW5lcmF0b3IuYXBwbHkodGhpc0FyZywgX2FyZ3VtZW50cyB8fCBbXSkpLm5leHQoKSk7DQogICAgfSk7DQp9Ow0KdmFyIF9fYXdhaXQgPSAodGhpcyAmJiB0aGlzLl9fYXdhaXQpIHx8IGZ1bmN0aW9uICh2KSB7IHJldHVybiB0aGlzIGluc3RhbmNlb2YgX19hd2FpdCA/ICh0aGlzLnYgPSB2LCB0aGlzKSA6IG5ldyBfX2F3YWl0KHYpOyB9DQp2YXIgX19hc3luY0dlbmVyYXRvciA9ICh0aGlzICYmIHRoaXMuX19hc3luY0dlbmVyYXRvcikgfHwgZnVuY3Rpb24gKHRoaXNBcmcsIF9hcmd1bWVudHMsIGdlbmVyYXRvcikgew0KICAgIGlmICghU3ltYm9sLmFzeW5jSXRlcmF0b3IpIHRocm93IG5ldyBUeXBlRXJyb3IoIlN5bWJvbC5hc3luY0l0ZXJhdG9yIGlzIG5vdCBkZWZpbmVkLiIpOw0KICAgIHZhciBnID0gZ2VuZXJhdG9yLmFwcGx5KHRoaXNBcmcsIF9hcmd1bWVudHMgfHwgW10pLCBpLCBxID0gW107DQogICAgcmV0dXJuIGkgPSBPYmplY3QuY3JlYXRlKCh0eXBlb2YgQXN5bmNJdGVyYXRvciA9PT0gImZ1bmN0aW9uIiA/IEFzeW5jSXRlcmF0b3IgOiBPYmplY3QpLnByb3RvdHlwZSksIHZlcmIoIm5leHQiKSwgdmVyYigidGhyb3ciKSwgdmVyYigicmV0dXJuIiwgYXdhaXRSZXR1cm4pLCBpW1N5bWJvbC5hc3luY0l0ZXJhdG9yXSA9IGZ1bmN0aW9uICgpIHsgcmV0dXJuIHRoaXM7IH0sIGk7DQogICAgZnVuY3Rpb24gYXdhaXRSZXR1cm4oZikgeyByZXR1cm4gZnVuY3Rpb24gKHYpIHsgcmV0dXJuIFByb21pc2UucmVzb2x2ZSh2KS50aGVuKGYsIHJlamVjdCk7IH07IH0NCiAgICBmdW5jdGlvbiB2ZXJiKG4sIGYpIHsgaWYgKGdbbl0pIHsgaVtuXSA9IGZ1bmN0aW9uICh2KSB7IHJldHVybiBuZXcgUHJvbWlzZShmdW5jdGlvbiAoYSwgYikgeyBxLnB1c2goW24sIHYsIGEsIGJdKSA+IDEgfHwgcmVzdW1lKG4sIHYpOyB9KTsgfTsgaWYgKGYpIGlbbl0gPSBmKGlbbl0pOyB9IH0NCiAgICBmdW5jdGlvbiByZXN1bWUobiwgdikgeyB0cnkgeyBzdGVwKGdbbl0odikpOyB9IGNhdGNoIChlKSB7IHNldHRsZShxWzBdWzNdLCBlKTsgfSB9DQogICAgZnVuY3Rpb24gc3RlcChyKSB7IHIudmFsdWUgaW5zdGFuY2VvZiBfX2F3YWl0ID8gUHJvbWlzZS5yZXNvbHZlKHIudmFsdWUudikudGhlbihmdWxmaWxsLCByZWplY3QpIDogc2V0dGxlKHFbMF1bMl0sIHIpOyB9DQogICAgZnVuY3Rpb24gZnVsZmlsbCh2YWx1ZSkgeyByZXN1bWUoIm5leHQiLCB2YWx1ZSk7IH0NCiAgICBmdW5jdGlvbiByZWplY3QodmFsdWUpIHsgcmVzdW1lKCJ0aHJvdyIsIHZhbHVlKTsgfQ0KICAgIGZ1bmN0aW9uIHNldHRsZShmLCB2KSB7IGlmIChmKHYpLCBxLnNoaWZ0KCksIHEubGVuZ3RoKSByZXN1bWUocVswXVswXSwgcVswXVsxXSk7IH0NCn07DQpmdW5jdGlvbiBmMTAoeyBraW5kLCBwYXlsb2FkIH0pIHsNCiAgICBpZiAoa2luZCA9PT0gJ0EnKSB7DQogICAgICAgIHBheWxvYWQudG9GaXhlZCgpOw0KICAgIH0NCiAgICBpZiAoa2luZCA9PT0gJ0InKSB7DQogICAgICAgIHBheWxvYWQudG9VcHBlckNhc2UoKTsNCiAgICB9DQp9DQpmdW5jdGlvbiBmMTEoYWN0aW9uKSB7DQogICAgY29uc3QgeyBraW5kLCBwYXlsb2FkIH0gPSBhY3Rpb247DQogICAgaWYgKGtpbmQgPT09ICdBJykgew0KICAgICAgICBwYXlsb2FkLnRvRml4ZWQoKTsNCiAgICB9DQogICAgaWYgKGtpbmQgPT09ICdCJykgew0KICAgICAgICBwYXlsb2FkLnRvVXBwZXJDYXNlKCk7DQogICAgfQ0KfQ0KZnVuY3Rpb24gZjEyKHsga2luZCwgcGF5bG9hZCB9KSB7DQogICAgc3dpdGNoIChraW5kKSB7DQogICAgICAgIGNhc2UgJ0EnOg0KICAgICAgICAgICAgcGF5bG9hZC50b0ZpeGVkKCk7DQogICAgICAgICAgICBicmVhazsNCiAgICAgICAgY2FzZSAnQic6DQogICAgICAgICAgICBwYXlsb2FkLnRvVXBwZXJDYXNlKCk7DQogICAgICAgICAgICBicmVhazsNCiAgICAgICAgZGVmYXVsdDoNCiAgICAgICAgICAgIHBheWxvYWQ7IC8vIG5ldmVyDQogICAgfQ0KfQ0KLy8gcmVwcm8gIzUwMjA2DQpmdW5jdGlvbiBmMTMoeyBraW5kLCBwYXlsb2FkIH0pIHsNCiAgICBpZiAoa2luZCA9PT0gJ0EnKSB7DQogICAgICAgIHBheWxvYWQudG9GaXhlZCgpOw0KICAgIH0NCiAgICBpZiAoa2luZCA9PT0gJ0InKSB7DQogICAgICAgIHBheWxvYWQudG9VcHBlckNhc2UoKTsNCiAgICB9DQp9DQpmdW5jdGlvbiBmMTQodCkgew0KICAgIGNvbnN0IHsga2luZCwgcGF5bG9hZCB9ID0gdDsNCiAgICBpZiAoa2luZCA9PT0gJ0EnKSB7DQogICAgICAgIHBheWxvYWQudG9GaXhlZCgpOw0KICAgIH0NCiAgICBpZiAoa2luZCA9PT0gJ0InKSB7DQogICAgICAgIHBheWxvYWQudG9VcHBlckNhc2UoKTsNCiAgICB9DQp9DQpmdW5jdGlvbiBmMjAoeyBraW5kLCBwYXlsb2FkIH0pIHsNCiAgICBpZiAocGF5bG9hZCkgew0KICAgICAgICBpZiAoa2luZCA9PT0gJ0EnKSB7DQogICAgICAgICAgICBwYXlsb2FkLnRvRml4ZWQoKTsNCiAgICAgICAgfQ0KICAgICAgICBpZiAoa2luZCA9PT0gJ0InKSB7DQogICAgICAgICAgICBwYXlsb2FkLnRvVXBwZXJDYXNlKCk7DQogICAgICAgIH0NCiAgICB9DQp9DQpmdW5jdGlvbiBmMjEoYWN0aW9uKSB7DQogICAgY29uc3QgeyBraW5kLCBwYXlsb2FkIH0gPSBhY3Rpb247DQogICAgaWYgKHBheWxvYWQpIHsNCiAgICAgICAgaWYgKGtpbmQgPT09ICdBJykgew0KICAgICAgICAgICAgcGF5bG9hZC50b0ZpeGVkKCk7DQogICAgICAgIH0NCiAgICAgICAgaWYgKGtpbmQgPT09ICdCJykgew0KICAgICAgICAgICAgcGF5bG9hZC50b1VwcGVyQ2FzZSgpOw0KICAgICAgICB9DQogICAgfQ0KfQ0KZnVuY3Rpb24gZjIyKGFjdGlvbikgew0KICAgIGlmIChhY3Rpb24ucGF5bG9hZCkgew0KICAgICAgICBjb25zdCB7IGtpbmQsIHBheWxvYWQgfSA9IGFjdGlvbjsNCiAgICAgICAgaWYgKGtpbmQgPT09ICdBJykgew0KICAgICAgICAgICAgcGF5bG9hZC50b0ZpeGVkKCk7DQogICAgICAgIH0NCiAgICAgICAgaWYgKGtpbmQgPT09ICdCJykgew0KICAgICAgICAgICAgcGF5bG9hZC50b1VwcGVyQ2FzZSgpOw0KICAgICAgICB9DQogICAgfQ0KfQ0KZnVuY3Rpb24gZjIzKHsga2luZCwgcGF5bG9hZCB9KSB7DQogICAgaWYgKHBheWxvYWQpIHsNCiAgICAgICAgc3dpdGNoIChraW5kKSB7DQogICAgICAgICAgICBjYXNlICdBJzoNCiAgICAgICAgICAgICAgICBwYXlsb2FkLnRvRml4ZWQoKTsNCiAgICAgICAgICAgICAgICBicmVhazsNCiAgICAgICAgICAgIGNhc2UgJ0InOg0KICAgICAgICAgICAgICAgIHBheWxvYWQudG9VcHBlckNhc2UoKTsNCiAgICAgICAgICAgICAgICBicmVhazsNCiAgICAgICAgICAgIGRlZmF1bHQ6DQogICAgICAgICAgICAgICAgcGF5bG9hZDsgLy8gbmV2ZXINCiAgICAgICAgfQ0KICAgIH0NCn0NCmZ1bmN0aW9uIGYzMCh7IGtpbmQsIGlzQSB9KSB7DQogICAgaWYgKGtpbmQgPT09ICdBJykgew0KICAgICAgICBpc0E7IC8vIHRydWUNCiAgICB9DQogICAgaWYgKGtpbmQgPT09ICdCJykgew0KICAgICAgICBpc0E7IC8vIGZhbHNlDQogICAgfQ0KICAgIGlmIChraW5kID09PSAnQycpIHsNCiAgICAgICAgaXNBOyAvLyBmYWxzZQ0KICAgIH0NCiAgICBpZiAoaXNBKSB7DQogICAgICAgIGtpbmQ7IC8vICdBJw0KICAgIH0NCiAgICBlbHNlIHsNCiAgICAgICAga2luZDsgLy8gJ0InIHwgJ0MnDQogICAgfQ0KfQ0KZnVuY3Rpb24gZjQwKC4uLltraW5kLCBkYXRhXSkgew0KICAgIGlmIChraW5kID09PSAnQScpIHsNCiAgICAgICAgZGF0YS50b0ZpeGVkKCk7DQogICAgfQ0KICAgIGlmIChraW5kID09PSAnQicpIHsNCiAgICAgICAgZGF0YS50b1VwcGVyQ2FzZSgpOw0KICAgIH0NCn0NCmZ1bmN0aW9uIHVucmVmaW5lZDEoYWIpIHsNCiAgICBjb25zdCB7IHZhcmlhbnQsIHZhbHVlIH0gPSBhYjsNCiAgICBpZiAodmFyaWFudCA9PT0gJ2EnKSB7DQogICAgICAgIHByaW50VmFsdWUodmFsdWUpOw0KICAgIH0NCiAgICBlbHNlIHsNCiAgICAgICAgcHJpbnRWYWx1ZUxpc3QodmFsdWUpOw0KICAgIH0NCn0NCmNvbnN0IHJlZHVjZXJCcm9rZW4gPSAoc3RhdGUsIHsgdHlwZSwgcGF5bG9hZCB9KSA9PiB7DQogICAgc3dpdGNoICh0eXBlKSB7DQogICAgICAgIGNhc2UgJ2FkZCc6DQogICAgICAgICAgICByZXR1cm4gc3RhdGUgKyBwYXlsb2FkLnRvQWRkOw0KICAgICAgICBjYXNlICdyZW1vdmUnOg0KICAgICAgICAgICAgcmV0dXJuIHN0YXRlIC0gcGF5bG9hZC50b1JlbW92ZTsNCiAgICB9DQp9Ow0KY29uc3QgeyB2YWx1ZSwgZG9uZSB9ID0gaXQubmV4dCgpOw0KaWYgKCFkb25lKSB7DQogICAgdmFsdWU7IC8vIG51bWJlcg0KfQ0KZjUwKChraW5kLCBkYXRhKSA9PiB7DQogICAgaWYgKGtpbmQgPT09ICdBJykgew0KICAgICAgICBkYXRhLnRvRml4ZWQoKTsNCiAgICB9DQogICAgaWYgKGtpbmQgPT09ICdCJykgew0KICAgICAgICBkYXRhLnRvVXBwZXJDYXNlKCk7DQogICAgfQ0KfSk7DQpjb25zdCBmNTEgPSAoa2luZCwgcGF5bG9hZCkgPT4gew0KICAgIGlmIChraW5kID09PSAnQScpIHsNCiAgICAgICAgcGF5bG9hZC50b0ZpeGVkKCk7DQogICAgfQ0KICAgIGlmIChraW5kID09PSAnQicpIHsNCiAgICAgICAgcGF5bG9hZC50b1VwcGVyQ2FzZSgpOw0KICAgIH0NCn07DQpjb25zdCBmNTIgPSAoa2luZCwgcGF5bG9hZCkgPT4gew0KICAgIGlmIChraW5kID09PSAnQScpIHsNCiAgICAgICAgcGF5bG9hZC50b0ZpeGVkKCk7DQogICAgfQ0KICAgIGVsc2Ugew0KICAgICAgICBwYXlsb2FkOyAvLyB1bmRlZmluZWQNCiAgICB9DQp9Ow0KcmVhZEZpbGUoJ2hlbGxvJywgKGVyciwgZGF0YSkgPT4gew0KICAgIGlmIChlcnIgPT09IG51bGwpIHsNCiAgICAgICAgZGF0YS5sZW5ndGg7DQogICAgfQ0KICAgIGVsc2Ugew0KICAgICAgICBlcnIubWVzc2FnZTsNCiAgICB9DQp9KTsNCmNvbnN0IHJlZHVjZXIgPSAob3AsIGFyZ3MpID0+IHsNCiAgICBzd2l0Y2ggKG9wKSB7DQogICAgICAgIGNhc2UgImFkZCI6DQogICAgICAgICAgICBjb25zb2xlLmxvZyhhcmdzLmEgKyBhcmdzLmIpOw0KICAgICAgICAgICAgYnJlYWs7DQogICAgICAgIGNhc2UgImNvbmNhdCI6DQogICAgICAgICAgICBjb25zb2xlLmxvZyhhcmdzLmZpcnN0QXJyLmNvbmNhdChhcmdzLnNlY29uZEFycikpOw0KICAgICAgICAgICAgYnJlYWs7DQogICAgfQ0KfTsNCnJlZHVjZXIoImFkZCIsIHsgYTogMSwgYjogMyB9KTsNCnJlZHVjZXIoImNvbmNhdCIsIHsgZmlyc3RBcnI6IFsxLCAyXSwgc2Vjb25kQXJyOiBbMywgNF0gfSk7DQpsZXQgZm9vTSA9IHsNCiAgICBtZXRob2QodHlwZSwgY2IpIHsNCiAgICAgICAgaWYgKHR5cGUgPT0gJ251bScpIHsNCiAgICAgICAgICAgIGNiKDEyMyk7DQogICAgICAgIH0NCiAgICAgICAgZWxzZSB7DQogICAgICAgICAgICBjYigiYWJjIik7DQogICAgICAgIH0NCiAgICB9DQp9Ow0KbGV0IGZvb0FzeW5jTSA9IHsNCiAgICBtZXRob2QodHlwZSwgY2IpIHsNCiAgICAgICAgcmV0dXJuIF9fYXdhaXRlcih0aGlzLCB2b2lkIDAsIHZvaWQgMCwgZnVuY3Rpb24qICgpIHsNCiAgICAgICAgICAgIGlmICh0eXBlID09ICdudW0nKSB7DQogICAgICAgICAgICAgICAgY2IoMTIzKTsNCiAgICAgICAgICAgIH0NCiAgICAgICAgICAgIGVsc2Ugew0KICAgICAgICAgICAgICAgIGNiKCJhYmMiKTsNCiAgICAgICAgICAgIH0NCiAgICAgICAgfSk7DQogICAgfQ0KfTsNCmxldCBmb29HZW5NID0gew0KICAgICptZXRob2QodHlwZSwgY2IpIHsNCiAgICAgICAgaWYgKHR5cGUgPT0gJ251bScpIHsNCiAgICAgICAgICAgIGNiKDEyMyk7DQogICAgICAgIH0NCiAgICAgICAgZWxzZSB7DQogICAgICAgICAgICBjYigiYWJjIik7DQogICAgICAgIH0NCiAgICB9DQp9Ow0KbGV0IGZvb0FzeW5jR2VuTSA9IHsNCiAgICBtZXRob2QodHlwZSwgY2IpIHsNCiAgICAgICAgcmV0dXJuIF9fYXN5bmNHZW5lcmF0b3IodGhpcywgYXJndW1lbnRzLCBmdW5jdGlvbiogbWV0aG9kXzEoKSB7DQogICAgICAgICAgICBpZiAodHlwZSA9PSAnbnVtJykgew0KICAgICAgICAgICAgICAgIGNiKDEyMyk7DQogICAgICAgICAgICB9DQogICAgICAgICAgICBlbHNlIHsNCiAgICAgICAgICAgICAgICBjYigiYWJjIik7DQogICAgICAgICAgICB9DQogICAgICAgIH0pOw0KICAgIH0NCn07DQpjb25zdCBmNjAgPSAoa2luZCwgcGF5bG9hZCkgPT4gew0KICAgIGlmIChraW5kID09PSAiYSIpIHsNCiAgICAgICAgcGF5bG9hZC50b0ZpeGVkKCk7IC8vIGVycm9yDQogICAgfQ0KICAgIGlmIChraW5kID09PSAiYiIpIHsNCiAgICAgICAgcGF5bG9hZC50b1VwcGVyQ2FzZSgpOyAvLyBlcnJvcg0KICAgIH0NCn07DQovLyBSZXBybyBmcm9tICM0ODkwMg0KZnVuY3Rpb24gZm9vKHsgdmFsdWUxLCB0ZXN0MSA9IHZhbHVlMS50ZXN0MSwgdGVzdDIgPSB2YWx1ZTEudGVzdDIsIHRlc3QzID0gdmFsdWUxLnRlc3QzLCB0ZXN0NCA9IHZhbHVlMS50ZXN0NCwgdGVzdDUgPSB2YWx1ZTEudGVzdDUsIHRlc3Q2ID0gdmFsdWUxLnRlc3Q2LCB0ZXN0NyA9IHZhbHVlMS50ZXN0NywgdGVzdDggPSB2YWx1ZTEudGVzdDgsIHRlc3Q5ID0gdmFsdWUxLnRlc3Q5IH0pIHsgfQ0KLy8gUmVwcm8gZnJvbSAjNDk3NzINCmZ1bmN0aW9uIGZhMSh4KSB7DQogICAgY29uc3QgW2d1YXJkLCB2YWx1ZV0gPSB4Ow0KICAgIGlmIChndWFyZCkgew0KICAgICAgICBmb3IgKDs7KSB7DQogICAgICAgICAgICB2YWx1ZTsgLy8gbnVtYmVyDQogICAgICAgIH0NCiAgICB9DQogICAgZWxzZSB7DQogICAgICAgIHdoaWxlICghIXRydWUpIHsNCiAgICAgICAgICAgIHZhbHVlOyAvLyBzdHJpbmcNCiAgICAgICAgfQ0KICAgIH0NCn0NCmZ1bmN0aW9uIGZhMih4KSB7DQogICAgY29uc3QgeyBndWFyZCwgdmFsdWUgfSA9IHg7DQogICAgaWYgKGd1YXJkKSB7DQogICAgICAgIGZvciAoOzspIHsNCiAgICAgICAgICAgIHZhbHVlOyAvLyBudW1iZXINCiAgICAgICAgfQ0KICAgIH0NCiAgICBlbHNlIHsNCiAgICAgICAgd2hpbGUgKCEhdHJ1ZSkgew0KICAgICAgICAgICAgdmFsdWU7IC8vIHN0cmluZw0KICAgICAgICB9DQogICAgfQ0KfQ0KY29uc3QgZmEzID0gKGd1YXJkLCB2YWx1ZSkgPT4gew0KICAgIGlmIChndWFyZCkgew0KICAgICAgICBmb3IgKDs7KSB7DQogICAgICAgICAgICB2YWx1ZTsgLy8gbnVtYmVyDQogICAgICAgIH0NCiAgICB9DQogICAgZWxzZSB7DQogICAgICAgIHdoaWxlICghIXRydWUpIHsNCiAgICAgICAgICAgIHZhbHVlOyAvLyBzdHJpbmcNCiAgICAgICAgfQ0KICAgIH0NCn07DQpjb25zdCBib3QgPSBuZXcgQ2xpZW50KCk7DQpib3Qub24oInNoYXJkRGlzY29ubmVjdCIsIChldmVudCwgc2hhcmQpID0+IGNvbnNvbGUubG9nKGBTaGFyZCAke3NoYXJkfSBkaXNjb25uZWN0ZWQgKCR7ZXZlbnQuY29kZX0sJHtldmVudC53YXNDbGVhbn0pOiAke2V2ZW50LnJlYXNvbn1gKSk7DQpib3Qub24oInNoYXJkRGlzY29ubmVjdCIsIGV2ZW50ID0+IGNvbnNvbGUubG9nKGAke2V2ZW50LmNvZGV9ICR7ZXZlbnQud2FzQ2xlYW59ICR7ZXZlbnQucmVhc29ufWApKTsNCi8vIERlc3RydWN0dXJpbmcgdHVwbGUgdHlwZXMgd2l0aCBkaWZmZXJlbnQgYXJpdGllcw0KZnVuY3Rpb24gZnoxKFt4LCB5XSkgew0KICAgIGlmICh5ID09PSAyKSB7DQogICAgICAgIHg7IC8vIDENCiAgICB9DQogICAgaWYgKHkgPT09IDQpIHsNCiAgICAgICAgeDsgLy8gMw0KICAgIH0NCiAgICBpZiAoeSA9PT0gdW5kZWZpbmVkKSB7DQogICAgICAgIHg7IC8vIDUNCiAgICB9DQogICAgaWYgKHggPT09IDEpIHsNCiAgICAgICAgeTsgLy8gMg0KICAgIH0NCiAgICBpZiAoeCA9PT0gMykgew0KICAgICAgICB5OyAvLyA0DQogICAgfQ0KICAgIGlmICh4ID09PSA1KSB7DQogICAgICAgIHk7IC8vIHVuZGVmaW5lZA0KICAgIH0NCn0NCi8vIFJlcHJvIGZyb20gIzU1NjYxDQpmdW5jdGlvbiB0b29OYXJyb3coW3gsIHldKSB7DQogICAgaWYgKHkgPT09IHVuZGVmaW5lZCkgew0KICAgICAgICBjb25zdCBzaG91bGROb3RCZU9rID0geDsgLy8gRXJyb3INCiAgICB9DQp9DQovLyBodHRwczovL2dpdGh1Yi5jb20vbWljcm9zb2Z0L1R5cGVTY3JpcHQvaXNzdWVzLzU2MzEyDQpmdW5jdGlvbiBwYXJhbWV0ZXJSZWFzc2lnbmVkMShbeCwgeV0pIHsNCiAgICBpZiAoTWF0aC5yYW5kb20oKSkgew0KICAgICAgICB4ID0gMTsNCiAgICB9DQogICAgaWYgKHkgPT09IDIpIHsNCiAgICAgICAgeDsgLy8gMSB8IDMNCiAgICB9DQp9DQpmdW5jdGlvbiBwYXJhbWV0ZXJSZWFzc2lnbmVkMihbeCwgeV0pIHsNCiAgICBpZiAoTWF0aC5yYW5kb20oKSkgew0KICAgICAgICB5ID0gMjsNCiAgICB9DQogICAgaWYgKHkgPT09IDIpIHsNCiAgICAgICAgeDsgLy8gMSB8IDMNCiAgICB9DQp9DQovLyBodHRwczovL2dpdGh1Yi5jb20vbWljcm9zb2Z0L1R5cGVTY3JpcHQvcHVsbC81NjMxMyNkaXNjdXNzaW9uX3IxNDE2NDgyNDkwDQpjb25zdCBwYXJhbWV0ZXJSZWFzc2lnbmVkQ29udGV4dHVhbFJlc3QxID0gKHgsIHkpID0+IHsNCiAgICBpZiAoTWF0aC5yYW5kb20oKSkgew0KICAgICAgICB5ID0gMjsNCiAgICB9DQogICAgaWYgKHkgPT09IDIpIHsNCiAgICAgICAgeDsgLy8gMSB8IDMNCiAgICB9DQp9Ow0K"
+            }
+          ]
+        },
+        "candidate": {
+          "skipped": false,
+          "diagnostics": [],
+          "emitted": [
+            "/.src/dependentDestructuredVariables.js",
+            "/.src/dependentDestructuredVariables.d.ts"
+          ],
+          "writes": [
+            {
+              "path": "/.src/dependentDestructuredVariables.d.ts",
+              "textBase64": "dHlwZSBBY3Rpb24gPSB7DQogICAga2luZDogJ0EnOw0KICAgIHBheWxvYWQ6IG51bWJlcjsNCn0gfCB7DQogICAga2luZDogJ0InOw0KICAgIHBheWxvYWQ6IHN0cmluZzsNCn07DQpkZWNsYXJlIGZ1bmN0aW9uIGYxMCh7IGtpbmQsIHBheWxvYWQgfTogQWN0aW9uKTogdm9pZDsNCmRlY2xhcmUgZnVuY3Rpb24gZjExKGFjdGlvbjogQWN0aW9uKTogdm9pZDsNCmRlY2xhcmUgZnVuY3Rpb24gZjEyKHsga2luZCwgcGF5bG9hZCB9OiBBY3Rpb24pOiB2b2lkOw0KZGVjbGFyZSBmdW5jdGlvbiBmMTM8VCBleHRlbmRzIEFjdGlvbj4oeyBraW5kLCBwYXlsb2FkIH06IFQpOiB2b2lkOw0KZGVjbGFyZSBmdW5jdGlvbiBmMTQ8VCBleHRlbmRzIEFjdGlvbj4odDogVCk6IHZvaWQ7DQp0eXBlIEFjdGlvbjIgPSB7DQogICAga2luZDogJ0EnOw0KICAgIHBheWxvYWQ6IG51bWJlciB8IHVuZGVmaW5lZDsNCn0gfCB7DQogICAga2luZDogJ0InOw0KICAgIHBheWxvYWQ6IHN0cmluZyB8IHVuZGVmaW5lZDsNCn07DQpkZWNsYXJlIGZ1bmN0aW9uIGYyMCh7IGtpbmQsIHBheWxvYWQgfTogQWN0aW9uMik6IHZvaWQ7DQpkZWNsYXJlIGZ1bmN0aW9uIGYyMShhY3Rpb246IEFjdGlvbjIpOiB2b2lkOw0KZGVjbGFyZSBmdW5jdGlvbiBmMjIoYWN0aW9uOiBBY3Rpb24yKTogdm9pZDsNCmRlY2xhcmUgZnVuY3Rpb24gZjIzKHsga2luZCwgcGF5bG9hZCB9OiBBY3Rpb24yKTogdm9pZDsNCnR5cGUgRm9vID0gew0KICAgIGtpbmQ6ICdBJzsNCiAgICBpc0E6IHRydWU7DQp9IHwgew0KICAgIGtpbmQ6ICdCJzsNCiAgICBpc0E6IGZhbHNlOw0KfSB8IHsNCiAgICBraW5kOiAnQyc7DQogICAgaXNBOiBmYWxzZTsNCn07DQpkZWNsYXJlIGZ1bmN0aW9uIGYzMCh7IGtpbmQsIGlzQSB9OiBGb28pOiB2b2lkOw0KdHlwZSBBcmdzID0gWydBJywgbnVtYmVyXSB8IFsnQicsIHN0cmluZ107DQpkZWNsYXJlIGZ1bmN0aW9uIGY0MCguLi5ba2luZCwgZGF0YV06IEFyZ3MpOiB2b2lkOw0KaW50ZXJmYWNlIEE8VD4gew0KICAgIHZhcmlhbnQ6ICdhJzsNCiAgICB2YWx1ZTogVDsNCn0NCmludGVyZmFjZSBCPFQ+IHsNCiAgICB2YXJpYW50OiAnYic7DQogICAgdmFsdWU6IEFycmF5PFQ+Ow0KfQ0KdHlwZSBBQjxUPiA9IEE8VD4gfCBCPFQ+Ow0KZGVjbGFyZSBmdW5jdGlvbiBwcmludFZhbHVlPFQ+KHQ6IFQpOiB2b2lkOw0KZGVjbGFyZSBmdW5jdGlvbiBwcmludFZhbHVlTGlzdDxUPih0OiBBcnJheTxUPik6IHZvaWQ7DQpkZWNsYXJlIGZ1bmN0aW9uIHVucmVmaW5lZDE8VD4oYWI6IEFCPFQ+KTogdm9pZDsNCnR5cGUgQWN0aW9uMyA9IHsNCiAgICB0eXBlOiAnYWRkJzsNCiAgICBwYXlsb2FkOiB7DQogICAgICAgIHRvQWRkOiBudW1iZXI7DQogICAgfTsNCn0gfCB7DQogICAgdHlwZTogJ3JlbW92ZSc7DQogICAgcGF5bG9hZDogew0KICAgICAgICB0b1JlbW92ZTogbnVtYmVyOw0KICAgIH07DQp9Ow0KZGVjbGFyZSBjb25zdCByZWR1Y2VyQnJva2VuOiAoc3RhdGU6IG51bWJlciwgeyB0eXBlLCBwYXlsb2FkIH06IEFjdGlvbjMpID0+IG51bWJlcjsNCmRlY2xhcmUgdmFyIGl0OiBJdGVyYXRvcjxudW1iZXI+Ow0KZGVjbGFyZSBjb25zdCB7IHZhbHVlLCBkb25lIH06IEl0ZXJhdG9yUmVzdWx0PG51bWJlciwgYW55PjsNCmRlY2xhcmUgZnVuY3Rpb24gZjUwKGNiOiAoLi4uYXJnczogQXJncykgPT4gdm9pZCk6IHZvaWQ7DQpkZWNsYXJlIGNvbnN0IGY1MTogKC4uLmFyZ3M6IFsnQScsIG51bWJlcl0gfCBbJ0InLCBzdHJpbmddKSA9PiB2b2lkOw0KZGVjbGFyZSBjb25zdCBmNTI6ICguLi5hcmdzOiBbJ0EnLCBudW1iZXJdIHwgWydCJ10pID0+IHZvaWQ7DQpkZWNsYXJlIGZ1bmN0aW9uIHJlYWRGaWxlKHBhdGg6IHN0cmluZywgY2FsbGJhY2s6ICguLi5hcmdzOiBbZXJyOiBudWxsLCBkYXRhOiB1bmtub3duW11dIHwgW2VycjogRXJyb3IsIGRhdGE6IHVuZGVmaW5lZF0pID0+IHZvaWQpOiB2b2lkOw0KdHlwZSBSZWR1Y2VyQXJncyA9IFsiYWRkIiwgew0KICAgIGE6IG51bWJlcjsNCiAgICBiOiBudW1iZXI7DQp9XSB8IFsiY29uY2F0Iiwgew0KICAgIGZpcnN0QXJyOiBhbnlbXTsNCiAgICBzZWNvbmRBcnI6IGFueVtdOw0KfV07DQpkZWNsYXJlIGNvbnN0IHJlZHVjZXI6ICguLi5hcmdzOiBSZWR1Y2VyQXJncykgPT4gdm9pZDsNCnR5cGUgRm9vTWV0aG9kID0gew0KICAgIG1ldGhvZCguLi5hcmdzOiBbDQogICAgICAgIHR5cGU6ICJzdHIiLA0KICAgICAgICBjYjogKGU6IHN0cmluZykgPT4gdm9pZA0KICAgIF0gfCBbDQogICAgICAgIHR5cGU6ICJudW0iLA0KICAgICAgICBjYjogKGU6IG51bWJlcikgPT4gdm9pZA0KICAgIF0pOiB2b2lkOw0KfTsNCmRlY2xhcmUgbGV0IGZvb006IEZvb01ldGhvZDsNCnR5cGUgRm9vQXN5bmNNZXRob2QgPSB7DQogICAgbWV0aG9kKC4uLmFyZ3M6IFsNCiAgICAgICAgdHlwZTogInN0ciIsDQogICAgICAgIGNiOiAoZTogc3RyaW5nKSA9PiB2b2lkDQogICAgXSB8IFsNCiAgICAgICAgdHlwZTogIm51bSIsDQogICAgICAgIGNiOiAoZTogbnVtYmVyKSA9PiB2b2lkDQogICAgXSk6IFByb21pc2U8YW55PjsNCn07DQpkZWNsYXJlIGxldCBmb29Bc3luY006IEZvb0FzeW5jTWV0aG9kOw0KdHlwZSBGb29HZW5NZXRob2QgPSB7DQogICAgbWV0aG9kKC4uLmFyZ3M6IFsNCiAgICAgICAgdHlwZTogInN0ciIsDQogICAgICAgIGNiOiAoZTogc3RyaW5nKSA9PiB2b2lkDQogICAgXSB8IFsNCiAgICAgICAgdHlwZTogIm51bSIsDQogICAgICAgIGNiOiAoZTogbnVtYmVyKSA9PiB2b2lkDQogICAgXSk6IEdlbmVyYXRvcjxhbnksIGFueSwgYW55PjsNCn07DQpkZWNsYXJlIGxldCBmb29HZW5NOiBGb29HZW5NZXRob2Q7DQp0eXBlIEZvb0FzeW5jR2VuTWV0aG9kID0gew0KICAgIG1ldGhvZCguLi5hcmdzOiBbDQogICAgICAgIHR5cGU6ICJzdHIiLA0KICAgICAgICBjYjogKGU6IHN0cmluZykgPT4gdm9pZA0KICAgIF0gfCBbDQogICAgICAgIHR5cGU6ICJudW0iLA0KICAgICAgICBjYjogKGU6IG51bWJlcikgPT4gdm9pZA0KICAgIF0pOiBBc3luY0dlbmVyYXRvcjxhbnksIGFueSwgYW55PjsNCn07DQpkZWNsYXJlIGxldCBmb29Bc3luY0dlbk06IEZvb0FzeW5jR2VuTWV0aG9kOw0KdHlwZSBGdW5jID0gPFQgZXh0ZW5kcyBbImEiLCBudW1iZXJdIHwgWyJiIiwgc3RyaW5nXT4oLi4uYXJnczogVCkgPT4gdm9pZDsNCmRlY2xhcmUgY29uc3QgZjYwOiBGdW5jOw0KZGVjbGFyZSBmdW5jdGlvbiBmb28oeyB2YWx1ZTEsIHRlc3QxLCB0ZXN0MiwgdGVzdDMsIHRlc3Q0LCB0ZXN0NSwgdGVzdDYsIHRlc3Q3LCB0ZXN0OCwgdGVzdDkgfTogew0KICAgIHRlc3QxPzogYW55Ow0KICAgIHRlc3QyPzogYW55Ow0KICAgIHRlc3QzPzogYW55Ow0KICAgIHRlc3Q0PzogYW55Ow0KICAgIHRlc3Q1PzogYW55Ow0KICAgIHRlc3Q2PzogYW55Ow0KICAgIHRlc3Q3PzogYW55Ow0KICAgIHRlc3Q4PzogYW55Ow0KICAgIHRlc3Q5PzogYW55Ow0KICAgIHZhbHVlMTogYW55Ow0KfSk6IHZvaWQ7DQpkZWNsYXJlIGZ1bmN0aW9uIGZhMSh4OiBbdHJ1ZSwgbnVtYmVyXSB8IFtmYWxzZSwgc3RyaW5nXSk6IHZvaWQ7DQpkZWNsYXJlIGZ1bmN0aW9uIGZhMih4OiB7DQogICAgZ3VhcmQ6IHRydWU7DQogICAgdmFsdWU6IG51bWJlcjsNCn0gfCB7DQogICAgZ3VhcmQ6IGZhbHNlOw0KICAgIHZhbHVlOiBzdHJpbmc7DQp9KTogdm9pZDsNCmRlY2xhcmUgY29uc3QgZmEzOiAoLi4uYXJnczogW3RydWUsIG51bWJlcl0gfCBbZmFsc2UsIHN0cmluZ10pID0+IHZvaWQ7DQppbnRlcmZhY2UgQ2xpZW50RXZlbnRzIHsNCiAgICB3YXJuOiBbbWVzc2FnZTogc3RyaW5nXTsNCiAgICBzaGFyZERpc2Nvbm5lY3Q6IFtjbG9zZUV2ZW50OiBDbG9zZUV2ZW50LCBzaGFyZElkOiBudW1iZXJdOw0KfQ0KZGVjbGFyZSBjbGFzcyBDbGllbnQgew0KICAgIG9uPEsgZXh0ZW5kcyBrZXlvZiBDbGllbnRFdmVudHM+KGV2ZW50OiBLLCBsaXN0ZW5lcjogKC4uLmFyZ3M6IENsaWVudEV2ZW50c1tLXSkgPT4gdm9pZCk6IHZvaWQ7DQp9DQpkZWNsYXJlIGNvbnN0IGJvdDogQ2xpZW50Ow0KZGVjbGFyZSBmdW5jdGlvbiBmejEoW3gsIHldOiBbMSwgMl0gfCBbMywgNF0gfCBbNV0pOiB2b2lkOw0KZGVjbGFyZSBmdW5jdGlvbiB0b29OYXJyb3coW3gsIHldOiBbMSwgMV0gfCBbMSwgMl0gfCBbMV0pOiB2b2lkOw0KZGVjbGFyZSBmdW5jdGlvbiBwYXJhbWV0ZXJSZWFzc2lnbmVkMShbeCwgeV06IFsxLCAyXSB8IFszLCA0XSk6IHZvaWQ7DQpkZWNsYXJlIGZ1bmN0aW9uIHBhcmFtZXRlclJlYXNzaWduZWQyKFt4LCB5XTogWzEsIDJdIHwgWzMsIDRdKTogdm9pZDsNCmRlY2xhcmUgY29uc3QgcGFyYW1ldGVyUmVhc3NpZ25lZENvbnRleHR1YWxSZXN0MTogKC4uLmFyZ3M6IFsxLCAyXSB8IFszLCA0XSkgPT4gdm9pZDsNCg==",
+              "source": "/.src/dependentDestructuredVariables.ts",
+              "mapPosition": -1,
+              "diagnostics": []
+            },
+            {
+              "path": "/.src/dependentDestructuredVariables.js",
+              "textBase64": "InVzZSBzdHJpY3QiOw0KdmFyIF9fYXdhaXRlciA9ICh0aGlzICYmIHRoaXMuX19hd2FpdGVyKSB8fCBmdW5jdGlvbiAodGhpc0FyZywgX2FyZ3VtZW50cywgUCwgZ2VuZXJhdG9yKSB7DQogICAgZnVuY3Rpb24gYWRvcHQodmFsdWUpIHsgcmV0dXJuIHZhbHVlIGluc3RhbmNlb2YgUCA/IHZhbHVlIDogbmV3IFAoZnVuY3Rpb24gKHJlc29sdmUpIHsgcmVzb2x2ZSh2YWx1ZSk7IH0pOyB9DQogICAgcmV0dXJuIG5ldyAoUCB8fCAoUCA9IFByb21pc2UpKShmdW5jdGlvbiAocmVzb2x2ZSwgcmVqZWN0KSB7DQogICAgICAgIGZ1bmN0aW9uIGZ1bGZpbGxlZCh2YWx1ZSkgeyB0cnkgeyBzdGVwKGdlbmVyYXRvci5uZXh0KHZhbHVlKSk7IH0gY2F0Y2ggKGUpIHsgcmVqZWN0KGUpOyB9IH0NCiAgICAgICAgZnVuY3Rpb24gcmVqZWN0ZWQodmFsdWUpIHsgdHJ5IHsgc3RlcChnZW5lcmF0b3JbInRocm93Il0odmFsdWUpKTsgfSBjYXRjaCAoZSkgeyByZWplY3QoZSk7IH0gfQ0KICAgICAgICBmdW5jdGlvbiBzdGVwKHJlc3VsdCkgeyByZXN1bHQuZG9uZSA/IHJlc29sdmUocmVzdWx0LnZhbHVlKSA6IGFkb3B0KHJlc3VsdC52YWx1ZSkudGhlbihmdWxmaWxsZWQsIHJlamVjdGVkKTsgfQ0KICAgICAgICBzdGVwKChnZW5lcmF0b3IgPSBnZW5lcmF0b3IuYXBwbHkodGhpc0FyZywgX2FyZ3VtZW50cyB8fCBbXSkpLm5leHQoKSk7DQogICAgfSk7DQp9Ow0KdmFyIF9fYXdhaXQgPSAodGhpcyAmJiB0aGlzLl9fYXdhaXQpIHx8IGZ1bmN0aW9uICh2KSB7IHJldHVybiB0aGlzIGluc3RhbmNlb2YgX19hd2FpdCA/ICh0aGlzLnYgPSB2LCB0aGlzKSA6IG5ldyBfX2F3YWl0KHYpOyB9DQp2YXIgX19hc3luY0dlbmVyYXRvciA9ICh0aGlzICYmIHRoaXMuX19hc3luY0dlbmVyYXRvcikgfHwgZnVuY3Rpb24gKHRoaXNBcmcsIF9hcmd1bWVudHMsIGdlbmVyYXRvcikgew0KICAgIGlmICghU3ltYm9sLmFzeW5jSXRlcmF0b3IpIHRocm93IG5ldyBUeXBlRXJyb3IoIlN5bWJvbC5hc3luY0l0ZXJhdG9yIGlzIG5vdCBkZWZpbmVkLiIpOw0KICAgIHZhciBnID0gZ2VuZXJhdG9yLmFwcGx5KHRoaXNBcmcsIF9hcmd1bWVudHMgfHwgW10pLCBpLCBxID0gW107DQogICAgcmV0dXJuIGkgPSBPYmplY3QuY3JlYXRlKCh0eXBlb2YgQXN5bmNJdGVyYXRvciA9PT0gImZ1bmN0aW9uIiA/IEFzeW5jSXRlcmF0b3IgOiBPYmplY3QpLnByb3RvdHlwZSksIHZlcmIoIm5leHQiKSwgdmVyYigidGhyb3ciKSwgdmVyYigicmV0dXJuIiwgYXdhaXRSZXR1cm4pLCBpW1N5bWJvbC5hc3luY0l0ZXJhdG9yXSA9IGZ1bmN0aW9uICgpIHsgcmV0dXJuIHRoaXM7IH0sIGk7DQogICAgZnVuY3Rpb24gYXdhaXRSZXR1cm4oZikgeyByZXR1cm4gZnVuY3Rpb24gKHYpIHsgcmV0dXJuIFByb21pc2UucmVzb2x2ZSh2KS50aGVuKGYsIHJlamVjdCk7IH07IH0NCiAgICBmdW5jdGlvbiB2ZXJiKG4sIGYpIHsgaWYgKGdbbl0pIHsgaVtuXSA9IGZ1bmN0aW9uICh2KSB7IHJldHVybiBuZXcgUHJvbWlzZShmdW5jdGlvbiAoYSwgYikgeyBxLnB1c2goW24sIHYsIGEsIGJdKSA+IDEgfHwgcmVzdW1lKG4sIHYpOyB9KTsgfTsgaWYgKGYpIGlbbl0gPSBmKGlbbl0pOyB9IH0NCiAgICBmdW5jdGlvbiByZXN1bWUobiwgdikgeyB0cnkgeyBzdGVwKGdbbl0odikpOyB9IGNhdGNoIChlKSB7IHNldHRsZShxWzBdWzNdLCBlKTsgfSB9DQogICAgZnVuY3Rpb24gc3RlcChyKSB7IHIudmFsdWUgaW5zdGFuY2VvZiBfX2F3YWl0ID8gUHJvbWlzZS5yZXNvbHZlKHIudmFsdWUudikudGhlbihmdWxmaWxsLCByZWplY3QpIDogc2V0dGxlKHFbMF1bMl0sIHIpOyB9DQogICAgZnVuY3Rpb24gZnVsZmlsbCh2YWx1ZSkgeyByZXN1bWUoIm5leHQiLCB2YWx1ZSk7IH0NCiAgICBmdW5jdGlvbiByZWplY3QodmFsdWUpIHsgcmVzdW1lKCJ0aHJvdyIsIHZhbHVlKTsgfQ0KICAgIGZ1bmN0aW9uIHNldHRsZShmLCB2KSB7IGlmIChmKHYpLCBxLnNoaWZ0KCksIHEubGVuZ3RoKSByZXN1bWUocVswXVswXSwgcVswXVsxXSk7IH0NCn07DQpmdW5jdGlvbiBmMTAoeyBraW5kLCBwYXlsb2FkIH0pIHsNCiAgICBpZiAoa2luZCA9PT0gJ0EnKSB7DQogICAgICAgIHBheWxvYWQudG9GaXhlZCgpOw0KICAgIH0NCiAgICBpZiAoa2luZCA9PT0gJ0InKSB7DQogICAgICAgIHBheWxvYWQudG9VcHBlckNhc2UoKTsNCiAgICB9DQp9DQpmdW5jdGlvbiBmMTEoYWN0aW9uKSB7DQogICAgY29uc3QgeyBraW5kLCBwYXlsb2FkIH0gPSBhY3Rpb247DQogICAgaWYgKGtpbmQgPT09ICdBJykgew0KICAgICAgICBwYXlsb2FkLnRvRml4ZWQoKTsNCiAgICB9DQogICAgaWYgKGtpbmQgPT09ICdCJykgew0KICAgICAgICBwYXlsb2FkLnRvVXBwZXJDYXNlKCk7DQogICAgfQ0KfQ0KZnVuY3Rpb24gZjEyKHsga2luZCwgcGF5bG9hZCB9KSB7DQogICAgc3dpdGNoIChraW5kKSB7DQogICAgICAgIGNhc2UgJ0EnOg0KICAgICAgICAgICAgcGF5bG9hZC50b0ZpeGVkKCk7DQogICAgICAgICAgICBicmVhazsNCiAgICAgICAgY2FzZSAnQic6DQogICAgICAgICAgICBwYXlsb2FkLnRvVXBwZXJDYXNlKCk7DQogICAgICAgICAgICBicmVhazsNCiAgICAgICAgZGVmYXVsdDoNCiAgICAgICAgICAgIHBheWxvYWQ7IC8vIG5ldmVyDQogICAgfQ0KfQ0KLy8gcmVwcm8gIzUwMjA2DQpmdW5jdGlvbiBmMTMoeyBraW5kLCBwYXlsb2FkIH0pIHsNCiAgICBpZiAoa2luZCA9PT0gJ0EnKSB7DQogICAgICAgIHBheWxvYWQudG9GaXhlZCgpOw0KICAgIH0NCiAgICBpZiAoa2luZCA9PT0gJ0InKSB7DQogICAgICAgIHBheWxvYWQudG9VcHBlckNhc2UoKTsNCiAgICB9DQp9DQpmdW5jdGlvbiBmMTQodCkgew0KICAgIGNvbnN0IHsga2luZCwgcGF5bG9hZCB9ID0gdDsNCiAgICBpZiAoa2luZCA9PT0gJ0EnKSB7DQogICAgICAgIHBheWxvYWQudG9GaXhlZCgpOw0KICAgIH0NCiAgICBpZiAoa2luZCA9PT0gJ0InKSB7DQogICAgICAgIHBheWxvYWQudG9VcHBlckNhc2UoKTsNCiAgICB9DQp9DQpmdW5jdGlvbiBmMjAoeyBraW5kLCBwYXlsb2FkIH0pIHsNCiAgICBpZiAocGF5bG9hZCkgew0KICAgICAgICBpZiAoa2luZCA9PT0gJ0EnKSB7DQogICAgICAgICAgICBwYXlsb2FkLnRvRml4ZWQoKTsNCiAgICAgICAgfQ0KICAgICAgICBpZiAoa2luZCA9PT0gJ0InKSB7DQogICAgICAgICAgICBwYXlsb2FkLnRvVXBwZXJDYXNlKCk7DQogICAgICAgIH0NCiAgICB9DQp9DQpmdW5jdGlvbiBmMjEoYWN0aW9uKSB7DQogICAgY29uc3QgeyBraW5kLCBwYXlsb2FkIH0gPSBhY3Rpb247DQogICAgaWYgKHBheWxvYWQpIHsNCiAgICAgICAgaWYgKGtpbmQgPT09ICdBJykgew0KICAgICAgICAgICAgcGF5bG9hZC50b0ZpeGVkKCk7DQogICAgICAgIH0NCiAgICAgICAgaWYgKGtpbmQgPT09ICdCJykgew0KICAgICAgICAgICAgcGF5bG9hZC50b1VwcGVyQ2FzZSgpOw0KICAgICAgICB9DQogICAgfQ0KfQ0KZnVuY3Rpb24gZjIyKGFjdGlvbikgew0KICAgIGlmIChhY3Rpb24ucGF5bG9hZCkgew0KICAgICAgICBjb25zdCB7IGtpbmQsIHBheWxvYWQgfSA9IGFjdGlvbjsNCiAgICAgICAgaWYgKGtpbmQgPT09ICdBJykgew0KICAgICAgICAgICAgcGF5bG9hZC50b0ZpeGVkKCk7DQogICAgICAgIH0NCiAgICAgICAgaWYgKGtpbmQgPT09ICdCJykgew0KICAgICAgICAgICAgcGF5bG9hZC50b1VwcGVyQ2FzZSgpOw0KICAgICAgICB9DQogICAgfQ0KfQ0KZnVuY3Rpb24gZjIzKHsga2luZCwgcGF5bG9hZCB9KSB7DQogICAgaWYgKHBheWxvYWQpIHsNCiAgICAgICAgc3dpdGNoIChraW5kKSB7DQogICAgICAgICAgICBjYXNlICdBJzoNCiAgICAgICAgICAgICAgICBwYXlsb2FkLnRvRml4ZWQoKTsNCiAgICAgICAgICAgICAgICBicmVhazsNCiAgICAgICAgICAgIGNhc2UgJ0InOg0KICAgICAgICAgICAgICAgIHBheWxvYWQudG9VcHBlckNhc2UoKTsNCiAgICAgICAgICAgICAgICBicmVhazsNCiAgICAgICAgICAgIGRlZmF1bHQ6DQogICAgICAgICAgICAgICAgcGF5bG9hZDsgLy8gbmV2ZXINCiAgICAgICAgfQ0KICAgIH0NCn0NCmZ1bmN0aW9uIGYzMCh7IGtpbmQsIGlzQSB9KSB7DQogICAgaWYgKGtpbmQgPT09ICdBJykgew0KICAgICAgICBpc0E7IC8vIHRydWUNCiAgICB9DQogICAgaWYgKGtpbmQgPT09ICdCJykgew0KICAgICAgICBpc0E7IC8vIGZhbHNlDQogICAgfQ0KICAgIGlmIChraW5kID09PSAnQycpIHsNCiAgICAgICAgaXNBOyAvLyBmYWxzZQ0KICAgIH0NCiAgICBpZiAoaXNBKSB7DQogICAgICAgIGtpbmQ7IC8vICdBJw0KICAgIH0NCiAgICBlbHNlIHsNCiAgICAgICAga2luZDsgLy8gJ0InIHwgJ0MnDQogICAgfQ0KfQ0KZnVuY3Rpb24gZjQwKC4uLltraW5kLCBkYXRhXSkgew0KICAgIGlmIChraW5kID09PSAnQScpIHsNCiAgICAgICAgZGF0YS50b0ZpeGVkKCk7DQogICAgfQ0KICAgIGlmIChraW5kID09PSAnQicpIHsNCiAgICAgICAgZGF0YS50b1VwcGVyQ2FzZSgpOw0KICAgIH0NCn0NCmZ1bmN0aW9uIHVucmVmaW5lZDEoYWIpIHsNCiAgICBjb25zdCB7IHZhcmlhbnQsIHZhbHVlIH0gPSBhYjsNCiAgICBpZiAodmFyaWFudCA9PT0gJ2EnKSB7DQogICAgICAgIHByaW50VmFsdWUodmFsdWUpOw0KICAgIH0NCiAgICBlbHNlIHsNCiAgICAgICAgcHJpbnRWYWx1ZUxpc3QodmFsdWUpOw0KICAgIH0NCn0NCmNvbnN0IHJlZHVjZXJCcm9rZW4gPSAoc3RhdGUsIHsgdHlwZSwgcGF5bG9hZCB9KSA9PiB7DQogICAgc3dpdGNoICh0eXBlKSB7DQogICAgICAgIGNhc2UgJ2FkZCc6DQogICAgICAgICAgICByZXR1cm4gc3RhdGUgKyBwYXlsb2FkLnRvQWRkOw0KICAgICAgICBjYXNlICdyZW1vdmUnOg0KICAgICAgICAgICAgcmV0dXJuIHN0YXRlIC0gcGF5bG9hZC50b1JlbW92ZTsNCiAgICB9DQp9Ow0KY29uc3QgeyB2YWx1ZSwgZG9uZSB9ID0gaXQubmV4dCgpOw0KaWYgKCFkb25lKSB7DQogICAgdmFsdWU7IC8vIG51bWJlcg0KfQ0KZjUwKChraW5kLCBkYXRhKSA9PiB7DQogICAgaWYgKGtpbmQgPT09ICdBJykgew0KICAgICAgICBkYXRhLnRvRml4ZWQoKTsNCiAgICB9DQogICAgaWYgKGtpbmQgPT09ICdCJykgew0KICAgICAgICBkYXRhLnRvVXBwZXJDYXNlKCk7DQogICAgfQ0KfSk7DQpjb25zdCBmNTEgPSAoa2luZCwgcGF5bG9hZCkgPT4gew0KICAgIGlmIChraW5kID09PSAnQScpIHsNCiAgICAgICAgcGF5bG9hZC50b0ZpeGVkKCk7DQogICAgfQ0KICAgIGlmIChraW5kID09PSAnQicpIHsNCiAgICAgICAgcGF5bG9hZC50b1VwcGVyQ2FzZSgpOw0KICAgIH0NCn07DQpjb25zdCBmNTIgPSAoa2luZCwgcGF5bG9hZCkgPT4gew0KICAgIGlmIChraW5kID09PSAnQScpIHsNCiAgICAgICAgcGF5bG9hZC50b0ZpeGVkKCk7DQogICAgfQ0KICAgIGVsc2Ugew0KICAgICAgICBwYXlsb2FkOyAvLyB1bmRlZmluZWQNCiAgICB9DQp9Ow0KcmVhZEZpbGUoJ2hlbGxvJywgKGVyciwgZGF0YSkgPT4gew0KICAgIGlmIChlcnIgPT09IG51bGwpIHsNCiAgICAgICAgZGF0YS5sZW5ndGg7DQogICAgfQ0KICAgIGVsc2Ugew0KICAgICAgICBlcnIubWVzc2FnZTsNCiAgICB9DQp9KTsNCmNvbnN0IHJlZHVjZXIgPSAob3AsIGFyZ3MpID0+IHsNCiAgICBzd2l0Y2ggKG9wKSB7DQogICAgICAgIGNhc2UgImFkZCI6DQogICAgICAgICAgICBjb25zb2xlLmxvZyhhcmdzLmEgKyBhcmdzLmIpOw0KICAgICAgICAgICAgYnJlYWs7DQogICAgICAgIGNhc2UgImNvbmNhdCI6DQogICAgICAgICAgICBjb25zb2xlLmxvZyhhcmdzLmZpcnN0QXJyLmNvbmNhdChhcmdzLnNlY29uZEFycikpOw0KICAgICAgICAgICAgYnJlYWs7DQogICAgfQ0KfTsNCnJlZHVjZXIoImFkZCIsIHsgYTogMSwgYjogMyB9KTsNCnJlZHVjZXIoImNvbmNhdCIsIHsgZmlyc3RBcnI6IFsxLCAyXSwgc2Vjb25kQXJyOiBbMywgNF0gfSk7DQpsZXQgZm9vTSA9IHsNCiAgICBtZXRob2QodHlwZSwgY2IpIHsNCiAgICAgICAgaWYgKHR5cGUgPT0gJ251bScpIHsNCiAgICAgICAgICAgIGNiKDEyMyk7DQogICAgICAgIH0NCiAgICAgICAgZWxzZSB7DQogICAgICAgICAgICBjYigiYWJjIik7DQogICAgICAgIH0NCiAgICB9DQp9Ow0KbGV0IGZvb0FzeW5jTSA9IHsNCiAgICBtZXRob2QodHlwZSwgY2IpIHsNCiAgICAgICAgcmV0dXJuIF9fYXdhaXRlcih0aGlzLCB2b2lkIDAsIHZvaWQgMCwgZnVuY3Rpb24qICgpIHsNCiAgICAgICAgICAgIGlmICh0eXBlID09ICdudW0nKSB7DQogICAgICAgICAgICAgICAgY2IoMTIzKTsNCiAgICAgICAgICAgIH0NCiAgICAgICAgICAgIGVsc2Ugew0KICAgICAgICAgICAgICAgIGNiKCJhYmMiKTsNCiAgICAgICAgICAgIH0NCiAgICAgICAgfSk7DQogICAgfQ0KfTsNCmxldCBmb29HZW5NID0gew0KICAgICptZXRob2QodHlwZSwgY2IpIHsNCiAgICAgICAgaWYgKHR5cGUgPT0gJ251bScpIHsNCiAgICAgICAgICAgIGNiKDEyMyk7DQogICAgICAgIH0NCiAgICAgICAgZWxzZSB7DQogICAgICAgICAgICBjYigiYWJjIik7DQogICAgICAgIH0NCiAgICB9DQp9Ow0KbGV0IGZvb0FzeW5jR2VuTSA9IHsNCiAgICBtZXRob2QodHlwZSwgY2IpIHsNCiAgICAgICAgcmV0dXJuIF9fYXN5bmNHZW5lcmF0b3IodGhpcywgYXJndW1lbnRzLCBmdW5jdGlvbiogbWV0aG9kXzEodHlwZSwgY2IpIHsNCiAgICAgICAgICAgIGlmICh0eXBlID09ICdudW0nKSB7DQogICAgICAgICAgICAgICAgY2IoMTIzKTsNCiAgICAgICAgICAgIH0NCiAgICAgICAgICAgIGVsc2Ugew0KICAgICAgICAgICAgICAgIGNiKCJhYmMiKTsNCiAgICAgICAgICAgIH0NCiAgICAgICAgfSk7DQogICAgfQ0KfTsNCmNvbnN0IGY2MCA9IChraW5kLCBwYXlsb2FkKSA9PiB7DQogICAgaWYgKGtpbmQgPT09ICJhIikgew0KICAgICAgICBwYXlsb2FkLnRvRml4ZWQoKTsgLy8gZXJyb3INCiAgICB9DQogICAgaWYgKGtpbmQgPT09ICJiIikgew0KICAgICAgICBwYXlsb2FkLnRvVXBwZXJDYXNlKCk7IC8vIGVycm9yDQogICAgfQ0KfTsNCi8vIFJlcHJvIGZyb20gIzQ4OTAyDQpmdW5jdGlvbiBmb28oeyB2YWx1ZTEsIHRlc3QxID0gdmFsdWUxLnRlc3QxLCB0ZXN0MiA9IHZhbHVlMS50ZXN0MiwgdGVzdDMgPSB2YWx1ZTEudGVzdDMsIHRlc3Q0ID0gdmFsdWUxLnRlc3Q0LCB0ZXN0NSA9IHZhbHVlMS50ZXN0NSwgdGVzdDYgPSB2YWx1ZTEudGVzdDYsIHRlc3Q3ID0gdmFsdWUxLnRlc3Q3LCB0ZXN0OCA9IHZhbHVlMS50ZXN0OCwgdGVzdDkgPSB2YWx1ZTEudGVzdDkgfSkgeyB9DQovLyBSZXBybyBmcm9tICM0OTc3Mg0KZnVuY3Rpb24gZmExKHgpIHsNCiAgICBjb25zdCBbZ3VhcmQsIHZhbHVlXSA9IHg7DQogICAgaWYgKGd1YXJkKSB7DQogICAgICAgIGZvciAoOzspIHsNCiAgICAgICAgICAgIHZhbHVlOyAvLyBudW1iZXINCiAgICAgICAgfQ0KICAgIH0NCiAgICBlbHNlIHsNCiAgICAgICAgd2hpbGUgKCEhdHJ1ZSkgew0KICAgICAgICAgICAgdmFsdWU7IC8vIHN0cmluZw0KICAgICAgICB9DQogICAgfQ0KfQ0KZnVuY3Rpb24gZmEyKHgpIHsNCiAgICBjb25zdCB7IGd1YXJkLCB2YWx1ZSB9ID0geDsNCiAgICBpZiAoZ3VhcmQpIHsNCiAgICAgICAgZm9yICg7Oykgew0KICAgICAgICAgICAgdmFsdWU7IC8vIG51bWJlcg0KICAgICAgICB9DQogICAgfQ0KICAgIGVsc2Ugew0KICAgICAgICB3aGlsZSAoISF0cnVlKSB7DQogICAgICAgICAgICB2YWx1ZTsgLy8gc3RyaW5nDQogICAgICAgIH0NCiAgICB9DQp9DQpjb25zdCBmYTMgPSAoZ3VhcmQsIHZhbHVlKSA9PiB7DQogICAgaWYgKGd1YXJkKSB7DQogICAgICAgIGZvciAoOzspIHsNCiAgICAgICAgICAgIHZhbHVlOyAvLyBudW1iZXINCiAgICAgICAgfQ0KICAgIH0NCiAgICBlbHNlIHsNCiAgICAgICAgd2hpbGUgKCEhdHJ1ZSkgew0KICAgICAgICAgICAgdmFsdWU7IC8vIHN0cmluZw0KICAgICAgICB9DQogICAgfQ0KfTsNCmNvbnN0IGJvdCA9IG5ldyBDbGllbnQoKTsNCmJvdC5vbigic2hhcmREaXNjb25uZWN0IiwgKGV2ZW50LCBzaGFyZCkgPT4gY29uc29sZS5sb2coYFNoYXJkICR7c2hhcmR9IGRpc2Nvbm5lY3RlZCAoJHtldmVudC5jb2RlfSwke2V2ZW50Lndhc0NsZWFufSk6ICR7ZXZlbnQucmVhc29ufWApKTsNCmJvdC5vbigic2hhcmREaXNjb25uZWN0IiwgZXZlbnQgPT4gY29uc29sZS5sb2coYCR7ZXZlbnQuY29kZX0gJHtldmVudC53YXNDbGVhbn0gJHtldmVudC5yZWFzb259YCkpOw0KLy8gRGVzdHJ1Y3R1cmluZyB0dXBsZSB0eXBlcyB3aXRoIGRpZmZlcmVudCBhcml0aWVzDQpmdW5jdGlvbiBmejEoW3gsIHldKSB7DQogICAgaWYgKHkgPT09IDIpIHsNCiAgICAgICAgeDsgLy8gMQ0KICAgIH0NCiAgICBpZiAoeSA9PT0gNCkgew0KICAgICAgICB4OyAvLyAzDQogICAgfQ0KICAgIGlmICh5ID09PSB1bmRlZmluZWQpIHsNCiAgICAgICAgeDsgLy8gNQ0KICAgIH0NCiAgICBpZiAoeCA9PT0gMSkgew0KICAgICAgICB5OyAvLyAyDQogICAgfQ0KICAgIGlmICh4ID09PSAzKSB7DQogICAgICAgIHk7IC8vIDQNCiAgICB9DQogICAgaWYgKHggPT09IDUpIHsNCiAgICAgICAgeTsgLy8gdW5kZWZpbmVkDQogICAgfQ0KfQ0KLy8gUmVwcm8gZnJvbSAjNTU2NjENCmZ1bmN0aW9uIHRvb05hcnJvdyhbeCwgeV0pIHsNCiAgICBpZiAoeSA9PT0gdW5kZWZpbmVkKSB7DQogICAgICAgIGNvbnN0IHNob3VsZE5vdEJlT2sgPSB4OyAvLyBFcnJvcg0KICAgIH0NCn0NCi8vIGh0dHBzOi8vZ2l0aHViLmNvbS9taWNyb3NvZnQvVHlwZVNjcmlwdC9pc3N1ZXMvNTYzMTINCmZ1bmN0aW9uIHBhcmFtZXRlclJlYXNzaWduZWQxKFt4LCB5XSkgew0KICAgIGlmIChNYXRoLnJhbmRvbSgpKSB7DQogICAgICAgIHggPSAxOw0KICAgIH0NCiAgICBpZiAoeSA9PT0gMikgew0KICAgICAgICB4OyAvLyAxIHwgMw0KICAgIH0NCn0NCmZ1bmN0aW9uIHBhcmFtZXRlclJlYXNzaWduZWQyKFt4LCB5XSkgew0KICAgIGlmIChNYXRoLnJhbmRvbSgpKSB7DQogICAgICAgIHkgPSAyOw0KICAgIH0NCiAgICBpZiAoeSA9PT0gMikgew0KICAgICAgICB4OyAvLyAxIHwgMw0KICAgIH0NCn0NCi8vIGh0dHBzOi8vZ2l0aHViLmNvbS9taWNyb3NvZnQvVHlwZVNjcmlwdC9wdWxsLzU2MzEzI2Rpc2N1c3Npb25fcjE0MTY0ODI0OTANCmNvbnN0IHBhcmFtZXRlclJlYXNzaWduZWRDb250ZXh0dWFsUmVzdDEgPSAoeCwgeSkgPT4gew0KICAgIGlmIChNYXRoLnJhbmRvbSgpKSB7DQogICAgICAgIHkgPSAyOw0KICAgIH0NCiAgICBpZiAoeSA9PT0gMikgew0KICAgICAgICB4OyAvLyAxIHwgMw0KICAgIH0NCn07DQo=",
+              "source": "/.src/dependentDestructuredVariables.ts",
+              "mapPosition": -1,
+              "diagnostics": []
+            }
+          ],
+          "maps": [],
+          "sources": [
+            [
+              "bundled:///libs/lib.es5.d.ts",
+              "6388847232654d7fcbed7fe89ea511a65ad1f5104b41e905c43f90910e1408b6"
+            ],
+            [
+              "bundled:///libs/lib.es2015.d.ts",
+              "3f88bedbeb09c6f5a6645cb24c7c55f1aa22d19ae96c8e6959cbd8b85a707bc6"
+            ],
+            [
+              "bundled:///libs/lib.es2016.d.ts",
+              "7fe93b39b810eadd916be8db880dd7f0f7012a5cc6ffb62de8f62a2117fa6f1f"
+            ],
+            [
+              "bundled:///libs/lib.es2017.d.ts",
+              "bb0074cc08b84a2374af33d8bf044b80851ccc9e719a5e202eacf40db2c31600"
+            ],
+            [
+              "bundled:///libs/lib.es2018.d.ts",
+              "1a7daebe4f45fb03d9ec53d60008fbf9ac45a697fdc89e4ce218bc94b94f94d6"
+            ],
+            [
+              "bundled:///libs/lib.es2019.d.ts",
+              "f94b133a3cb14a288803be545ac2683e0d0ff6661bcd37e31aaaec54fc382aed"
+            ],
+            [
+              "bundled:///libs/lib.es2020.d.ts",
+              "f59d0650799f8782fd74cf73c19223730c6d1b9198671b1c5b3a38e1188b5953"
+            ],
+            [
+              "bundled:///libs/lib.es2021.d.ts",
+              "8a15b4607d9a499e2dbeed9ec0d3c0d7372c850b2d5f1fb259e8f6d41d468a84"
+            ],
+            [
+              "bundled:///libs/lib.es2022.d.ts",
+              "26e0fe14baee4e127f4365d1ae0b276f400562e45e19e35fd2d4c296684715e6"
+            ],
+            [
+              "bundled:///libs/lib.es2023.d.ts",
+              "1e9332c23e9a907175e0ffc6a49e236f97b48838cc8aec9ce7e4cec21e544b65"
+            ],
+            [
+              "bundled:///libs/lib.es2024.d.ts",
+              "3753fbc1113dc511214802a2342280a8b284ab9094f6420e7aa171e868679f91"
+            ],
+            [
+              "bundled:///libs/lib.es2025.d.ts",
+              "999ca32883495a866aa5737fe1babc764a469e4cde6ee6b136a4b9ae68853e4b"
+            ],
+            [
+              "bundled:///libs/lib.esnext.d.ts",
+              "17f13ecb98cbc39243f2eee1f16d45cd8ec4706b03ee314f1915f1a8b42f6984"
+            ],
+            [
+              "bundled:///libs/lib.dom.d.ts",
+              "d6b1eba8496bdd0eed6fc8a685768fe01b2da4a0388b5fe7df558290bffcf32f"
+            ],
+            [
+              "bundled:///libs/lib.es2015.core.d.ts",
+              "770011bd32a52f929fc98fbf9976c1fa9d80b6445171c02b08627fdba9778933"
+            ],
+            [
+              "bundled:///libs/lib.es2015.collection.d.ts",
+              "f0b6b1d3624fb143656dd86a8dd3e1950b7e65f218319b47bde52f65d47e2e4b"
+            ],
+            [
+              "bundled:///libs/lib.es2015.generator.d.ts",
+              "00343ca5b2e3d48fa5df1db6e32ea2a59afab09590274a6cccb1dbae82e60c7c"
+            ],
+            [
+              "bundled:///libs/lib.es2015.iterable.d.ts",
+              "ebd9f816d4002697cb2864bea1f0b70a103124e18a8cd9645eeccc09bdf80ab4"
+            ],
+            [
+              "bundled:///libs/lib.es2015.promise.d.ts",
+              "2c1afac30a01772cd2a9a298a7ce7706b5892e447bb46bdbeef720f7b5da77ad"
+            ],
+            [
+              "bundled:///libs/lib.es2015.proxy.d.ts",
+              "7b0225f483e4fa685625ebe43dd584bb7973bbd84e66a6ba7bbe175ee1048b4f"
+            ],
+            [
+              "bundled:///libs/lib.es2015.reflect.d.ts",
+              "c0a4b8ac6ce74679c1da2b3795296f5896e31c38e888469a8e0f99dc3305de60"
+            ],
+            [
+              "bundled:///libs/lib.es2015.symbol.d.ts",
+              "83e3871cda2abd4421970fa923cca51a9ce8cdbece6f898285643ab030cb80f3"
+            ],
+            [
+              "bundled:///libs/lib.es2015.symbol.wellknown.d.ts",
+              "c5079c53f0f141a0698faa903e76cb41cd664e3efb01cc17a5c46ec2eb0bef42"
+            ],
+            [
+              "bundled:///libs/lib.es2016.array.include.d.ts",
+              "32cafbc484dea6b0ab62cf8473182bbcb23020d70845b406f80b7526f38ae862"
+            ],
+            [
+              "bundled:///libs/lib.es2016.intl.d.ts",
+              "fca4cdcb6d6c5ef18a869003d02c9f0fd95df8cfaf6eb431cd3376bc034cad36"
+            ],
+            [
+              "bundled:///libs/lib.es2017.arraybuffer.d.ts",
+              "b93ec88115de9a9dc1b602291b85baf825c85666bf25985cc5f698073892b467"
+            ],
+            [
+              "bundled:///libs/lib.es2017.date.d.ts",
+              "f5c06dcc3fe849fcb297c247865a161f995cc29de7aa823afdd75aaaddc1419b"
+            ],
+            [
+              "bundled:///libs/lib.es2017.object.d.ts",
+              "b77e16112127a4b169ef0b8c3a4d730edf459c5f25fe52d5e436a6919206c4d7"
+            ],
+            [
+              "bundled:///libs/lib.es2017.sharedmemory.d.ts",
+              "fbffd9337146eff822c7c00acbb78b01ea7ea23987f6c961eba689349e744f8c"
+            ],
+            [
+              "bundled:///libs/lib.es2017.string.d.ts",
+              "6aaeba1e4f228fda4e9175e34d96807e2c6dc984d0b37a772b3af9365a456681"
+            ],
+            [
+              "bundled:///libs/lib.es2017.intl.d.ts",
+              "c7b3542146734342e440a84b213384bfa188835537ddbda50d30766f0593aff9"
+            ],
+            [
+              "bundled:///libs/lib.es2017.typedarrays.d.ts",
+              "ce6180fa19b1cccd07ee7f7dbb9a367ac19c0ed160573e4686425060b6df7f57"
+            ],
+            [
+              "bundled:///libs/lib.es2018.asyncgenerator.d.ts",
+              "3f02e2476bccb9dbe21280d6090f0df17d2f66b74711489415a8aa4df73c9675"
+            ],
+            [
+              "bundled:///libs/lib.es2018.asynciterable.d.ts",
+              "45e3ab34c1c013c8ab2dc1ba4c80c780744b13b5676800ae2e3be27ae862c40c"
+            ],
+            [
+              "bundled:///libs/lib.es2018.intl.d.ts",
+              "b477b19cafa67ab59a4818c40d821674e641bf11e6200d5567b28cabedbc953d"
+            ],
+            [
+              "bundled:///libs/lib.es2018.promise.d.ts",
+              "e42e397f1a5a77994f0185fd1466520691456c772d06bf843e5084ceb879a0ad"
+            ],
+            [
+              "bundled:///libs/lib.es2018.regexp.d.ts",
+              "f4c2b41f90c95b1c532ecc874bd3c111865793b23aebcc1c3cbbabcd5d76ffb0"
+            ],
+            [
+              "bundled:///libs/lib.es2019.array.d.ts",
+              "ab26191cfad5b66afa11b8bf935ef1cd88fabfcb28d30b2dfa6fad877d050332"
+            ],
+            [
+              "bundled:///libs/lib.es2019.object.d.ts",
+              "2088bc26531e38fb05eedac2951480db5309f6be3fa4a08d2221abb0f5b4200d"
+            ],
+            [
+              "bundled:///libs/lib.es2019.string.d.ts",
+              "cb9d366c425fea79716a8fb3af0d78e6b22ebbab3bd64d25063b42dc9f531c1e"
+            ],
+            [
+              "bundled:///libs/lib.es2019.symbol.d.ts",
+              "500934a8089c26d57ebdb688fc9757389bb6207a3c8f0674d68efa900d2abb34"
+            ],
+            [
+              "bundled:///libs/lib.es2019.intl.d.ts",
+              "689da16f46e647cef0d64b0def88910e818a5877ca5379ede156ca3afb780ac3"
+            ],
+            [
+              "bundled:///libs/lib.es2020.bigint.d.ts",
+              "bc21cc8b6fee4f4c2440d08035b7ea3c06b3511314c8bab6bef7a92de58a2593"
+            ],
+            [
+              "bundled:///libs/lib.es2020.date.d.ts",
+              "7ca53d13d2957003abb47922a71866ba7cb2068f8d154877c596d63c359fed25"
+            ],
+            [
+              "bundled:///libs/lib.es2020.promise.d.ts",
+              "54725f8c4df3d900cb4dac84b64689ce29548da0b4e9b7c2de61d41c79293611"
+            ],
+            [
+              "bundled:///libs/lib.es2020.sharedmemory.d.ts",
+              "e5594bc3076ac29e6c1ebda77939bc4c8833de72f654b6e376862c0473199323"
+            ],
+            [
+              "bundled:///libs/lib.es2020.string.d.ts",
+              "2f3eb332c2d73e729f3364fcc0c2b375e72a121e8157d25a82d67a138c83a95c"
+            ],
+            [
+              "bundled:///libs/lib.es2020.symbol.wellknown.d.ts",
+              "6f4427f9642ce8d500970e4e69d1397f64072ab73b97e476b4002a646ac743b1"
+            ],
+            [
+              "bundled:///libs/lib.es2020.intl.d.ts",
+              "7b4f295ddb7e8c73f608bf54aa5d76b604b4fc44340a2eaa1f34040e7261afd4"
+            ],
+            [
+              "bundled:///libs/lib.es2020.number.d.ts",
+              "b7bf9377723203b5a6a4b920164df22d56a43f593269ba6ae1fdc97774b68855"
+            ],
+            [
+              "bundled:///libs/lib.es2021.promise.d.ts",
+              "db9709688f82c9e5f65a119c64d835f906efe5f559d08b11642d56eb85b79357"
+            ],
+            [
+              "bundled:///libs/lib.es2021.string.d.ts",
+              "4b25b8c874acd1a4cf8444c3617e037d444d19080ac9f634b405583fd10ce1f7"
+            ],
+            [
+              "bundled:///libs/lib.es2021.weakref.d.ts",
+              "37be57d7c90cf1f8112ee2636a068d8fd181289f82b744160ec56a7dc158a9f5"
+            ],
+            [
+              "bundled:///libs/lib.es2021.intl.d.ts",
+              "a917a49ac94cd26b754ab84e113369a75d1a47a710661d7cd25e961cc797065f"
+            ],
+            [
+              "bundled:///libs/lib.es2022.array.d.ts",
+              "6d3261badeb7843d157ef3e6f5d1427d0eeb0af0cf9df84a62cfd29fd47ac86e"
+            ],
+            [
+              "bundled:///libs/lib.es2022.error.d.ts",
+              "195daca651dde22f2167ac0d0a05e215308119a3100f5e6268e8317d05a92526"
+            ],
+            [
+              "bundled:///libs/lib.es2022.intl.d.ts",
+              "8b11e4285cd2bb164a4dc09248bdec69e9842517db4ca47c1ba913011e44ff2f"
+            ],
+            [
+              "bundled:///libs/lib.es2022.object.d.ts",
+              "0508571a52475e245b02bc50fa1394065a0a3d05277fbf5120c3784b85651799"
+            ],
+            [
+              "bundled:///libs/lib.es2022.string.d.ts",
+              "8f9af488f510c3015af3cc8c267a9e9d96c4dd38a1fdff0e11dc5a544711415b"
+            ],
+            [
+              "bundled:///libs/lib.es2022.regexp.d.ts",
+              "fc611fea8d30ea72c6bbfb599c9b4d393ce22e2f5bfef2172534781e7d138104"
+            ],
+            [
+              "bundled:///libs/lib.es2023.array.d.ts",
+              "0bd714129fca875f7d4c477a1a392200b0bcd13fb2e80928cd334b63830ea047"
+            ],
+            [
+              "bundled:///libs/lib.es2023.collection.d.ts",
+              "e2c9037ae6cd2c52d80ceef0b3c5ffdb488627d71529cf4f63776daf11161c9a"
+            ],
+            [
+              "bundled:///libs/lib.es2023.intl.d.ts",
+              "135d5cf4d345f59f1a9caadfafcd858d3d9cc68290db616cc85797224448cccc"
+            ],
+            [
+              "bundled:///libs/lib.es2024.arraybuffer.d.ts",
+              "bc238c3f81c2984751932b6aab223cd5b830e0ac6cad76389e5e9d2ffc03287d"
+            ],
+            [
+              "bundled:///libs/lib.es2024.collection.d.ts",
+              "4a07f9b76d361f572620927e5735b77d6d2101c23cdd94383eb5b706e7b36357"
+            ],
+            [
+              "bundled:///libs/lib.es2024.object.d.ts",
+              "7c4e8dc6ab834cc6baa0227e030606d29e3e8449a9f67cdf5605ea5493c4db29"
+            ],
+            [
+              "bundled:///libs/lib.es2024.promise.d.ts",
+              "de7ba0fd02e06cd9a5bd4ab441ed0e122735786e67dde1e849cced1cd8b46b78"
+            ],
+            [
+              "bundled:///libs/lib.es2024.regexp.d.ts",
+              "6148e4e88d720a06855071c3db02069434142a8332cf9c182cda551adedf3156"
+            ],
+            [
+              "bundled:///libs/lib.es2024.sharedmemory.d.ts",
+              "d63dba625b108316a40c95a4425f8d4294e0deeccfd6c7e59d819efa19e23409"
+            ],
+            [
+              "bundled:///libs/lib.es2024.string.d.ts",
+              "0568d6befee03dd435bed4fc25c4e46865b24bdcb8c563fdc21f580a2c301904"
+            ],
+            [
+              "bundled:///libs/lib.es2025.collection.d.ts",
+              "30d62269b05b584741f19a5369852d5d34895aa2ac4fd948956f886d15f9cc0d"
+            ],
+            [
+              "bundled:///libs/lib.es2025.float16.d.ts",
+              "f128dae7c44d8f35ee42e0a437000a57c9f06cc04f8b4fb42eebf44954d53dc8"
+            ],
+            [
+              "bundled:///libs/lib.es2025.intl.d.ts",
+              "ffbe6d7b295306b2ba88030f65b74c107d8d99bdcf596ea99c62a02f606108b0"
+            ],
+            [
+              "bundled:///libs/lib.es2025.iterator.d.ts",
+              "996fb27b15277369c68a4ba46ed138b4e9e839a02fb4ec756f7997629242fd9f"
+            ],
+            [
+              "bundled:///libs/lib.es2025.promise.d.ts",
+              "79b712591b270d4778c89706ca2cfc56ddb8c3f895840e477388f1710dc5eda9"
+            ],
+            [
+              "bundled:///libs/lib.es2025.regexp.d.ts",
+              "20884846cef428b992b9bd032e70a4ef88e349263f63aeddf04dda837a7dba26"
+            ],
+            [
+              "bundled:///libs/lib.esnext.array.d.ts",
+              "5fcab789c73a97cd43828ee3cc94a61264cf24d4c44472ce64ced0e0f148bdb2"
+            ],
+            [
+              "bundled:///libs/lib.esnext.collection.d.ts",
+              "db59a81f070c1880ad645b2c0275022baa6a0c4f0acdc58d29d349c6efcf0903"
+            ],
+            [
+              "bundled:///libs/lib.esnext.date.d.ts",
+              "673294292640f5722b700e7d814e17aaf7d93f83a48a2c9b38f33cbc940ad8b0"
+            ],
+            [
+              "bundled:///libs/lib.esnext.decorators.d.ts",
+              "d786b48f934cbca483b3c6d0a798cb43bbb4ada283e76fb22c28e53ae05b9e69"
+            ],
+            [
+              "bundled:///libs/lib.esnext.disposable.d.ts",
+              "1ecb8e347cb6b2a8927c09b86263663289418df375f5e68e11a0ae683776978f"
+            ],
+            [
+              "bundled:///libs/lib.esnext.error.d.ts",
+              "142efd4ce210576f777dc34df121777be89eda476942d6d6663b03dcb53be3ff"
+            ],
+            [
+              "bundled:///libs/lib.esnext.intl.d.ts",
+              "379bc41580c2d774f82e828c70308f24a005b490c25ba34d679d84bcf05c3d9d"
+            ],
+            [
+              "bundled:///libs/lib.esnext.sharedmemory.d.ts",
+              "ed484fb2aa8a1a23d0277056ec3336e0a0b52f9b8d6a961f338a642faf43235d"
+            ],
+            [
+              "bundled:///libs/lib.esnext.temporal.d.ts",
+              "4ffedae1d1c2d53fdbca1c96d3c7dda544281f7d262f99b6880634f8fd8d9820"
+            ],
+            [
+              "bundled:///libs/lib.esnext.typedarrays.d.ts",
+              "83a730b125d477dd264df8ba479afab27a3dae7152b005c214ab94dc7ee44fd3"
+            ],
+            [
+              "bundled:///libs/lib.decorators.d.ts",
+              "1ce14b81c5cc821994aa8ec1d42b220dd41b27fcc06373bce3958af7421b77d4"
+            ],
+            [
+              "bundled:///libs/lib.decorators.legacy.d.ts",
+              "b3a048b3e9302ef9a34ef4ebb9aecfb28b66abb3bce577206a79fee559c230da"
+            ],
+            [
+              "/.src/dependentDestructuredVariables.ts",
+              "a5699cdb561292f3f67078f778d44088f08b8b904d9d67cefa1cfabfcacc74e9"
+            ]
+          ]
+        },
+        "policy": "preserve-async-generator-parameter-scope",
+        "runtime": {
+          "policy": "preserve-async-generator-parameter-scope",
+          "engine": "v24.21.0",
+          "native": "let fooAsyncGenM = {\n  async *method(type, cb) {\n    if (type == 'num') {\n      cb(123)\n    } else {\n      cb(\"abc\")\n    }\n  }\n};",
+          "reference": "var __await = (this && this.__await) || function (v) { return this instanceof __await ? (this.v = v, this) : new __await(v); }\r\nvar __asyncGenerator = (this && this.__asyncGenerator) || function (thisArg, _arguments, generator) {\r\n    if (!Symbol.asyncIterator) throw new TypeError(\"Symbol.asyncIterator is not defined.\");\r\n    var g = generator.apply(thisArg, _arguments || []), i, q = [];\r\n    return i = Object.create((typeof AsyncIterator === \"function\" ? AsyncIterator : Object).prototype), verb(\"next\"), verb(\"throw\"), verb(\"return\", awaitReturn), i[Symbol.asyncIterator] = function () { return this; }, i;\r\n    function awaitReturn(f) { return function (v) { return Promise.resolve(v).then(f, reject); }; }\r\n    function verb(n, f) { if (g[n]) { i[n] = function (v) { return new Promise(function (a, b) { q.push([n, v, a, b]) > 1 || resume(n, v); }); }; if (f) i[n] = f(i[n]); } }\r\n    function resume(n, v) { try { step(g[n](v)); } catch (e) { settle(q[0][3], e); } }\r\n    function step(r) { r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r); }\r\n    function fulfill(value) { resume(\"next\", value); }\r\n    function reject(value) { resume(\"throw\", value); }\r\n    function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }\r\n};\nvar __asyncGenerator = (this && this.__asyncGenerator) || function (thisArg, _arguments, generator) {\r\n    if (!Symbol.asyncIterator) throw new TypeError(\"Symbol.asyncIterator is not defined.\");\r\n    var g = generator.apply(thisArg, _arguments || []), i, q = [];\r\n    return i = Object.create((typeof AsyncIterator === \"function\" ? AsyncIterator : Object).prototype), verb(\"next\"), verb(\"throw\"), verb(\"return\", awaitReturn), i[Symbol.asyncIterator] = function () { return this; }, i;\r\n    function awaitReturn(f) { return function (v) { return Promise.resolve(v).then(f, reject); }; }\r\n    function verb(n, f) { if (g[n]) { i[n] = function (v) { return new Promise(function (a, b) { q.push([n, v, a, b]) > 1 || resume(n, v); }); }; if (f) i[n] = f(i[n]); } }\r\n    function resume(n, v) { try { step(g[n](v)); } catch (e) { settle(q[0][3], e); } }\r\n    function step(r) { r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r); }\r\n    function fulfill(value) { resume(\"next\", value); }\r\n    function reject(value) { resume(\"throw\", value); }\r\n    function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }\r\n};\nlet fooAsyncGenM = {\r\n    method(type, cb) {\r\n        return __asyncGenerator(this, arguments, function* method_1() {\r\n            if (type == 'num') {\r\n                cb(123);\r\n            }\r\n            else {\r\n                cb(\"abc\");\r\n            }\r\n        });\r\n    }\r\n};",
+          "candidate": "var __await = (this && this.__await) || function (v) { return this instanceof __await ? (this.v = v, this) : new __await(v); }\r\nvar __asyncGenerator = (this && this.__asyncGenerator) || function (thisArg, _arguments, generator) {\r\n    if (!Symbol.asyncIterator) throw new TypeError(\"Symbol.asyncIterator is not defined.\");\r\n    var g = generator.apply(thisArg, _arguments || []), i, q = [];\r\n    return i = Object.create((typeof AsyncIterator === \"function\" ? AsyncIterator : Object).prototype), verb(\"next\"), verb(\"throw\"), verb(\"return\", awaitReturn), i[Symbol.asyncIterator] = function () { return this; }, i;\r\n    function awaitReturn(f) { return function (v) { return Promise.resolve(v).then(f, reject); }; }\r\n    function verb(n, f) { if (g[n]) { i[n] = function (v) { return new Promise(function (a, b) { q.push([n, v, a, b]) > 1 || resume(n, v); }); }; if (f) i[n] = f(i[n]); } }\r\n    function resume(n, v) { try { step(g[n](v)); } catch (e) { settle(q[0][3], e); } }\r\n    function step(r) { r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r); }\r\n    function fulfill(value) { resume(\"next\", value); }\r\n    function reject(value) { resume(\"throw\", value); }\r\n    function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }\r\n};\nvar __asyncGenerator = (this && this.__asyncGenerator) || function (thisArg, _arguments, generator) {\r\n    if (!Symbol.asyncIterator) throw new TypeError(\"Symbol.asyncIterator is not defined.\");\r\n    var g = generator.apply(thisArg, _arguments || []), i, q = [];\r\n    return i = Object.create((typeof AsyncIterator === \"function\" ? AsyncIterator : Object).prototype), verb(\"next\"), verb(\"throw\"), verb(\"return\", awaitReturn), i[Symbol.asyncIterator] = function () { return this; }, i;\r\n    function awaitReturn(f) { return function (v) { return Promise.resolve(v).then(f, reject); }; }\r\n    function verb(n, f) { if (g[n]) { i[n] = function (v) { return new Promise(function (a, b) { q.push([n, v, a, b]) > 1 || resume(n, v); }); }; if (f) i[n] = f(i[n]); } }\r\n    function resume(n, v) { try { step(g[n](v)); } catch (e) { settle(q[0][3], e); } }\r\n    function step(r) { r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r); }\r\n    function fulfill(value) { resume(\"next\", value); }\r\n    function reject(value) { resume(\"throw\", value); }\r\n    function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }\r\n};\nlet fooAsyncGenM = {\r\n    method(type, cb) {\r\n        return __asyncGenerator(this, arguments, function* method_1(type, cb) {\r\n            if (type == 'num') {\r\n                cb(123);\r\n            }\r\n            else {\r\n                cb(\"abc\");\r\n            }\r\n        });\r\n    }\r\n};",
+          "observation": "const values = []; await fooAsyncGenM.method('num', value => values.push(value)).next();\nawait fooAsyncGenM.method('str', value => values.push(value)).next(); console.log(JSON.stringify(values));",
+          "nativeResult": [
+            123,
+            "abc"
+          ],
+          "referenceResult": [
+            123,
+            "abc"
+          ],
+          "candidateResult": [
+            123,
+            "abc"
+          ],
+          "hash": "b7e1eeb1cf5b054f23d2ad0590159fc166f96d88cb4966dce496aeeb572d6d46"
+        }
+      },
+      {
+        "input": {
+          "name": "compiler/privateFieldsInClassExpressionDeclaration.ts",
+          "source": "D:/source/repos/TypeScript/built/csharp/oracle-source-w04NXA/tsc/testdata/tests/cases/compiler/privateFieldsInClassExpressionDeclaration.ts",
+          "corpus": true,
+          "cwd": "/.src",
+          "files": {
+            "/.src/privateFieldsInClassExpressionDeclaration.ts": "export const ClassExpression = class {\n    #context = 0;\n    #method() { return 42; }\n    public value = 1;\n};\n\n// Additional test with static private fields\nexport const ClassExpressionStatic = class {\n    static #staticPrivate = \"hidden\";\n    #instancePrivate = true;\n    public exposed = \"visible\";\n};"
+          },
+          "symlinks": {},
+          "configFileName": "",
+          "roots": [
+            "/.src/privateFieldsInClassExpressionDeclaration.ts"
+          ],
+          "options": {
+            "declaration": true,
+            "newLine": "crlf",
+            "noErrorTruncation": true,
+            "skipDefaultLibCheck": true,
+            "target": "es6"
+          },
+          "caseInsensitive": false,
+          "contentMappers": 0
+        },
+        "reference": {
+          "diagnostics": [
+            {
+              "code": 4094,
+              "file": "/.src/privateFieldsInClassExpressionDeclaration.ts",
+              "length": 15,
+              "message": "Property '#context' of exported anonymous class type may not be private or protected.",
+              "related": [
+                {
+                  "code": 9027,
+                  "file": "/.src/privateFieldsInClassExpressionDeclaration.ts",
+                  "length": 15,
+                  "message": "Add a type annotation to the variable ClassExpression.",
+                  "related": [],
+                  "start": 13
+                }
+              ],
+              "start": 13
+            },
+            {
+              "code": 4094,
+              "file": "/.src/privateFieldsInClassExpressionDeclaration.ts",
+              "length": 15,
+              "message": "Property '#method' of exported anonymous class type may not be private or protected.",
+              "related": [
+                {
+                  "code": 9027,
+                  "file": "/.src/privateFieldsInClassExpressionDeclaration.ts",
+                  "length": 15,
+                  "message": "Add a type annotation to the variable ClassExpression.",
+                  "related": [],
+                  "start": 13
+                }
+              ],
+              "start": 13
+            },
+            {
+              "code": 4094,
+              "file": "/.src/privateFieldsInClassExpressionDeclaration.ts",
+              "length": 21,
+              "message": "Property '#instancePrivate' of exported anonymous class type may not be private or protected.",
+              "related": [
+                {
+                  "code": 9027,
+                  "file": "/.src/privateFieldsInClassExpressionDeclaration.ts",
+                  "length": 21,
+                  "message": "Add a type annotation to the variable ClassExpressionStatic.",
+                  "related": [],
+                  "start": 171
+                }
+              ],
+              "start": 171
+            },
+            {
+              "code": 4094,
+              "file": "/.src/privateFieldsInClassExpressionDeclaration.ts",
+              "length": 21,
+              "message": "Property '#staticPrivate' of exported anonymous class type may not be private or protected.",
+              "related": [
+                {
+                  "code": 9027,
+                  "file": "/.src/privateFieldsInClassExpressionDeclaration.ts",
+                  "length": 21,
+                  "message": "Add a type annotation to the variable ClassExpressionStatic.",
+                  "related": [],
+                  "start": 171
+                }
+              ],
+              "start": 171
+            }
+          ],
+          "emitted": [
+            "/.src/privateFieldsInClassExpressionDeclaration.js"
+          ],
+          "maps": [],
+          "skipped": true,
+          "sources": [
+            [
+              "bundled:///libs/lib.es6.d.ts",
+              "174a0fa01bb60bcb80e09b0b7bdcdddf688891433d6030244df5b44eb9ebd210"
+            ],
+            [
+              "bundled:///libs/lib.es5.d.ts",
+              "6388847232654d7fcbed7fe89ea511a65ad1f5104b41e905c43f90910e1408b6"
+            ],
+            [
+              "bundled:///libs/lib.es2015.d.ts",
+              "3f88bedbeb09c6f5a6645cb24c7c55f1aa22d19ae96c8e6959cbd8b85a707bc6"
+            ],
+            [
+              "bundled:///libs/lib.dom.d.ts",
+              "d6b1eba8496bdd0eed6fc8a685768fe01b2da4a0388b5fe7df558290bffcf32f"
+            ],
+            [
+              "bundled:///libs/lib.dom.iterable.d.ts",
+              "7f57fc4404ff020bc45b9c620aff2b40f700b95fe31164024c453a5e3c163c54"
+            ],
+            [
+              "bundled:///libs/lib.webworker.importscripts.d.ts",
+              "2a2de5b9459b3fc44decd9ce6100b72f1b002ef523126c1d3d8b2a4a63d74d78"
+            ],
+            [
+              "bundled:///libs/lib.scripthost.d.ts",
+              "f13f4b465c99041e912db5c44129a94588e1aafee35a50eab51044833f50b4ee"
+            ],
+            [
+              "bundled:///libs/lib.es2015.core.d.ts",
+              "770011bd32a52f929fc98fbf9976c1fa9d80b6445171c02b08627fdba9778933"
+            ],
+            [
+              "bundled:///libs/lib.es2015.collection.d.ts",
+              "f0b6b1d3624fb143656dd86a8dd3e1950b7e65f218319b47bde52f65d47e2e4b"
+            ],
+            [
+              "bundled:///libs/lib.es2015.generator.d.ts",
+              "00343ca5b2e3d48fa5df1db6e32ea2a59afab09590274a6cccb1dbae82e60c7c"
+            ],
+            [
+              "bundled:///libs/lib.es2015.iterable.d.ts",
+              "ebd9f816d4002697cb2864bea1f0b70a103124e18a8cd9645eeccc09bdf80ab4"
+            ],
+            [
+              "bundled:///libs/lib.es2015.promise.d.ts",
+              "2c1afac30a01772cd2a9a298a7ce7706b5892e447bb46bdbeef720f7b5da77ad"
+            ],
+            [
+              "bundled:///libs/lib.es2015.proxy.d.ts",
+              "7b0225f483e4fa685625ebe43dd584bb7973bbd84e66a6ba7bbe175ee1048b4f"
+            ],
+            [
+              "bundled:///libs/lib.es2015.reflect.d.ts",
+              "c0a4b8ac6ce74679c1da2b3795296f5896e31c38e888469a8e0f99dc3305de60"
+            ],
+            [
+              "bundled:///libs/lib.es2015.symbol.d.ts",
+              "83e3871cda2abd4421970fa923cca51a9ce8cdbece6f898285643ab030cb80f3"
+            ],
+            [
+              "bundled:///libs/lib.es2015.symbol.wellknown.d.ts",
+              "c5079c53f0f141a0698faa903e76cb41cd664e3efb01cc17a5c46ec2eb0bef42"
+            ],
+            [
+              "bundled:///libs/lib.es2018.asynciterable.d.ts",
+              "45e3ab34c1c013c8ab2dc1ba4c80c780744b13b5676800ae2e3be27ae862c40c"
+            ],
+            [
+              "bundled:///libs/lib.decorators.d.ts",
+              "1ce14b81c5cc821994aa8ec1d42b220dd41b27fcc06373bce3958af7421b77d4"
+            ],
+            [
+              "bundled:///libs/lib.decorators.legacy.d.ts",
+              "b3a048b3e9302ef9a34ef4ebb9aecfb28b66abb3bce577206a79fee559c230da"
+            ],
+            [
+              "/.src/privateFieldsInClassExpressionDeclaration.ts",
+              "55da50c2ef2b7c876c72228cde54b2d529c6790b940cead0ac7abc3704a53f1b"
+            ]
+          ],
+          "writes": [
+            {
+              "diagnostics": [],
+              "mapPosition": -1,
+              "path": "/.src/privateFieldsInClassExpressionDeclaration.js",
+              "source": "/.src/privateFieldsInClassExpressionDeclaration.ts",
+              "textBase64": "dmFyIF9fc2V0RnVuY3Rpb25OYW1lID0gKHRoaXMgJiYgdGhpcy5fX3NldEZ1bmN0aW9uTmFtZSkgfHwgZnVuY3Rpb24gKGYsIG5hbWUsIHByZWZpeCkgew0KICAgIGlmICh0eXBlb2YgbmFtZSA9PT0gInN5bWJvbCIpIG5hbWUgPSBuYW1lLmRlc2NyaXB0aW9uID8gIlsiLmNvbmNhdChuYW1lLmRlc2NyaXB0aW9uLCAiXSIpIDogIiI7DQogICAgcmV0dXJuIE9iamVjdC5kZWZpbmVQcm9wZXJ0eShmLCAibmFtZSIsIHsgY29uZmlndXJhYmxlOiB0cnVlLCB2YWx1ZTogcHJlZml4ID8gIiIuY29uY2F0KHByZWZpeCwgIiAiLCBuYW1lKSA6IG5hbWUgfSk7DQp9Ow0KdmFyIF9pbnN0YW5jZXMsIF9jb250ZXh0LCBfbWV0aG9kLCBfYSwgX2IsIF9DbGFzc0V4cHJlc3Npb25TdGF0aWNfc3RhdGljUHJpdmF0ZSwgX0NsYXNzRXhwcmVzc2lvblN0YXRpY19pbnN0YW5jZVByaXZhdGU7DQpleHBvcnQgY29uc3QgQ2xhc3NFeHByZXNzaW9uID0gKF9hID0gY2xhc3Mgew0KICAgICAgICBjb25zdHJ1Y3RvcigpIHsNCiAgICAgICAgICAgIF9pbnN0YW5jZXMuYWRkKHRoaXMpOw0KICAgICAgICAgICAgX2NvbnRleHQuc2V0KHRoaXMsIDApOw0KICAgICAgICAgICAgdGhpcy52YWx1ZSA9IDE7DQogICAgICAgIH0NCiAgICB9LA0KICAgIF9jb250ZXh0ID0gbmV3IFdlYWtNYXAoKSwNCiAgICBfaW5zdGFuY2VzID0gbmV3IFdlYWtTZXQoKSwNCiAgICBfbWV0aG9kID0gZnVuY3Rpb24gX21ldGhvZCgpIHsgcmV0dXJuIDQyOyB9LA0KICAgIF9hKTsNCi8vIEFkZGl0aW9uYWwgdGVzdCB3aXRoIHN0YXRpYyBwcml2YXRlIGZpZWxkcw0KZXhwb3J0IGNvbnN0IENsYXNzRXhwcmVzc2lvblN0YXRpYyA9IChfYiA9IGNsYXNzIHsNCiAgICAgICAgY29uc3RydWN0b3IoKSB7DQogICAgICAgICAgICBfQ2xhc3NFeHByZXNzaW9uU3RhdGljX2luc3RhbmNlUHJpdmF0ZS5zZXQodGhpcywgdHJ1ZSk7DQogICAgICAgICAgICB0aGlzLmV4cG9zZWQgPSAidmlzaWJsZSI7DQogICAgICAgIH0NCiAgICB9LA0KICAgIF9DbGFzc0V4cHJlc3Npb25TdGF0aWNfaW5zdGFuY2VQcml2YXRlID0gbmV3IFdlYWtNYXAoKSwNCiAgICBfX3NldEZ1bmN0aW9uTmFtZShfYiwgIkNsYXNzRXhwcmVzc2lvblN0YXRpYyIpLA0KICAgIF9DbGFzc0V4cHJlc3Npb25TdGF0aWNfc3RhdGljUHJpdmF0ZSA9IHsgdmFsdWU6ICJoaWRkZW4iIH0sDQogICAgX2IpOw0K"
+            }
+          ]
+        },
+        "candidate": {
+          "skipped": true,
+          "diagnostics": [
+            {
+              "file": "/.src/privateFieldsInClassExpressionDeclaration.ts",
+              "code": 4094,
+              "start": 13,
+              "length": 15,
+              "message": "Property '#context' of exported anonymous class type may not be private or protected.",
+              "related": [
+                {
+                  "file": "/.src/privateFieldsInClassExpressionDeclaration.ts",
+                  "code": 9027,
+                  "start": 13,
+                  "length": 15,
+                  "message": "Add a type annotation to the variable ClassExpression.",
+                  "related": []
+                }
+              ]
+            },
+            {
+              "file": "/.src/privateFieldsInClassExpressionDeclaration.ts",
+              "code": 4094,
+              "start": 13,
+              "length": 15,
+              "message": "Property '#method' of exported anonymous class type may not be private or protected.",
+              "related": [
+                {
+                  "file": "/.src/privateFieldsInClassExpressionDeclaration.ts",
+                  "code": 9027,
+                  "start": 13,
+                  "length": 15,
+                  "message": "Add a type annotation to the variable ClassExpression.",
+                  "related": []
+                }
+              ]
+            },
+            {
+              "file": "/.src/privateFieldsInClassExpressionDeclaration.ts",
+              "code": 4094,
+              "start": 171,
+              "length": 21,
+              "message": "Property '#instancePrivate' of exported anonymous class type may not be private or protected.",
+              "related": [
+                {
+                  "file": "/.src/privateFieldsInClassExpressionDeclaration.ts",
+                  "code": 9027,
+                  "start": 171,
+                  "length": 21,
+                  "message": "Add a type annotation to the variable ClassExpressionStatic.",
+                  "related": []
+                }
+              ]
+            },
+            {
+              "file": "/.src/privateFieldsInClassExpressionDeclaration.ts",
+              "code": 4094,
+              "start": 171,
+              "length": 21,
+              "message": "Property '#staticPrivate' of exported anonymous class type may not be private or protected.",
+              "related": [
+                {
+                  "file": "/.src/privateFieldsInClassExpressionDeclaration.ts",
+                  "code": 9027,
+                  "start": 171,
+                  "length": 21,
+                  "message": "Add a type annotation to the variable ClassExpressionStatic.",
+                  "related": []
+                }
+              ]
+            }
+          ],
+          "emitted": [
+            "/.src/privateFieldsInClassExpressionDeclaration.js"
+          ],
+          "writes": [
+            {
+              "path": "/.src/privateFieldsInClassExpressionDeclaration.js",
+              "textBase64": "dmFyIF9fc2V0RnVuY3Rpb25OYW1lID0gKHRoaXMgJiYgdGhpcy5fX3NldEZ1bmN0aW9uTmFtZSkgfHwgZnVuY3Rpb24gKGYsIG5hbWUsIHByZWZpeCkgew0KICAgIGlmICh0eXBlb2YgbmFtZSA9PT0gInN5bWJvbCIpIG5hbWUgPSBuYW1lLmRlc2NyaXB0aW9uID8gIlsiLmNvbmNhdChuYW1lLmRlc2NyaXB0aW9uLCAiXSIpIDogIiI7DQogICAgcmV0dXJuIE9iamVjdC5kZWZpbmVQcm9wZXJ0eShmLCAibmFtZSIsIHsgY29uZmlndXJhYmxlOiB0cnVlLCB2YWx1ZTogcHJlZml4ID8gIiIuY29uY2F0KHByZWZpeCwgIiAiLCBuYW1lKSA6IG5hbWUgfSk7DQp9Ow0KdmFyIF9DbGFzc0V4cHJlc3Npb25faW5zdGFuY2VzLCBfYSwgX0NsYXNzRXhwcmVzc2lvbl9jb250ZXh0LCBfQ2xhc3NFeHByZXNzaW9uX21ldGhvZCwgX2IsIF9DbGFzc0V4cHJlc3Npb25TdGF0aWNfc3RhdGljUHJpdmF0ZSwgX0NsYXNzRXhwcmVzc2lvblN0YXRpY19pbnN0YW5jZVByaXZhdGU7DQpleHBvcnQgY29uc3QgQ2xhc3NFeHByZXNzaW9uID0gKF9hID0gY2xhc3Mgew0KICAgICAgICBjb25zdHJ1Y3RvcigpIHsNCiAgICAgICAgICAgIF9DbGFzc0V4cHJlc3Npb25faW5zdGFuY2VzLmFkZCh0aGlzKTsNCiAgICAgICAgICAgIF9DbGFzc0V4cHJlc3Npb25fY29udGV4dC5zZXQodGhpcywgMCk7DQogICAgICAgICAgICB0aGlzLnZhbHVlID0gMTsNCiAgICAgICAgfQ0KICAgIH0sDQogICAgX0NsYXNzRXhwcmVzc2lvbl9jb250ZXh0ID0gbmV3IFdlYWtNYXAoKSwNCiAgICBfQ2xhc3NFeHByZXNzaW9uX2luc3RhbmNlcyA9IG5ldyBXZWFrU2V0KCksDQogICAgX0NsYXNzRXhwcmVzc2lvbl9tZXRob2QgPSBmdW5jdGlvbiBfQ2xhc3NFeHByZXNzaW9uX21ldGhvZCgpIHsgcmV0dXJuIDQyOyB9LA0KICAgIF9fc2V0RnVuY3Rpb25OYW1lKF9hLCAiQ2xhc3NFeHByZXNzaW9uIiksDQogICAgX2EpOw0KLy8gQWRkaXRpb25hbCB0ZXN0IHdpdGggc3RhdGljIHByaXZhdGUgZmllbGRzDQpleHBvcnQgY29uc3QgQ2xhc3NFeHByZXNzaW9uU3RhdGljID0gKF9iID0gY2xhc3Mgew0KICAgICAgICBjb25zdHJ1Y3RvcigpIHsNCiAgICAgICAgICAgIF9DbGFzc0V4cHJlc3Npb25TdGF0aWNfaW5zdGFuY2VQcml2YXRlLnNldCh0aGlzLCB0cnVlKTsNCiAgICAgICAgICAgIHRoaXMuZXhwb3NlZCA9ICJ2aXNpYmxlIjsNCiAgICAgICAgfQ0KICAgIH0sDQogICAgX0NsYXNzRXhwcmVzc2lvblN0YXRpY19pbnN0YW5jZVByaXZhdGUgPSBuZXcgV2Vha01hcCgpLA0KICAgIF9fc2V0RnVuY3Rpb25OYW1lKF9iLCAiQ2xhc3NFeHByZXNzaW9uU3RhdGljIiksDQogICAgX0NsYXNzRXhwcmVzc2lvblN0YXRpY19zdGF0aWNQcml2YXRlID0geyB2YWx1ZTogImhpZGRlbiIgfSwNCiAgICBfYik7DQo=",
+              "source": "/.src/privateFieldsInClassExpressionDeclaration.ts",
+              "mapPosition": -1,
+              "diagnostics": []
+            }
+          ],
+          "maps": [],
+          "sources": [
+            [
+              "bundled:///libs/lib.es6.d.ts",
+              "174a0fa01bb60bcb80e09b0b7bdcdddf688891433d6030244df5b44eb9ebd210"
+            ],
+            [
+              "bundled:///libs/lib.es5.d.ts",
+              "6388847232654d7fcbed7fe89ea511a65ad1f5104b41e905c43f90910e1408b6"
+            ],
+            [
+              "bundled:///libs/lib.es2015.d.ts",
+              "3f88bedbeb09c6f5a6645cb24c7c55f1aa22d19ae96c8e6959cbd8b85a707bc6"
+            ],
+            [
+              "bundled:///libs/lib.dom.d.ts",
+              "d6b1eba8496bdd0eed6fc8a685768fe01b2da4a0388b5fe7df558290bffcf32f"
+            ],
+            [
+              "bundled:///libs/lib.dom.iterable.d.ts",
+              "7f57fc4404ff020bc45b9c620aff2b40f700b95fe31164024c453a5e3c163c54"
+            ],
+            [
+              "bundled:///libs/lib.webworker.importscripts.d.ts",
+              "2a2de5b9459b3fc44decd9ce6100b72f1b002ef523126c1d3d8b2a4a63d74d78"
+            ],
+            [
+              "bundled:///libs/lib.scripthost.d.ts",
+              "f13f4b465c99041e912db5c44129a94588e1aafee35a50eab51044833f50b4ee"
+            ],
+            [
+              "bundled:///libs/lib.es2015.core.d.ts",
+              "770011bd32a52f929fc98fbf9976c1fa9d80b6445171c02b08627fdba9778933"
+            ],
+            [
+              "bundled:///libs/lib.es2015.collection.d.ts",
+              "f0b6b1d3624fb143656dd86a8dd3e1950b7e65f218319b47bde52f65d47e2e4b"
+            ],
+            [
+              "bundled:///libs/lib.es2015.generator.d.ts",
+              "00343ca5b2e3d48fa5df1db6e32ea2a59afab09590274a6cccb1dbae82e60c7c"
+            ],
+            [
+              "bundled:///libs/lib.es2015.iterable.d.ts",
+              "ebd9f816d4002697cb2864bea1f0b70a103124e18a8cd9645eeccc09bdf80ab4"
+            ],
+            [
+              "bundled:///libs/lib.es2015.promise.d.ts",
+              "2c1afac30a01772cd2a9a298a7ce7706b5892e447bb46bdbeef720f7b5da77ad"
+            ],
+            [
+              "bundled:///libs/lib.es2015.proxy.d.ts",
+              "7b0225f483e4fa685625ebe43dd584bb7973bbd84e66a6ba7bbe175ee1048b4f"
+            ],
+            [
+              "bundled:///libs/lib.es2015.reflect.d.ts",
+              "c0a4b8ac6ce74679c1da2b3795296f5896e31c38e888469a8e0f99dc3305de60"
+            ],
+            [
+              "bundled:///libs/lib.es2015.symbol.d.ts",
+              "83e3871cda2abd4421970fa923cca51a9ce8cdbece6f898285643ab030cb80f3"
+            ],
+            [
+              "bundled:///libs/lib.es2015.symbol.wellknown.d.ts",
+              "c5079c53f0f141a0698faa903e76cb41cd664e3efb01cc17a5c46ec2eb0bef42"
+            ],
+            [
+              "bundled:///libs/lib.es2018.asynciterable.d.ts",
+              "45e3ab34c1c013c8ab2dc1ba4c80c780744b13b5676800ae2e3be27ae862c40c"
+            ],
+            [
+              "bundled:///libs/lib.decorators.d.ts",
+              "1ce14b81c5cc821994aa8ec1d42b220dd41b27fcc06373bce3958af7421b77d4"
+            ],
+            [
+              "bundled:///libs/lib.decorators.legacy.d.ts",
+              "b3a048b3e9302ef9a34ef4ebb9aecfb28b66abb3bce577206a79fee559c230da"
+            ],
+            [
+              "/.src/privateFieldsInClassExpressionDeclaration.ts",
+              "55da50c2ef2b7c876c72228cde54b2d529c6790b940cead0ac7abc3704a53f1b"
+            ]
+          ]
+        },
+        "policy": "preserve-inferred-binding-names",
+        "runtime": {
+          "policy": "preserve-inferred-binding-names",
+          "engine": "v24.21.0",
+          "native": "export const ClassExpression = class {\n    #context = 0;\n    #method() { return 42; }\n    value = 1;\n};\n\n// Additional test with static private fields\nexport const ClassExpressionStatic = class {\n    static #staticPrivate = \"hidden\";\n    #instancePrivate = true;\n    exposed = \"visible\";\n};",
+          "reference": "var __setFunctionName = (this && this.__setFunctionName) || function (f, name, prefix) {\r\n    if (typeof name === \"symbol\") name = name.description ? \"[\".concat(name.description, \"]\") : \"\";\r\n    return Object.defineProperty(f, \"name\", { configurable: true, value: prefix ? \"\".concat(prefix, \" \", name) : name });\r\n};\r\nvar _instances, _context, _method, _a, _b, _ClassExpressionStatic_staticPrivate, _ClassExpressionStatic_instancePrivate;\r\nexport const ClassExpression = (_a = class {\r\n        constructor() {\r\n            _instances.add(this);\r\n            _context.set(this, 0);\r\n            this.value = 1;\r\n        }\r\n    },\r\n    _context = new WeakMap(),\r\n    _instances = new WeakSet(),\r\n    _method = function _method() { return 42; },\r\n    _a);\r\n// Additional test with static private fields\r\nexport const ClassExpressionStatic = (_b = class {\r\n        constructor() {\r\n            _ClassExpressionStatic_instancePrivate.set(this, true);\r\n            this.exposed = \"visible\";\r\n        }\r\n    },\r\n    _ClassExpressionStatic_instancePrivate = new WeakMap(),\r\n    __setFunctionName(_b, \"ClassExpressionStatic\"),\r\n    _ClassExpressionStatic_staticPrivate = { value: \"hidden\" },\r\n    _b);\r\n",
+          "candidate": "var __setFunctionName = (this && this.__setFunctionName) || function (f, name, prefix) {\r\n    if (typeof name === \"symbol\") name = name.description ? \"[\".concat(name.description, \"]\") : \"\";\r\n    return Object.defineProperty(f, \"name\", { configurable: true, value: prefix ? \"\".concat(prefix, \" \", name) : name });\r\n};\r\nvar _ClassExpression_instances, _a, _ClassExpression_context, _ClassExpression_method, _b, _ClassExpressionStatic_staticPrivate, _ClassExpressionStatic_instancePrivate;\r\nexport const ClassExpression = (_a = class {\r\n        constructor() {\r\n            _ClassExpression_instances.add(this);\r\n            _ClassExpression_context.set(this, 0);\r\n            this.value = 1;\r\n        }\r\n    },\r\n    _ClassExpression_context = new WeakMap(),\r\n    _ClassExpression_instances = new WeakSet(),\r\n    _ClassExpression_method = function _ClassExpression_method() { return 42; },\r\n    __setFunctionName(_a, \"ClassExpression\"),\r\n    _a);\r\n// Additional test with static private fields\r\nexport const ClassExpressionStatic = (_b = class {\r\n        constructor() {\r\n            _ClassExpressionStatic_instancePrivate.set(this, true);\r\n            this.exposed = \"visible\";\r\n        }\r\n    },\r\n    _ClassExpressionStatic_instancePrivate = new WeakMap(),\r\n    __setFunctionName(_b, \"ClassExpressionStatic\"),\r\n    _ClassExpressionStatic_staticPrivate = { value: \"hidden\" },\r\n    _b);\r\n",
+          "observation": "console.log(JSON.stringify([ClassExpression.name, ClassExpressionStatic.name,\nnew ClassExpression().value, new ClassExpressionStatic().exposed]));",
+          "nativeResult": [
+            "ClassExpression",
+            "ClassExpressionStatic",
+            1,
+            "visible"
+          ],
+          "referenceResult": [
+            "_a",
+            "ClassExpressionStatic",
+            1,
+            "visible"
+          ],
+          "candidateResult": [
+            "ClassExpression",
+            "ClassExpressionStatic",
+            1,
+            "visible"
+          ],
+          "hash": "11ab13e291cee86e471122f85a77953e3c922390b57cf9d7e9542d8cfc7bd51c"
+        }
+      }
+    ]
+  }
+}

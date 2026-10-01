@@ -20,12 +20,20 @@ internal sealed partial class Checker
             .Concat(sourceDiagnostics.Select(d => (File: (SourceFileNode?)d.File, d.Diagnostic)))
             .ToLookup(d => d.File, d => d.Diagnostic);
 
-    internal IReadOnlyList<Diagnostic> DetailedDiagnosticsForFile(SourceFileNode? file)
+    internal IReadOnlyList<Diagnostic> DetailedDiagnosticsForFile(SourceFileNode? file, bool includeEmitOnly = false)
         => diagnosticFiles.Concat(program.DiagnosticFiles)
             .Where(d => SemanticSyntax.Source(d.Node) == file)
             .Select(d => WithRelatedInformation(d.Node, d.Diagnostic))
             .Concat(sourceDiagnostics.Where(d => d.File == file).Select(d => d.Diagnostic))
+            .Where(diagnostic => includeEmitOnly || program.Symbols.Program.Configuration.Options.NoEmit != true || !diagnostic.SkippedOnNoEmit)
             .Distinct(DiagnosticEqualityComparer.Instance).ToArray();
+
+    private void ErrorSkippedOnNoEmit(SyntaxNode node, DiagnosticCode code, params Utf8String[] arguments)
+    {
+        if (!reported.Add((node, code))) return;
+        if (program.Symbols.Program.Configuration.Options.NoEmit != true) Diagnostics.Add(code);
+        diagnosticFiles.Add((node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments) with { SkippedOnNoEmit = true }));
+    }
 
     private Diagnostic WithRelatedInformation(SyntaxNode? node, Diagnostic diagnostic)
     {
@@ -137,11 +145,11 @@ internal sealed partial class Checker
 
     internal IReadOnlyList<Diagnostic> DetailedDiagnosticsForProgramFile(
         SourceFileNode file,
-        IEnumerable<Diagnostic>? fileDiagnostics = null)
+        IEnumerable<Diagnostic>? fileDiagnostics = null, bool includeEmitOnly = false)
     {
         if (SkipProgramFile(file))
             return [];
-        var diagnostics = new List<Diagnostic>(fileDiagnostics ?? DetailedDiagnosticsForFile(file));
+        var diagnostics = new List<Diagnostic>(fileDiagnostics ?? DetailedDiagnosticsForFile(file, true));
         foreach (var diagnostic in program.Symbols.Binding(file)!.Diagnostics)
             diagnostics.Add(diagnostic with { FileName = file.FileName });
         if ((file.Flags & NodeFlags.JavaScriptFile) != 0
@@ -155,10 +163,9 @@ internal sealed partial class Checker
             diagnostics.RemoveAll(d => !JavaScriptDiagnostics.IsPlainError(d.Code));
         else
             diagnostics = FilterCommentDirectives(file, diagnostics, true);
-        var includes = FilterCommentDirectives(
-            file,
-            program.Symbols.Program.IncludeDiagnostics.Where(d => d.FileName == file.FileName).ToArray(),
-            false);
+        if (!includeEmitOnly && program.Symbols.Program.Configuration.Options.NoEmit == true)
+            diagnostics.RemoveAll(diagnostic => diagnostic.SkippedOnNoEmit);
+        var includes = IncludeDiagnosticsForProgramFile(file);
         if (program.Symbols.Program.GetFile(file.FileName)?.Mapping is not { } mapping)
             return DiagnosticCollection.SortAndDeduplicate(diagnostics.Concat(includes));
         IEnumerable<Diagnostic> mapped = diagnostics;
@@ -168,6 +175,9 @@ internal sealed partial class Checker
             || mapping.Map.VirtualToOriginalSpan(d.Start, d.Start + d.Length).Fidelity != MappingFidelity.None)
             .Concat(includes));
     }
+
+    internal IReadOnlyList<Diagnostic> IncludeDiagnosticsForProgramFile(SourceFileNode file) => SkipProgramFile(file) ? []
+        : FilterCommentDirectives(file, program.Symbols.Program.IncludeDiagnostics.Where(d => d.FileName == file.FileName).ToArray(), false);
 
     private static List<Diagnostic> FilterCommentDirectives(SourceFileNode file, IReadOnlyList<Diagnostic> diagnostics, bool reportUnused)
     {

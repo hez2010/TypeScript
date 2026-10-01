@@ -24,11 +24,17 @@ public sealed record DiagnosticMessage(DiagnosticCode Code, DiagnosticCategory C
         DiagnosticLocalization.Format(DiagnosticLocalization.Text(this, locale), arguments);
 }
 
+internal readonly record struct DiagnosticRepopulation(int Kind, Utf8String ModuleReference = default, int Mode = 0, Utf8String PackageName = default);
+
 public sealed record Diagnostic(DiagnosticMessage Message, int Start, int Length, Utf8String[] Arguments)
 {
     public DiagnosticCode Code => Message.Code;
     public Utf8String? FileName { get; init; }
     public Utf8String? Source { get; init; }
+    public bool SkippedOnNoEmit { get; init; }
+    internal bool IsMapperFailure { get; init; }
+    internal DiagnosticRepopulation Repopulation { get; init; }
+    internal bool FromBuildInfo { get; init; }
     public IReadOnlyList<Diagnostic> MessageChain { get; init; } = [];
     public IReadOnlyList<Diagnostic> RelatedInformation { get; init; } = [];
 

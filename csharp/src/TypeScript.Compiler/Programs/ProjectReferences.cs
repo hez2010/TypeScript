@@ -51,22 +51,24 @@ public sealed class ProjectReferences
             var paths = new List<Utf8String>();
             foreach (var reference in config.References)
             {
+                Diagnostic ReferenceError(DiagnosticMessage message) => new(message, reference.SourceStart, reference.SourceLength, [reference.Path])
+                { FileName = config.SourceFile is null ? null : config.FileName };
                 Utf8String path = reference.Path;
                 if (!path.EndsWith(".json"u8, StringComparison.OrdinalIgnoreCase))
                     path = CompilerPath.Combine(path, Utf8Literals.TsconfigJson);
                 paths.Add(path);
                 if (!fs.FileExists(path))
                 {
-                    errors.Add(new(Messages.File_0_not_found, 0, 0, [path]));
+                    errors.Add(ReferenceError(Messages.File_0_not_found));
                     continue;
                 }
                 var child = projects.GetValueOrDefault(path) ?? parser.Parse(path, cancellation: cancellation);
                 if (config.FileNames.Length != 0)
                 {
                     if (child.Options.Composite != true)
-                        errors.Add(new(Messages.Referenced_project_0_must_have_setting_composite_Colon_true, 0, 0, [reference.Path]));
+                        errors.Add(ReferenceError(Messages.Referenced_project_0_must_have_setting_composite_Colon_true));
                     if (child.Options.NoEmit == true)
-                        errors.Add(new(Messages.Referenced_project_0_may_not_disable_emit, 0, 0, [reference.Path]));
+                        errors.Add(ReferenceError(Messages.Referenced_project_0_may_not_disable_emit));
                 }
                 projects[path] = child;
                 children.Add(child);
@@ -81,7 +83,10 @@ public sealed class ProjectReferences
                 foreach (Utf8String source in config.FileNames)
                 {
                     if (CompilerPath.IsDeclarationFile(source) || ModuleResolver.Extension(source) == Utf8Literals.Json)
+                    {
+                        sources[source] = new(source, default, config);
                         continue;
+                    }
                     Utf8String ext = ModuleResolver.Extension(source);
                     Utf8String suffix = (ext == ".mts"u8 || ext == ".mjs"u8) ? Utf8Literals.DMts : (ext == ".cts"u8 || ext == ".cjs"u8) ? Utf8Literals.DCts : Utf8Literals.DTs;
                     Utf8String output = source[..^ext.Length] + suffix;
@@ -105,7 +110,7 @@ public sealed class ProjectReferences
     public Utf8String Redirect(Utf8String path)
     {
         if (!UseSources)
-            return sources.TryGetValue(path, out var source) ? source.Output : path;
+            return sources.TryGetValue(path, out var source) && !source.Output.IsEmpty ? source.Output : path;
         return Find(path)?.Source ?? path;
     }
 

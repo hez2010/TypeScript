@@ -2,6 +2,7 @@ using TypeScript.Compiler.Text;
 using System.Text;
 using System.Text.Json;
 using TypeScript.Compiler.Configuration;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
 
 namespace TypeScript.Compiler.Resolution;
@@ -12,15 +13,23 @@ public sealed partial class ModuleResolver
     {
         private ResolvedModule? RelativeLoad(Extensions ext, Utf8String candidate, bool considerPackage = true)
         {
+            Message(Messages.Loading_module_as_file_Slash_folder_candidate_module_location_0_target_file_types_Colon_1, candidate, ExtensionNames(ext));
             if (!CompilerPath.HasTrailingSeparator(candidate))
             {
                 if (!DirectoryExists(CompilerPath.DirectoryName(candidate)))
+                {
+                    Message(Messages.Directory_0_does_not_exist_skipping_all_lookups_in_it, CompilerPath.DirectoryName(candidate));
                     return null;
+                }
                 if (LoadFile(ext, candidate) is { } file)
                     return considerPackage ? WithPackage(file, PackageForFile(file.FileName)) : file;
             }
-            if (!DirectoryExists(candidate) || esm)
+            if (!DirectoryExists(candidate))
+            {
+                Message(Messages.Directory_0_does_not_exist_skipping_all_lookups_in_it, candidate);
                 return null;
+            }
+            if (esm) return null;
             return LoadDirectory(ext, candidate, considerPackage ? Package(candidate) : null);
         }
 
@@ -32,6 +41,7 @@ public sealed partial class ModuleResolver
                 if (!IsTypeScript(original) && !(original == ".js"u8 || original == ".jsx"u8 || original == ".mjs"u8 || original == ".cjs"u8 || original == ".json"u8))
                     original = resolver.extraExtensions.FirstOrDefault(e => candidate.EndsWith(e, StringComparison.Ordinal), original);
                 Trace(Utf8Literals.Extension, candidate, original);
+                Message(Messages.File_name_0_has_a_1_extension_stripping_it, candidate, original);
                 if (AddExtensions(ext, candidate[..^original.Length], original) is { } file)
                     return file;
             }
@@ -88,6 +98,7 @@ public sealed partial class ModuleResolver
                 locations.Add(path);
                 bool exists = fs.FileExists(path);
                 Trace(Utf8Literals.File, path, exists ? Utf8Literals.Exists : Utf8Literals.Missing);
+                Message(exists ? Messages.File_0_exists_use_it_as_a_name_resolution_result : Messages.File_0_does_not_exist, path);
                 if (exists)
                     return path;
             }
@@ -97,6 +108,7 @@ public sealed partial class ModuleResolver
         private ResolvedModule? LoadDirectory(Extensions ext, Utf8String candidate, PackageJson? package)
         {
             Utf8String? packageFile = null;
+            JsonElement versionPaths = package is null ? default : VersionPaths(package);
             if (package is not null && candidate.TrimEnd((byte)'/').Equals(package.Directory,
                 fs.CaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase))
             {
@@ -126,7 +138,7 @@ public sealed partial class ModuleResolver
                 }
             }
             Utf8String index = CompilerPath.Combine(candidate, configLookup ? Utf8Literals.Tsconfig : Utf8Literals.Index);
-            if (package?.VersionPaths(resolver.CompilerVersion) is { ValueKind: JsonValueKind.Object } paths
+            if (versionPaths is { ValueKind: JsonValueKind.Object } paths
                 && (packageFile is null || CompilerPath.Contains(candidate, packageFile.Value, true))
                 && CompilerOptions.ParsePaths(paths) is { } mappings)
             {
@@ -144,10 +156,13 @@ public sealed partial class ModuleResolver
             if (package.String(name) is not { Length: > 0 } value)
             {
                 Trace(Utf8Literals.FieldUnavailable, package.Directory, name + Utf8Literals.Colon + Utf8String.EnumName(package.Get(name).ValueKind));
+                Message(package.Get(name).ValueKind == JsonValueKind.String ? Messages.X_package_json_had_a_falsy_0_field
+                    : Messages.X_package_json_does_not_have_a_0_field, name);
                 return null;
             }
             Utf8String result = CompilerPath.Resolve(package.Directory, value);
             Trace(Utf8Literals.Field, result, name + Utf8Literals.Colon + value);
+            Message(Messages.X_package_json_has_0_field_1_that_references_2, name, value, result);
             return result;
         }
 
@@ -200,6 +215,7 @@ public sealed partial class ModuleResolver
             if (best is not { } matched)
                 return null;
             Trace(Utf8Literals.Paths, module, matched.Key);
+            Message(Messages.Module_name_0_matched_pattern_1, module, matched.Key);
             foreach (Utf8String substitution in matched.Value)
             {
                 int index = substitution.IndexOf((byte)'*');
@@ -208,6 +224,8 @@ public sealed partial class ModuleResolver
                     index < 0 ? substitution : substitution[..index] + star + substitution[(index + 1)..]);
                 Utf8String extension = Extension(substitution);
                 Trace(Utf8Literals.Substitution, candidate, substitution);
+                Message(Messages.Trying_substitution_0_candidate_module_location_Colon_1, substitution,
+                    index < 0 ? substitution : substitution[..index] + star + substitution[(index + 1)..]);
                 if (extension.Length != 0 && TryFile(candidate) is { } direct)
                     return External(new(direct, extension));
                 bool saved = fromConfig;
@@ -239,17 +257,36 @@ public sealed partial class ModuleResolver
             file = External(file);
             if (!file.IsResolved || package?.Name is not { } name || package.Version is not { } version)
                 return file;
+            if (file.PackageId is not null) return file;
             Utf8String path = CompilerPath.Normalize(fs.RealPath(package.Directory));
             int index = path.LastIndexOf("/node_modules"u8, StringComparison.Ordinal);
             var peers = new Utf8StringBuilder();
+            if (package.Get(Utf8Literals.PeerDependencies).ValueKind == JsonValueKind.Undefined)
+                Message(Messages.X_package_json_does_not_have_a_0_field, Utf8Literals.PeerDependencies);
+            else if (package.Dependencies().Any(d => d.Field == Utf8Literals.PeerDependencies))
+            {
+                Message(Messages.X_package_json_has_a_peerDependencies_field);
+                Message(Messages.Resolving_real_path_for_0_result_1, package.Directory, path);
+            }
             if (index >= 0)
                 foreach (var peer in package.Dependencies().Where(d => d.Field == Utf8Literals.PeerDependencies).OrderBy(
                     d => d.Name,
                     Utf8StringComparer.Ordinal))
                     if (Package(path[..(index + 13)] + Utf8Literals.Slash + peer.Name) is { } peerPackage)
+                    {
                         peers.Append((byte)'+').Append(peer.Name).Append((byte)'@').Append(peerPackage.Version ?? ""u8);
+                        Message(Messages.Found_peerDependency_0_with_1_version, peer.Name, peerPackage.Version ?? ""u8);
+                    }
+                    else Message(Messages.Failed_to_find_peerDependency_0, peer.Name);
             Utf8String submodule = file.FileName.Length > package.Directory.Length ? file.FileName[(package.Directory.Length + 1)..] : Utf8String.Empty;
             return file with { PackageId = new(name, submodule, version, peers.ToUtf8String()) };
+        }
+
+        private JsonElement VersionPaths(PackageJson package)
+        {
+            if (package.Get(Utf8Literals.TypesVersions).ValueKind == JsonValueKind.Undefined)
+                Message(Messages.X_package_json_does_not_have_a_0_field, Utf8Literals.TypesVersions);
+            return package.VersionPaths(resolver.CompilerVersion);
         }
     }
 }

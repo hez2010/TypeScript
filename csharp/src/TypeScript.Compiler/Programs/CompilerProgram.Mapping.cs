@@ -67,6 +67,8 @@ public sealed partial class CompilerProgram
                         else if (extension.EndsWith(".cts"u8, StringComparison.Ordinal)
                             || extension.EndsWith(".cjs"u8, StringComparison.Ordinal))
                             format = ReferenceResolutionMode.Require;
+                        else if (format == ReferenceResolutionMode.Unspecified)
+                            format = packageType == "module"u8 ? ReferenceResolutionMode.Import : ReferenceResolutionMode.Require;
                         return new(mapped.Canonical.Syntax, options, format, packageDirectory, packageType, mapped);
                     }
                     catch (Exception error) when (error is MapperException or MappingException)
@@ -76,7 +78,8 @@ public sealed partial class CompilerProgram
                         {
                             lock (mapperGates)
                                 mapperInitializationFailures.Add(mapper);
-                            globals.Add(new(Messages.The_content_mapper_0_could_not_be_initialized, 0, 0, [mapper.Name]));
+                            globals.Add(new(Messages.The_content_mapper_0_could_not_be_initialized, 0, 0, [mapper.Name])
+                            { MessageChain = error is MapperException { Diagnostic: { } detail } ? [detail] : [] });
                         }
                         else
                         {
@@ -141,7 +144,12 @@ public sealed partial class CompilerProgram
             }
             else
                 message = Messages.The_content_mapper_0_failed_to_transform_this_file;
-            return new(message, 0, 0, args) { FileName = file };
+            return new(message, 0, 0, args)
+            {
+                FileName = file, IsMapperFailure = true,
+                MessageChain = error is MapperException { Stage: MapperFailure.Request }
+                    ? [new(Messages.The_content_mapper_process_failed_while_handling_the_transform_request, 0, 0, [])] : []
+            };
         }
     }
 }

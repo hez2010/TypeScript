@@ -63,7 +63,8 @@ for (const value of ["1e309", "-1e309", "9223372036854775808"]) cases.push({ nam
 const managed = process.argv.includes("--managed");
 if (!process.argv.includes("--no-build")) await run(dotnet, managed ? ["build", "tests/TypeScript.Compatibility", "-c", "Release", "--no-restore"] : ["publish", "tests/TypeScript.Compatibility", "-p:PublishAot=true", "-c", "Release", "-r", "win-x64", "-p:IlcInstructionSet=native", "-p:RestoreLockedMode=true", "-o", path.join(output, "hosts-native")], { cwd: path.join(root, "csharp") });
 const candidate = managed ? dotnet : option("--candidate", path.join(output, "hosts-native/TypeScript.Compatibility.exe"));
-const args = managed ? [path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll"), "--host-lines"] : ["--host-lines"];
+const managedDirectory = option("--managed-directory", path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0"));
+const args = managed ? [path.join(managedDirectory, "TypeScript.Compatibility.dll"), "--host-lines"] : ["--host-lines"];
 async function probe(command, args, cases) {
     return new Promise((resolve, reject) => {
         const child = spawn(command, args, { windowsHide: true });

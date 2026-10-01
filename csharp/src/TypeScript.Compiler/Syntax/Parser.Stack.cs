@@ -62,7 +62,7 @@ public sealed partial class Parser
                 }
                 int before = Pos;
                 nodes.Add(await element().ConfigureAwait(false));
-                if (Token == end || stop?.Invoke() == true)
+                if (Token == end || Token == K.EndOfFile || stop?.Invoke() == true)
                     break;
                 if (!Take(K.CommaToken) && !(semicolons && (Take(K.SemicolonToken) || LineBreak)))
                 {

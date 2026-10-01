@@ -117,15 +117,18 @@ public sealed class PackageJsonCache(IFileSystem fileSystem, Utf8String currentD
     private readonly Dictionary<Utf8String, PackageJsonEntry> entries = new(
         fileSystem.CaseSensitive ? Utf8StringComparer.Ordinal : Utf8StringComparer.OrdinalIgnoreCase);
 
-    public PackageJsonEntry Get(Utf8String directory)
+    public PackageJsonEntry Get(Utf8String directory) => Get(directory, out _);
+
+    internal PackageJsonEntry Get(Utf8String directory, out bool cached)
     {
         directory = CompilerPath.Resolve(currentDirectory, directory);
         if (directory.Length > CompilerPath.RootLength(directory))
             directory = directory.TrimEnd((byte)'/');
         lock (gate)
         {
-            if (entries.TryGetValue(directory, out var existing))
-                return existing with { Directory = directory, Contents = existing.Contents?.WithDirectory(directory) };
+            cached = entries.TryGetValue(directory, out var existing);
+            if (cached)
+                return existing! with { Directory = directory, Contents = existing.Contents?.WithDirectory(directory) };
             bool exists = fileSystem.DirectoryExists(directory);
             byte[]? bytes = exists ? fileSystem.ReadFile(CompilerPath.Combine(directory, Utf8Literals.PackageJson)) : null;
             var entry = new PackageJsonEntry(
@@ -141,6 +144,11 @@ public sealed class PackageJsonCache(IFileSystem fileSystem, Utf8String currentD
     {
         lock (gate)
             entries.Clear();
+    }
+
+    internal PackageJsonEntry[] Snapshot()
+    {
+        lock (gate) return entries.Values.ToArray();
     }
 
     public PackageJson? Scope(Utf8String directory)

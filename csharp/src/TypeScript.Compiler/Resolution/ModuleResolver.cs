@@ -26,6 +26,7 @@ public sealed record ResolvedModule(Utf8String FileName = default, Utf8String Ex
     public Utf8String AlternateResult { get; init; } = Utf8String.Empty;
     public IReadOnlyList<Diagnostic> Diagnostics { get; init; } = [];
     public IReadOnlyList<ResolutionTrace> Trace { get; init; } = [];
+    public IReadOnlyList<Diagnostic> TraceMessages { get; init; } = [];
     public IReadOnlyList<Utf8String> AffectingLocations { get; init; } = [];
 }
 
@@ -39,9 +40,12 @@ public sealed partial class ModuleResolver
     private readonly object gate = new();
     private readonly Dictionary<(Utf8String Name, Utf8String Directory, ReferenceResolutionMode Mode, bool Types, bool Inferred), ResolvedModule> cache = [];
     private long generation;
-    public PackageJsonCache Packages { get; }
+    public PackageJsonCache Packages { get; internal init; }
     public SemanticVersion CompilerVersion { get; }
     public Utf8String ResolutionKind { get; }
+    internal Utf8String RedirectConfig { get; init; }
+    internal bool? TraceOverride { get; init; }
+    private bool TraceEnabled => TraceOverride ?? options.TraceResolution == true;
 
     public ModuleResolver(IFileSystem fileSystem, CompilerOptions compilerOptions, Utf8String currentDirectory,
         Utf8String configFile = default, Utf8String typingsLocation = default, IEnumerable<Utf8String>? extraExtensions = null,
@@ -88,17 +92,20 @@ public sealed partial class ModuleResolver
         lock (gate)
         {
             version = generation;
-            if (options.TraceResolution != true && cache.TryGetValue(key, out var cached))
+            if (!TraceEnabled && cache.TryGetValue(key, out var cached))
                 return cached;
         }
         var request = new Request(this, name, directory, mode, typeReference, cancellation, inferredTypes: inferred);
+        request.StartTrace(containingFile);
         var result = await request.RunAsync().ConfigureAwait(false);
         if (typeReference)
             result = result with { Primary = request.Primary };
+        request.FinishTrace(result);
         result = result with
         {
             Diagnostics = request.diagnostics.ToArray(),
             Trace = request.trace.ToArray(),
+            TraceMessages = request.traceMessages.ToArray(),
             AffectingLocations = request.locations.Order(Utf8StringComparer.Ordinal).ToArray()
         };
         lock (gate)
@@ -269,7 +276,7 @@ public sealed partial class ModuleResolver
 
         private void Trace(Utf8String operation, Utf8String path, Utf8String detail = default)
         {
-            if (options.TraceResolution == true)
+            if (resolver.TraceEnabled)
                 trace.Add(new(operation, path, detail));
         }
 
@@ -285,7 +292,13 @@ public sealed partial class ModuleResolver
         private PackageJson? Package(Utf8String path)
         {
             locations.Add(CompilerPath.Combine(path, Utf8Literals.PackageJson));
-            var entry = resolver.Packages.Get(path);
+            var entry = resolver.Packages.Get(path, out bool cached);
+            if (entry.Contents is not null)
+                Message(cached ? Messages.File_0_exists_according_to_earlier_cached_lookups : Messages.Found_package_json_at_0,
+                    CompilerPath.Combine(path, Utf8Literals.PackageJson));
+            else if (entry.DirectoryExists)
+                Message(cached ? Messages.File_0_does_not_exist_according_to_earlier_cached_lookups : Messages.File_0_does_not_exist,
+                    CompilerPath.Combine(path, Utf8Literals.PackageJson));
             Trace(Utf8Literals.Package, path, entry.Contents is null ? Utf8Literals.Missing : entry.Contents.Parseable ? Utf8Literals.Parsed : Utf8Literals.Invalid);
             return entry.Contents;
         }
@@ -314,16 +327,18 @@ public sealed partial class ModuleResolver
                 var result = types ? await TypeReferenceAsync().ConfigureAwait(false)
                     : await ModuleAsync().ConfigureAwait(false);
                 result ??= new();
+                result = RealPath(result);
                 if (!types && result.IsResolved && result.External && conditions.Contains(Utf8Literals.ImportKeyword) && exports
                     && !IsTypeScript(result.Extension) && !Relative(name))
                 {
+                    Message(Messages.Resolution_of_non_relative_name_failed_trying_with_modern_Node_resolution_features_disabled_to_see_if_npm_library_needs_configuration_update);
                     exports = false;
                     extensions &= Extensions.TypeScript | Extensions.Declaration;
                     int count = diagnostics.Count;
                     var alternate = await ModuleAsync().ConfigureAwait(false);
                     diagnostics.RemoveRange(count, diagnostics.Count - count);
                     if (alternate?.IsResolved == true && alternate.External)
-                        result = result with { AlternateResult = alternate.FileName };
+                        result = result with { AlternateResult = RealPath(alternate).FileName };
                 }
                 if (!types && resolver.typingsLocation.Length != 0 && !Relative(name)
                     && (!result.IsResolved || !IsTypeScript(result.Extension) && result.Extension != Utf8Literals.Json))
@@ -331,13 +346,6 @@ public sealed partial class ModuleResolver
                     var global = await ImmediateAsync(Extensions.Declaration, resolver.typingsLocation).ConfigureAwait(false);
                     if (global?.IsResolved == true)
                         result = global with { External = true };
-                }
-                if (result.IsResolved && options.PreserveSymlinks != true && (types || result.External && !Relative(name)))
-                {
-                    Utf8String real = CompilerPath.Normalize(fs.RealPath(result.FileName));
-                    Trace(Utf8Literals.Realpath, result.FileName, real);
-                    if (!real.Equals(result.FileName, fs.CaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase))
-                        result = result with { OriginalPath = result.FileName, FileName = real };
                 }
                 Trace(Utf8Literals.Result, result.FileName, result.PackageId?.ToUtf8String() ?? default);
                 return result;
@@ -348,10 +356,21 @@ public sealed partial class ModuleResolver
             }
         }
 
+        private ResolvedModule RealPath(ResolvedModule result)
+        {
+            if (!result.IsResolved || options.PreserveSymlinks == true || !(types || result.External && !Relative(name))) return result;
+            Utf8String real = CompilerPath.Normalize(fs.RealPath(result.FileName));
+            Trace(Utf8Literals.Realpath, result.FileName, real);
+            Message(Messages.Resolving_real_path_for_0_result_1, result.FileName, real);
+            return real.Equals(result.FileName, fs.CaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase)
+                ? result : result with { OriginalPath = result.FileName, FileName = real };
+        }
+
         private async ValueTask<ResolvedModule?> ModuleAsync()
         {
             if (!Relative(name) && options.Paths is { } paths)
             {
+                Message(Messages.X_paths_option_is_specified_looking_for_a_pattern_to_match_module_name_0, name);
                 var mapped = Paths(extensions, name, options.PathsBasePath ?? resolver.cwd, paths,
                     candidate => RelativeLoad(extensions, candidate));
                 if (mapped is not null)
@@ -408,7 +427,11 @@ public sealed partial class ModuleResolver
                         return External(result);
             }
             if (name.Contains((byte)':'))
+            {
+                Message(Messages.Skipping_module_0_that_looks_like_an_absolute_URI_target_file_types_Colon_1, name, ExtensionNames(extensions));
                 return null;
+            }
+            Message(Messages.Loading_module_0_from_node_modules_folder_target_file_types_Colon_1, name, ExtensionNames(extensions));
             if (await NearestAsync(extensions).ConfigureAwait(false) is { } found)
                 return External(found);
             if ((extensions & Extensions.Declaration) != 0 && options.TypeRoots is { } typeRoots)
@@ -418,14 +441,21 @@ public sealed partial class ModuleResolver
 
         private async ValueTask<ResolvedModule?> TypeReferenceAsync()
         {
-            var primary = FromTypeRoots(resolver.TypeRoots(), options.TypeRoots is not null);
+            var roots = resolver.TypeRoots();
+            if (roots.Length != 0) Message(Messages.Resolving_with_primary_search_path_0, Utf8String.Join(", "u8, roots));
+            else Message(Messages.Root_directory_cannot_be_determined_skipping_primary_search_paths);
+            var primary = FromTypeRoots(roots, options.TypeRoots is not null);
             if (primary is not null)
             {
                 Primary = primary.IsResolved;
                 return primary;
             }
             if (inferredTypes && options.TypeRoots is not null)
+            {
+                Message(Messages.Resolving_type_reference_directive_for_program_that_specifies_custom_typeRoots_skipping_lookup_in_node_modules_folder);
                 return null;
+            }
+            Message(Messages.Looking_up_in_node_modules_folder_initial_location_0, directory);
             return Relative(name) ? RelativeLoad(Extensions.Declaration, CompilerPath.Resolve(directory, name))
                 : await NearestAsync(Extensions.Declaration).ConfigureAwait(false);
         }
@@ -435,7 +465,10 @@ public sealed partial class ModuleResolver
             foreach (Utf8String root in roots)
             {
                 if (!DirectoryExists(root))
+                {
+                    Message(Messages.Directory_0_does_not_exist_skipping_all_lookups_in_it, root);
                     continue;
+                }
                 Utf8String candidate = CompilerPath.Combine(
                     root,
                     root.TrimEnd((byte)'/').EndsWith("/node_modules/@types"u8, StringComparison.Ordinal) ? Mangle(name) : name);
@@ -455,10 +488,15 @@ public sealed partial class ModuleResolver
                 exts & ~(Extensions.TypeScript | Extensions.Declaration)
             })
                 if (ext != 0)
+                {
+                    Message((ext & (Extensions.TypeScript | Extensions.Declaration)) != 0
+                        ? Messages.Searching_all_ancestor_node_modules_directories_for_preferred_extensions_Colon_0
+                        : Messages.Searching_all_ancestor_node_modules_directories_for_fallback_extensions_Colon_0, ExtensionNames(ext));
                     foreach (Utf8String path in PackageJsonCache.Ancestors(directory))
                         if (CompilerPath.BaseName(path) != Utf8Literals.NodeModules
                             && await ImmediateAsync(ext, path).ConfigureAwait(false) is { } result)
                             return result;
+                }
             return null;
         }
 
@@ -466,14 +504,23 @@ public sealed partial class ModuleResolver
         {
             Utf8String modules = CompilerPath.Combine(directory, Utf8Literals.NodeModules);
             if (!DirectoryExists(modules))
+            {
+                Message(Messages.Directory_0_does_not_exist_skipping_all_lookups_in_it, modules);
                 return null;
+            }
             if (await NodeModulesAsync(ext, name, modules).ConfigureAwait(false) is { } result)
                 return result;
-            if ((ext & Extensions.Declaration) != 0 && DirectoryExists(CompilerPath.Combine(modules, Utf8Literals.TypesScope)))
-                return await NodeModulesAsync(
-                    Extensions.Declaration,
-                    Mangle(name),
-                    CompilerPath.Combine(modules, Utf8Literals.TypesScope)).ConfigureAwait(false);
+            if ((ext & Extensions.Declaration) != 0)
+            {
+                Utf8String typeDirectory = CompilerPath.Combine(modules, Utf8Literals.TypesScope);
+                if (DirectoryExists(typeDirectory))
+                {
+                    Utf8String mangled = Mangle(name);
+                    if (mangled != name) Message(Messages.Scoped_package_detected_looking_in_0, mangled);
+                    return await NodeModulesAsync(Extensions.Declaration, mangled, typeDirectory).ConfigureAwait(false);
+                }
+                Message(Messages.Directory_0_does_not_exist_skipping_all_lookups_in_it, typeDirectory);
+            }
             return null;
         }
 
@@ -513,7 +560,7 @@ public sealed partial class ModuleResolver
             {
                 if (exports && Truthy(info.Get(Utf8Literals.Exports)))
                     return await ExportsAsync(info, rest.Length == 0 ? Utf8Literals.Dot : Utf8Literals.CurrentDirectoryPrefix + rest, ext).ConfigureAwait(false);
-                if (rest.Length != 0 && info.VersionPaths(resolver.CompilerVersion) is { ValueKind: JsonValueKind.Object } paths
+                if (rest.Length != 0 && VersionPaths(info) is { ValueKind: JsonValueKind.Object } paths
                     && CompilerOptions.ParsePaths(paths) is { } mappings
                     && Paths(ext, rest, packageDirectory, mappings, Load) is { } mapped)
                     return mapped;

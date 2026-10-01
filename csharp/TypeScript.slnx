@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="src/TypeScript.CommandLine/TypeScript.CommandLine.csproj" />
   <Project Path="src/TypeScript.Compiler/TypeScript.Compiler.csproj" />
   <Project Path="tests/TypeScript.Compatibility/TypeScript.Compatibility.csproj" />
   <Project Path="tests/TypeScript.RegularExpression/TypeScript.RegularExpression.csproj" />

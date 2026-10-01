@@ -14,7 +14,8 @@ public sealed partial class Parser
             var trivia = new Scanner(source);
             trivia.ResetPosition(node.Pos);
             trivia.Scan();
-            diagnostics.Add(new(message, trivia.TokenStart, node.End - trivia.TokenStart, []));
+            int start = node.Pos == node.End ? node.Pos : trivia.TokenStart;
+            diagnostics.Add(new(message, start, node.End - start, []));
         }
         var work = new Stack<SyntaxNode>();
         work.Push(root);

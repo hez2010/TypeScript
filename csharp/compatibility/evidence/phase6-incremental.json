@@ -1,0 +1,15 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": 135,
+    "cycles": 942,
+    "interopCases": 762,
+    "strictMatches": 897,
+    "failures": 0,
+    "hashes": {
+        "reference": "bf64e441b4c23c5ee3d8a0e29f7a3f1a995d5921eb3e76b54ebaa844c77a8fad",
+        "candidate": "7c2f2c11b9c396cdd570421eb7eb9bac00fc1636d30ef51a0b931ec91944660b",
+        "compiler": "a4bdff4cc76540ee7a1b75e7f41def76fbea12922706cdde19a6215735a50c1a"
+    },
+    "inputHash": "9814685cfc4f90d119dd1634b652e9e065882e19c5e2cf85ed534a5d0b483dc0",
+    "command": "node csharp/tools/incremental.mjs --dotnet <dotnet.exe> --interop --record"
+}

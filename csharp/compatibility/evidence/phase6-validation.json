@@ -1,0 +1,185 @@
+{
+  "date": "2026-10-02",
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "phase6WindowsComplete": true,
+  "platform": "Windows x64; native watchers executed on Microsoft Windows 10.0.28000",
+  "sdk": "11.0.100-rtm.26473.115",
+  "runtime": "Release CoreCLR, default GC",
+  "candidateHash": "7c2f2c11b9c396cdd570421eb7eb9bac00fc1636d30ef51a0b931ec91944660b",
+  "compilerHash": "a4bdff4cc76540ee7a1b75e7f41def76fbea12922706cdde19a6215735a50c1a",
+  "sourceHash": "b76adc5e0996bbc5aa89464ba6ddb50d4ff7ea17a57536a55fd6f065e5891cf3",
+  "sourceFiles": 502,
+  "build": {
+    "log": "built/csharp/phase6-validation/build-final.log",
+    "logHash": "4e3839981724636c5e2ea1f270d7203a34272d1158433c0df299f41640462ff0",
+    "warnings": 0,
+    "errors": 0
+  },
+  "native": [
+    {
+      "name": "cli",
+      "file": "built/csharp/phase6-native/cli/tsgo-cs.exe",
+      "sha256": "68d26193483d061e42ea84a555606e25ee757379316bfe7b3e883cfc68c28201",
+      "log": "built/csharp/phase6-complete-validation/native-cli-publish.log",
+      "logHash": "0b1381596f22b28db66ccb8cb8857902978fe2a9027183cd4894cfa2ed0475e9",
+      "warnings": 0,
+      "errors": 0,
+      "executed": false
+    },
+    {
+      "name": "harness",
+      "file": "built/csharp/phase6-native/compatibility/TypeScript.Compatibility.exe",
+      "sha256": "dc8d39877311c87f64d2808eeb5914eebfba9dd8bcffad367a85e0088f906987",
+      "log": "built/csharp/phase6-complete-validation/native-harness-publish.log",
+      "logHash": "63cc840b487581aaace8cc8107fd053bf1254ae9aa7db37da254d40875c903d3",
+      "warnings": 0,
+      "errors": 0,
+      "executed": false
+    }
+  ],
+  "core": {
+    "build-info": {
+      "evidence": "phase6-build-info.json",
+      "cases": 567,
+      "strictMatches": 567,
+      "failures": 0
+    },
+    "incremental": {
+      "evidence": "phase6-incremental.json",
+      "cases": 135,
+      "cycles": 942,
+      "strictMatches": 897,
+      "failures": 0
+    },
+    "build": {
+      "evidence": "phase6-build.json",
+      "cases": 48,
+      "cycles": 342,
+      "strictMatches": 46,
+      "failures": 0
+    },
+    "watch": {
+      "evidence": "phase6-watch.json",
+      "cases": 33,
+      "cycles": 242,
+      "strictMatches": 33,
+      "failures": 0
+    },
+    "scripted-builds": {
+      "evidence": "phase6-scripted-builds.json",
+      "cases": 516,
+      "cycles": 1771,
+      "strictMatches": 511,
+      "failures": 5,
+      "phase6Failures": 0
+    },
+    "command-line": {
+      "evidence": "phase6-command-line.json",
+      "cases": 7,
+      "failures": 0
+    }
+  },
+  "regressions": {
+    "semanticConfigurationsPerMode": 13446,
+    "semanticModes": [
+      "single",
+      "default"
+    ],
+    "apiConfigurations": 1949,
+    "apiQueries": 1649908,
+    "knownReferenceApiFailures": 4,
+    "safetyCommands": 83,
+    "hosts": 3152,
+    "emissionFixtures": 1760,
+    "programEmit": 240,
+    "transpile": 415,
+    "parser": [
+      {
+        "scope": "original",
+        "cases": 12882,
+        "preexistingUnresolved": 33,
+        "newUnresolved": 0,
+        "newStrict": 0
+      },
+      {
+        "scope": "expanded",
+        "cases": 17448,
+        "preexistingUnresolved": 10,
+        "newUnresolved": 0,
+        "newStrict": 0
+      }
+    ]
+  },
+  "limitations": {
+    "nativeWatchHostsNotExecuted": "All retained targets other than Windows x64",
+    "nativeAotExecuted": false,
+    "fullCliContractParity": false,
+    "profilingContractsDeferredToPhase8": [
+      {
+        "name": "TestTscModuleResolution/tsc/package_json_scope",
+        "flag": "--extendedDiagnostics",
+        "phase": 8,
+        "inputHash": "b7e5075751962c6e42940a262ec648c0517f9765c6434cc575f1cedc848199d9",
+        "controlHash": "fad086f1e8261ff049ee3f5988bc79c825dc14c856c7e4a9f3a7690be1faa9dc",
+        "controlMatches": true,
+        "originalNonProfilingEffectsMatch": true
+      },
+      {
+        "name": "TestGenerateTrace/tsc/generateTrace_with_multiple_files_and_complex_types",
+        "flag": "--generateTrace",
+        "phase": 8,
+        "inputHash": "de6218660988c6876263515b5e981c195ca3aa32b70f09da4dcae9cc16405785",
+        "controlHash": "b7401c533f906dcf0d0911b1f40ad06ba7f9cf6c51127d444073c64eba6b803c",
+        "controlMatches": true,
+        "originalNonProfilingEffectsMatch": true
+      },
+      {
+        "name": "TestTscExtends/tsbuild/resolves_the_symlink_path",
+        "flag": "--extendedDiagnostics",
+        "phase": 8,
+        "inputHash": "89ddd65271395466516d3971642635f90179127f00d72e09dd20de951a0df8cd",
+        "controlHash": "860d48148019728e2e6e45f3520a0c7e310b0a585bf84c0e58577e7107f47ba4",
+        "controlMatches": true,
+        "originalNonProfilingEffectsMatch": true
+      },
+      {
+        "name": "TestGenerateTrace/tsc/generateTrace_generates_types_file",
+        "flag": "--generateTrace",
+        "phase": 8,
+        "inputHash": "873708a2ceb18d7f80e8363054eb311ca3315f8eb020bdd4a4d3295edfd74aa5",
+        "controlHash": "eda6929682614805a5e1a9db683aaf25bcfe16c60bcda958cbe48ba991f3690d",
+        "controlMatches": true,
+        "originalNonProfilingEffectsMatch": true
+      },
+      {
+        "name": "TestTscExtends/tsc/resolves_the_symlink_path",
+        "flag": "--extendedDiagnostics",
+        "phase": 8,
+        "inputHash": "77d76063c5d7d6203cfba09a5f6825d563ccf5857e059fa490df14a7857b392f",
+        "controlHash": "27b63022970db8aecdda7441e8f93971ccca16aa7bea30e5159996f2947467ab",
+        "controlMatches": true,
+        "originalNonProfilingEffectsMatch": true
+      }
+    ],
+    "performance": "On hold; no benchmarks or performance claims",
+    "servicesAndDistribution": "Later phases; Go remains the product backend"
+  },
+  "userLockfilesPreserved": [
+    {
+      "Path": "D:\\source\\repos\\TypeScript\\csharp\\src\\TypeScript.Compiler\\packages.lock.json",
+      "Hash": "313FC145B89FCB74CBE192A15F84E6E31122467A05BE38506DD65BCDE781CE1B"
+    },
+    {
+      "Path": "D:\\source\\repos\\TypeScript\\csharp\\tests\\TypeScript.Compatibility\\packages.lock.json",
+      "Hash": "7416D80EF956B63C2BD96EDE525067DAEAAFFE862B2D1850851038D0FFF05053"
+    },
+    {
+      "Path": "D:\\source\\repos\\TypeScript\\csharp\\tests\\TypeScript.RegularExpression\\packages.lock.json",
+      "Hash": "7416D80EF956B63C2BD96EDE525067DAEAAFFE862B2D1850851038D0FFF05053"
+    },
+    {
+      "Path": "D:\\source\\repos\\TypeScript\\csharp\\tests\\TypeScript.SourceMetadata\\packages.lock.json",
+      "Hash": "7416D80EF956B63C2BD96EDE525067DAEAAFFE862B2D1850851038D0FFF05053"
+    }
+  ]
+}

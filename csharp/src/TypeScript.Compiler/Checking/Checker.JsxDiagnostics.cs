@@ -36,7 +36,7 @@ internal sealed partial class Checker
             ? null
             : context.CreateTypeReference((InterfaceType)iterable, [context.AnyType, context.AnyType, context.AnyType]);
         async ValueTask<bool> Iterable(Type type) => anyIterable is not null ? await AssignableAsync(type, anyIterable, cancellation)
-            : IsArray(type) || await ArrayLiterals.TupleLikeAsync(type, cancellation);
+            : await ArrayLikeAsync(type, cancellation) || await ArrayLiterals.TupleLikeAsync(type, cancellation);
         var arrayParts = await Algebra.FilterAsync(childrenTarget, Iterable, cancellation);
         var otherParts = await Algebra.FilterAsync(childrenTarget, async type => !await Iterable(type), cancellation);
         if (children.Count > 1)
@@ -50,11 +50,11 @@ internal sealed partial class Checker
                     cancellation: cancellation);
                 var indexedParts = await Algebra.FilterAsync(
                     arrayParts,
-                    async type => IsArray(type) || await ArrayLiterals.TupleLikeAsync(type, cancellation),
+                    async type => await ArrayLikeAsync(type, cancellation) || await ArrayLiterals.TupleLikeAsync(type, cancellation),
                     cancellation);
                 var iteratedParts = await Algebra.FilterAsync(
                     arrayParts,
-                    async type => !IsArray(type) && !await ArrayLiterals.TupleLikeAsync(type, cancellation),
+                    async type => !await ArrayLikeAsync(type, cancellation) && !await ArrayLiterals.TupleLikeAsync(type, cancellation),
                     cancellation);
                 var iterated = iteratedParts == context.NeverType
                     ? null

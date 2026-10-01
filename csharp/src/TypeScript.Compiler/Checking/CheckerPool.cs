@@ -57,7 +57,7 @@ internal sealed class CheckerPool
     }
 
     internal async ValueTask<(IReadOnlyList<Diagnostic> Semantic, IReadOnlyList<Diagnostic> Global)> GetDiagnosticsAsync(
-        CancellationToken cancellation = default)
+        CancellationToken cancellation = default, IReadOnlySet<SourceFileNode>? selected = null)
     {
         var semantic = new IReadOnlyList<Diagnostic>[program.SourceFiles.Count];
         var globals = new IReadOnlyList<Diagnostic>[Count];
@@ -70,7 +70,7 @@ internal sealed class CheckerPool
             foreach (int i in filesByChecker[index])
             {
                 var file = program.SourceFiles[i].Syntax;
-                if (!checker.SkipProgramFile(file))
+                if ((selected is null || selected.Contains(file)) && !checker.SkipProgramFile(file))
                     await checker.CheckSourceFileAsync(file, cancellation);
             }
             // Later files can add diagnostics to earlier files in the same partition.
@@ -78,7 +78,7 @@ internal sealed class CheckerPool
             foreach (int i in filesByChecker[index])
             {
                 var file = program.SourceFiles[i].Syntax;
-                semantic[i] = checker.DetailedDiagnosticsForProgramFile(file, diagnostics[file]);
+                semantic[i] = checker.DetailedDiagnosticsForProgramFile(file, diagnostics[file], includeEmitOnly: selected is not null);
             }
             globals[index] = diagnostics[null].ToArray();
         }

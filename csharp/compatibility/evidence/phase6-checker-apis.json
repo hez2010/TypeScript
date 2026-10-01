@@ -1,0 +1,978 @@
+{
+  "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+  "records": [
+    {
+      "name": "api-locations",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-locations.log",
+      "exitCode": 1,
+      "summary": {
+        "configurations": 80,
+        "queries": 3956,
+        "comparedQueries": 3812,
+        "exact": 76,
+        "failed": 4,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 4,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "0fd113eea7c38f18959452244fe0c41c1ef8ea5c9891c58ff69e06b3cc6cadb5",
+        "resultHash": "1523b8710cb43e877e57adafa92428c137213ee4bd956528838fd04ab35c3394",
+        "managed": true
+      },
+      "passed": true
+    },
+    {
+      "name": "api-symbol-locations",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--symbols"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-symbol-locations.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 104,
+        "queries": 5312,
+        "comparedQueries": 5312,
+        "exact": 104,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "68eb6b0ac9f7ef354d82a509fe7dfa06df8b3a3d5c7c9bb70a1021376773d09b",
+        "resultHash": "b6095f3092801a0df026197d97476f053bd5d17e38c89ea33f5fc8296f7a251f",
+        "managed": true,
+        "symbolAnswerMatches": 104,
+        "locationMetadataDifferences": []
+      },
+      "passed": true
+    },
+    {
+      "name": "api-scope-services",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--scopes"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-scope-services.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 104,
+        "queries": 29500,
+        "comparedQueries": 29500,
+        "exact": 104,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "1e81170626ed44a62ddceef58ac1cf0de04bfcdb72d380ab4cdc531521707610",
+        "resultHash": "6dbc664b5fb4ae6b6572518a667d1a3f961f9ebbb118e137522a77d914bf1e51",
+        "managed": true,
+        "services": {
+          "scopes": 27440,
+          "symbolTypesAtLocation": 1904,
+          "symbolTypesWithoutLocation": 1904,
+          "moduleExports": 52,
+          "aliasTargets": 60,
+          "localExportTargets": 16,
+          "shorthandValues": 16,
+          "parameterPropertyPairs": 12
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "api-context-queries",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--contexts"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-context-queries.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 112,
+        "queries": 7644,
+        "comparedQueries": 7644,
+        "exact": 112,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "c65794a9e5217beddd1f9d63dda5108cbe813f00abaccd4dfcb349ece37e1507",
+        "resultHash": "017ecbd34b2b995f5f210639dc284b5e0355dcfc594185ec89b80a643b062b25",
+        "managed": true,
+        "contextRecords": {
+          "expressionTypes": 6768,
+          "objectElements": 36,
+          "arrayPositions": 108,
+          "jsxAttributes": 16,
+          "resolvedSignaturesAndReturns": 108,
+          "argumentTypes": 240,
+          "signatureHelp": 324,
+          "stringCompletions": 44
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "api-declaration-visibility",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--visibility"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-declaration-visibility.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 112,
+        "queries": 24832,
+        "comparedQueries": 24832,
+        "exact": 112,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "939873780e0df71241bbf0f9332fcb6a48c303841baa84c1e74f629ea7430cfd",
+        "resultHash": "68148641cb59a3a77c64840b6da23facc9e202c3139e32864d14df3b9bdc2aa6",
+        "managed": true,
+        "visibilityRecords": {
+          "initial": 5628,
+          "afterPrecalculation": 5628,
+          "aliasRetention": 2320,
+          "afterRetention": 5628,
+          "afterRepeatedPrecalculation": 5628
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "api-symbol-chains",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--chains"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-symbol-chains.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 112,
+        "queries": 60216,
+        "comparedQueries": 60216,
+        "exact": 112,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "179f897a4eb341fc06182bbd343b7fd839685ff1531f5e8bc02b0298feca051a",
+        "resultHash": "8ac6caa2d6184f867ff53659b9869f5eade4fb9a27d93d22771377742ee731d1",
+        "managed": true,
+        "chains": {
+          "found": 17340,
+          "absent": 42876,
+          "longest": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "api-accessibility",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--accessibility"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-accessibility.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 156,
+        "queries": 125544,
+        "comparedQueries": 125544,
+        "exact": 156,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "877c6c3ffe48dcc29fcd87366800dc2290d7afcef94cb9caba6bbaa56109490f",
+        "resultHash": "b18a73d367feb754d56994b7ad9305480336dea83dc64718bc44205743448912",
+        "managed": true,
+        "accessibilityRecords": {
+          "containers": 19452,
+          "decisions": 77808,
+          "flagQueries": 19452,
+          "typeAndValueQueries": 6484,
+          "entityNames": 2348,
+          "decisionStates": [
+            49616,
+            12808,
+            15384,
+            0
+          ]
+        },
+        "symbolDiagnosticNamesCompared": false,
+        "entityNameVisibilityComparedCompletely": true
+      },
+      "passed": true
+    },
+    {
+      "name": "api-symbol-display",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--symbol-display"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-symbol-display.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 172,
+        "queries": 122012,
+        "comparedQueries": 122012,
+        "exact": 172,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "ba123b64cdae9651326bb1ccd33cb16d35a53963a0ae6c98889689c55199b70e",
+        "resultHash": "8593fcf5040b5a988143d2bbb7b826fab3099ca81af77ac59004b263931eb5c4",
+        "managed": true,
+        "symbolDisplayRecords": {
+          "names": 27116,
+          "accessibilityResults": 94896
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "api-symbol-type-nodes",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--symbol-type-nodes"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-symbol-type-nodes.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 68,
+        "queries": 490752,
+        "comparedQueries": 490752,
+        "exact": 68,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "6fd684bd322350d99d9da928cfbc79dd013d606c5d0928ef6be8d69f506b9479",
+        "resultHash": "18ccdcf3783dc40d823895f1d00550de981e4b864de88f73950bbea00938ece5",
+        "managed": true
+      },
+      "passed": true
+    },
+    {
+      "name": "api-computed-symbols",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--computed-symbols"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-computed-symbols.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 32,
+        "queries": 62688,
+        "comparedQueries": 62688,
+        "exact": 32,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "da7fa60b82f001f6ee888c9993235719547dda9429caafe36e8a94876a05bc00",
+        "resultHash": "6cf4f6f974b41bc5b9d01c5cf253c6a4008bbda38d7bcccc6481fae08e4d4af2",
+        "managed": true,
+        "symbolFormatFlags": [
+          20,
+          22,
+          28,
+          30,
+          52,
+          54,
+          60,
+          62
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "api-symbol-formats",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--symbol-formats"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-symbol-formats.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 72,
+        "queries": 275728,
+        "comparedQueries": 275728,
+        "exact": 72,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "e281739a187c150c5ae4d1827b67645fa25f7dace7094441ffa24de96740fb45",
+        "resultHash": "1d3a1277a7ed857bb69f3fc5f8bf90a6f2ce8afc5f7fdf1b4471e27accb36501",
+        "managed": true,
+        "symbolFormatFlags": [
+          0,
+          1,
+          2,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          17,
+          32,
+          34,
+          36,
+          38,
+          40,
+          42,
+          44,
+          46,
+          64
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "api-type-syntax",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--type-syntax"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-type-syntax.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 32,
+        "queries": 2880,
+        "comparedQueries": 2880,
+        "exact": 32,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "ae3bcf95f95ce4d05a03b702b9758907e5246cecf377d14e9d90fd4b457f9d78",
+        "resultHash": "94f573fc9d1c0e6be202de52d9b76d730b0684e8decfb12cf3fbffb2022ed52f",
+        "managed": true
+      },
+      "passed": true
+    },
+    {
+      "name": "api-conditional-syntax",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--conditional-syntax"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-conditional-syntax.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 28,
+        "queries": 1344,
+        "comparedQueries": 1344,
+        "exact": 28,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "2d651fa59427b689aa9298f8d6e8d9f7ba2c42261c69412705eba964fabefd8c",
+        "resultHash": "ec6aa1c8272d02ba194e7f9628c5a29d2ca12b2d5d4ce8f17e74ffc1898e49a7",
+        "managed": true
+      },
+      "passed": true
+    },
+    {
+      "name": "api-mapped-syntax",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--mapped-syntax"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-mapped-syntax.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 24,
+        "queries": 1280,
+        "comparedQueries": 1280,
+        "exact": 24,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "0fb5d40db8653694d30d2122eda123a8123c6465a51f17f2b57710aa12ce3c5e",
+        "resultHash": "71f159275faac2467c93561332efcb2dd7aab7ea9b6fba31459ad2191859670b",
+        "managed": true
+      },
+      "passed": true
+    },
+    {
+      "name": "api-symbol-type-arguments",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--symbol-type-arguments"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-symbol-type-arguments.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 88,
+        "queries": 347200,
+        "comparedQueries": 347200,
+        "exact": 88,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "30fad4b1c15904d9832c0d59d2bd8e1406038b0624f19337cac6bd5b0abb3b02",
+        "resultHash": "f36a5fac37ae4dedf945348904af5bbb5c3b95b85392a65b9576bac60dc3214b",
+        "managed": true,
+        "symbolFormatFlags": [
+          5,
+          7,
+          13,
+          15,
+          21,
+          23,
+          29,
+          31,
+          37,
+          39,
+          45,
+          47,
+          53,
+          55,
+          61,
+          63
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "api-anonymous-syntax",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--anonymous-syntax"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-anonymous-syntax.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 44,
+        "queries": 2448,
+        "comparedQueries": 2448,
+        "exact": 44,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "09eb7fdf9b133b0453d90bdbb3133251dcae819c635890611ab2ee44cfaf967f",
+        "resultHash": "f8fc52d96f37b61966b748c7bc35be422d2972ef0b7dee606a10ec9ffa2ad6d4",
+        "managed": true
+      },
+      "passed": true
+    },
+    {
+      "name": "api-signature-syntax",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--signature-syntax"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-signature-syntax.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 48,
+        "queries": 2496,
+        "comparedQueries": 2496,
+        "exact": 48,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "63ebe3a59fd6479734fa22ac874383b8fc8a1a97358c4dd4cc33099e6bf25a6d",
+        "resultHash": "dca60b6faab5a8b23748371762fb271c281625f3f35bd8842e8556435c7adcd5",
+        "managed": true
+      },
+      "passed": true
+    },
+    {
+      "name": "api-syntax-names",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--syntax-names"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-syntax-names.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 24,
+        "queries": 4800,
+        "comparedQueries": 4800,
+        "exact": 24,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "1a740d3915f2332284a94adff85dda665eb284d2c53da10945df4f8818901818",
+        "resultHash": "c8f56b3f3d69a632eb864c88f1d312a4d6321ec3bebb3404384d3a467ed55676",
+        "managed": true
+      },
+      "passed": true
+    },
+    {
+      "name": "api-syntax-options",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--syntax-options"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-syntax-options.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 45,
+        "queries": 13064,
+        "comparedQueries": 13064,
+        "exact": 45,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "f56128d1ec4d24baf4e7e0c40c9f98c8ca5010e2806218b0b6ba35afe6db1e60",
+        "resultHash": "2992128230c5bee7c72f587ddca36441deee87460ac7096f13d4f58c338d0e7a",
+        "managed": true
+      },
+      "passed": true
+    },
+    {
+      "name": "api-generated-names",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--generated-names"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-generated-names.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 40,
+        "queries": 3584,
+        "comparedQueries": 3584,
+        "exact": 40,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "fa138e554a4d067694970b0061f66826fe8ef19b7f3c25701e56b39169a3db9b",
+        "resultHash": "05229883ce448f796c1a41f9614e0649d1b278bae456dc6b29f69f30232b1619",
+        "managed": true
+      },
+      "passed": true
+    },
+    {
+      "name": "api-function-options",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--function-options"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-function-options.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 24,
+        "queries": 12544,
+        "comparedQueries": 12544,
+        "exact": 24,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "ca5bd2098666cc60e999bb39c5ae2f025cf267cc5d03843f04ef509c83ff9909",
+        "resultHash": "39d04a890bb2be58e36236f698f7944e9d7aeb6f177f1310066b8af638a8bbca",
+        "managed": true
+      },
+      "passed": true
+    },
+    {
+      "name": "api-signature-declarations",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--signature-declarations"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-signature-declarations.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 20,
+        "queries": 13520,
+        "comparedQueries": 13520,
+        "exact": 20,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "a855bfe713fb0c1509318b3a166f46cec79bb86865422d1f87eb152b00aeacc6",
+        "resultHash": "4560fb95bb5394e78394b9927fb064b3f19da1f067d51bcf06f0828db0822378",
+        "managed": true
+      },
+      "passed": true
+    },
+    {
+      "name": "api-class-options",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--class-options"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-class-options.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 28,
+        "queries": 7776,
+        "comparedQueries": 7776,
+        "exact": 28,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "d11fc4c41a2b2b61a864ee2f245c0504f01ee7c59e62d5e4cbe5f5f1f5a2a415",
+        "resultHash": "93bf1622611c4b8769b1f5eda43992bccc6472cfd4c881df5d166c9b5497ac7c",
+        "managed": true
+      },
+      "passed": true
+    },
+    {
+      "name": "api-emit-references",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--emit-references"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-emit-references.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 24,
+        "queries": 528,
+        "comparedQueries": 528,
+        "exact": 24,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "b88fd3f42ef00ae34389a8fbb5f8c3ac8613bf1977d6bf65872880334f86b7ed",
+        "resultHash": "587a53ae5877097dcf91f48b33c10f3a70b5d241c1977079f52ebe2b23736ac6",
+        "managed": true
+      },
+      "passed": true
+    },
+    {
+      "name": "api-emit-queries",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--emit-queries"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-emit-queries.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 44,
+        "queries": 2300,
+        "comparedQueries": 2300,
+        "exact": 44,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "77ef181936807b6744541c8277edb58601c5f050c0b1c0ea858531235c68fa09",
+        "resultHash": "48d53534a15d7b140e0085f0605a917f90c0dcd7224d86373864588005aa4733",
+        "managed": true
+      },
+      "passed": true
+    },
+    {
+      "name": "api-emit-serialization",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--emit-serialization"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-emit-serialization.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 24,
+        "queries": 600,
+        "comparedQueries": 600,
+        "exact": 24,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "08d11649d6ccac357204b3914e63549fd6f049cfcdf8faa63efcd9c2513660fc",
+        "resultHash": "50963a323ab0e06adc2fffb19b39acee620879b9558ab78baa129401f45c53f5",
+        "managed": true
+      },
+      "passed": true
+    },
+    {
+      "name": "api-emit-jsx",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--emit-jsx"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-emit-jsx.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 28,
+        "queries": 280,
+        "comparedQueries": 280,
+        "exact": 28,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "7771f1a0bbf5b5ee4dc44eb07a84df40125e9a49d23f5ade6c495c49c0cac4f3",
+        "resultHash": "cd54b64e292238cd33a8f0ec1fa8eb2a1033484973c6de7f71e771f99a9ccf28",
+        "managed": true
+      },
+      "passed": true
+    },
+    {
+      "name": "api-emit-links",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--emit-links"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-emit-links.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 48,
+        "queries": 420,
+        "comparedQueries": 420,
+        "exact": 48,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "6cf171db0d98e85a795c0d6c8d9645cf73aca03a01086b26862f0a9926a1032a",
+        "resultHash": "6db50e1396765ab9f77ffba4d9c983bb4549776d64284099cdda7c4a415bb882",
+        "managed": true
+      },
+      "passed": true
+    },
+    {
+      "name": "api-emit-services",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--emit-services"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-emit-services.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 20,
+        "queries": 944,
+        "comparedQueries": 944,
+        "exact": 20,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "f150889aa2f7519da00f8afdc6a098a12797bd7ed45cfe9c04426980b420e543",
+        "resultHash": "4529b00f9be817e8d720d102e2f009e159cb5befe528323c94c3324e679f7a38",
+        "managed": true
+      },
+      "passed": true
+    },
+    {
+      "name": "api-emit-recovery",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--emit-recovery"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-emit-recovery.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 56,
+        "queries": 3672,
+        "comparedQueries": 3672,
+        "exact": 56,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "d965845ae5589f096acf2209fe60523963047c5501bd5f1ea876c4b9d465dc09",
+        "resultHash": "ee2e25148e4ce8cc05fc896805ce217b6372b2d6a08ecde63b976877d7a19bc4",
+        "managed": true
+      },
+      "passed": true
+    },
+    {
+      "name": "api-emit-syntax",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "csharp/tools/checker-locations.mjs",
+        "--managed-directory",
+        "built/csharp/phase6-build/bin/TypeScript.Compatibility/release",
+        "--emit-syntax"
+      ],
+      "log": "built/csharp/phase6-complete-validation/api-emit-syntax.log",
+      "exitCode": 0,
+      "summary": {
+        "configurations": 136,
+        "queries": 20188,
+        "comparedQueries": 20188,
+        "exact": 136,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "7df1e731d518581f605b556411c66c1593acc89fa9672acd18c748cb3ccb062a",
+        "inputHash": "435847869a0a2602aadd883b15432cc9629da72b9ac608685449a1605837fa2b",
+        "resultHash": "e225a861451d661eb55d3656d94bb2ab471cc4abaf7a039ef974771bea35df05",
+        "managed": true
+      },
+      "passed": true
+    }
+  ],
+  "configurations": 1949,
+  "comparedQueries": 1649908,
+  "referenceFailures": 4,
+  "candidateFailures": 0
+}

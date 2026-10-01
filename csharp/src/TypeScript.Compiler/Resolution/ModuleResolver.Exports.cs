@@ -62,36 +62,54 @@ public sealed partial class ModuleResolver
             bool pattern, Utf8String key, Extensions ext, bool imports)
         {
             // Explicit work stack handles arbitrarily nested condition objects and fallback arrays.
-            var pending = new Stack<JsonElement>();
-            pending.Push(target);
-            while (pending.TryPop(out var item))
+            var pending = new Stack<(JsonElement Item, Utf8String Condition, int Stage)>();
+            pending.Push((target, default, 0));
+            ResolvedModule Complete(ResolvedModule result)
+            {
+                foreach (var frame in pending)
+                {
+                    if (frame.Stage == 2 && result.IsResolved) Message(Messages.Resolved_under_condition_0, frame.Condition);
+                    else if (frame.Stage == 3) Message(Messages.Exiting_conditional_exports);
+                }
+                return result;
+            }
+            while (pending.TryPop(out var frame))
             {
                 cancellation.ThrowIfCancellationRequested();
+                var item = frame.Item;
+                if (frame.Stage == 3) { Message(Messages.Exiting_conditional_exports); continue; }
+                if (frame.Stage == 2) { Message(Messages.Failed_to_resolve_under_condition_0, frame.Condition); continue; }
+                if (frame.Stage == 1)
+                {
+                    Utf8String condition = frame.Condition;
+                    bool match = condition == Utf8Literals.Default || conditions.Contains(condition)
+                        || conditions.Contains(Utf8Literals.Types) && condition.StartsWith("types@"u8, StringComparison.Ordinal)
+                            && VersionRange.Parse(condition[6..])?.Test(resolver.CompilerVersion) == true;
+                    Trace(Utf8Literals.Condition, condition, match ? Utf8Literals.Matched : Utf8Literals.Skipped);
+                    if (!match) { Message(Messages.Saw_non_matching_condition_0, condition); continue; }
+                    Message(Messages.Matched_0_condition_1, imports ? "imports"u8 : "exports"u8, condition);
+                    pending.Push((default, condition, 2));
+                }
                 if (item.ValueKind == JsonValueKind.Object)
                 {
+                    Message(Messages.Entering_conditional_exports);
+                    pending.Push((default, default, 3));
                     var entries = PackageJson.Properties(item).ToArray();
                     for (int i = entries.Length - 1; i >= 0; i--)
-                    {
-                        Utf8String condition = JsonStrings.GetName(entries[i]);
-                        bool match = condition == Utf8Literals.Default || conditions.Contains(condition)
-                            || conditions.Contains(Utf8Literals.Types) && condition.StartsWith("types@"u8, StringComparison.Ordinal)
-                                && VersionRange.Parse(condition[6..])?.Test(resolver.CompilerVersion) == true;
-                        Trace(Utf8Literals.Condition, condition, match ? Utf8Literals.Matched : Utf8Literals.Skipped);
-                        if (match)
-                            pending.Push(entries[i].Value);
-                    }
+                        pending.Push((entries[i].Value, JsonStrings.GetName(entries[i]), 1));
                     continue;
                 }
                 if (item.ValueKind == JsonValueKind.Array)
                 {
                     for (int i = item.GetArrayLength() - 1; i >= 0; i--)
-                        pending.Push(item[i]);
+                        pending.Push((item[i], default, 0));
                     continue;
                 }
                 if (item.ValueKind == JsonValueKind.Null)
                 {
                     Trace(Utf8Literals.Blocked, scope.Directory, key);
-                    return new();
+                    Message(Messages.X_package_json_scope_0_explicitly_maps_specifier_1_to_null, scope.Directory, key);
+                    return Complete(new());
                 }
                 if (item.ValueKind != JsonValueKind.String)
                     continue;
@@ -104,12 +122,15 @@ public sealed partial class ModuleResolver
                     if (imports && !text.StartsWith("../"u8, StringComparison.Ordinal) && !CompilerPath.IsAbsolute(text))
                     {
                         var request = new Request(resolver, combined, scope.Directory, mode, false, cancellation, active, configLookup);
+                        Message(Messages.Using_0_subpath_1_with_target_2, "imports"u8, key, combined);
+                        Message(Messages.Resolving_module_0_from_1, combined, scope.Directory);
                         var result = await request.RunAsync().ConfigureAwait(false);
                         trace.AddRange(request.trace);
+                        traceMessages.AddRange(request.traceMessages);
                         diagnostics.AddRange(request.diagnostics);
                         locations.UnionWith(request.locations);
                         if (result.IsResolved)
-                            return result;
+                            return Complete(result);
                     }
                     continue;
                 }
@@ -120,10 +141,11 @@ public sealed partial class ModuleResolver
                 }
                 Utf8String path = CompilerPath.Resolve(scope.Directory, combined);
                 Trace(imports ? Utf8Literals.Imports : Utf8Literals.Exports, path, key);
+                Message(Messages.Using_0_subpath_1_with_target_2, imports ? "imports"u8 : "exports"u8, key, combined);
                 if (InputFile(path, subpath, scope, imports) is { } source)
-                    return WithPackage(source, scope);
+                    return Complete(WithPackage(source, scope));
                 if (PackageFile(ext, path, text) is { } resolved)
-                    return WithPackage(resolved, scope);
+                    return Complete(WithPackage(resolved, scope));
             }
             return null;
         }

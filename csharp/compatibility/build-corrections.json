@@ -1,0 +1,50 @@
+{
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "cases": [
+    {
+      "name": "graph-added-removed-project",
+      "cycle": 3,
+      "inputHash": "f426e82e028409a84156f275aa3a626c5d31dea92dc9a13d32f747f973d21cf2",
+      "referenceHash": "a1db542ce00f89ced222ce1ed51c75d97c7fbd1e99d495c9f44a4b22b1d730a3",
+      "candidateHash": "650573e8f058531fb867dda41c16b09ad15d34ab9305468caf29acc8ba365a0b",
+      "error": "runtime error: invalid memory address or nil pointer dereference",
+      "stackFrame": "github.com/microsoft/TypeScript/tsc/internal/execute/build.(*BuildTask).getLatestChangedDtsMTime",
+      "reason": "The pinned Go builder dereferences a nil buildInfoEntry at buildtask.go:894 after a previously built project acquires a missing reference. C# reports TS6053 and continues compilation, matching the forced-build control output and status, then recovers when the reference is restored. The complete input and both output sequences are hash-bound; only the raw panic stack addresses are excluded from the reference hash and the stack is retained.",
+      "controls": [
+        {
+          "name": "graph-added-removed-project-stop",
+          "inputHash": "c0e972d6cd202e39e2e8e423c83238af49658ba8ba7ebe75ba088170b66b3672"
+        },
+        {
+          "name": "graph-added-removed-project-force",
+          "inputHash": "349a0adacb3aa91c278ea4d21746000fe1a68c6eff79303a9b748bdf0b805689"
+        },
+        {
+          "name": "missing-root-project",
+          "inputHash": "39b11a4d63fa5461edcd7c43a77f74dd450445d70a6de050f8a0a88ae635909a"
+        },
+        {
+          "name": "missing-reference-cold",
+          "inputHash": "dab409aa52b3df75e6857ae1cf71c4ab07cd5e669c9f7b271bb9b1640023d5c7"
+        }
+      ],
+      "forcedControl": "graph-added-removed-project-force"
+    },
+    {
+      "name": "new-root-preserved-timestamp",
+      "cycle": 2,
+      "inputHash": "bdc9ba29c418c44cbe0e3fbfbe8bb3a37f1d4acdc52abe44e42ad15b1fd8a064",
+      "referenceHash": "84e452880110730d7beb561673ee6abebcd3b3f1132f0c0ee4f7e953e90a8ec1",
+      "candidateHash": "0820267e166fcd922b8e2de87df15c932cc5f50d4c3c8a9fdd46574f104b9f23",
+      "forcedControl": "new-root-preserved-timestamp-force",
+      "compareFinalFiles": true,
+      "reason": "The pinned Go timestamp shortcut ignores a newly discovered root whose mtime predates the previous build-info, including a file created during an in-flight build. C# also checks root membership and compiles the added file. Accumulated JS, declarations and complete build-info must match the forced Go control exactly.",
+      "controls": [
+        {
+          "name": "new-root-preserved-timestamp-force",
+          "inputHash": "3d2349b99c62ef8aacd269c053473dfa17781456e0d1ca7b428f06d17fc385a0"
+        }
+      ]
+    }
+  ]
+}

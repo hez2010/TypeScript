@@ -47,18 +47,16 @@ internal sealed partial class Checker
             || AliasResolver.IsTypeOnly(node)
             || SemanticSyntax.RootDeclaration(node) is ParameterDeclarationNode parameter && SemanticSyntax.Body(parameter.Parent!) is null)
             return;
-        if (program.Symbols.Program.Configuration.Options.NoEmit == true)
-            return;
         if ((node is not ModuleDeclarationNode declaration || Binder.ModuleState(declaration) == 2)
             && SemanticSyntax.DeclarationContainer(node) is SourceFileNode file && program.Symbols.Binding(file)?.IsModule == true)
         {
             int module = EmitModuleKind(node);
             if ((name.Text.Span.SequenceEqual("require"u8) || name.Text.Span.SequenceEqual("exports"u8)) && module < 5
                 || name.Text == Utf8Literals.ObjectType && !SemanticSyntax.ClassLike(node) && module == 1)
-                Error(name, DiagnosticCode.DuplicateIdentifier0CompilerReservesName1InTopLevelScopeOfAModule, name.Text, name.Text);
+                ErrorSkippedOnNoEmit(name, DiagnosticCode.DuplicateIdentifier0CompilerReservesName1InTopLevelScopeOfAModule, name.Text, name.Text);
             if (name.Text == Utf8Literals.Promise && TargetYear < 2017
                 && file.DescendantsAndSelf().Any(n => SemanticSyntax.HasModifier(n, SyntaxKind.AsyncKeyword)))
-                Error(name, DiagnosticCode.DuplicateIdentifier0CompilerReservesName1InTopLevelScopeOfAModuleContainingAsyncFunctions);
+                ErrorSkippedOnNoEmit(name, DiagnosticCode.DuplicateIdentifier0CompilerReservesName1InTopLevelScopeOfAModuleContainingAsyncFunctions);
         }
         if (TargetYear <= 2021 && (name.Text.Span.SequenceEqual("WeakMap"u8) || name.Text.Span.SequenceEqual("WeakSet"u8) || name.Text.Span.SequenceEqual("Reflect"u8)))
             deferredNameCollisions.Add(node);
@@ -84,7 +82,7 @@ internal sealed partial class Checker
             if (name.Span.SequenceEqual("WeakMap"u8) || name.Span.SequenceEqual("WeakSet"u8))
             {
                 if (scope is not null && (links.Nodes.Get(scope).Flags & NodeCheckFlags.ContainsClassWithPrivateIdentifiers) != 0)
-                    Error(node, DiagnosticCode.CompilerReservesName0WhenEmittingPrivateIdentifierDownlevel, name);
+                    ErrorSkippedOnNoEmit(node, DiagnosticCode.CompilerReservesName0WhenEmittingPrivateIdentifierDownlevel, name);
             }
             else
             {
@@ -96,7 +94,7 @@ internal sealed partial class Checker
                             ? node
                             : scope ?? node).Flags & NodeCheckFlags.ContainsSuperPropertyInStaticInitializer) != 0;
                 if (collision)
-                    Error(
+                    ErrorSkippedOnNoEmit(
                         node,
                         DiagnosticCode.DuplicateIdentifier0CompilerReservesName1WhenEmittingSuperReferencesInStaticInitializers,
                         name,

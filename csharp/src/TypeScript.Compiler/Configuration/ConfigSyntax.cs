@@ -200,7 +200,13 @@ internal sealed class ConfigSyntax
 
     public Diagnostic Diagnostic(DiagnosticMessage message, SyntaxNode? node, params Utf8String[] arguments)
     {
+        var span = Span(node);
+        return new(message, span.Start, span.Length, arguments) { FileName = Source.FileName };
+    }
+
+    internal (int Start, int Length) Span(SyntaxNode? node)
+    {
         int start = node is null ? 0 : Start(node);
-        return new(message, start, node is null ? 0 : Math.Max(0, node.End - start), arguments) { FileName = Source.FileName };
+        return (start, node is null ? 0 : Math.Max(0, node.End - start));
     }
 }

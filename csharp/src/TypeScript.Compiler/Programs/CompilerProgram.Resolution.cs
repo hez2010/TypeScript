@@ -86,6 +86,8 @@ public sealed partial class CompilerProgram
             return Utf8String.Join(", "u8, extensions.Select(extension => "'"u8 + extension + "'"u8));
         }
 
+        private readonly Dictionary<Utf8String, (Utf8String Path, IReadOnlyList<Diagnostic> Trace)> resolvedLibraries = [];
+
         private async ValueTask<Utf8String> LibraryPath(Utf8String name)
         {
             if (!name.StartsWith("lib."u8, StringComparison.Ordinal))
@@ -101,6 +103,7 @@ public sealed partial class CompilerProgram
             }
             if (skipModuleResolution || config.Options.LibReplacement != true || name == Utf8Literals.LibDTs)
                 return CompilerPath.Combine(libraryDirectory, name);
+            if (resolvedLibraries.TryGetValue(name, out var cached)) return cached.Path;
             Utf8String[] components = name[4..^5].Split((byte)'.');
             Utf8String package = Utf8Literals.TypescriptLib + components[0];
             if (components.Length > 1)
@@ -110,7 +113,9 @@ public sealed partial class CompilerProgram
                     config.FileName.Length == 0 ? cwd : CompilerPath.DirectoryName(config.FileName),
                     Utf8Literals.LibNodeModulesLookup + name + Utf8Literals.SyntheticTsFile),
                 ReferenceResolutionMode.Require, cancellation: cancellation).ConfigureAwait(false);
-            return result.IsResolved ? result.FileName : CompilerPath.Combine(libraryDirectory, name);
+            Utf8String resolved = result.IsResolved ? result.FileName : CompilerPath.Combine(libraryDirectory, name);
+            resolvedLibraries[name] = (resolved, result.TraceMessages);
+            return resolved;
         }
 
         private static Utf8String ImportText(SyntaxNode node) => node switch

@@ -1,0 +1,15 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": 567,
+    "baselineStates": 545,
+    "strictMatches": 567,
+    "failures": 0,
+    "safety": "Build info safety: 28 assertions",
+    "hashes": {
+        "reference": "81f4007eacf1596af8633bbc75bf7b6abce291b600e1d974b7139aad1b2b01fe",
+        "candidate": "7c2f2c11b9c396cdd570421eb7eb9bac00fc1636d30ef51a0b931ec91944660b",
+        "compiler": "a4bdff4cc76540ee7a1b75e7f41def76fbea12922706cdde19a6215735a50c1a"
+    },
+    "inputHash": "4feaee6c3e335d32d81ab27dbccbd41491a2d64e6c717ccaeb434e3512ff58b6",
+    "command": "node csharp/tools/build-info.mjs --dotnet <dotnet.exe> --record"
+}

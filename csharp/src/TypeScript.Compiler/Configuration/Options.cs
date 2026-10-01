@@ -30,6 +30,12 @@ public enum OptionValidation
     Spec,
     Locale
 }
+[Flags]
+public enum OptionEffects
+{
+    None = 0, DeclarationPath = 1, ProgramStructure = 2, SemanticDiagnostics = 4,
+    BuildInfo = 8, BindDiagnostics = 16, SourceFile = 32, ModuleResolution = 64, Emit = 128
+}
 public sealed record OptionDefinition(Utf8String Name, Utf8String ShortName, OptionGroup Group, OptionKind Kind,
     bool IsFilePath, bool IsConfigOnly, bool IsCommandLineOnly, Utf8String[] Values, Utf8String[] ValueIdentities, bool CanVary)
 {
@@ -40,6 +46,15 @@ public sealed record OptionDefinition(Utf8String Name, Utf8String ShortName, Opt
     public bool PreserveFalsy { get; init; }
     public OptionValidation Validation { get; init; }
     public Utf8String[] DeprecatedValues { get; init; } = [];
+    public OptionEffects Effects { get; init; }
+    public bool StrictFlag { get; init; }
+    public bool AllowJsFlag { get; init; }
+    public DiagnosticMessage? Description { get; init; }
+    public DiagnosticMessage? Category { get; init; }
+    public DiagnosticMessage? DefaultDescription { get; init; }
+    public Utf8String DefaultValue { get; init; } = "undefined"u8;
+    public bool EnumDefaultValue { get; init; }
+    public bool SimplifiedHelp { get; init; }
 
     public Utf8String? ValueIdentity(Utf8String value)
     {
@@ -361,7 +376,7 @@ public readonly record struct ParsedCommandLine(CompilerOptions Options, Utf8Str
 
 public sealed class CommandLineParser(IFileSystem fileSystem, Utf8String currentDirectory)
 {
-    public ParsedCommandLine Parse(IReadOnlyList<Utf8String> arguments, bool build = false)
+    public ParsedCommandLine Parse(IReadOnlyList<Utf8String> arguments, bool build = false, bool resolvePaths = true)
     {
         var options = new CompilerOptions();
         var files = new List<Utf8String>();
@@ -370,6 +385,8 @@ public sealed class CommandLineParser(IFileSystem fileSystem, Utf8String current
         var stack = new Stack<(IReadOnlyList<Utf8String> Args, int Index, Utf8String? Response)>();
         stack.Push((arguments, 0, null));
         void Error(DiagnosticMessage message, params Utf8String[] args) => errors.Add(new(message, 0, 0, args));
+        JsonElement CommandPath(JsonElement value, bool filePath) => resolvePaths && filePath && value.ValueKind == JsonValueKind.String
+            && OptionValues.IsTemplate(JsonStrings.GetString(value)) ? OptionValues.String(CompilerPath.Resolve(currentDirectory, JsonStrings.GetString(value))) : value;
         while (stack.TryPop(out var frame))
         {
             int index = frame.Index;
@@ -413,7 +430,7 @@ public sealed class CommandLineParser(IFileSystem fileSystem, Utf8String current
                     {
                         Error(
                             build ? Messages.Unknown_build_option_0_Did_you_mean_1 : Messages.Unknown_compiler_option_0_Did_you_mean_1,
-                            name,
+                            arg,
                             suggestion.Name);
                         continue;
                     }
@@ -425,10 +442,11 @@ public sealed class CommandLineParser(IFileSystem fileSystem, Utf8String current
                                 : build
                                     ? Messages.Compiler_option_0_may_not_be_used_with_build
                                     : Messages.Compiler_option_0_may_only_be_used_with_build,
-                        name);
+                        alternate is null ? arg : name);
                     continue;
                 }
                 Utf8String? next = index < frame.Args.Count ? frame.Args[index] : (Utf8String?)null;
+                if (!resolvePaths) definition = definition with { IsFilePath = false, ElementIsFilePath = false };
                 if (definition.IsConfigOnly)
                 {
                     if (next == Utf8Literals.Null || next == Utf8Literals.False && definition.Kind == OptionKind.Boolean)
@@ -503,7 +521,7 @@ public sealed class CommandLineParser(IFileSystem fileSystem, Utf8String current
                             if (OptionValues.Convert(definition, OptionValues.String(value), currentDirectory, Error, true) is { } converted
                                 && converted.ValueKind != JsonValueKind.Null
                                 && !(converted.ValueKind == JsonValueKind.String && JsonStrings.GetString(converted) == Utf8String.Empty))
-                                list.Add(converted);
+                                list.Add(CommandPath(converted, definition.ElementIsFilePath));
                         }
                     if (list.Count != 0 || errors.Count != beforeErrors)
                         index++;
@@ -517,7 +535,7 @@ public sealed class CommandLineParser(IFileSystem fileSystem, Utf8String current
                         OptionValues.String(definition.Kind == OptionKind.Enum ? next.Value.Trim() : next.Value),
                         currentDirectory,
                         Error) is { } value)
-                        options.Set(definition.Name, value);
+                        options.Set(definition.Name, CommandPath(value, definition.IsFilePath));
                     else if (definition.Kind == OptionKind.Enum)
                         options.SetRaw(definition.Name, Utf8Literals.Null);
                 }

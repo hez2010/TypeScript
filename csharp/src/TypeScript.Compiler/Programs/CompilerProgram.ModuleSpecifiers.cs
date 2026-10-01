@@ -73,6 +73,7 @@ public sealed partial class CompilerProgram
             : CompilerPath.DirectoryName(Configuration.FileName));
         if (root is not null)
         {
+            if (!CompilerPath.Contains(CompilerPath.Resolve(CurrentDirectory, root.Value), source.FileName, fileSystem.CaseSensitive)) return false;
             Utf8String output = CompilerPath.Resolve(
                 outputDirectory,
                 CompilerPath.Relative(CompilerPath.Resolve(CurrentDirectory, root.Value), source.FileName, fileSystem.CaseSensitive));

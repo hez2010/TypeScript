@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using TypeScript.Compiler.Configuration;
+using TypeScript.Compiler.Diagnostics;
 
 namespace TypeScript.Compiler.Mapping;
 
@@ -34,7 +35,8 @@ internal sealed class MapperProcess : IAsyncDisposable
         ContentMapper mapper,
         Utf8String locale,
         Action<Utf8String>? log,
-        CancellationToken cancellation)
+        CancellationToken cancellation,
+        Func<ProcessStartInfo, Process>? startProcess = null)
     {
         if (mapper.Exec.Length == 0)
             throw new MapperException(MapperFailure.Initialize, Utf8Literals.MapperDeclaresNoExecutable);
@@ -53,11 +55,13 @@ internal sealed class MapperProcess : IAsyncDisposable
         Process process;
         try
         {
-            process = Process.Start(start) ?? throw new IOException("Mapper process did not start");
+            process = (startProcess is null ? Process.Start(start) : startProcess(start)) ?? throw new IOException("Mapper process did not start");
         }
         catch (Exception e) when (e is IOException or System.ComponentModel.Win32Exception or InvalidOperationException)
         {
-            throw new MapperException(MapperFailure.Initialize, Utf8Literals.MapperProcessCouldNotStart, e);
+            throw new MapperException(MapperFailure.Initialize, Utf8Literals.MapperProcessCouldNotStart, e)
+            { Diagnostic = new(Messages.The_content_mapper_command_0_could_not_be_started_Colon_1, 0, 0,
+                [Utf8String.Join(" "u8, mapper.Exec), Utf8String.FromString(e.Message)]) };
         }
         var connection = new MapperProcess(process, log);
         try
@@ -286,4 +290,5 @@ public enum MapperFailure
 public sealed class MapperException(MapperFailure stage, Utf8String message, Exception? inner = null) : IOException(message.ToString(), inner)
 {
     public MapperFailure Stage { get; } = stage;
+    public Diagnostic? Diagnostic { get; init; }
 }

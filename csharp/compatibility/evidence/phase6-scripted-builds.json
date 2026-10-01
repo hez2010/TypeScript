@@ -1,0 +1,76 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": 516,
+    "cycles": 1771,
+    "strictMatches": 511,
+    "failures": 5,
+    "hashes": {
+        "reference": "81f9c7affe7a7059cba6bce62be74b5a832ed51f057d9f66a0aff9e220600a78",
+        "candidate": "7c2f2c11b9c396cdd570421eb7eb9bac00fc1636d30ef51a0b931ec91944660b",
+        "compiler": "a4bdff4cc76540ee7a1b75e7f41def76fbea12922706cdde19a6215735a50c1a",
+        "mapperFixture": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+    },
+    "inputHash": "d7039b75644961eb171650907a9ee3ad4c46c951853cd5c7471669f664b7301b",
+    "suites": {
+        "tsc": 217,
+        "tsbuild": 192,
+        "tsbuildWatch": 65,
+        "tscWatch": 42
+    },
+    "normalizedFields": [
+        "stdout: status-report clock",
+        "TS2783 internal iterator allocation id in diagnostic headers and stored message argument 0; source text and emitted bytes preserved",
+        "input mtimes: original relative order in a deterministic clock",
+        "input buildInfo.version: FakeTSVersion to pinned compiler version"
+    ],
+    "phase6TransitionMatches": 516,
+    "phase6Failures": 0,
+    "deferredProfiles": [
+        {
+            "name": "TestTscModuleResolution/tsc/package_json_scope",
+            "flag": "--extendedDiagnostics",
+            "phase": 8,
+            "inputHash": "b7e5075751962c6e42940a262ec648c0517f9765c6434cc575f1cedc848199d9",
+            "controlHash": "fad086f1e8261ff049ee3f5988bc79c825dc14c856c7e4a9f3a7690be1faa9dc",
+            "controlMatches": true,
+            "originalNonProfilingEffectsMatch": true
+        },
+        {
+            "name": "TestGenerateTrace/tsc/generateTrace_with_multiple_files_and_complex_types",
+            "flag": "--generateTrace",
+            "phase": 8,
+            "inputHash": "de6218660988c6876263515b5e981c195ca3aa32b70f09da4dcae9cc16405785",
+            "controlHash": "b7401c533f906dcf0d0911b1f40ad06ba7f9cf6c51127d444073c64eba6b803c",
+            "controlMatches": true,
+            "originalNonProfilingEffectsMatch": true
+        },
+        {
+            "name": "TestTscExtends/tsbuild/resolves_the_symlink_path",
+            "flag": "--extendedDiagnostics",
+            "phase": 8,
+            "inputHash": "89ddd65271395466516d3971642635f90179127f00d72e09dd20de951a0df8cd",
+            "controlHash": "860d48148019728e2e6e45f3520a0c7e310b0a585bf84c0e58577e7107f47ba4",
+            "controlMatches": true,
+            "originalNonProfilingEffectsMatch": true
+        },
+        {
+            "name": "TestGenerateTrace/tsc/generateTrace_generates_types_file",
+            "flag": "--generateTrace",
+            "phase": 8,
+            "inputHash": "873708a2ceb18d7f80e8363054eb311ca3315f8eb020bdd4a4d3295edfd74aa5",
+            "controlHash": "eda6929682614805a5e1a9db683aaf25bcfe16c60bcda958cbe48ba991f3690d",
+            "controlMatches": true,
+            "originalNonProfilingEffectsMatch": true
+        },
+        {
+            "name": "TestTscExtends/tsc/resolves_the_symlink_path",
+            "flag": "--extendedDiagnostics",
+            "phase": 8,
+            "inputHash": "77d76063c5d7d6203cfba09a5f6825d563ccf5857e059fa490df14a7857b392f",
+            "controlHash": "27b63022970db8aecdda7441e8f93971ccca16aa7bea30e5159996f2947467ab",
+            "controlMatches": true,
+            "originalNonProfilingEffectsMatch": true
+        }
+    ],
+    "command": "node csharp/tools/scripted-builds.mjs --dotnet <dotnet.exe> --phase6 --record"
+}

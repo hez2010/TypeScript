@@ -1,0 +1,17 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": 33,
+    "cycles": 242,
+    "strictMatches": 33,
+    "failures": 0,
+    "normalizedFields": [
+        "stdout: status-report clock prefix"
+    ],
+    "hashes": {
+        "reference": "8300fd95251c6f719bc6fcedd1976e60485a446a2a91568ca167edece7ce2278",
+        "candidate": "7c2f2c11b9c396cdd570421eb7eb9bac00fc1636d30ef51a0b931ec91944660b",
+        "compiler": "a4bdff4cc76540ee7a1b75e7f41def76fbea12922706cdde19a6215735a50c1a"
+    },
+    "inputHash": "982e9a7cc58abf4f42af1573a724e3b6b3ee9a682beacc73d676a131544b1830",
+    "command": "node csharp/tools/watch.mjs --dotnet <dotnet.exe> --record"
+}

@@ -463,14 +463,13 @@ internal sealed partial class Checker
             return;
         var flags = node.Flags | (node.Parent is VariableDeclarationListNode list ? list.Flags : 0);
         if (EmitModuleKind(node) < 4 && node.Parent?.Parent is VariableStatementNode statement
-            && (statement.Flags & NodeFlags.Ambient) == 0 && SemanticSyntax.HasModifier(statement, SyntaxKind.ExportKeyword)
-            && program.Symbols.Program.Configuration.Options.NoEmit != true)
+            && (statement.Flags & NodeFlags.Ambient) == 0 && SemanticSyntax.HasModifier(statement, SyntaxKind.ExportKeyword))
         {
             var marker = node.Name;
             while (marker is BindingPatternNode pattern)
                 marker = pattern.Elements?.OfType<BindingElementNode>().FirstOrDefault(e => e.Name is not null)?.Name;
             if (marker is IdentifierNode { Text.Span: var matchedText } && matchedText.SequenceEqual("__esModule"u8))
-                Error(marker, DiagnosticCode.IdentifierExpectedEsModuleIsReservedAsAnExportedMarkerWhenTransformingECMAScriptModules);
+                ErrorSkippedOnNoEmit(marker, DiagnosticCode.IdentifierExpectedEsModuleIsReservedAsAnExportedMarkerWhenTransformingECMAScriptModules);
         }
         if ((flags & (NodeFlags.Let | NodeFlags.Const)) != 0)
         {

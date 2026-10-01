@@ -8,6 +8,8 @@ import { root } from "./common.mjs";
 const utf8 = value => `${JSON.stringify(value)}u8`;
 const groups = { Compiler: "declscompiler.go", Build: "declsbuild.go", Watch: "declswatch.go", TypeAcquisition: "declstypeacquisition.go" };
 const maps = await readFile(path.join(root, "tsc/internal/tsoptions/enummaps.go"), "utf8");
+const compilerOptionsGo = await readFile(path.join(root, "tsc/internal/core/compileroptions.go"), "utf8");
+const constantAliases = Object.fromEntries([...compilerOptionsGo.matchAll(/^\s*(\w+)\s+\w+\s*=\s*([A-Za-z]\w*)\b/gm)].map(match => ["core." + match[1], "core." + match[2]]));
 const enumNames = { target: "targetOptionMap", module: "moduleOptionMap", moduleResolution: "moduleResolutionOptionMap", moduleDetection: "moduleDetectionOptionMap", jsx: "jsxOptionMap", newLine: "newLineOptionMap", lib: "LibMap", watchFile: "watchFileEnumMap", watchDirectory: "watchDirectoryEnumMap", fallbackPolling: "fallbackEnumMap" };
 const enums = {};
 const identities = {};
@@ -43,12 +45,32 @@ for (const [group, file] of Object.entries(groups)) {
         const extra = (body + element).match(/extraValidation:\s*extraValidation(\w+)/)?.[1] ?? "None";
         if (group === "Compiler") compilerSchema.set(name, { kind, elementKind });
         const row = `        new(${utf8(name)}, ${utf8(short)}, OptionGroup.${group}, OptionKind.${kind}, ${flag("IsFilePath")}, ${flag("IsTSConfigOnly")}, ${flag("IsCommandLineOnly")}, [${(enums[name] ?? []).map(utf8).join(", ")}], [${(identities[name] ?? []).map(utf8).join(", ")}], ${vary}) { ElementKind = OptionKind.${elementKind}, ElementIsFilePath = ${/IsFilePath:\s*true/.test(element)}, Minimum = ${body.match(/minValue:\s*(\d+)/)?.[1] ?? 0}, AllowConfigDir = ${flag("allowConfigDirTemplateSubstitution") || flag("IsFilePath")}, PreserveFalsy = ${flag("listPreserveFalsyValues")}, Validation = OptionValidation.${extra} },`;
-        const withDeprecated = deprecated[name] ? row.replace(" },", `, DeprecatedValues = [${deprecated[name].map(utf8).join(", ")}] },`) : row;
+        const effects = ["DeclarationPath", "ProgramStructure", "SemanticDiagnostics", "BuildInfo", "BindDiagnostics", "SourceFile", "ModuleResolution", "Emit"]
+            .filter(effect => flag(`Affects${effect}`)).map(effect => `OptionEffects.${effect}`);
+        let withDeprecated = deprecated[name] ? row.replace(" },", `, DeprecatedValues = [${deprecated[name].map(utf8).join(", ")}] },`) : row;
+        if (effects.length) withDeprecated = withDeprecated.replace(" },", `, Effects = ${effects.join(" | ")} },`);
+        if (flag("strictFlag")) withDeprecated = withDeprecated.replace(" },", ", StrictFlag = true },");
+        if (flag("allowJsFlag")) withDeprecated = withDeprecated.replace(" },", ", AllowJsFlag = true },");
+        for (const [go, cs] of [["Description", "Description"], ["Category", "Category"], ["DefaultValueDescription", "DefaultDescription"]]) {
+            const message = body.match(new RegExp(`\\b${go}:\\s*diagnostics\\.(\\w+)`))?.[1];
+            if (message) withDeprecated = withDeprecated.replace(" },", `, ${cs} = TypeScript.Compiler.Diagnostics.Messages.${message} },`);
+        }
+        const defaultValue = body.match(/DefaultValueDescription:\s*([^\r\n]+),/)?.[1];
+        if (defaultValue && !defaultValue.startsWith("diagnostics.")) {
+            let value = defaultValue.startsWith('"') ? JSON.parse(defaultValue) : defaultValue;
+            if (value.startsWith("core.")) {
+                withDeprecated = withDeprecated.replace(" },", ", EnumDefaultValue = true },");
+                const visited = new Set();
+                while (constantAliases[value] && !visited.has(value)) { visited.add(value); value = constantAliases[value]; }
+                value = (enums[name] ?? []).filter((_, index) => identities[name][index] === value).join("/") || "undefined";
+            }
+            withDeprecated = withDeprecated.replace(" },", `, DefaultValue = ${utf8(value)} },`);
+        }
+        if (flag("ShowInSimplifiedHelpView")) withDeprecated = withDeprecated.replace(" },", ", SimplifiedHelp = true },");
         rows.push(withDeprecated);
         if (group === "Compiler" && match.index < text.indexOf("var optionsForCompiler")) rows.push(withDeprecated.replace("OptionGroup.Compiler", "OptionGroup.Build"));
     }
 }
-const compilerOptionsGo = await readFile(path.join(root, "tsc/internal/core/compileroptions.go"), "utf8");
 const constantsText = compilerOptionsGo + "\n" + await readFile(path.join(root, "tsc/internal/core/watchoptions.go"), "utf8");
 const constants = Object.fromEntries([...constantsText.matchAll(/^\s*(\w+)\s+\w+\s*=\s*(\d+)\b/gm)].map(m => ["core." + m[1], m[2]]));
 const wire = [...new Set(Object.values(identities).flat().filter(v => v.startsWith("core.")))].sort().map(identity => {
@@ -66,6 +88,12 @@ const enumTypes = new Set(["ModuleDetectionKind", "ModuleKind", "ModuleResolutio
 const goFields = [...compilerOptionsGo.matchAll(/^\s*(\w+)\s+(.+?)\s+`json:"([^,]+),omitzero"/gm)]
     .map(([, property, type, name]) => ({ property, type: type.trim(), name }));
 if (goFields.length < 125) throw Error("Incomplete Go CompilerOptions fields");
+const fieldOrder = ["// <auto-generated />", "namespace TypeScript.Compiler.Configuration;", "public static partial class OptionDefinitions", "{",
+    `    internal static readonly string[] CompilerFieldOrder = [${goFields.map(field => JSON.stringify(field.name)).join(", ")}];`, "}", ""].join("\n");
+const fieldOrderPath = path.join(root, "csharp/src/TypeScript.Compiler/Configuration/Options.FieldOrder.generated.cs");
+if (process.argv.includes("--check")) {
+    if ((await readFile(fieldOrderPath, "utf8")).replaceAll("\r\n", "\n") !== fieldOrder) throw Error("Stale option field order");
+} else await writeFile(fieldOrderPath, fieldOrder);
 for (const [name, { kind, elementKind }] of compilerSchema)
     if (!goFields.some(field => field.name === name))
         goFields.push({ name, property: name[0].toUpperCase() + name.slice(1),

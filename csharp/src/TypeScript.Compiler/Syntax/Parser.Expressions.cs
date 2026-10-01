@@ -537,7 +537,9 @@ public sealed partial class Parser
             properties = await DelimitedCore(K.CloseBraceToken, ObjectPropertyCore,
                 startsElement: () => Token >= K.Identifier || Token is K.OpenBracketToken or K.AsteriskToken
                     or K.DotDotDotToken or K.DotToken or K.StringLiteral or K.NumericLiteral or K.BigIntLiteral,
-                elementExpected: Messages.Property_assignment_expected).ConfigureAwait(false);
+                elementExpected: Messages.Property_assignment_expected,
+                recoveryBoundary: () => Token == K.SemicolonToken ? LineBreak
+                    : (!reparsingTopLevelAwait || speculationDepth != 0) && StartsStatement()).ConfigureAwait(false);
         }
         finally
         {

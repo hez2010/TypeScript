@@ -119,6 +119,7 @@ public sealed class PhysicalFileSystem : IFileSystem
     {
         try
         {
+            if (!File.Exists(path.ToString()) && !Directory.Exists(path.ToString())) return path;
             Utf8String absolute = Utf8String.FromString(Path.GetFullPath(path.ToString()));
             Utf8String root = absolute[..CompilerPath.RootLength(absolute)];
             Utf8String current = root;
@@ -429,11 +430,11 @@ public sealed class MemoryFileSystem : IFileSystem
             }
             catch (IOException)
             {
-                return Key(path);
+                return path;
             }
             if (files.GetAlternateLookup<ReadOnlySpan<byte>>().TryGetValue(key, out Utf8String actual, out _))
                 return actual;
-            return directories.TryGetValue(key, out actual) ? actual : key;
+            return directories.TryGetValue(key, out actual) ? actual : path;
         }
     }
 }

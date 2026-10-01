@@ -41,8 +41,8 @@ internal sealed partial class Checker
             && !(reference.Resolution.IsArbitraryExtension && !file.IsDeclarationFile
                 && program.Symbols.Program.Configuration.Options.AllowArbitraryExtensions != true))
         {
-            if (!implicitImport && !ignoreErrors)
-                CheckResolvedImport(location, specifier!, name, file, reference);
+            if (!ignoreErrors)
+                CheckResolvedImport(location, implicitImport ? location : specifier!, name, file, reference);
             module = program.Symbols.Program.GetFile(reference.Resolution.FileName)?.Binding.Symbol;
         }
         attributes ??= context.EmptyObjectType;
@@ -116,6 +116,11 @@ internal sealed partial class Checker
             }
             if (JsxMode == 0 && (resolved.Extension == ".jsx"u8 || resolved.Extension == ".tsx"u8))
                 return;
+            if (compiler.ProjectReferences.Sources.TryGetValue(resolved.FileName, out var redirect))
+            {
+                program.Error(node, Messages.Output_file_0_has_not_been_built_from_source_file_1, redirect.Output, resolved.FileName);
+                return;
+            }
             if (resolved.Extension == ".js"u8 || resolved.Extension == ".jsx"u8 || resolved.Extension == ".mjs"u8 || resolved.Extension == ".cjs"u8)
             {
                 if (missingModuleCode == DiagnosticCode.InvalidModuleNameInAugmentationModule0CannotBeFound)
@@ -131,7 +136,8 @@ internal sealed partial class Checker
                         var diagnostic = CheckerDiagnostic.Create(node,
                             Messages.Could_not_find_a_declaration_file_for_module_0_1_implicitly_has_an_any_type, name, resolved.FileName);
                         if (!ModuleResolver.Relative(name.Span) && resolved.PackageId is { Name.Length: > 0 } package)
-                            diagnostic = diagnostic with { MessageChain = [MissingPackageTypes(node, name, resolved, package.Name)] };
+                            diagnostic = diagnostic with { MessageChain = [MissingPackageTypes(node, name, resolved, package.Name) with
+                            { Repopulation = new(2, name, (int)reference.Mode, package.Name == name ? default : package.Name) }] };
                         Error(node, diagnostic);
                     }
                     else
@@ -183,47 +189,10 @@ internal sealed partial class Checker
             name);
     }
 
-    private Dictionary<Utf8String, bool>? resolvedPackages;
-
     private Diagnostic MissingPackageTypes(SyntaxNode node, Utf8String moduleName, ResolvedModule resolved, Utf8String packageName)
     {
-        Utf8String mangled = ModuleResolver.Mangle(packageName);
-        if (resolved.AlternateResult.Length != 0)
-            return CheckerDiagnostic.Create(
-                node,
-                DiagnosticLocalization.GetMessage(
-                    DiagnosticCode.ThereAreTypesAt0ButThisResultCouldNotBeResolvedWhenRespectingPackageJsonExportsThe1LibraryMayNeedToUpdateItsPackageJsonOrTypings),
-                resolved.AlternateResult,
-                resolved.AlternateResult.Contains("/node_modules/@types/"u8, StringComparison.Ordinal) ? Utf8String.Concat("@types/"u8, mangled) : packageName);
-        if (resolvedPackages is null)
-        {
-            resolvedPackages = new();
-            foreach (var file in program.Symbols.Program.SourceFiles)
-                foreach (var reference in file.Resolutions)
-                    if (!reference.TypeReference && reference.Resolution.PackageId is { Name.Length: > 0 } package)
-                        resolvedPackages[package.Name] = resolvedPackages.GetValueOrDefault(package.Name)
-                            || reference.Resolution.Extension == Utf8Literals.DTs;
-        }
-        if (resolvedPackages.ContainsKey(Utf8String.Concat("@types/"u8, mangled)))
-            return CheckerDiagnostic.Create(
-                node,
-                DiagnosticLocalization.GetMessage(
-                    DiagnosticCode.IfThe0PackageActuallyExposesThisModuleConsiderSendingAPullRequestToAmendHttpsColonSlashSlashgithubComSlashDefinitelyTypedSlashDefinitelyTypedSlashtreeSlashmasterSlashtypesSlash1),
-                packageName,
-                mangled);
-        if (resolvedPackages.GetValueOrDefault(packageName))
-            return CheckerDiagnostic.Create(
-                node,
-                DiagnosticLocalization.GetMessage(
-                    DiagnosticCode.IfThe0PackageActuallyExposesThisModuleTryAddingANewDeclarationDTsFileContainingDeclareModule1),
-                packageName,
-                moduleName);
-        return CheckerDiagnostic.Create(
-            node,
-            DiagnosticLocalization.GetMessage(
-                DiagnosticCode.TryNpmISaveDevTypesSlash1IfItExistsOrAddANewDeclarationDTsFileContainingDeclareModule0),
-            moduleName,
-            mangled);
+        var details = program.Symbols.Program.ModuleNotFoundDetails(resolved, moduleName, packageName);
+        return CheckerDiagnostic.Create(node, details.Message, details.Arguments);
     }
 
     internal Utf8String SuggestedImportExtension(Utf8String path)
@@ -348,26 +317,13 @@ internal sealed partial class Checker
             && !source.IsDeclarationFile
             && CompilerPath.Extension(source.FileName) is var matchedText6 && (matchedText6 == ".ts"u8 || matchedText6 == ".js"u8 || matchedText6 == ".tsx"u8 || matchedText6 == ".jsx"u8))
         {
-            var metadata = program.Symbols.Program.GetFile(source.FileName)!;
-            Utf8String extension = CompilerPath.Extension(source.FileName) switch { var matchedText2 when matchedText2 == ".ts"u8 => Utf8Literals.Mts, var matchedText3 when matchedText3 == ".js"u8 => Utf8Literals.Mjs, _ => Utf8String.Empty };
-            bool package = metadata.PackageDirectory.Length != 0 && metadata.PackageType.Length == 0;
-            DiagnosticCode detailCode = package
-                ? extension.Length != 0
-                    ? DiagnosticCode.ToConvertThisFileToAnECMAScriptModuleChangeItsFileExtensionTo0OrAddTheFieldTypeColonModuleTo1
-                    : DiagnosticCode.ToConvertThisFileToAnECMAScriptModuleAddTheFieldTypeColonModuleTo0
-                : extension.Length != 0
-                    ? DiagnosticCode.ToConvertThisFileToAnECMAScriptModuleChangeItsFileExtensionTo0OrCreateALocalPackageJsonFileWithTypeColonModule
-                    : DiagnosticCode.ToConvertThisFileToAnECMAScriptModuleCreateALocalPackageJsonFileWithTypeColonModule;
-            Utf8String[] arguments = package ? extension.Length != 0
-                ? [extension, CompilerPath.Combine(metadata.PackageDirectory, Utf8Literals.PackageJson)]
-                : [CompilerPath.Combine(metadata.PackageDirectory, Utf8Literals.PackageJson)]
-                : extension.Length != 0 ? [extension] : [];
+            var details = Programs.CompilerProgram.ModeMismatchDetails(program.Symbols.Program.GetFile(source.FileName)!);
             diagnostic = diagnostic with
             {
                 MessageChain = [CheckerDiagnostic.Create(
                 specifier,
-                DiagnosticLocalization.GetMessage(detailCode),
-                arguments)]
+                details.Message,
+                details.Arguments) with { Repopulation = new(1) }]
             };
         }
         Error(specifier, diagnostic);

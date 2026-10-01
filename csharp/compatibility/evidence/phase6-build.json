@@ -1,0 +1,43 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": 48,
+    "cycles": 342,
+    "strictMatches": 46,
+    "failures": 0,
+    "strictDifferences": 2,
+    "permittedDifferences": [
+        {
+            "name": "graph-added-removed-project",
+            "inputHash": "f426e82e028409a84156f275aa3a626c5d31dea92dc9a13d32f747f973d21cf2",
+            "reason": "The pinned Go builder dereferences a nil buildInfoEntry at buildtask.go:894 after a previously built project acquires a missing reference. C# reports TS6053 and continues compilation, matching the forced-build control output and status, then recovers when the reference is restored. The complete input and both output sequences are hash-bound; only the raw panic stack addresses are excluded from the reference hash and the stack is retained.",
+            "controls": [
+                "graph-added-removed-project-stop",
+                "graph-added-removed-project-force",
+                "missing-root-project",
+                "missing-reference-cold"
+            ],
+            "rawReferenceHash": "574faef24019c1235f89f3cca222d575d00b85b3d7f22374867257a847c84cd8",
+            "candidateHash": "650573e8f058531fb867dda41c16b09ad15d34ab9305468caf29acc8ba365a0b"
+        },
+        {
+            "name": "new-root-preserved-timestamp",
+            "inputHash": "bdc9ba29c418c44cbe0e3fbfbe8bb3a37f1d4acdc52abe44e42ad15b1fd8a064",
+            "reason": "The pinned Go timestamp shortcut ignores a newly discovered root whose mtime predates the previous build-info, including a file created during an in-flight build. C# also checks root membership and compiles the added file. Accumulated JS, declarations and complete build-info must match the forced Go control exactly.",
+            "controls": [
+                "new-root-preserved-timestamp-force"
+            ],
+            "rawReferenceHash": "22493c3e61ae3b07da23e76ed1c925c6f2a4a485ef3ebdcd1cb1db500b6d22bc",
+            "candidateHash": "0820267e166fcd922b8e2de87df15c932cc5f50d4c3c8a9fdd46574f104b9f23"
+        }
+    ],
+    "normalizedFields": [
+        "stdout: status-report clock prefix"
+    ],
+    "hashes": {
+        "reference": "be1712d560d04a42678c6929854a4fea9b22326cb9b1c82b05bde35aa3eabde2",
+        "candidate": "7c2f2c11b9c396cdd570421eb7eb9bac00fc1636d30ef51a0b931ec91944660b",
+        "compiler": "a4bdff4cc76540ee7a1b75e7f41def76fbea12922706cdde19a6215735a50c1a"
+    },
+    "inputHash": "7ea71f47291d34ddd51d6ee4352baefb810c7963bf04f4b9dfb0177328b659e3",
+    "command": "node csharp/tools/build.mjs --dotnet <dotnet.exe> --record"
+}

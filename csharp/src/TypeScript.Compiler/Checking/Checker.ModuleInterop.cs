@@ -86,7 +86,7 @@ internal sealed partial class Checker
             if (target == ReferenceResolutionMode.Unspecified && file.IsDeclarationFile
                 && program.Symbols.Program.ProjectReferences.Find(file.FileName) is { } redirect && mode == ReferenceResolutionMode.Import)
             {
-                ModuleOptionKind declaredMode = redirect.Project.Options.Module;
+                ModuleOptionKind declaredMode = redirect.Project.Options.EmitModule;
                 if (declaredMode is ModuleOptionKind.ES2015 or ModuleOptionKind.ES2020 or ModuleOptionKind.ES2022 or ModuleOptionKind.ESNext)
                     return false;
             }

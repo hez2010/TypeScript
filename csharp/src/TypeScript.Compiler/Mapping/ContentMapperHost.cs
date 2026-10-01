@@ -55,6 +55,7 @@ public sealed class ContentMapperHost : IAsyncDisposable
     private Utf8String locale;
     private long nextProject;
     private bool closed;
+    internal Func<ProcessStartInfo, Process>? StartProcess { get; init; }
 
     public ContentMapperHost(Utf8String locale = default, Action<Utf8String>? log = null)
     {
@@ -279,7 +280,7 @@ public sealed class ContentMapperHost : IAsyncDisposable
         long time = Stopwatch.GetTimestamp();
         try
         {
-            return await MapperProcess.Start(entry.Mapper, locale, log, lifetime.Token).ConfigureAwait(false);
+            return await MapperProcess.Start(entry.Mapper, locale, log, lifetime.Token, StartProcess).ConfigureAwait(false);
         }
         finally
         {

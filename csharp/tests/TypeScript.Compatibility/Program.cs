@@ -14,6 +14,56 @@ internal static class Program
         Utf8String[] args = commandLine.Select(Utf8String.FromString).ToArray();
         try
         {
+            if (args.Length == 1 && args[0] == "--native-command-safety"u8)
+            {
+                Console.WriteLine($"Native command safety: {WatchTests.CommandSafetyAsync().GetAwaiter().GetResult()} assertions; {System.Runtime.InteropServices.RuntimeInformation.OSDescription}");
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--scripted-build-lines"u8)
+            {
+                ScriptedBuildTests.Lines();
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--watch-lines"u8)
+            {
+                WatchTransitionTests.Lines();
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--watch-safety"u8)
+            {
+                Console.WriteLine($"Watch safety: {WatchTests.SafetyAsync().GetAwaiter().GetResult()} assertions");
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--native-watch-safety"u8)
+            {
+                Console.WriteLine($"Native watch safety: {WatchTests.NativeSafetyAsync().GetAwaiter().GetResult()} assertions; {System.Runtime.InteropServices.RuntimeInformation.OSDescription}");
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--build-lines"u8)
+            {
+                BuildTests.Lines();
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--incremental-lines"u8)
+            {
+                IncrementalTests.Lines();
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--incremental-safety"u8)
+            {
+                Console.WriteLine($"Incremental safety: {IncrementalTests.SafetyAsync().GetAwaiter().GetResult()} assertions");
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--build-info-lines"u8)
+            {
+                BuildInfoTests.Lines();
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--build-info-safety"u8)
+            {
+                Console.WriteLine($"Build info safety: {BuildInfoTests.Safety()} assertions");
+                return 0;
+            }
             if (args.Length == 1 && args[0] == "--transpile-lines"u8)
             {
                 TranspileTests.Lines();
