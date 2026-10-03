@@ -148,7 +148,7 @@ public sealed partial class CompilerProgram
             {
                 FileName = file, IsMapperFailure = true,
                 MessageChain = error is MapperException { Stage: MapperFailure.Request }
-                    ? [new(Messages.The_content_mapper_process_failed_while_handling_the_transform_request, 0, 0, [])] : []
+                    ? [new(Messages.The_content_mapper_process_failed_while_handling_the_transform_request, -1, 0, [])] : []
             };
         }
     }

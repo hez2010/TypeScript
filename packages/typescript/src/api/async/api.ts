@@ -404,7 +404,7 @@ export class API<FromLSP extends boolean = false> implements FormatDiagnosticsHo
         const requestParams = toCreateSnapshotRequest(params);
         const data = await this.client.apiRequest("createSnapshot", requestParams);
 
-        const snapshot = new Snapshot(
+        const snapshot: Snapshot = new Snapshot(
             data,
             this.client,
             this.sourceFileCache,
@@ -433,7 +433,7 @@ export class API<FromLSP extends boolean = false> implements FormatDiagnosticsHo
             changes: toCreateSnapshotRequest(params),
         });
         this.sourceFileCache.retainForSnapshot(data.snapshot, baseSnapshot.id, data.changes);
-        const snapshot = new Snapshot(
+        const snapshot: Snapshot = new Snapshot(
             data,
             this.client,
             this.sourceFileCache,
@@ -490,7 +490,7 @@ export class API<FromLSP extends boolean = false> implements FormatDiagnosticsHo
         if (baseSnapshot) {
             this.sourceFileCache.retainForSnapshot(data.snapshot, baseSnapshot.id, data.changes);
         }
-        const snapshot = new Snapshot(
+        const snapshot: Snapshot = new Snapshot(
             data,
             this.client,
             this.sourceFileCache,

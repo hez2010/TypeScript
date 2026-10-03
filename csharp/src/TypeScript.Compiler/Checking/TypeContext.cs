@@ -2,6 +2,7 @@ using TypeScript.Compiler.Text;
 using System.Numerics;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 
 namespace TypeScript.Compiler.Checking;
 
@@ -25,6 +26,9 @@ public sealed class TypeContext
     public bool ExactOptionalPropertyTypes { get; }
     public uint TypeCount => typeCount;
     public uint SignatureCount => signatureCount;
+    internal CompilationCapture? Capture { get; private set; }
+    internal CompilationTrace.TypeRecorder? TraceRecorder { get; private set; }
+    internal void DetachCapture() { Capture = null; TraceRecorder = null; }
     public IntrinsicType AnyType { get; }
     public IntrinsicType AutoType { get; }
     public IntrinsicType WildcardType { get; }
@@ -74,6 +78,9 @@ public sealed class TypeContext
 
     public TypeContext(bool strictNullChecks = false, bool exactOptionalPropertyTypes = false)
     {
+        Capture = CompilationCapture.Current;
+        TraceRecorder = Capture?.Register(this);
+        using var captured = Capture?.Begin("bind"u8, "createTypeContext"u8, checker: TraceRecorder?.Index);
         StrictNullChecks = strictNullChecks;
         ExactOptionalPropertyTypes = exactOptionalPropertyTypes;
         AnyType = new(this, TypeFlags.Any, Utf8Literals.Any);

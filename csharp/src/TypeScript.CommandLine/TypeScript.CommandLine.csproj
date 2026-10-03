@@ -2,7 +2,8 @@
   <PropertyGroup>
     <NuGetLockFilePath Condition="'$(PublishAot)' == 'true'">packages.aot.lock.json</NuGetLockFilePath>
     <OutputType>Exe</OutputType>
-    <AssemblyName>tsgo-cs</AssemblyName>
+    <TypeScriptExecutableName Condition="'$(TypeScriptExecutableName)' == ''">tsgo-cs</TypeScriptExecutableName>
+    <AssemblyName>$(TypeScriptExecutableName)</AssemblyName>
     <JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>
   </PropertyGroup>
   <ItemGroup>

@@ -28,6 +28,7 @@ public sealed partial class CompilerProgram
         bool signature = emitOptions.Only == EmitOnly.BuilderSignature;
         if (!emitOptions.Force && !signature && options.NoEmit == true)
             return new(emitOptions.SourceFiles is not null, [], [], []);
+        using var captured = CompilationCapture.Current?.Begin("emit"u8, "emit"u8);
         var checker = externalChecker ?? await CreateCheckerAsync(cancellation);
         if (!emitOptions.Force && !signature && options.NoEmitOnError == true)
         {

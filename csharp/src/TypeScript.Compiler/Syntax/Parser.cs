@@ -112,6 +112,7 @@ public sealed partial class Parser
         SourceText source,
         CancellationToken cancellation = default)
     {
+        using var captured = Diagnostics.CompilationCapture.Current?.Begin("parse"u8, "createSourceFile"u8, options.FileName);
         var parser = new Parser(options, source, cancellation);
         var file = await parser.ParseFileCore().ConfigureAwait(false);
         if (parser.possibleAwaitSpans.Count != 0

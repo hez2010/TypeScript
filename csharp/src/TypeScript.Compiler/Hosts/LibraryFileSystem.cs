@@ -53,9 +53,9 @@ public sealed class LibraryFileSystem(IFileSystem underlying) : IFileSystem
     {
         get
         {
-            Utf8String executable = Environment.ProcessPath ?? throw new InvalidOperationException("Cannot locate compiler executable");
+            Utf8String executable = Utf8String.FromString(Environment.ProcessPath ?? throw new InvalidOperationException("Cannot locate compiler executable"));
             Utf8String directory = CompilerPath.DirectoryName(underlying.RealPath(executable));
-            if (!underlying.FileExists(CompilerPath.Combine(directory, "lib.d.ts")))
+            if (!underlying.FileExists(CompilerPath.Combine(directory, "lib.d.ts"u8)))
                 throw new FileNotFoundException("Compiler libraries are missing beside the executable");
             return directory;
         }

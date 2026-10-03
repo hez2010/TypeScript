@@ -1243,6 +1243,29 @@ export const buildAPI = task({
     },
 });
 
+export const buildCSharp = task({
+    name: "csharp:build",
+    description: "Builds the C# backend in Release mode.",
+    run: () => run(process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, process.platform === "win32" ? "dotnet.exe" : "dotnet") : "dotnet", [
+        "build", "csharp/TypeScript.slnx", "-c", "Release", "--artifacts-path", "built/csharp/build", "-p:UseSharedCompilation=false", "-p:RestoreLockedMode=true",
+    ]),
+});
+
+export const packageCSharp = task({
+    name: "csharp:package",
+    description: "Publishes and packs the opt-in Windows x64 NativeAOT C# preview without executing it.",
+    run: () => run(process.execPath, ["csharp/tools/package.mjs"]),
+});
+
+export const testCSharpPackage = task({
+    name: "csharp:test-package",
+    description: "Builds and tests the C# preview package using Release CoreCLR.",
+    run: async () => {
+        await run(process.execPath, ["csharp/tools/package.mjs", "--managed"]);
+        await run(process.execPath, ["csharp/tools/package-tests.mjs"]);
+    },
+});
+
 async function runBuildAPITests() {
     await run("npm", ["run", "-w", "@typescript/typescript", "generate:sync"]);
     await run("npm", ["run", "-w", "@typescript/typescript", "build:test"]);

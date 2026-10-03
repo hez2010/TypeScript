@@ -1,0 +1,368 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": 516,
+    "cycles": 1771,
+    "strictMatches": 511,
+    "failures": 5,
+    "hashes": {
+        "reference": "70b252558f94690ad1bde6dd6e12878e9b9ccb8d81cdfcbd73fa7f1589db766c",
+        "candidate": "191eda8527eb92b24bff8f6d31808d01b61673f2f7ae125a28d31524e82a15ed",
+        "compiler": "8d5fd35fcc87d9bbec4ef0437619a855e67caba92fbf12648d9b048e46521eb5",
+        "mapperFixture": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+    },
+    "inputHash": "d7039b75644961eb171650907a9ee3ad4c46c951853cd5c7471669f664b7301b",
+    "suites": {
+        "tsc": 217,
+        "tsbuild": 192,
+        "tsbuildWatch": 65,
+        "tscWatch": 42
+    },
+    "normalizedFields": [
+        "stdout: status-report clock",
+        "TS2783 internal iterator allocation id in diagnostic headers and stored message argument 0; source text and emitted bytes preserved",
+        "input mtimes: original relative order in a deterministic clock",
+        "input buildInfo.version: FakeTSVersion to pinned compiler version"
+    ],
+    "phase8ContractMatches": 516,
+    "phase8Failures": 0,
+    "completedProfiles": [
+        {
+            "name": "TestTscModuleResolution/tsc/package_json_scope",
+            "flag": "--extendedDiagnostics",
+            "inputHash": "b7e5075751962c6e42940a262ec648c0517f9765c6434cc575f1cedc848199d9",
+            "controlHash": "fad086f1e8261ff049ee3f5988bc79c825dc14c856c7e4a9f3a7690be1faa9dc",
+            "controlMatches": true,
+            "reference": [
+                {
+                    "kind": "statistics",
+                    "values": {
+                        "Files": "4",
+                        "Lines": "26",
+                        "Identifiers": "37",
+                        "Symbols": "64",
+                        "Types": "336",
+                        "Instantiations": "1",
+                        "Memory used": "2724K",
+                        "Memory allocs": "2445942",
+                        "Config time": "1.000s",
+                        "BuildInfo read time": "1.000s",
+                        "Parse time": "1.000s",
+                        "Bind time": "1.000s",
+                        "Check time": "1.000s",
+                        "Emit time": "8.000s",
+                        "Changes compute time": "1.000s",
+                        "Total time": "142.000s"
+                    }
+                },
+                {
+                    "kind": "statistics",
+                    "values": {
+                        "Files": "4",
+                        "Lines": "26",
+                        "Identifiers": "37",
+                        "Symbols": "62",
+                        "Types": "324",
+                        "Instantiations": "0",
+                        "Memory used": "2933K",
+                        "Memory allocs": "2450665",
+                        "Config time": "1.000s",
+                        "BuildInfo read time": "1.000s",
+                        "Parse time": "1.000s",
+                        "Bind time": "1.000s",
+                        "Check time": "1.000s",
+                        "Emit time": "2.000s",
+                        "Changes compute time": "1.000s",
+                        "Total time": "159.000s"
+                    }
+                }
+            ],
+            "candidate": [
+                {
+                    "kind": "statistics",
+                    "values": {
+                        "Files": "4",
+                        "Lines": "26",
+                        "Identifiers": "35",
+                        "Symbols": "38",
+                        "Types": "550",
+                        "Instantiations": "1",
+                        "CLR managed bytes": "7410656",
+                        "CLR allocated bytes": "945168",
+                        "Config time": "0.000s",
+                        "Program time": "0.002s",
+                        "Parse time (summed)": "0.001s",
+                        "Bind time (summed)": "0.001s",
+                        "Check time (summed)": "0.001s",
+                        "Emit time (summed)": "0.001s",
+                        "BuildInfo read time": "0.000s",
+                        "Changes compute time": "0.000s",
+                        "Total time": "0.009s"
+                    }
+                },
+                {
+                    "kind": "statistics",
+                    "values": {
+                        "Files": "4",
+                        "Lines": "26",
+                        "Identifiers": "35",
+                        "Symbols": "38",
+                        "Types": "335",
+                        "Instantiations": "0",
+                        "CLR managed bytes": "7398344",
+                        "CLR allocated bytes": "466608",
+                        "Config time": "0.000s",
+                        "Program time": "0.000s",
+                        "Parse time (summed)": "0.000s",
+                        "Bind time (summed)": "0.000s",
+                        "Check time (summed)": "0.000s",
+                        "Emit time (summed)": "0.000s",
+                        "BuildInfo read time": "0.000s",
+                        "Changes compute time": "0.000s",
+                        "Total time": "0.003s"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "TestGenerateTrace/tsc/generateTrace_with_multiple_files_and_complex_types",
+            "flag": "--generateTrace",
+            "inputHash": "de6218660988c6876263515b5e981c195ca3aa32b70f09da4dcae9cc16405785",
+            "controlHash": "b7401c533f906dcf0d0911b1f40ad06ba7f9cf6c51127d444073c64eba6b803c",
+            "controlMatches": true,
+            "reference": [
+                {
+                    "kind": "trace",
+                    "events": 33,
+                    "files": [
+                        "/home/src/workspaces/project/trace/trace.json",
+                        "/home/src/workspaces/project/trace/legend.json",
+                        "/home/src/workspaces/project/trace/types_0.json"
+                    ],
+                    "typeRecords": [
+                        {
+                            "checker": 0,
+                            "types": 122
+                        }
+                    ]
+                }
+            ],
+            "candidate": [
+                {
+                    "kind": "trace",
+                    "events": 38,
+                    "files": [
+                        "/home/src/workspaces/project/trace/trace.json",
+                        "/home/src/workspaces/project/trace/legend.json",
+                        "/home/src/workspaces/project/trace/types_0.json",
+                        "/home/src/workspaces/project/trace/types_1.json"
+                    ],
+                    "typeRecords": [
+                        {
+                            "checker": 0,
+                            "types": 67
+                        },
+                        {
+                            "checker": 1,
+                            "types": 109
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "TestTscExtends/tsbuild/resolves_the_symlink_path",
+            "flag": "--extendedDiagnostics",
+            "inputHash": "89ddd65271395466516d3971642635f90179127f00d72e09dd20de951a0df8cd",
+            "controlHash": "860d48148019728e2e6e45f3520a0c7e310b0a585bf84c0e58577e7107f47ba4",
+            "controlMatches": true,
+            "reference": [
+                {
+                    "kind": "statistics",
+                    "values": {
+                        "Files": "2",
+                        "Lines": "24",
+                        "Identifiers": "34",
+                        "Symbols": "47",
+                        "Types": "172",
+                        "Instantiations": "1",
+                        "Memory used": "2668K",
+                        "Memory allocs": "2682921",
+                        "Config time": "1.000s",
+                        "BuildInfo read time": "1.000s",
+                        "Parse time": "1.000s",
+                        "Bind time": "1.000s",
+                        "Check time": "1.000s",
+                        "Emit time": "5.000s",
+                        "Changes compute time": "1.000s",
+                        "Total time": "134.000s",
+                        "Projects in scope": "1",
+                        "Projects built": "1",
+                        "Timestamps only updates": "0",
+                        "Aggregate Files": "2",
+                        "Aggregate Lines": "24",
+                        "Aggregate Identifiers": "34",
+                        "Aggregate Symbols": "47",
+                        "Aggregate Types": "172",
+                        "Aggregate Instantiations": "1",
+                        "Aggregate Memory used": "2668K",
+                        "Aggregate Memory allocs": "2682921",
+                        "Aggregate Config time": "1.000s",
+                        "Aggregate BuildInfo read time": "1.000s",
+                        "Aggregate Parse time": "1.000s",
+                        "Aggregate Bind time": "1.000s",
+                        "Aggregate Check time": "1.000s",
+                        "Aggregate Emit time": "5.000s",
+                        "Aggregate Changes compute time": "1.000s",
+                        "Aggregate Total time": "136.000s"
+                    }
+                }
+            ],
+            "candidate": [
+                {
+                    "kind": "statistics",
+                    "values": {
+                        "Files": "2",
+                        "Lines": "24",
+                        "Identifiers": "32",
+                        "Symbols": "33",
+                        "Types": "280",
+                        "Instantiations": "1",
+                        "CLR managed bytes": "7332368",
+                        "CLR allocated bytes": "398928",
+                        "Config time": "0.000s",
+                        "Program time": "0.000s",
+                        "Parse time (summed)": "0.000s",
+                        "Bind time (summed)": "0.000s",
+                        "Check time (summed)": "0.000s",
+                        "Emit time (summed)": "0.000s",
+                        "BuildInfo read time": "0.000s",
+                        "Changes compute time": "0.000s",
+                        "Total time": "0.004s",
+                        "Projects in scope": "1",
+                        "Projects built": "1",
+                        "Timestamps only updates": "0",
+                        "Aggregate Files": "2",
+                        "Aggregate Lines": "24",
+                        "Aggregate Identifiers": "32",
+                        "Aggregate Symbols": "33",
+                        "Aggregate Types": "280",
+                        "Aggregate Instantiations": "1",
+                        "Aggregate CLR managed bytes": "7332368",
+                        "Aggregate CLR allocated bytes": "398928",
+                        "Aggregate Config time": "0.001s",
+                        "Aggregate Program time": "0.000s",
+                        "Aggregate Parse time (summed)": "0.000s",
+                        "Aggregate Bind time (summed)": "0.000s",
+                        "Aggregate Check time (summed)": "0.000s",
+                        "Aggregate Emit time (summed)": "0.000s",
+                        "Aggregate BuildInfo read time": "0.000s",
+                        "Aggregate Changes compute time": "0.000s",
+                        "Aggregate Total time": "0.006s"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "TestGenerateTrace/tsc/generateTrace_generates_types_file",
+            "flag": "--generateTrace",
+            "inputHash": "873708a2ceb18d7f80e8363054eb311ca3315f8eb020bdd4a4d3295edfd74aa5",
+            "controlHash": "eda6929682614805a5e1a9db683aaf25bcfe16c60bcda958cbe48ba991f3690d",
+            "controlMatches": true,
+            "reference": [
+                {
+                    "kind": "trace",
+                    "events": 26,
+                    "files": [
+                        "/home/src/workspaces/project/trace/trace.json",
+                        "/home/src/workspaces/project/trace/legend.json",
+                        "/home/src/workspaces/project/trace/types_0.json"
+                    ],
+                    "typeRecords": [
+                        {
+                            "checker": 0,
+                            "types": 95
+                        }
+                    ]
+                }
+            ],
+            "candidate": [
+                {
+                    "kind": "trace",
+                    "events": 31,
+                    "files": [
+                        "/home/src/workspaces/project/trace/trace.json",
+                        "/home/src/workspaces/project/trace/legend.json",
+                        "/home/src/workspaces/project/trace/types_0.json",
+                        "/home/src/workspaces/project/trace/types_1.json"
+                    ],
+                    "typeRecords": [
+                        {
+                            "checker": 0,
+                            "types": 67
+                        },
+                        {
+                            "checker": 1,
+                            "types": 84
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "TestTscExtends/tsc/resolves_the_symlink_path",
+            "flag": "--extendedDiagnostics",
+            "inputHash": "77d76063c5d7d6203cfba09a5f6825d563ccf5857e059fa490df14a7857b392f",
+            "controlHash": "27b63022970db8aecdda7441e8f93971ccca16aa7bea30e5159996f2947467ab",
+            "controlMatches": true,
+            "reference": [
+                {
+                    "kind": "statistics",
+                    "values": {
+                        "Files": "2",
+                        "Lines": "24",
+                        "Identifiers": "34",
+                        "Symbols": "47",
+                        "Types": "172",
+                        "Instantiations": "1",
+                        "Memory used": "2758K",
+                        "Memory allocs": "7395572",
+                        "Config time": "1.000s",
+                        "BuildInfo read time": "1.000s",
+                        "Parse time": "1.000s",
+                        "Bind time": "1.000s",
+                        "Check time": "1.000s",
+                        "Emit time": "4.000s",
+                        "Changes compute time": "1.000s",
+                        "Total time": "133.000s"
+                    }
+                }
+            ],
+            "candidate": [
+                {
+                    "kind": "statistics",
+                    "values": {
+                        "Files": "2",
+                        "Lines": "24",
+                        "Identifiers": "32",
+                        "Symbols": "33",
+                        "Types": "280",
+                        "Instantiations": "1",
+                        "CLR managed bytes": "11013136",
+                        "CLR allocated bytes": "406672",
+                        "Config time": "0.000s",
+                        "Program time": "0.000s",
+                        "Parse time (summed)": "0.000s",
+                        "Bind time (summed)": "0.000s",
+                        "Check time (summed)": "0.000s",
+                        "Emit time (summed)": "0.000s",
+                        "BuildInfo read time": "0.000s",
+                        "Changes compute time": "0.000s",
+                        "Total time": "0.005s"
+                    }
+                }
+            ]
+        }
+    ],
+    "profilingPolicy": "File/line/project counts and every non-profiling effect are exact. Backend-specific identifier/symbol/type counts, CLR allocation units, summed parallel phase durations, and actual trace/type graphs retain their recorded meanings and pass structural/consumer checks.",
+    "command": "node csharp/tools/scripted-builds.mjs --dotnet <dotnet.exe> --phase8 --record"
+}

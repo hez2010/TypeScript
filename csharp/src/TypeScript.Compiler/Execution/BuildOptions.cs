@@ -41,7 +41,11 @@ public sealed record ProjectBuildResult(Utf8String ConfigFile, ProjectBuildStatu
     IncrementalProgram? Program)
 {
     internal int TrailingMessageCount { get; init; }
+    internal Diagnostics.CompilationStatistics? Statistics { get; init; }
 }
 
 public sealed record BuildResult(CompilerExitStatus ExitStatus, IReadOnlyList<ProjectBuildResult> Projects,
-    IReadOnlyList<Diagnostic> Diagnostics, IReadOnlyList<Diagnostic> Messages);
+    IReadOnlyList<Diagnostic> Diagnostics, IReadOnlyList<Diagnostic> Messages)
+{
+    internal CompilationStatistics? Statistics { get; init; }
+}

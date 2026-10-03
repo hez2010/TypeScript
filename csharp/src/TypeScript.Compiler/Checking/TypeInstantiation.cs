@@ -147,6 +147,7 @@ internal sealed partial class TypeInstantiation(TypeContext context, TypeAlgebra
             if (!ownsScope && cache.TryGet(type.Id, key, out var cached))
                 return cached;
             TotalCount++;
+            context.Capture?.Instantiated();
             count++;
             depth++;
             Type result;

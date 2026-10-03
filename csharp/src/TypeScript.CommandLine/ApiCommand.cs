@@ -12,8 +12,9 @@ internal static class ApiCommand
             for (int i = 0; i < args.Length; i++)
             {
                 string argument = args[i];
-                if (!argument.StartsWith('-') || argument == "--") break;
-                string[] parts = argument.TrimStart('-').Split('=', 2); string name = parts[0];
+                string[]? parts = ServerFlags.Split(argument);
+                if (parts is null) break;
+                string name = parts[0];
                 bool boolean = name is "async" or "timing" or "runExternalCode";
                 if (name is "h" or "help")
                 {

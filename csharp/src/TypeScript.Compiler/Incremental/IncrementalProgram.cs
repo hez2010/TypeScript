@@ -57,16 +57,20 @@ public sealed partial class IncrementalProgram
             try { old = previous.snapshot.Copy(); }
             finally { previous.gate.Release(); }
         }
-        else if (reuseBuildInfo && IncrementalOptions.IsIncremental(result.Options) && result.BuildInfoFileName.Length != 0
-            && fileSystem.ReadFile(result.BuildInfoFileName) is { } bytes && BuildInfo.TryRead(bytes) is { IsIncremental: true, IsValidVersion: true } info)
+        else if (reuseBuildInfo && IncrementalOptions.IsIncremental(result.Options) && result.BuildInfoFileName.Length != 0)
         {
-            if (defaultLibraryDirectory.Length == 0 && fileSystem is LibraryFileSystem libraries) defaultLibraryDirectory = libraries.LibraryDirectory;
-            if (defaultLibraryDirectory.Length == 0) defaultLibraryDirectory = program.DefaultLibraryDirectory;
-            try { old = IncrementalSnapshot.FromBuildInfo(info, result.BuildInfoFileName, defaultLibraryDirectory, result.comparer); }
-            catch (InvalidDataException) { old = null; }
+            using var read = CompilationCapture.Current?.Begin("buildInfo"u8, "readBuildInfo"u8, result.BuildInfoFileName);
+            if (fileSystem.ReadFile(result.BuildInfoFileName) is { } bytes && BuildInfo.TryRead(bytes) is { IsIncremental: true, IsValidVersion: true } info)
+            {
+                if (defaultLibraryDirectory.Length == 0 && fileSystem is LibraryFileSystem libraries) defaultLibraryDirectory = libraries.LibraryDirectory;
+                if (defaultLibraryDirectory.Length == 0) defaultLibraryDirectory = program.DefaultLibraryDirectory;
+                try { old = IncrementalSnapshot.FromBuildInfo(info, result.BuildInfoFileName, defaultLibraryDirectory, result.comparer); }
+                catch (InvalidDataException) { old = null; }
+            }
         }
         if (old is not null && !old.MapperIdentities.SequenceEqual(identities)) old = null;
-        await result.InitializeAsync(old, cancellation).ConfigureAwait(false);
+        using (CompilationCapture.Current?.Begin("changes"u8, "computeIncrementalChanges"u8))
+            await result.InitializeAsync(old, cancellation).ConfigureAwait(false);
         cancellation.ThrowIfCancellationRequested();
         return result;
     }

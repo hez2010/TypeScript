@@ -14,6 +14,10 @@ internal static class Program
         Utf8String[] args = commandLine.Select(Utf8String.FromString).ToArray();
         try
         {
+            if (args is [var tracing] && tracing == "--tracing-safety"u8)
+            {
+                Console.WriteLine($"Tracing safety: {TracingTests.SafetyAsync().GetAwaiter().GetResult()} assertions"); return 0;
+            }
             if (args is [var lspWatchLines] && lspWatchLines == "--lsp-watch-lines"u8) { LspWatchTests.Lines(); return 0; }
             if (args is [var lspWatch] && lspWatch == "--lsp-watch-safety"u8)
             {

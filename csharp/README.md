@@ -1,4 +1,4 @@
-# C# backend experiments
+# C# backend preview
 
 This directory implements the C# backend in [the rewrite plan](../docs/csharp-rewrite-plan.md). It contains the compiler library, a development command-line executable, and compatibility harnesses. Candidate work never forwards to Go. Go is compiled separately as a pinned development oracle and remains the product backend until the replacement gates are complete.
 
@@ -14,13 +14,17 @@ Phase 7 is implemented and validated on Windows x64. It adds project snapshots a
 
 The [Server GC and Satori comparison](../docs/csharp-phase-4-gc-performance.md) measures self-contained Release builds against Go using the current SDK and invariant globalization.
 
-The latest [performance pass with tiered compilation](../docs/csharp-phase-4-tiered-performance.md) profiles construction and checking, removes repeated allocations, and compares the optimized builds with Go and the saved baseline. Benchmark runs now enable tiered compilation and retain runtime-default dynamic PGO.
+Phase 8 is implemented and validated within the agreed Windows x64 scope. It adds the optional `@typescript/csharp-preview` distribution, its byte-coordinate JavaScript clients, CLI statistics and trace/profile consumers, and the existing VS Code extension's SDK selection route. The [phase-8 report](../docs/csharp-phase-8-progress.md) records package installation, integration, 55 benchmark groups and the two-hour retention run. Release CoreCLR benchmarks have resumed; NativeAOT remains publish-only. Current CoreCLR startup and several service workloads are substantially slower than Go. Signing, native execution/performance, a distributable CPU baseline and the other retained platforms remain release gates.
+
+Run `npx hereby csharp:build` for the Release solution, `npx hereby csharp:test-package` to create and exercise an isolated managed validation package, or `npx hereby csharp:package` to publish NativeAOT npm tarballs and a standalone ZIP without executing the native artifact. These commands write under `built/csharp`; they do not publish to npm. See the phase-8 report for opt-in installation, signing and VS Code SDK selection.
+
+The earlier [performance pass with tiered compilation](../docs/csharp-phase-4-tiered-performance.md) profiles construction and checking, removes repeated allocations, and compares those builds with Go and their saved baseline. Benchmark runs enable tiered compilation and retain runtime-default dynamic PGO.
 
 Compiler text uses `Utf8String`, backed by `ReadOnlyMemory<byte>`, throughout scanning, the AST, binding, checking, hosts, and diagnostics. Slices and source ranges count bytes. Unescaped tokens borrow source memory; decoded escapes and generated text own UTF-8/WTF-8 buffers. The [UTF-8 migration report](../docs/csharp-utf8-migration.md) records its validation and performance, superseding the UTF-16 representation measured in the earlier [source-backed text report](../docs/csharp-phase-4-span-text.md).
 
-Use an installed .NET 11 SDK; the SDK version is not pinned. The current validation uses `11.0.100-rtm.26473.115`, with C# 15, `OptimizationPreference=Speed`, NativeAOT/trimming analysis, warning errors, and NuGet lockfiles. `NuGet.Config` adds the public `dotnet11` feed for matching nightly packs. The final target is .NET 11 GA; upgrades require refreshing and revalidating the evidence. Node 24 and Go 1.27.1 are required for the reference tooling. The existing Go backend and JS clients remain untouched.
+Use an installed .NET 11 SDK; the SDK version is not pinned. The current validation uses `11.0.100-rtm.26473.115`, with C# 15, `OptimizationPreference=Speed`, NativeAOT/trimming analysis, warning errors, and NuGet lockfiles. `NuGet.Config` adds the public `dotnet11` feed for matching nightly packs. The final target is .NET 11 GA; upgrades require refreshing and revalidating the evidence. Node 24 and Go 1.27.1 are required for the reference tooling. The existing Go backend remains the default product; the original JavaScript API sources only gain explicit snapshot type annotations needed by the current TypeScript compiler.
 
-Normal Release builds use CoreCLR settings. NativeAOT publishing is explicit: add `-p:PublishAot=true` to `dotnet publish`. Normal restores use `packages.lock.json`; AOT restores use `packages.aot.lock.json`. The compiler library remains managed IL for the publishing executable to compile. See [the current performance results](../docs/csharp-phase-4-compiler-performance.md).
+Normal Release builds use CoreCLR settings. NativeAOT publishing is explicit: add `-p:PublishAot=true` to `dotnet publish`. Normal restores use `packages.lock.json`; AOT restores use `packages.aot.lock.json`. The compiler library remains managed IL for the publishing executable to compile. See [the current performance results](../docs/csharp-phase-8-progress.md#performance-and-remaining-release-gates).
 
 Tools accept `--dotnet` where supported and otherwise use `DOTNET_ROOT` or `dotnet` from `PATH`. `InvariantGlobalization` removes the native globalization dependency. `--locale` validation uses registered language subtags generated from the pinned Go dependency by `generate-locales.mjs`; localized diagnostic resources remain available. Source text owns its original bytes, including malformed sequences. WTF-8 preserves JavaScript lone surrogates, and BCL span, SIMD, numeric-formatting, and rune APIs handle byte operations. Conversion to `System.String` is explicit at .NET boundaries such as Windows paths and process arguments; there is no UTF-16 compiler facade or position map.
 
@@ -36,14 +40,15 @@ From the repository root (PowerShell example):
 $go = 'D:\go1.27.1-20260904.9.windows-amd64\go\bin\go.exe'
 $env:DOTNET_ROOT = 'D:\dotnet-sdk-11.0.100-rtm.26473.115-win-x64'
 $dotnet = Join-Path $env:DOTNET_ROOT 'dotnet.exe'
-node csharp/tools/generate-schema.mjs
-node csharp/tools/generate-slice.mjs
-node csharp/tools/freeze-reference.mjs --go $go
-node --conditions @typescript/source csharp/tools/pipeline.mjs --go $go --dotnet $dotnet
-node csharp/tools/verify-profiles.mjs $go
-# Run alone, when the computer is available for measurement:
-node csharp/tools/measure-pipeline.mjs
+npx hereby csharp:build
+node csharp/tools/verify-generators.mjs --go $go
+npx hereby csharp:test-package
+node csharp/tools/vscode-integration.mjs
+npx hereby csharp:package
+node csharp/tools/verify-package.mjs
 ```
+
+The following tools describe the earlier foundation experiments. Their native execution commands are outside the current publish-only validation policy; phase 8 runs correctness and performance checks on Release CoreCLR.
 
 `freeze-reference` extracts the pinned sources into a new ignored directory, builds an embedded oracle, runs the Go suite, and records tests/assets/contracts. To import an already verified run from this exact revision, pass `--events <gotestsum.jsonl>`; the imported file hash is recorded, but the script cannot prove the provenance of an arbitrary external event file. The initial evidence imports the full reference run recorded in the plan. Refreshing the reference revision is an explicit operation, not an automatic update to current HEAD.
 

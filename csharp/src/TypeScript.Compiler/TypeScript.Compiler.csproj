@@ -5,8 +5,10 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <EmbedTypeScriptLibraries Condition="'$(EmbedTypeScriptLibraries)' == ''">true</EmbedTypeScriptLibraries>
     <DefineConstants Condition="'$(EmbedTypeScriptLibraries)' == 'true'">$(DefineConstants);EMBED_TYPESCRIPT_LIBRARIES</DefineConstants>
+    <TypeScriptVersion Condition="'$(TypeScriptVersion)' == ''">7.1.0-dev</TypeScriptVersion>
   </PropertyGroup>
   <ItemGroup>
+    <AssemblyMetadata Include="TypeScriptVersion" Value="$(TypeScriptVersion)" />
     <PackageReference Include="System.IO.Hashing" Version="11.0.0-rc.2.26470.103" />
   </ItemGroup>
   <ItemGroup>

@@ -10,14 +10,10 @@ Console.CancelKeyPress += cancel;
 try
 {
     if (args.Length > 0 && args[0] == "--api") return await ApiCommand.RunAsync(args[1..], cancellation.Token);
-    if (args.Length > 0 && args[0] == "--lsp")
-    {
-        await TypeScript.Compiler.LanguageServer.LanguageServer.RunAsync(new LibraryFileSystem(new PhysicalFileSystem()),
-            Console.OpenStandardInput(), Console.OpenStandardOutput(), new() { CurrentDirectory = Utf8String.FromString(Environment.CurrentDirectory), ErrorWriter = Console.Error }, cancellation.Token);
-        return 0;
-    }
+    if (args.Length > 0 && args[0] == "--lsp") return await LspCommand.RunAsync(args[1..], cancellation.Token);
     await using var command = new CompilerCommand(new LibraryFileSystem(new PhysicalFileSystem()),
-        Utf8String.FromString(Environment.CurrentDirectory), Console.Out, outputIsTerminal: !Console.IsOutputRedirected);
+        Utf8String.FromString(Environment.CurrentDirectory), Console.Out, outputIsTerminal: !Console.IsOutputRedirected)
+    { TerminalWidth = Console.IsOutputRedirected ? 0 : Console.WindowWidth };
     var status = await command.ExecuteAsync(args.Select(Utf8String.FromString).ToArray(), cancellation.Token);
     if (command.Watches is not null) await command.RunWatchAsync(cancellation.Token);
     return (int)status;

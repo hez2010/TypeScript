@@ -319,6 +319,7 @@ public sealed partial class CompilerProgram
 
         internal async ValueTask<CompilerProgram> Build()
         {
+            using var captured = CompilationCapture.Current?.Begin("program"u8, "createProgram"u8);
             ContentMapperHost? ownedHost = null;
             try
             {

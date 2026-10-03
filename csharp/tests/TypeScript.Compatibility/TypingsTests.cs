@@ -4,6 +4,8 @@ using System.Text;
 using System.Text.Json;
 using TypeScript.Compiler.Configuration;
 using TypeScript.Compiler.Hosts;
+using TypeScript.Compiler.LanguageServer;
+using TypeScript.Compiler.Protocol;
 using TypeScript.Compiler.Projects.TypeAcquisition;
 using TypeScript.Compiler.Projects;
 using TypeScript.Compiler.Resolution;
@@ -55,7 +57,53 @@ internal static class TypingsTests
         try { await installer.InstallAsync(Request("pkg0"u8)); Check(false, "A disposed installer must reject new work"); }
         catch (ObjectDisposedException) { assertions++; }
         assertions += await SessionSafetyAsync();
+        assertions += await LspSafetyAsync();
         return assertions;
+    }
+
+    private static async Task<int> LspSafetyAsync()
+    {
+        int checks = 0;
+        void Check(bool condition, string message) { checks++; if (!condition) throw new InvalidOperationException(message); }
+        var fs = new MemoryFileSystem(new Dictionary<Utf8String, byte[]>
+        {
+            ["/p/jsconfig.json"u8] = "{\"compilerOptions\":{\"noLib\":true},\"typeAcquisition\":{\"enable\":true,\"disableFilenameBasedTypeAcquisition\":true}}"u8.ToArray(),
+            ["/p/app.js"u8] = "import 'jquery';"u8.ToArray(),
+        });
+        var npm = new TestNpm(fs) { Block = "jquery"u8 };
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        var (server, client) = RpcTests.DuplexStream.Pair(); await using var clientOwner = client;
+        var running = LanguageServer.RunAsync(fs, server, server, new() { CurrentDirectory = "/p"u8, TypingsLocation = "/cache"u8, Npm = npm }, timeout.Token);
+        var peer = new RpcWire(client, client, false, 1_000_000);
+        int nextId = 0;
+        async ValueTask<RpcMessage> Request(Utf8String method, ReadOnlyMemory<byte> parameters = default)
+        {
+            var id = new RpcId(default, ++nextId);
+            await peer.WriteAsync(id, method, new(parameters), null, timeout.Token);
+            while (await peer.ReadAsync(timeout.Token) is { } response)
+            {
+                if (response.Method.IsEmpty) { Check(response.Id == id && response.Error is null, "LSP request succeeds while npm is pending"); return response; }
+                if (response.Id is not null) await peer.WriteAsync(response.Id, default, RpcResponse.Null, null, timeout.Token);
+            }
+            throw new EndOfStreamException();
+        }
+        try
+        {
+            await Request("initialize"u8, "{\"processId\":null,\"rootUri\":\"file:///p\",\"capabilities\":{}}"u8.ToArray());
+            await peer.WriteAsync(null, "initialized"u8, new("{}"u8.ToArray()), null, timeout.Token);
+            await peer.WriteAsync(null, "textDocument/didOpen"u8, new("{\"textDocument\":{\"uri\":\"file:///p/app.js\",\"languageId\":\"javascript\",\"version\":1,\"text\":\"import 'jquery';\"}}"u8.ToArray()), null, timeout.Token);
+            await Request("textDocument/diagnostic"u8, "{\"textDocument\":{\"uri\":\"file:///p/app.js\"}}"u8.ToArray());
+            await npm.Started.Task.WaitAsync(timeout.Token);
+            Check(npm.Calls.Count == 2, "LSP forwards the npm executor and typings location through its project session");
+            npm.Release.TrySetResult();
+            for (int attempt = 0; attempt < 100 && !fs.FileExists("/cache/node_modules/@types/jquery/index.d.ts"u8); attempt++) await Task.Delay(10, timeout.Token);
+            Check(fs.FileExists("/cache/node_modules/@types/jquery/index.d.ts"u8), "LSP automatic acquisition installs into the configured cache");
+            await Request("shutdown"u8);
+            await peer.WriteAsync(null, "exit"u8, default, null, timeout.Token);
+            await running.WaitAsync(timeout.Token);
+        }
+        finally { timeout.Cancel(); npm.Release.TrySetResult(); try { await running; } catch (OperationCanceledException) { } }
+        return checks;
     }
 
     private static async Task<int> SessionSafetyAsync()

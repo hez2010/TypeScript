@@ -4,6 +4,7 @@ import { copyFile, mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { root, output, run, json, sha256, referenceRevision } from "./common.mjs";
 import { normalize, profilingControl, withoutProfiling } from "./scripted-build-contracts.mjs";
+import { compareProfiling, inspectProfiling } from "./scripted-profiling-contracts.mjs";
 
 const option = (key, fallback) => process.argv.includes(key) ? process.argv[process.argv.indexOf(key) + 1] : fallback;
 const dotnet = option("--dotnet", "dotnet");
@@ -58,8 +59,11 @@ for (let index = 0; index < cases.length; index++) {
     catch { failures.push({ name: cases[index].name, suite: cases[index].suite, expected, actual }); }
 }
 const phase6 = process.argv.includes("--phase6");
+const phase8 = process.argv.includes("--phase8");
+assert.ok(!(phase6 && phase8));
 const deferredProfiles = [];
-if (phase6) {
+const completedProfiles = [];
+if (phase6 || phase8) {
     const controls = cases.map(profilingControl).filter(Boolean);
     if (controls.length) {
         const inputs = controls.map(control => control.input);
@@ -68,14 +72,24 @@ if (phase6) {
         for (let index = 0; index < controls.length; index++) {
             const control = controls[index], original = cases.findIndex(input => input.name === control.original);
             assert.deepEqual(normalize(actual[index], inputs[index]), normalize(expected[index], inputs[index]), `profiling-disabled control: ${control.original}`);
-            assert.deepEqual(withoutProfiling(goRecords[original], cases[original], control.flag), normalize(expected[index], inputs[index]), `reference non-profiling effects: ${control.original}`);
-            assert.deepEqual(withoutProfiling(csRecords[original], cases[original], control.flag), normalize(actual[index], inputs[index]), `candidate non-profiling effects: ${control.original}`);
-            deferredProfiles.push({ name: control.original, flag: control.flag, phase: 8, inputHash: sha256(JSON.stringify(cases[original])),
-                controlHash: sha256(JSON.stringify(inputs[index])), controlMatches: true, originalNonProfilingEffectsMatch: true });
+            if (phase8) {
+                const profile = compareProfiling(goRecords[original], csRecords[original], cases[original]);
+                assert.deepEqual(inspectProfiling(goRecords[original], cases[original], "reference").ordinary, normalize(expected[index], inputs[index]), `reference non-profiling effects: ${control.original}`);
+                assert.deepEqual(inspectProfiling(csRecords[original], cases[original], "candidate").ordinary, normalize(actual[index], inputs[index]), `candidate non-profiling effects: ${control.original}`);
+                completedProfiles.push({ name: control.original, flag: control.flag, inputHash: sha256(JSON.stringify(cases[original])),
+                    controlHash: sha256(JSON.stringify(inputs[index])), controlMatches: true, ...profile });
+            }
+            else {
+                assert.deepEqual(withoutProfiling(goRecords[original], cases[original], control.flag), normalize(expected[index], inputs[index]), `reference non-profiling effects: ${control.original}`);
+                assert.deepEqual(withoutProfiling(csRecords[original], cases[original], control.flag), normalize(actual[index], inputs[index]), `candidate non-profiling effects: ${control.original}`);
+                deferredProfiles.push({ name: control.original, flag: control.flag, phase: 8, inputHash: sha256(JSON.stringify(cases[original])),
+                    controlHash: sha256(JSON.stringify(inputs[index])), controlMatches: true, originalNonProfilingEffectsMatch: true });
+            }
         }
     }
 }
 const phase6Failures = failures.filter(failure => !deferredProfiles.some(control => control.name === failure.name));
+const phase8Failures = failures.filter(failure => !completedProfiles.some(control => control.name === failure.name));
 for (const [name, file] of Object.entries(binaries)) assert.equal(sha256(await readFile(file)), hashes[name], `${name} changed during replay`);
 const summary = { referenceRevision, cases: cases.length, cycles: cases.reduce((sum, item) => sum + item.steps.length, 0),
     strictMatches: cases.length - failures.length, failures: failures.length, hashes, inputHash: sha256(JSON.stringify(cases)),
@@ -83,9 +97,11 @@ const summary = { referenceRevision, cases: cases.length, cycles: cases.reduce((
     normalizedFields: ["stdout: status-report clock", "TS2783 internal iterator allocation id in diagnostic headers and stored message argument 0; source text and emitted bytes preserved",
         "input mtimes: original relative order in a deterministic clock", "input buildInfo.version: FakeTSVersion to pinned compiler version"],
     ...(phase6 ? { phase6TransitionMatches: cases.length - phase6Failures.length, phase6Failures: phase6Failures.length, deferredProfiles } : {}),
-    command: `node csharp/tools/scripted-builds.mjs --dotnet <dotnet.exe>${phase6 ? " --phase6" : ""} --record` };
+    ...(phase8 ? { phase8ContractMatches: cases.length - phase8Failures.length, phase8Failures: phase8Failures.length, completedProfiles,
+        profilingPolicy: "File/line/project counts and every non-profiling effect are exact. Backend-specific identifier/symbol/type counts, CLR allocation units, summed parallel phase durations, and actual trace/type graphs retain their recorded meanings and pass structural/consumer checks." } : {}),
+    command: `node csharp/tools/scripted-builds.mjs --dotnet <dotnet.exe>${phase6 ? " --phase6" : phase8 ? " --phase8" : ""} --record` };
 await json(path.join(directory, "failures.json"), failures); await json(path.join(directory, "summary.json"), summary);
 console.log(JSON.stringify(summary, null, 2));
 for (const failure of failures.slice(0, 40)) console.log(failure.name);
-if (process.argv.includes("--record")) await json(path.join(root, "csharp/compatibility/evidence/phase6-scripted-builds.json"), summary);
-assert.equal(phase6 ? phase6Failures.length : failures.length, 0);
+if (process.argv.includes("--record")) await json(path.join(root, `csharp/compatibility/evidence/${phase8 ? "phase8" : "phase6"}-scripted-builds.json`), summary);
+assert.equal(phase6 ? phase6Failures.length : phase8 ? phase8Failures.length : failures.length, 0);

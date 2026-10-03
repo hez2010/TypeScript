@@ -54,7 +54,7 @@ public sealed partial class ApiSession
             foreach (var diagnostic in diagnostics) WriteDiagnostic(writer, diagnostic, name =>
                 program.GetFile(name)?.Syntax.Source ?? program.ProjectReferences.Projects.Values
                     .FirstOrDefault(config => config.SourceFile?.FileName == name)?.SourceFile?.Source
-                ?? data.Snapshot.FileSystem.GetDocument(name)?.Source);
+                ?? data.Snapshot.FileSystem.GetDocument(name)?.Source, program);
             writer.WriteEndArray();
         });
 

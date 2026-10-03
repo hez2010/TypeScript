@@ -46,6 +46,7 @@ internal sealed partial class Checker
             RequireUsable();
             if (checkedFiles.Contains(file))
                 return;
+            using var captured = context.Capture?.Begin("check"u8, "checkSourceFile"u8, file.FileName, context.TraceRecorder?.Index);
             SourceFileGrammar(file);
             foreach (var statement in file.Statements!)
                 await CheckSourceElementAsync(statement, cancellation).ConfigureAwait(false);

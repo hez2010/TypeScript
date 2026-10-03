@@ -17,6 +17,7 @@ public sealed partial class ProjectBuilder
         var timestamps = new List<Utf8String>();
         IReadOnlyList<Utf8String> emitted = [];
         IncrementalProgram? incremental = null;
+        CompilationStatistics? statistics = null;
         CompilerExitStatus exit = CompilerExitStatus.Success;
         int trailingMessages = 0;
         if (options.Clean)
@@ -97,6 +98,7 @@ public sealed partial class ProjectBuilder
             return Result(originalStatus);
         }
         if (options.Verbose) messages.Add(new(Messages.Building_project_0, 0, 0, [Relative(task.Path)]));
+        await using var capture = CompilationCapture.Start(fileSystem, currentDirectory, task.Config!, allowTrace: false);
         var program = await CompilerProgram.CreateAsync(fileSystem, currentDirectory, task.Config!,
             previous: WatchMode && !options.Force ? task.Previous?.Program : null,
             defaultLibraryDirectory: libraryDirectory, mapperProject: task.Mapper, cancellation: cancellation).ConfigureAwait(false);
@@ -128,6 +130,7 @@ public sealed partial class ProjectBuilder
         if (errors.Count == 0) task.Output = emitted.Count != 0 ? emitted[0]
             : ConfigurationOutputs.GetFiles(task.Config, currentDirectory, fileSystem.CaseSensitive).FirstOrDefault();
         if (WatchMode) task.Previous = incremental;
+        statistics = capture?.Statistics(program);
         return Result(originalStatus);
 
         void AddConfigErrors()
@@ -136,7 +139,7 @@ public sealed partial class ProjectBuilder
             if (errors.Count != 0) exit = CompilerExitStatus.DiagnosticsWithOutputsSkipped;
         }
         ProjectBuildResult Result(ProjectBuildStatus? status = null) => new(task.Path, status ?? task.Status, exit,
-            errors, messages, emitted, deleted, timestamps, incremental) { TrailingMessageCount = trailingMessages };
+            errors, messages, emitted, deleted, timestamps, incremental) { TrailingMessageCount = trailingMessages, Statistics = statistics };
         void UpdateTimestamps(IReadOnlyList<Utf8String> emittedFiles, DiagnosticMessage message)
         {
             var written = emittedFiles.ToHashSet(comparer);

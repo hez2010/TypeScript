@@ -10,7 +10,10 @@ using TypeScript.Compiler.Programs;
 namespace TypeScript.Compiler.Watching;
 
 public sealed record WatchCycleResult(bool Rebuilt, IncrementalProgram? Program, IReadOnlyList<Diagnostic> Diagnostics,
-    IReadOnlyList<Utf8String> EmittedFiles, CompilerExitStatus ExitStatus, Diagnostic? Starting = null, Diagnostic? Finished = null);
+    IReadOnlyList<Utf8String> EmittedFiles, CompilerExitStatus ExitStatus, Diagnostic? Starting = null, Diagnostic? Finished = null)
+{
+    internal CompilationStatistics? Statistics { get; init; }
+}
 
 /// <summary>A serialized compiler watch session retaining incremental state and mapper projects between cycles.</summary>
 public sealed class ProjectWatchSession : IAsyncDisposable
@@ -121,6 +124,7 @@ public sealed class ProjectWatchSession : IAsyncDisposable
 
     private async ValueTask<WatchCycleResult> BuildAsync(bool initial, bool modified, CancellationToken cancellation)
     {
+        await using var capture = CompilationCapture.Start(fileSystem, currentDirectory, config, warnings, allowTrace: false);
         if (!config.FileName.IsEmpty && config.WildcardDirectories.Count != 0)
             config = new ConfigParser(fileSystem, currentDirectory).ReloadFiles(config, cancellation);
         var tracking = new DependencyFileSystem(fileSystem);
@@ -151,7 +155,7 @@ public sealed class ProjectWatchSession : IAsyncDisposable
         return new(true, next, diagnostics, emit.EmittedFiles, diagnostics.Count == 0 ? CompilerExitStatus.Success
             : emit.EmitSkipped ? CompilerExitStatus.DiagnosticsWithOutputsSkipped : CompilerExitStatus.DiagnosticsWithOutputsGenerated,
             new(initial ? Messages.Starting_compilation_in_watch_mode : Messages.File_change_detected_Starting_incremental_compilation, 0, 0, []),
-            reconciled ? Completed(diagnostics.Count) : null);
+            reconciled ? Completed(diagnostics.Count) : null) { Statistics = capture?.Statistics(graph) };
     }
 
     private void SetConfigPaths() => configPaths = config.FileName.IsEmpty ? [] : [config.FileName, .. config.ExtendedConfigFiles];

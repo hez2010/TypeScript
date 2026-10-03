@@ -21,6 +21,7 @@ public abstract class Type
         Id = context.NextTypeId();
         Flags = flags;
         ObjectFlags = objectFlags;
+        context.Capture?.TypeCreated(this, context.TraceRecorder);
     }
 
     public sealed override int GetHashCode() => unchecked((int)Id);

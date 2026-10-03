@@ -68,6 +68,7 @@ public sealed partial class Binder
         {
             if (entry.Value is { } cached)
                 return cached;
+            using var captured = Diagnostics.CompilationCapture.Current?.Begin("bind"u8, "bindSourceFile"u8, file.FileName);
             var binder = new Binder(file, cancellation);
             await binder.Visit(file).ConfigureAwait(false);
             binder.DeferredAssignments();

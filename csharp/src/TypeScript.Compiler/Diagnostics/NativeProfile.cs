@@ -65,6 +65,30 @@ public sealed partial class NativeProfile : IDisposable
         return profile;
     }
 
+    public static IDisposable BeginSession(Utf8String directory, TextWriter output)
+    {
+        Directory.CreateDirectory(directory.ToString());
+        Utf8String cpu = Hosts.CompilerPath.Combine(directory, Utf8String.Format(Environment.ProcessId) + "-cpuprofile.pb.gz"u8);
+        Utf8String memory = Hosts.CompilerPath.Combine(directory, Utf8String.Format(Environment.ProcessId) + "-memprofile.pb.gz"u8);
+        using (File.Create(cpu.ToString())) { }
+        return new ProcessSession(Start(), cpu, memory, output);
+    }
+
+    private sealed class ProcessSession(NativeProfile profile, Utf8String cpu, Utf8String memory, TextWriter output) : IDisposable
+    {
+        private bool disposed;
+        public void Dispose()
+        {
+            if (disposed) return;
+            disposed = true;
+            using (profile)
+            {
+                profile.StopCpu(cpu); profile.SaveAllocations(memory);
+                output.WriteLine($"Memory profile: {memory}\nCPU profile: {cpu}");
+            }
+        }
+    }
+
     public static Scope Enter(Utf8String phase)
     {
         NativeProfile? profile = Volatile.Read(ref active);
@@ -242,7 +266,7 @@ public sealed partial class NativeProfile : IDisposable
             0);
     }
 
-    internal void StopCpu(Utf8String path)
+    public void StopCpu(Utf8String path)
     {
         // Editor profiling may stop while unrelated requests still own instrumented scopes.
         // Their unfinished CPU time remains in the whole-process remainder, as documented for this profiler.
@@ -255,7 +279,7 @@ public sealed partial class NativeProfile : IDisposable
             Utf8Literals.InstrumentedCompilerPhaseThreadCPUTime, (long)(Stopwatch.GetElapsedTime(started).TotalMilliseconds * 1_000_000));
     }
 
-    internal void SaveAllocations(Utf8String path) => Write(path, [(Utf8Literals.AllocSpace, Utf8Literals.Bytes)],
+    public void SaveAllocations(Utf8String path) => Write(path, [(Utf8Literals.AllocSpace, Utf8Literals.Bytes)],
         [(new Utf8String[] { "Managed allocations, whole process"u8 }, new[] { GC.GetTotalAllocatedBytes(precise: true) })],
         "Measured cumulative managed allocation bytes; allocation-stack attribution is unavailable without an active instrumented profile."u8, 0);
 

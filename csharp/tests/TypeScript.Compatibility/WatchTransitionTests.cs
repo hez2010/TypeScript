@@ -204,7 +204,18 @@ internal static class WatchTransitionTests
                 OnWrite?.Invoke(path);
             }
         }
-        public void AppendFile(Utf8String path, ReadOnlySpan<byte> contents) => fs.AppendFile(path, contents);
+        public void AppendFile(Utf8String path, ReadOnlySpan<byte> contents)
+        {
+            lock (sync)
+            {
+                if (path == FailWrite) throw new IOException("test write failure");
+                fs.AppendFile(path, contents);
+                var complete = fs.ReadFile(path) ?? throw new IOException("Appended file was not readable");
+                int index = Writes.FindLastIndex(write => write.Path == path);
+                if (index < 0) Writes.Add((path, complete)); else Writes[index] = (path, complete);
+                var time = now(); fs.SetTimes(path, time, time); OnWrite?.Invoke(path);
+            }
+        }
         public void Remove(Utf8String path)
         {
             if (path == FailRemove) throw new IOException("test remove failure");

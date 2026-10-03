@@ -53,6 +53,8 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
         cancellation.ThrowIfCancellationRequested();
         var session = RentSession(kind);
         var operation = new RelationOperation(context, this, session, normalization, host, kind, reportErrors: true);
+        using var captured = context.Capture?.Begin("checkTypes"u8, "structuredTypeRelatedTo"u8,
+            checker: context.TraceRecorder?.Index, sourceId: source.Id, targetId: target.Id, sampled: true);
         try
         {
             var result = await operation.CompareAsync(source, target, cancellation: cancellation).ConfigureAwait(false);
@@ -142,6 +144,8 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
         }
         var session = RentSession(kind);
         var operation = new RelationOperation(context, this, session, normalization, host, kind);
+        using var captured = context.Capture?.Begin("checkTypes"u8, "structuredTypeRelatedTo"u8,
+            checker: context.TraceRecorder?.Index, sourceId: source.Id, targetId: target.Id, sampled: true);
         try
         {
             var result = await operation.CompareAsync(source, target, cancellation: cancellation).ConfigureAwait(false);

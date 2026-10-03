@@ -5,6 +5,7 @@ using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.LanguageServices;
 using TypeScript.Compiler.Projects;
+using TypeScript.Compiler.Programs;
 
 namespace TypeScript.Compiler.Api;
 
@@ -239,15 +240,22 @@ public sealed partial class ApiSession
             name => config.SourceFile?.FileName == name ? config.SourceFile.Source : null);
         writer.WriteEndArray(); writer.WriteEndObject();
     }
-    private static void WriteDiagnostic(Utf8JsonWriter writer, Diagnostic diagnostic, Func<Utf8String, SourceText?>? getSource = null)
+    private static void WriteDiagnostic(Utf8JsonWriter writer, Diagnostic diagnostic, Func<Utf8String, SourceText?>? getSource = null,
+        CompilerProgram? program = null)
     {
         writer.WriteStartObject();
-        var source = diagnostic.FileName is { } name ? getSource?.Invoke(name) : null;
-        int start = diagnostic.Start, end = diagnostic.Start + diagnostic.Length;
+        var fileName = diagnostic.FileName;
+        var source = fileName is { } name ? getSource?.Invoke(name) : null;
+        var mapping = !diagnostic.IsMapperFailure && fileName is { } mappedName ? program?.GetFile(mappedName)?.Mapping : null;
+        var presentation = mapping?.Present(diagnostic);
+        source = presentation?.Text ?? source;
+        int start = presentation?.Start ?? diagnostic.Start, end = start + (presentation?.Length ?? diagnostic.Length);
+        if (program is not null && mapping is not null)
+            fileName = program.SourceFiles.FirstOrDefault(file => file.SupplementalSourceFiles.Contains(mapping.Syntax.FileName))?.Syntax.FileName ?? fileName;
         if (source is not null)
         {
             start = Math.Clamp(start, 0, source.Length); end = Math.Clamp(end, start, source.Length);
-            ApiJson.String(writer, "fileName"u8, diagnostic.FileName!.Value);
+            ApiJson.String(writer, "fileName"u8, fileName!.Value);
         }
         writer.WriteNumber("pos"u8, start); writer.WriteNumber("end"u8, end);
         if (source is not null)
@@ -266,18 +274,23 @@ public sealed partial class ApiSession
         }
         writer.WriteNumber("code"u8, (int)diagnostic.Code); writer.WriteNumber("category"u8, (int)diagnostic.Message.Category);
         if (diagnostic.Source is { IsEmpty: false } prefix) ApiJson.String(writer, "source"u8, prefix);
-        ApiJson.String(writer, "text"u8, diagnostic.Message.Format(arguments: diagnostic.Arguments));
+        ApiJson.String(writer, "text"u8, presentation is { } mapped && diagnostic.Source is null
+            ? mapped.Message : diagnostic.Message.Format(arguments: diagnostic.Arguments));
         if (diagnostic.Message.ReportsUnnecessary) writer.WriteBoolean("reportsUnnecessary"u8, true);
         if (diagnostic.Message.ReportsDeprecated) writer.WriteBoolean("reportsDeprecated"u8, true);
-        if (diagnostic.MessageChain.Count != 0)
+        if (diagnostic.MessageChain.Count != 0 || presentation is { Synthesized: true })
         {
             writer.WritePropertyName("messageChain"u8); writer.WriteStartArray();
-            foreach (var child in diagnostic.MessageChain) WriteDiagnostic(writer, child, getSource); writer.WriteEndArray();
+            foreach (var child in diagnostic.MessageChain) WriteDiagnostic(writer, child, getSource, program);
+            if (mapping is not null && presentation is { Synthesized: true })
+                WriteDiagnostic(writer, new(Messages.This_location_is_in_virtual_code_produced_by_the_content_mapper_0_and_has_no_corresponding_location_in_the_original_file,
+                    -1, 0, [mapping.MapperIdentity]));
+            writer.WriteEndArray();
         }
         if (diagnostic.RelatedInformation.Count != 0)
         {
             writer.WritePropertyName("relatedInformation"u8); writer.WriteStartArray();
-            foreach (var child in diagnostic.RelatedInformation) WriteDiagnostic(writer, child, getSource); writer.WriteEndArray();
+            foreach (var child in diagnostic.RelatedInformation) WriteDiagnostic(writer, child, getSource, program); writer.WriteEndArray();
         }
         writer.WriteEndObject();
         void Position((int Line, int Character) position)

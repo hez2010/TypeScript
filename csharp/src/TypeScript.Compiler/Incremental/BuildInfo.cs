@@ -34,7 +34,9 @@ public enum FileEmitKind
 /// <summary>The persisted build format shared with the pinned compiler, including byte diagnostic positions.</summary>
 public sealed class BuildInfo
 {
-    public static Utf8String CompilerVersion => "7.1.0-dev"u8;
+    public static Utf8String CompilerVersion { get; } = Utf8String.FromString(
+        System.Reflection.CustomAttributeExtensions.GetCustomAttributes<System.Reflection.AssemblyMetadataAttribute>(typeof(BuildInfo).Assembly)
+            .Single(attribute => attribute.Key == "TypeScriptVersion").Value!);
     public Utf8String Version { get; set; } = CompilerVersion;
     public bool Errors { get; set; }
     public bool CheckPending { get; set; }

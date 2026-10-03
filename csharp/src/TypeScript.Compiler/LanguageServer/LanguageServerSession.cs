@@ -216,6 +216,8 @@ internal sealed partial class LanguageServerSession(IFileSystem fileSystem, Lang
         if (Get(initializationOptions, "logVerbosity"u8) is { ValueKind: JsonValueKind.Number } level && level.TryGetInt32(out int verbosity) && verbosity is >= 0 and <= 5)
             logger.SetVerbosity(verbosity);
         if (Array(Get(Get(capabilities, "general"u8), "positionEncodings"u8)).Any(value => String(value) == "utf-8"u8)) encoding = PositionEncoding.Utf8;
+        if (Get(input, "processId"u8) is { ValueKind: JsonValueKind.Number } processId && processId.TryGetInt32(out int parent))
+            options.SetParentProcessId?.Invoke(parent);
         state = 1;
         return RpcResponse.Json(writer =>
         {
@@ -306,7 +308,7 @@ internal sealed partial class LanguageServerSession(IFileSystem fileSystem, Lang
                 MapperLog = logger.MapperMessage,
                 Progress = progress is null ? null : progress.EnqueueAsync,
                 TrackFileWatches = SupportsFileWatching,
-            });
+            }, options.Npm);
             StartDiagnostics();
             StartContentMapperRegistrations();
             StartFileWatching();

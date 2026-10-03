@@ -6,6 +6,7 @@ using TypeScript.Compiler.Incremental;
 using TypeScript.Compiler.Mapping;
 using TypeScript.Compiler.Programs;
 using TypeScript.Compiler.Watching;
+using System.Diagnostics;
 
 namespace TypeScript.Compiler.Execution;
 
@@ -70,6 +71,7 @@ public sealed partial class ProjectBuilder : IAsyncDisposable
     public async ValueTask<BuildResult> BuildAsync(IReadOnlyList<Utf8String> projectPaths, BuildOptions? options = null,
         CancellationToken cancellation = default)
     {
+        long started = Stopwatch.GetTimestamp();
         options ??= new();
         ArgumentOutOfRangeException.ThrowIfLessThan(options.Builders, 1);
         await gate.WaitAsync(cancellation).ConfigureAwait(false);
@@ -77,6 +79,7 @@ public sealed partial class ProjectBuilder : IAsyncDisposable
         {
             ObjectDisposedException.ThrowIf(disposed, this);
             var (order, graphErrors) = await CreateGraphAsync(projectPaths.Count == 0 ? ["."u8] : projectPaths, cancellation).ConfigureAwait(false);
+            double configTime = Stopwatch.GetElapsedTime(started).TotalSeconds;
             buildOrder = order;
             var messages = new List<Diagnostic>();
             if (options.Verbose && !options.Clean)
@@ -101,7 +104,10 @@ public sealed partial class ProjectBuilder : IAsyncDisposable
                 if (deleted.Length != 0) messages.Add(new(Messages.A_non_dry_build_would_delete_the_following_files_Colon_0, 0, 0,
                     [Utf8String.Concat(deleted.Select(path => "\r\n * "u8 + path))]));
             }
-            return new(results.Select(result => result.ExitStatus).DefaultIfEmpty().Max(), results, diagnostics, messages);
+            var statistics = overrides.Diagnostics == true || overrides.ExtendedDiagnostics == true || results.Any(result => result.Statistics is not null)
+                ? CompilationStatistics.Aggregate(results.Select(result => result.Statistics).OfType<CompilationStatistics>(), Stopwatch.GetElapsedTime(started).TotalSeconds) : null;
+            if (statistics is not null) statistics = statistics with { ConfigTime = statistics.ConfigTime + configTime };
+            return new(results.Select(result => result.ExitStatus).DefaultIfEmpty().Max(), results, diagnostics, messages) { Statistics = statistics };
 
             async Task BuildAfterDependenciesAsync(ProjectTask project, Task[] dependencies)
             {

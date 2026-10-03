@@ -39,12 +39,14 @@ internal sealed partial class Checker
         cancellation.ThrowIfCancellationRequested();
         var options = program.Configuration.Options;
         var context = new TypeContext(options.EffectiveStrictNullChecks, options.ExactOptionalPropertyTypes == true);
+        using var captured = context.Capture?.Begin("bind"u8, "createChecker"u8, checker: context.TraceRecorder?.Index);
         var links = new CheckerLinks();
         var environment = new CheckerEnvironment(context, links);
         Checker? checker = null;
         await CheckerSymbols.CreateAsync(program, links, environment, cancellation,
             _ => checker = new(context, links, environment)).ConfigureAwait(false);
         cancellation.ThrowIfCancellationRequested();
+        if (context.TraceRecorder is { } recorder) recorder.Checker = checker;
         return checker!;
     }
 

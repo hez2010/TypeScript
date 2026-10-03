@@ -53,6 +53,15 @@ func(f *trackingFS) WriteFile(path, text string) error {
 	w := write{Path: path}; if strings.HasSuffix(path, ".tsbuildinfo") { w.BuildInfo = json.RawMessage(text) } else { w.TextBase64 = base64.StdEncoding.EncodeToString([]byte(text)) }
 	f.writes = append(f.writes, w); return nil
 }
+func(f *trackingFS) AppendFile(path, text string) error {
+	if path == f.failWrite { return fmt.Errorf("test write failure") }
+	f.mutex.Lock(); defer f.mutex.Unlock()
+	if err := f.FS.AppendFile(path, text); err != nil { return err }
+	complete,ok:=f.FS.ReadFile(path);if !ok{return fmt.Errorf("appended file was not readable: %s",path)}
+	w:=write{Path:path,TextBase64:base64.StdEncoding.EncodeToString([]byte(complete))}
+	for i:=len(f.writes)-1;i>=0;i--{if f.writes[i].Path==path{f.writes[i]=w;return nil}}
+	f.writes=append(f.writes,w);return nil
+}
 func(f *trackingFS) Remove(path string) error {
 	if path == f.failRemove { return fmt.Errorf("test remove failure") }
 	if err := f.FS.Remove(path); err != nil { return err }

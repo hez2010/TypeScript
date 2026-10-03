@@ -1,0 +1,61 @@
+using System.Globalization;
+
+namespace TypeScript.Compiler.Diagnostics;
+
+internal sealed record CompilationStatistics
+{
+    internal long Files { get; init; }
+    internal long Lines { get; init; }
+    internal long Identifiers { get; init; }
+    internal long Symbols { get; init; }
+    internal long Types { get; init; }
+    internal long Instantiations { get; init; }
+    internal long ManagedBytes { get; init; }
+    internal long AllocatedBytes { get; init; }
+    internal double ConfigTime { get; init; }
+    internal double ProgramTime { get; init; }
+    internal double ParseTime { get; init; }
+    internal double BindTime { get; init; }
+    internal double CheckTime { get; init; }
+    internal double EmitTime { get; init; }
+    internal double BuildInfoTime { get; init; }
+    internal double ChangesTime { get; init; }
+    internal double TotalTime { get; init; }
+
+    internal void Report(TextWriter output, int? projects = null, int built = 0, int timestamps = 0)
+    {
+        var rows = new List<(string Name, string Value)>();
+        string prefix = projects is null ? "" : "Aggregate ";
+        void Count(string name, long value) => rows.Add((prefix + name, value.ToString(CultureInfo.InvariantCulture)));
+        void Time(string name, double value) => rows.Add((prefix + name, value.ToString("F3", CultureInfo.InvariantCulture) + "s"));
+        if (projects is { } total)
+        {
+            rows.Add(("Projects in scope", total.ToString(CultureInfo.InvariantCulture)));
+            rows.Add(("Projects built", built.ToString(CultureInfo.InvariantCulture)));
+            rows.Add(("Timestamps only updates", timestamps.ToString(CultureInfo.InvariantCulture)));
+        }
+        Count("Files", Files); Count("Lines", Lines); Count("Identifiers", Identifiers); Count("Symbols", Symbols);
+        Count("Types", Types); Count("Instantiations", Instantiations);
+        Count("CLR managed bytes", ManagedBytes); Count("CLR allocated bytes", AllocatedBytes);
+        Time("Config time", ConfigTime); Time("Program time", ProgramTime);
+        Time("Parse time (summed)", ParseTime); Time("Bind time (summed)", BindTime); Time("Check time (summed)", CheckTime);
+        Time("Emit time (summed)", EmitTime); Time("BuildInfo read time", BuildInfoTime); Time("Changes compute time", ChangesTime); Time("Total time", TotalTime);
+        int nameWidth = rows.Max(row => row.Name.Length) + 1, valueWidth = rows.Max(row => row.Value.Length);
+        foreach (var row in rows) output.WriteLine((row.Name + ":").PadRight(nameWidth) + " " + row.Value.PadLeft(valueWidth));
+    }
+
+    internal static CompilationStatistics Aggregate(IEnumerable<CompilationStatistics> values, double elapsed)
+    {
+        var entries = values.ToArray();
+        return new()
+        {
+            Files = entries.Sum(value => value.Files), Lines = entries.Sum(value => value.Lines), Identifiers = entries.Sum(value => value.Identifiers),
+            Symbols = entries.Sum(value => value.Symbols), Types = entries.Sum(value => value.Types), Instantiations = entries.Sum(value => value.Instantiations),
+            ManagedBytes = entries.Sum(value => value.ManagedBytes), AllocatedBytes = entries.Sum(value => value.AllocatedBytes),
+            ConfigTime = entries.Sum(value => value.ConfigTime), ProgramTime = entries.Sum(value => value.ProgramTime),
+            ParseTime = entries.Sum(value => value.ParseTime), BindTime = entries.Sum(value => value.BindTime), CheckTime = entries.Sum(value => value.CheckTime),
+            EmitTime = entries.Sum(value => value.EmitTime), BuildInfoTime = entries.Sum(value => value.BuildInfoTime), ChangesTime = entries.Sum(value => value.ChangesTime),
+            TotalTime = elapsed,
+        };
+    }
+}

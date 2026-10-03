@@ -1,10 +1,12 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
 using TypeScript.Compiler.Configuration;
+using TypeScript.Compiler.Api;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Mapping;
 using TypeScript.Compiler.Programs;
+using TypeScript.Compiler.Protocol;
 using TypeScript.Compiler.Syntax;
 using TypeScript.Compiler.Text;
 
@@ -289,7 +291,7 @@ internal static class ContentMapperTests
         Directory.CreateDirectory(packageDirectory.ToString());
         await File.WriteAllTextAsync(
             Path.Combine(packageDirectory.ToString(), "package.json"),
-            (Utf8String.Copy("{\"name\":\"fixture\",\"version\":\"1\",\"typescript\":{\"contentMapper\":{\"exec\":[\"node\","u8) + Quoted(fixture) + "]}}}"u8).ToString());
+            (Utf8String.Copy("{\"name\":\"fixture\",\"version\":\"1\",\"typescript\":{\"contentMapper\":{\"exec\":[\"node\","u8) + Quoted(fixture) + ",\"utf-8\"]}}}"u8).ToString());
         await File.WriteAllTextAsync(
             Path.Combine(physicalProject.ToString(), "tsconfig.json"),
             "{\"compilerOptions\":{\"noLib\":true,\"noEmit\":true},\"include\":[\"*.view\"],\"contentMappers\":[{\"package\":\"fixture\",\"extensions\":[\".view\"]}]}");
@@ -303,6 +305,31 @@ internal static class ContentMapperTests
         Check(
             physicalProgram.SourceFiles.Single().Mapping is not null,
             "Owned mapper host executes a configuration-discovered package and closes it after construction"u8);
+        Utf8String prefix = "<!-- 世界 😀 -->\n"u8, virtualText = "export const value: number = \"bad\";\n"u8;
+        Utf8String configFile = CompilerPath.Combine(physicalProject, "tsconfig.json"u8);
+        await File.WriteAllTextAsync(Path.Combine(physicalProject.ToString(), "main.view"), (prefix + virtualText).ToString());
+        await File.WriteAllTextAsync(configFile.ToString(), (Utf8String.Copy("{\"compilerOptions\":{\"noLib\":true},\"files\":[\"main.view\"],\"contentMappers\":[{\"package\":\"fixture\",\"extensions\":[\".view\"],\"options\":{\"result\":{\"text\":"u8)
+            + Quoted(virtualText) + ",\"extension\":\".ts\",\"mappings\":[[0,"u8 + Utf8String.Format(virtualText.Length)
+            + ","u8 + Utf8String.Format(prefix.Length) + ","u8 + Utf8String.Format(virtualText.Length) + ",0]]}}}]}"u8).ToString());
+        await using (var api = new ApiSession(physical, new() { CurrentDirectory = physicalProject, RunExternalCode = true }))
+        {
+            var handler = (IRpcHandler)api;
+            var snapshot = Json(new((await handler.HandleRequestAsync("createSnapshot"u8,
+                (Utf8String.Copy("{\"openProjects\":["u8) + Quoted(configFile) + "]}"u8).Memory, default)).Data));
+            Utf8String parameters = Utf8String.Copy("{\"snapshot\":"u8) + Utf8String.Format(snapshot.GetProperty("snapshot").GetUInt64())
+                + ",\"project\":"u8 + Quoted(JsonStrings.GetString(snapshot.GetProperty("projects")[0].GetProperty("id"u8))) + "}"u8;
+            var diagnostics = Json(new((await handler.HandleRequestAsync("getSemanticDiagnostics"u8, parameters.Memory, default)).Data));
+            Check(diagnostics.GetArrayLength() == 1 && diagnostics[0].GetProperty("code").GetInt32() == 2322,
+                "Mapped API returns the semantic type error"u8);
+            var diagnostic = diagnostics[0];
+            Check(diagnostic.GetProperty("pos").GetInt32() == prefix.Length + 13 && diagnostic.GetProperty("end").GetInt32() == prefix.Length + 18,
+                "Mapped API diagnostic spans refer to original UTF-8 source"u8);
+            Check(diagnostic.GetProperty("startPosition").GetProperty("line").GetInt32() == 1
+                && diagnostic.GetProperty("startPosition").GetProperty("character").GetInt32() == 13,
+                "Mapped API diagnostic line and column refer to original source"u8);
+            Check(diagnostic.GetProperty("sourceLines")[0].GetProperty("text").ValueEquals(virtualText.Span),
+                "Mapped API diagnostic formatting context preserves source text"u8);
+        }
         var syntax = Parser.ParseSourceFile(new("/project/test.view"u8, ScriptKind.TS), new SourceText("__field + generated"u8));
         var map = new MappedSourceFile(syntax, new SourceText("field"u8), new SpanMap([new(0, 7, 0, 5, MappingKind.Alias)]),
             "/project/test.view.ts"u8,

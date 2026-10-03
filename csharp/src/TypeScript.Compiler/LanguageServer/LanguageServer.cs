@@ -1,6 +1,7 @@
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Configuration;
 using TypeScript.Compiler.Protocol;
+using TypeScript.Compiler.Projects.TypeAcquisition;
 
 namespace TypeScript.Compiler.LanguageServer;
 
@@ -15,6 +16,8 @@ public sealed record LanguageServerOptions
     public TimeSpan ProgressDelay { get; init; }
     public TimeProvider TimeProvider { get; init; } = TimeProvider.System;
     public Func<System.Diagnostics.ProcessStartInfo, System.Diagnostics.Process>? StartMapperProcess { get; init; }
+    public Action<int>? SetParentProcessId { get; init; }
+    public INpmExecutor? Npm { get; init; }
     internal Watching.IWatchBackend? WatchBackend { get; init; }
 }
 

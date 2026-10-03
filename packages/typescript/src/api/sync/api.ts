@@ -637,7 +637,7 @@ export class API<FromLSP extends boolean = false> implements FormatDiagnosticsHo
             const requestParams = toCreateSnapshotRequest(params);
             const data = owner.client.apiRequest("createSnapshot", requestParams);
 
-            const snapshot = new Snapshot(
+            const snapshot: Snapshot = new Snapshot(
                 data,
                 owner.client,
                 owner.sourceFileCache,
@@ -662,7 +662,7 @@ export class API<FromLSP extends boolean = false> implements FormatDiagnosticsHo
             const requestParams = toCreateSnapshotRequest(params);
             const data = yield* apiRequest("createSnapshot", requestParams);
 
-            const snapshot = new Snapshot(
+            const snapshot: Snapshot = new Snapshot(
                 data,
                 owner.client,
                 owner.sourceFileCache,
@@ -701,7 +701,7 @@ export class API<FromLSP extends boolean = false> implements FormatDiagnosticsHo
                     changes: toCreateSnapshotRequest(params),
                 });
                 owner.sourceFileCache.retainForSnapshot(data.snapshot, baseSnapshot.id, data.changes);
-                const snapshot = new Snapshot(
+                const snapshot: Snapshot = new Snapshot(
                     data,
                     owner.client,
                     owner.sourceFileCache,
@@ -728,7 +728,7 @@ export class API<FromLSP extends boolean = false> implements FormatDiagnosticsHo
                     changes: toCreateSnapshotRequest(params),
                 });
                 owner.sourceFileCache.retainForSnapshot(data.snapshot, baseSnapshot.id, data.changes);
-                const snapshot = new Snapshot(
+                const snapshot: Snapshot = new Snapshot(
                     data,
                     owner.client,
                     owner.sourceFileCache,
@@ -793,7 +793,7 @@ export class API<FromLSP extends boolean = false> implements FormatDiagnosticsHo
             if (baseSnapshot) {
                 owner.sourceFileCache.retainForSnapshot(data.snapshot, baseSnapshot.id, data.changes);
             }
-            const snapshot = new Snapshot(
+            const snapshot: Snapshot = new Snapshot(
                 data,
                 owner.client,
                 owner.sourceFileCache,
@@ -829,7 +829,7 @@ export class API<FromLSP extends boolean = false> implements FormatDiagnosticsHo
             if (baseSnapshot) {
                 owner.sourceFileCache.retainForSnapshot(data.snapshot, baseSnapshot.id, data.changes);
             }
-            const snapshot = new Snapshot(
+            const snapshot: Snapshot = new Snapshot(
                 data,
                 owner.client,
                 owner.sourceFileCache,

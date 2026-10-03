@@ -84,7 +84,7 @@ public sealed partial class ApiSession
             writer.WriteStartObject(); writer.WriteBoolean("emitSkipped"u8, result.EmitSkipped);
             writer.WritePropertyName("diagnostics"u8); writer.WriteStartArray();
             foreach (var diagnostic in result.Diagnostics) WriteDiagnostic(writer, diagnostic, name => program.GetFile(name)?.Syntax.Source
-                ?? program.ProjectReferences.Projects.Values.FirstOrDefault(config => config.SourceFile?.FileName == name)?.SourceFile?.Source);
+                ?? program.ProjectReferences.Projects.Values.FirstOrDefault(config => config.SourceFile?.FileName == name)?.SourceFile?.Source, program);
             writer.WriteEndArray();
             if (method == "emit"u8)
             {

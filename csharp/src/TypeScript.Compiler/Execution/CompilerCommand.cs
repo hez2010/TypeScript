@@ -6,6 +6,7 @@ using TypeScript.Compiler.Incremental;
 using TypeScript.Compiler.Mapping;
 using TypeScript.Compiler.Programs;
 using TypeScript.Compiler.Watching;
+using System.Diagnostics;
 
 namespace TypeScript.Compiler.Execution;
 
@@ -55,6 +56,7 @@ public sealed partial class CompilerCommand : IAsyncDisposable
         var command = new CommandLineParser(fileSystem, currentDirectory).Parse(arguments, build);
         options = command.Options;
         if (command.Diagnostics.Length != 0) return ReportErrors(command.Diagnostics, CompilerExitStatus.DiagnosticsWithOutputsSkipped);
+        using var profile = options.PprofDir is { IsEmpty: false } profileDirectory ? NativeProfile.BeginSession(profileDirectory, output) : null;
         await mapperHost.SetLocaleAsync(options.Locale ?? default, cancellation).ConfigureAwait(false);
         if (build)
         {
@@ -81,6 +83,7 @@ public sealed partial class CompilerCommand : IAsyncDisposable
         if (options.Help == true || options.All == true) { PrintHelp(false); return CompilerExitStatus.Success; }
         if (options.Watch == true && options.ListFilesOnly == true)
             return ReportError(Messages.Options_0_and_1_cannot_be_combined, "watch"u8, "listFilesOnly"u8);
+        long configStarted = Stopwatch.GetTimestamp();
         var parser = new ConfigParser(fileSystem, currentDirectory);
         Utf8String? configPath = null;
         if (options.Project is { IsEmpty: false } project)
@@ -119,6 +122,8 @@ public sealed partial class CompilerCommand : IAsyncDisposable
             Report(await projectWatch.StartAsync(cancellation).ConfigureAwait(false));
             return CompilerExitStatus.Success;
         }
+        double configTime = Stopwatch.GetElapsedTime(configStarted).TotalSeconds;
+        await using var capture = CompilationCapture.Start(fileSystem, currentDirectory, config, output);
         await using var mapper = config.ContentMappers.Length != 0 && config.Options.RunExternalCode == true
             ? await mapperHost.GetProjectAsync(config, cancellation).ConfigureAwait(false) : null;
         var graph = await CompilerProgram.CreateAsync(fileSystem, currentDirectory, config, defaultLibraryDirectory: libraryDirectory,
@@ -134,6 +139,7 @@ public sealed partial class CompilerCommand : IAsyncDisposable
         foreach (var diagnostic in diagnostics) WriteDiagnostic(diagnostic, graph);
         ListFiles(graph, emit.EmittedFiles);
         if (Pretty(config.Options)) DiagnosticReporter.WriteSummary(output, diagnostics, fileSystem, currentDirectory, graph, options.Locale);
+        if (config.Options.Diagnostics == true || config.Options.ExtendedDiagnostics == true) capture?.Statistics(graph, configTime).Report(output);
         return diagnostics.Count == 0 ? CompilerExitStatus.Success : emit.EmitSkipped
             ? CompilerExitStatus.DiagnosticsWithOutputsSkipped : CompilerExitStatus.DiagnosticsWithOutputsGenerated;
     }
@@ -161,6 +167,7 @@ public sealed partial class CompilerCommand : IAsyncDisposable
         foreach (var diagnostic in result.Diagnostics) WriteDiagnostic(diagnostic, result.Program?.Program);
         if (result.Rebuilt && result.Program is { } program) ListFiles(program.Program, result.EmittedFiles);
         if (result.Rebuilt && Pretty(configOptions)) DiagnosticReporter.WriteSummary(output, result.Diagnostics, fileSystem, currentDirectory, result.Program?.Program, options.Locale);
+        result.Statistics?.Report(output);
         if (result.Finished is { } finished) DiagnosticReporter.WriteStatus(output, finished, now(), options.Locale, Pretty(configOptions));
     }
 
@@ -173,7 +180,11 @@ public sealed partial class CompilerCommand : IAsyncDisposable
 
     private void Report(BuildResult result, bool clean)
     {
-        if (options.Quiet == true) return;
+        if (options.Quiet == true)
+        {
+            foreach (var project in result.Projects) project.Statistics?.Report(output);
+            ReportAggregateStatistics(result); return;
+        }
         if (!clean) foreach (var message in result.Messages) DiagnosticReporter.WriteStatus(output, message, now(), options.Locale, Pretty());
         if (result.Projects.Count == 0) foreach (var diagnostic in result.Diagnostics) WriteDiagnostic(diagnostic);
         foreach (var project in result.Projects)
@@ -182,10 +193,16 @@ public sealed partial class CompilerCommand : IAsyncDisposable
             if (project.Program is { } tracedProgram) WriteResolutionTrace(tracedProgram.Program);
             foreach (var diagnostic in project.Diagnostics) WriteDiagnostic(diagnostic, project.Program?.Program);
             if (project.Program is { } program) { Program = program; ListFiles(program.Program, project.EmittedFiles); }
+            project.Statistics?.Report(output);
             foreach (var message in project.Messages.TakeLast(project.TrailingMessageCount)) DiagnosticReporter.WriteStatus(output, message, now(), options.Locale, Pretty());
         }
         if (clean) foreach (var message in result.Messages) DiagnosticReporter.WriteStatus(output, message, now(), options.Locale, Pretty());
+        ReportAggregateStatistics(result);
     }
+
+    private void ReportAggregateStatistics(BuildResult result) => result.Statistics?.Report(output, result.Projects.Count,
+        result.Projects.Count(project => project.Statistics is not null),
+        result.Projects.Count(project => project.Program is null && project.UpdatedTimestamps.Count != 0));
 
     private void WatchStatus(Diagnostic diagnostic, CompilerOptions configOptions)
     {
