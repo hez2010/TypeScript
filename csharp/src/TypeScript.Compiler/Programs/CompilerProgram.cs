@@ -40,6 +40,7 @@ public sealed record ProgramFile(SourceFileNode Syntax, BoundSourceFile Binding,
     IReadOnlyList<Utf8String> Dependencies, bool Library = false)
 {
     public MappedSourceFile? Mapping { get; init; }
+    public IReadOnlyList<Utf8String> SupplementalSourceFiles { get; init; } = [];
 }
 
 /// <summary>A published program owns a deterministic graph; rebuilding never mutates an older program.</summary>
@@ -69,6 +70,11 @@ public sealed partial class CompilerProgram
     internal IReadOnlyList<Utf8String> ExistingPackageJsons { get; }
     internal IReadOnlyList<Utf8String> MissingPackageJsons { get; }
     internal bool UseCaseSensitiveFileNames => fileSystem.CaseSensitive;
+    internal bool IsFromExternalLibrary(SourceFileNode source) => externalLibraryFiles.Contains(source.FileName);
+
+    internal bool HasSameFileNames(CompilerProgram other) => files.Count == other.files.Count
+        && files.All(entry => other.files.TryGetValue(entry.Key, out var file) && file.Syntax.FileName == entry.Value.Syntax.FileName)
+        && Redirects.Count == other.Redirects.Count && Redirects.Keys.All(other.Redirects.ContainsKey);
 
     private CompilerProgram(Builder builder, ProgramFile[] ordered)
     {
@@ -83,7 +89,7 @@ public sealed partial class CompilerProgram
         ExplanationFiles = builder.explanationFiles;
         ResolutionTrace = builder.resolutionTrace.ToArray();
         Configuration = builder.config;
-        RootFileNames = Array.AsReadOnly(builder.config.FileNames.Select(path => CompilerPath.Resolve(CurrentDirectory, path)).ToArray());
+        RootFileNames = Array.AsReadOnly(builder.config.FileNames.Select(path => CompilerPath.ResolveFileName(CurrentDirectory, path)).ToArray());
         ProjectReferences = builder.references;
         MissingFiles = builder.missing.ToArray();
         Redirects = builder.redirects.AsReadOnly();
@@ -168,6 +174,8 @@ public sealed partial class CompilerProgram
     }
 
     internal bool FileExists(Utf8String path) => fileSystem.FileExists(path);
+    internal IFileSystem FileSystem => fileSystem;
+    internal ProgramFile? GetFileByPath(Utf8String path) => files.GetValueOrDefault(path);
 
     public static ValueTask<CompilerProgram> CreateAsync(IFileSystem fileSystem, Utf8String currentDirectory, ParsedConfig config,
         CompilerProgram? previous = null, bool useProjectReferenceSources = false, int concurrency = 4,
@@ -361,10 +369,11 @@ public sealed partial class CompilerProgram
                 if (result.IsResolved)
                 {
                     roots.Add(result.FileName);
-                    pending.AddLast((new(FileIncludeKind.AutomaticType, result.FileName) { Specifier = type, PackageId = result.PackageId }, false, 0, result.PackageId));
+                    pending.AddLast((new(FileIncludeKind.AutomaticType, result.FileName) { Specifier = type, PackageId = result.PackageId }, false, result.External ? 1 : 0, result.PackageId));
                 }
                 else
-                    diagnostics.Add(new(Messages.Cannot_find_type_definition_file_for_0, 0, 0, [type]));
+                    explainedFailures.Add((new(Messages.Cannot_find_type_definition_file_for_0, 0, 0, [type]), default,
+                        new(FileIncludeKind.AutomaticType, default) { Specifier = type }));
             }
             await LoadPending(pending).ConfigureAwait(false);
             if (config.FileNames.Length != 0 && config.Options.NoLib != true)
@@ -529,7 +538,7 @@ public sealed partial class CompilerProgram
                         var next = config.Options.SingleThreaded == true ? pending.Last! : pending.First!;
                         var item = next.Value;
                         pending.Remove(next);
-                        Utf8String original = CompilerPath.Resolve(cwd, item.Reason.FileName), path = references.Redirect(original);
+                        Utf8String original = CompilerPath.ResolveFileName(cwd, item.Reason.FileName), path = references.Redirect(original);
                         if (!reasons.TryGetValue(original, out var why))
                             reasons[original] = why = [];
                         if (!why.Contains(item.Reason))
@@ -650,6 +659,7 @@ public sealed partial class CompilerProgram
                                     resolved.FileName,
                                     FileIncludeKind.TypeReference,
                                     reference.Pos,
+                                    depth: currentDepth + (resolved.External ? 1 : 0),
                                     package: resolved.PackageId,
                                     length: reference.End - reference.Pos);
                             else
@@ -756,7 +766,11 @@ public sealed partial class CompilerProgram
                         }
                     files.Add(entry.Path, new(syntax, parsed.Binding!, parsed.Options, parsed.Format, parsed.PackageDirectory, parsed.PackageType,
                         resolutions.ToArray(), dependencies.ToArray(), entry.Library)
-                    { Mapping = parsed.Mapping?.Canonical ?? supplemental.GetValueOrDefault(entry.Path) });
+                    {
+                        Mapping = parsed.Mapping?.Canonical ?? supplemental.GetValueOrDefault(entry.Path),
+                        SupplementalSourceFiles = parsed.Mapping is { } projection
+                            ? Array.AsReadOnly(projection.Supplemental.Select(file => file.Syntax.FileName).ToArray()) : [],
+                    });
                 }
             }
             finally
@@ -812,7 +826,8 @@ public sealed partial class CompilerProgram
             bool force = !CompilerPath.IsDeclarationFile(path) && (detection == ModuleDetectionKind.Force || detection == ModuleDetectionKind.Auto
                 && (ext == ".mts"u8 || ext == ".cts"u8 || ext == ".mjs"u8 || ext == ".cjs"u8
                     || ImpliedMode(path, options, format, type) == ReferenceResolutionMode.Import));
-            var parseOptions = new ParseOptions(path, ForceExternalModule: force,
+            var supplied = (fs as ICompilerSourceProvider)?.ReadSource(path);
+            var parseOptions = new ParseOptions(path, supplied?.Kind ?? ScriptKind.Unknown, ForceExternalModule: force,
                 JsxExternalModule: detection == ModuleDetectionKind.Auto && options.Jsx is JsxEmit.ReactJSX or JsxEmit.ReactJSXDev);
             if (supplemental.TryGetValue(path, out var mappedSource))
                 return new(mappedSource.Syntax, parseOptions, format, scope?.Directory ?? Utf8String.Empty, type);
@@ -825,7 +840,7 @@ public sealed partial class CompilerProgram
                     js ? [path] : [path, SupportedExtensionsText(project)]);
                 return new(null, parseOptions, format, scope?.Directory ?? Utf8String.Empty, type, Diagnostics: [diagnostic], FailedLookup: true);
             }
-            SourceText? source = (fs as LibraryFileSystem)?.ReadBundledSource(path);
+            SourceText? source = supplied?.Text ?? (fs as LibraryFileSystem)?.ReadBundledSource(path);
             byte[]? bytes = source is null ? fs.ReadFile(path) : null;
             if (source is null && bytes is null)
                 return new(null, parseOptions, format, scope?.Directory ?? Utf8String.Empty, type);
@@ -844,7 +859,10 @@ public sealed partial class CompilerProgram
                 Interlocked.Increment(ref reused);
                 return new(old.Syntax, parseOptions, format, scope?.Directory ?? Utf8String.Empty, type);
             }
-            var syntax = await Parser.ParseSourceFileAsync(parseOptions, source ?? SourceText.FromOwnedBytes(bytes!), cancellation).ConfigureAwait(false);
+            var text = source ?? SourceText.FromOwnedBytes(bytes!);
+            var syntax = fs is ICompilerSyntaxProvider syntaxProvider
+                ? await syntaxProvider.ParseSourceAsync(parseOptions, text, cancellation).ConfigureAwait(false)
+                : await Parser.ParseSourceFileAsync(parseOptions, text, cancellation).ConfigureAwait(false);
             return new(syntax, parseOptions, format, scope?.Directory ?? Utf8String.Empty, type);
         }
     }

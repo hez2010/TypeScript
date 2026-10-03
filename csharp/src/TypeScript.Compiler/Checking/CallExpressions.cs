@@ -11,7 +11,7 @@ internal interface ICallExpressionHost
 
     ValueTask CallGrammarAsync(SyntaxNode node, CancellationToken cancellation);
 
-    void DeprecatedSignature(SyntaxNode node, Signature signature);
+    ValueTask DeprecatedSignatureAsync(SyntaxNode node, Signature signature, CancellationToken cancellation);
 
     ValueTask<Type?> SpecialCallResultAsync(SyntaxNode node, Type result, CancellationToken cancellation);
 
@@ -29,7 +29,7 @@ internal sealed class CallExpressions(TypeContext context, CallResolution resolu
         var signature = await resolution.GetAsync(node, mode: mode, cancellation: cancellation).ConfigureAwait(false);
         if (signature == rules.Resolving)
             return context.SilentNeverType;
-        host.DeprecatedSignature(node, signature);
+        await host.DeprecatedSignatureAsync(node, signature, cancellation);
         if (CallArguments.Target(node)?.Kind == SyntaxKind.SuperKeyword)
             return context.VoidType;
         if (node is NewExpressionNode && signature.Declaration is { } declaration

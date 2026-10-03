@@ -5,9 +5,11 @@ import (
 	"bufio"
 	"encoding/json"
 	"os"
+	"slices"
 
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/module"
+	"github.com/microsoft/TypeScript/tsc/internal/packagejson"
 	"github.com/microsoft/TypeScript/tsc/internal/semver"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions/tsoptionstest"
@@ -20,6 +22,7 @@ type request struct {
 	Files, Symlinks                                   map[string]string
 	Options                                           json.RawMessage
 	ExtraExtensions                                   []string
+	Recursive                                         bool
 }
 
 func main() {
@@ -80,6 +83,23 @@ func process(input request) any {
 		panic("config parse failed")
 	}
 	resolver := module.NewResolver(host, parsed.CompilerOptions(), "", "", input.ExtraExtensions)
+	if input.Operation == "entrypoints" {
+		result := []any{}
+		pkg := &packagejson.InfoCacheEntry{PackageDirectory: input.Other, DirectoryExists: host.FS().DirectoryExists(input.Other)}
+		if data, ok := host.FS().ReadFile(input.Other + "/package.json"); ok {
+			fields, err := packagejson.Parse([]byte(data))
+			pkg.Contents = &packagejson.PackageJson{Fields: fields, Parseable: err == nil}
+		}
+		for _, entry := range resolver.GetEntrypointsFromPackageJsonInfo(pkg, input.Path, input.Recursive) {
+			included, excluded := []string{}, []string{}
+			for condition := range entry.IncludeConditions.Keys() { included = append(included, condition) }
+			for condition := range entry.ExcludeConditions.Keys() { excluded = append(excluded, condition) }
+			slices.Sort(included)
+			slices.Sort(excluded)
+			result = append(result, []any{entry.OriginalFileName, entry.ResolvedFileName, entry.ModuleSpecifier, entry.Ending, included, excluded})
+		}
+		return result
+	}
 	if input.Operation == "automatic" {
 		result := module.GetAutomaticTypeDirectiveNames(parsed.CompilerOptions(), host)
 		if result == nil {

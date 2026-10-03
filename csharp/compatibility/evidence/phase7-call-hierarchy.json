@@ -1,0 +1,95 @@
+{
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "configuration": "Release CoreCLR",
+  "date": "2026-10-03",
+  "direct": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 39,
+    "originalTestFunctions": 39,
+    "selectedTestsWithoutRequests": [],
+    "unorderedProjectResults": [],
+    "unorderedFileRenameResults": [],
+    "unorderedReferenceResults": [],
+    "authoredTests": 9,
+    "encodings": [
+      "utf-8",
+      "utf-16"
+    ],
+    "requests": 700,
+    "differences": 0,
+    "compilerSha256": "3523f968d9e5b31f3e7522850038bcf728fa927e520ebda3884f1f63d5caa85f",
+    "inputsSha256": "68739e148873f781183353bd40a4e5e7d5f134694853e2c54c465af098eeef02"
+  },
+  "lsp": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 39,
+    "requests": 594,
+    "clients": 150,
+    "differences": 0,
+    "mappedQueriesValidatedSeparately": 106,
+    "unorderedProjectResults": [],
+    "unorderedFileRenameResults": [],
+    "unorderedReferenceResults": [],
+    "compilerSha256": "3523f968d9e5b31f3e7522850038bcf728fa927e520ebda3884f1f63d5caa85f",
+    "inputsSha256": "68739e148873f781183353bd40a4e5e7d5f134694853e2c54c465af098eeef02"
+  },
+  "build": {
+    "log": "built/csharp/phase7-validation/call-hierarchy-build6.log",
+    "warnings": 0,
+    "errors": 0
+  },
+  "safety": {
+    "syntaxServiceAssertions": 99,
+    "newCallHierarchyAssertions": 20,
+    "lspAssertions": 109,
+    "logs": [
+      "built/csharp/phase7-validation/call-hierarchy-safety.log",
+      "built/csharp/phase7-validation/call-hierarchy-lsp-safety.log"
+    ]
+  },
+  "coverage": {
+    "originalTestFunctions": 39,
+    "authoredScenarios": 8,
+    "methods": [
+      "textDocument/prepareCallHierarchy",
+      "callHierarchy/incomingCalls",
+      "callHierarchy/outgoingCalls"
+    ],
+    "cases": [
+      "cross-project incoming callers",
+      "merged interface signatures and overloaded implementations",
+      "function and class expressions assigned to constants or properties",
+      "anonymous declarations, constructors and class static blocks",
+      "accessors, private methods, computed names, decorators and JSX",
+      "Unicode names, supplementary characters and CRLF in both position encodings",
+      "canonical, supplemental, duplicate, disabled and component content mappings"
+    ],
+    "comparison": "Exact JSON structure, fields, ranges, duplicates, null values and array ordering; no call-hierarchy comparison exceptions."
+  },
+  "harnessBoundary": "Ordinary direct requests use actual ProjectSession ownership and cross-project search. The LSP replay runs complete initialize/open/query/shutdown sessions. Mapped direct requests recreate captured mapper outputs through the external mapper fixture, validate generated sources and supplemental counts, and use managed providers on the resulting program. The mapped fixtures contain one configured project.",
+  "retainedInitialFailure": {
+    "summary": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 39,
+      "originalTestFunctions": 39,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 414,
+      "differences": 6,
+      "compilerSha256": "6d86f02e556e5918874faedad58c178ed705d521f1eacbedfc3a2bdd1504f1a7",
+      "inputsSha256": "306fbf647cb5d1bb589f0747649a11028d690ad4987f3df9fe6299a24f5c4aad"
+    },
+    "reason": "Six prepare responses omitted one merged interface method signature. Method signatures must collect initial declarations rather than take the function-implementation branch.",
+    "directory": "built/csharp/phase7-validation/call-hierarchy"
+  },
+  "phase7Complete": false,
+  "nativeAotExecuted": false,
+  "performanceMeasured": false
+}

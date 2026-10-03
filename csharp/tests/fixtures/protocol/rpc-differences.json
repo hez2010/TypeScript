@@ -1,0 +1,44 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "platform": "Windows x64",
+    "cases": [
+        {
+            "name": "jsonrpc-lone-surrogate",
+            "policy": "preserve-wtf8",
+            "inputSha256": "5fac3e0e0caed7bf89524d8105418853a312edb5dfdf159283db45fdfc5e22a5",
+            "inputBase64": "Q29udGVudC1MZW5ndGg6IDU4DQoNCnsianNvbnJwYyI6IjIuMCIsImlkIjoxLCJtZXRob2QiOiJlY2hvIiwicGFyYW1zIjoiXHVkODAwIn0=",
+            "reference": {
+                "exitCode": 1,
+                "stdoutBase64": "",
+                "stderr": "jsontext: invalid surrogate pair `\\ud800\"}` in string within \"/params\" after offset 50\n"
+            },
+            "candidate": {
+                "exitCode": 0,
+                "stdoutBase64": "Q29udGVudC1MZW5ndGg6IDQyDQoNCnsianNvbnJwYyI6IjIuMCIsImlkIjoxLCJyZXN1bHQiOiJcdWQ4MDAifQ==",
+                "stderr": ""
+            },
+            "rationale": "The user selected UTF-8/WTF-8 throughout the C# implementation. Preserve lone surrogate code units in JSON-RPC source and name values; the original Go JSON-RPC decoder rejects this input, although its binary API accepts it.",
+            "reproduction": "node csharp/tools/api-transport.mjs",
+            "independentControl": "The exact response JSON is parsed by Node and checked for the original U+D800 code unit."
+        },
+        {
+            "name": "jsonrpc-truncated-header",
+            "policy": "reject-truncated-frame",
+            "inputSha256": "99d7be023b0065c5deac2cc4a12400ab806e9d4514cb71e7f70738b0d9b44748",
+            "inputBase64": "Q29udGVudC1MZW5ndGg6IDQ=",
+            "reference": {
+                "exitCode": 0,
+                "stdoutBase64": "",
+                "stderr": ""
+            },
+            "candidate": {
+                "exitCode": 1,
+                "stdoutBase64": "",
+                "stderr": "Truncated RPC header\r\n"
+            },
+            "rationale": "EOF is clean only between frames. Reject a partially received header so a truncated request is distinguishable from an orderly disconnect; the Go header reader treats this partial header as clean EOF.",
+            "reproduction": "node csharp/tools/api-transport.mjs",
+            "independentControl": "Input contains a nonempty unfinished Content-Length header. Both peers emit no response; their exit status and error output are compared."
+        }
+    ]
+}

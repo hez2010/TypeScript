@@ -106,7 +106,10 @@ internal sealed partial class Checker
                     Error(
                         expression.Expression!,
                         DiagnosticCode.AnInterfaceCanOnlyExtendAnIdentifierSlashqualifiedNameWithOptionalTypeArguments);
+                if (TypeReferences.Arguments(element) is { } arguments)
+                    foreach (var argument in arguments) await CheckedFunctionTypeAsync(argument, cancellation).ConfigureAwait(false);
                 await TypeReferenceChecks.CheckAsync(element, cancellation).ConfigureAwait(false);
+                await DeprecatedTypeAsync(element, cancellation);
             }
         foreach (var member in node.Members!)
             await CheckSourceElementAsync(member, cancellation).ConfigureAwait(false);

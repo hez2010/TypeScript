@@ -12,23 +12,29 @@ internal sealed class ConfigSyntax
 {
     public SourceFileNode Source { get; }
     public JsonElement Root { get; }
+    internal bool HasObjectRoot => root is ObjectLiteralExpressionNode;
     private readonly SyntaxNode? root;
 
     public ConfigSyntax(Utf8String fileName, byte[] bytes, List<Diagnostic> errors, CancellationToken cancellation)
+        : this(fileName, new SourceText(SourceEncoding.DecodeBytes(bytes)), errors, cancellation) { }
+
+    public ConfigSyntax(Utf8String fileName, SourceText sourceText, List<Diagnostic> errors, CancellationToken cancellation,
+        bool includeSyntaxDiagnostics = true)
     {
-        Source = Parser.ParseSourceFile(new(fileName, ScriptKind.JSON), new SourceText(SourceEncoding.DecodeBytes(bytes)), cancellation);
-        errors.AddRange(Source.ParseDiagnostics.Select(d => d with { FileName = fileName }));
+        Source = Parser.ParseSourceFile(new(fileName, ScriptKind.JSON), sourceText, cancellation);
+        if (includeSyntaxDiagnostics) errors.AddRange(Source.ParseDiagnostics.Select(d => d with { FileName = fileName }));
         void ConversionError(DiagnosticMessage message, SyntaxNode? node)
         {
             // Parser recovery already explains malformed syntax. Report conversion-only
             // errors on otherwise parsed JSON rather than cascading at synthetic nodes.
-            if (Source.ParseDiagnostics.Count == 0)
-                errors.Add(Diagnostic(message, node));
+            if (!includeSyntaxDiagnostics || Source.ParseDiagnostics.Count == 0)
+                errors.Add(node is not null && !includeSyntaxDiagnostics
+                    ? new(message, node.Pos, node.End - node.Pos, []) { FileName = fileName } : Diagnostic(message, node));
         }
         root = Source.Statements?.FirstOrDefault() is ExpressionStatementNode statement ? statement.Expression : null;
         if (root is not null && root is not ObjectLiteralExpressionNode)
         {
-            errors.Add(Diagnostic(Messages.The_root_value_of_a_0_file_must_be_an_object, root, [CompilerPath.BaseName(fileName)]));
+            errors.Add(Diagnostic(Messages.The_root_value_of_a_0_file_must_be_an_object, root, ["tsconfig.json"u8]));
             root = null;
         }
         using var buffer = new MemoryStream();
@@ -160,7 +166,7 @@ internal sealed class ConfigSyntax
         Root = JsonStrings.Parse(buffer);
         void CheckDoubleQuoted(SyntaxNode? node)
         {
-            if (node is null)
+            if (node is null || !includeSyntaxDiagnostics)
                 return;
             int start = Start(node);
             if (start >= Source.Source.Bytes.Length || Source.Source.Bytes.Span[start] != '"')

@@ -1,0 +1,84 @@
+{
+  "phase": 7,
+  "phase7Complete": false,
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "scope": "Completion and auto-import completion resolution capabilities; correctness on Release CoreCLR only.",
+  "fixtures": 9,
+  "capabilityCombinations": 32,
+  "capabilities": [
+    "snippetSupport",
+    "commitCharactersSupport",
+    "insertReplaceSupport",
+    "labelDetailsSupport",
+    "completionList.itemDefaults"
+  ],
+  "preferences": [
+    "preferTypeOnlyAutoImports true/false",
+    "quotePreference single/double",
+    "semicolon preference opposite the source style"
+  ],
+  "encodings": [
+    "utf-8",
+    "utf-16"
+  ],
+  "service": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 0,
+    "originalTestFunctions": 0,
+    "selectedTestsWithoutRequests": [],
+    "unorderedProjectResults": [],
+    "unorderedFileRenameResults": [],
+    "unorderedCodeLensResults": [],
+    "unorderedReferenceResults": [],
+    "authoredTests": 10,
+    "encodings": [
+      "utf-8",
+      "utf-16"
+    ],
+    "requests": 3456,
+    "differences": 0,
+    "compilerSha256": "17b074b7dc0f9de2d0616490f81be6d7a9f49dda943bd1f75fd0cba72a47efbd",
+    "inputsSha256": "5a54192eb5f4aa9584c082e88de9f558748587592557431c8b21a5d5ba8c7d3b",
+    "directory": "built/csharp/phase7-validation/completion-capabilities-second"
+  },
+  "lsp": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 0,
+    "requests": 2688,
+    "clients": 1984,
+    "differences": 0,
+    "mappedQueriesValidatedSeparately": 768,
+    "unorderedProjectResults": [],
+    "unorderedFileRenameResults": [],
+    "unorderedCodeLensResults": [],
+    "unorderedReferenceResults": [],
+    "compilerSha256": "17b074b7dc0f9de2d0616490f81be6d7a9f49dda943bd1f75fd0cba72a47efbd",
+    "inputsSha256": "5a54192eb5f4aa9584c082e88de9f558748587592557431c8b21a5d5ba8c7d3b",
+    "directory": "built/csharp/phase7-validation/lsp-completion-capabilities"
+  },
+  "attempts": [
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 0,
+      "originalTestFunctions": 0,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 10,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 3456,
+      "differences": 96,
+      "compilerSha256": "c6d9bf122fca36e33cc457cf8dcfa266314d1691886f897739466ecdfce156de",
+      "inputsSha256": "978ff31e245a8b94477a1763e5d80fd8ad7d991e5a29a956c10b3c2429173904",
+      "directory": "built/csharp/phase7-validation/completion-capabilities-first",
+      "reason": "96 import-statement completion suffix differences. The reference uses the source semicolon heuristic rather than the writing preference. The first capture also used Unknown/False tristates for preferTypeOnlyAutoImports; the second capture uses explicit True/False."
+    }
+  ],
+  "fix": "Import-statement completion uses ProbablyUsesSemicolonsAsync; ordinary import edits continue to respect the writing preference.",
+  "performanceClaims": false
+}

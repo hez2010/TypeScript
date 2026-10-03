@@ -1,0 +1,586 @@
+{
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "test": "TestImplementationsAcrossProjects",
+  "method": "textDocument/implementation",
+  "reason": "Newly discovered cross-project responses are enumerated through a concurrent map. Two passing original runs of the same ASCII fixture returned opposite project orders. The original fourslash baseline sorts locations.",
+  "comparison": "Only the three named method/case pairs are compared as multisets of complete response objects. Every location field and duplicate count remains exact; all other cases retain ordered comparison.",
+  "capturedInputsSha256": "0d8a5986316e6269ffa02b150e26e07a6f40d48191db7b5778cadef01cc03aca",
+  "runs": [
+    {
+      "encoding": "utf-8",
+      "result": [
+        {
+          "targetUri": "file:///projects/container/lib/bar.ts",
+          "targetRange": {
+            "start": {
+              "line": 1,
+              "character": 0
+            },
+            "end": {
+              "line": 3,
+              "character": 1
+            }
+          },
+          "targetSelectionRange": {
+            "start": {
+              "line": 1,
+              "character": 6
+            },
+            "end": {
+              "line": 1,
+              "character": 7
+            }
+          }
+        },
+        {
+          "targetUri": "file:///projects/container/lib/bar.ts",
+          "targetRange": {
+            "start": {
+              "line": 4,
+              "character": 0
+            },
+            "end": {
+              "line": 6,
+              "character": 1
+            }
+          },
+          "targetSelectionRange": {
+            "start": {
+              "line": 4,
+              "character": 6
+            },
+            "end": {
+              "line": 4,
+              "character": 7
+            }
+          }
+        },
+        {
+          "targetUri": "file:///projects/container/exec/index.ts",
+          "targetRange": {
+            "start": {
+              "line": 1,
+              "character": 0
+            },
+            "end": {
+              "line": 3,
+              "character": 1
+            }
+          },
+          "targetSelectionRange": {
+            "start": {
+              "line": 1,
+              "character": 6
+            },
+            "end": {
+              "line": 1,
+              "character": 8
+            }
+          }
+        },
+        {
+          "targetUri": "file:///projects/container/exec/index.ts",
+          "targetRange": {
+            "start": {
+              "line": 4,
+              "character": 0
+            },
+            "end": {
+              "line": 6,
+              "character": 1
+            }
+          },
+          "targetSelectionRange": {
+            "start": {
+              "line": 4,
+              "character": 6
+            },
+            "end": {
+              "line": 4,
+              "character": 8
+            }
+          }
+        },
+        {
+          "targetUri": "file:///projects/container/compositeExec/index.ts",
+          "targetRange": {
+            "start": {
+              "line": 1,
+              "character": 0
+            },
+            "end": {
+              "line": 3,
+              "character": 1
+            }
+          },
+          "targetSelectionRange": {
+            "start": {
+              "line": 1,
+              "character": 6
+            },
+            "end": {
+              "line": 1,
+              "character": 8
+            }
+          }
+        },
+        {
+          "targetUri": "file:///projects/container/compositeExec/index.ts",
+          "targetRange": {
+            "start": {
+              "line": 4,
+              "character": 0
+            },
+            "end": {
+              "line": 6,
+              "character": 1
+            }
+          },
+          "targetSelectionRange": {
+            "start": {
+              "line": 4,
+              "character": 6
+            },
+            "end": {
+              "line": 4,
+              "character": 8
+            }
+          }
+        }
+      ]
+    },
+    {
+      "encoding": "utf-16",
+      "result": [
+        {
+          "targetUri": "file:///projects/container/lib/bar.ts",
+          "targetRange": {
+            "start": {
+              "line": 1,
+              "character": 0
+            },
+            "end": {
+              "line": 3,
+              "character": 1
+            }
+          },
+          "targetSelectionRange": {
+            "start": {
+              "line": 1,
+              "character": 6
+            },
+            "end": {
+              "line": 1,
+              "character": 7
+            }
+          }
+        },
+        {
+          "targetUri": "file:///projects/container/lib/bar.ts",
+          "targetRange": {
+            "start": {
+              "line": 4,
+              "character": 0
+            },
+            "end": {
+              "line": 6,
+              "character": 1
+            }
+          },
+          "targetSelectionRange": {
+            "start": {
+              "line": 4,
+              "character": 6
+            },
+            "end": {
+              "line": 4,
+              "character": 7
+            }
+          }
+        },
+        {
+          "targetUri": "file:///projects/container/compositeExec/index.ts",
+          "targetRange": {
+            "start": {
+              "line": 1,
+              "character": 0
+            },
+            "end": {
+              "line": 3,
+              "character": 1
+            }
+          },
+          "targetSelectionRange": {
+            "start": {
+              "line": 1,
+              "character": 6
+            },
+            "end": {
+              "line": 1,
+              "character": 8
+            }
+          }
+        },
+        {
+          "targetUri": "file:///projects/container/compositeExec/index.ts",
+          "targetRange": {
+            "start": {
+              "line": 4,
+              "character": 0
+            },
+            "end": {
+              "line": 6,
+              "character": 1
+            }
+          },
+          "targetSelectionRange": {
+            "start": {
+              "line": 4,
+              "character": 6
+            },
+            "end": {
+              "line": 4,
+              "character": 8
+            }
+          }
+        },
+        {
+          "targetUri": "file:///projects/container/exec/index.ts",
+          "targetRange": {
+            "start": {
+              "line": 1,
+              "character": 0
+            },
+            "end": {
+              "line": 3,
+              "character": 1
+            }
+          },
+          "targetSelectionRange": {
+            "start": {
+              "line": 1,
+              "character": 6
+            },
+            "end": {
+              "line": 1,
+              "character": 8
+            }
+          }
+        },
+        {
+          "targetUri": "file:///projects/container/exec/index.ts",
+          "targetRange": {
+            "start": {
+              "line": 4,
+              "character": 0
+            },
+            "end": {
+              "line": 6,
+              "character": 1
+            }
+          },
+          "targetSelectionRange": {
+            "start": {
+              "line": 4,
+              "character": 6
+            },
+            "end": {
+              "line": 4,
+              "character": 8
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "runtimeImports": {
+    "capturedInputsSha256": "6d9b99840796cf373ed6304aaee39ca63cf4b294d6c4fd3f37e3776ad94b9c28",
+    "originalCommand": "Go test -count=20 for both selected functions, repeated under UTF-8 and UTF-16",
+    "cases": [
+      {
+        "name": "TestTslibFindAllReferencesOnRuntimeImportWithPaths1",
+        "runs": 40,
+        "distinctOrders": 2,
+        "identicalLocationMultisets": true,
+        "examples": [
+          [
+            {
+              "uri": "file:///project/src/bar.ts",
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 0
+                },
+                "end": {
+                  "line": 0,
+                  "character": 18
+                }
+              }
+            },
+            {
+              "uri": "file:///project/src/bal.ts",
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 0
+                },
+                "end": {
+                  "line": 0,
+                  "character": 0
+                }
+              }
+            },
+            {
+              "uri": "file:///project/src/foo.ts",
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 20
+                },
+                "end": {
+                  "line": 0,
+                  "character": 25
+                }
+              }
+            },
+            {
+              "uri": "file:///project/src/foo.ts",
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 0
+                },
+                "end": {
+                  "line": 0,
+                  "character": 27
+                }
+              }
+            }
+          ],
+          [
+            {
+              "uri": "file:///project/src/bal.ts",
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 0
+                },
+                "end": {
+                  "line": 0,
+                  "character": 0
+                }
+              }
+            },
+            {
+              "uri": "file:///project/src/bar.ts",
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 0
+                },
+                "end": {
+                  "line": 0,
+                  "character": 18
+                }
+              }
+            },
+            {
+              "uri": "file:///project/src/foo.ts",
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 20
+                },
+                "end": {
+                  "line": 0,
+                  "character": 25
+                }
+              }
+            },
+            {
+              "uri": "file:///project/src/foo.ts",
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 0
+                },
+                "end": {
+                  "line": 0,
+                  "character": 27
+                }
+              }
+            }
+          ]
+        ]
+      },
+      {
+        "name": "TestJsxFindAllReferencesOnRuntimeImportWithPaths1",
+        "runs": 40,
+        "distinctOrders": 32,
+        "identicalLocationMultisets": true,
+        "examples": [
+          [
+            {
+              "uri": "file:///project/src/bal.tsx",
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 0
+                },
+                "end": {
+                  "line": 0,
+                  "character": 0
+                }
+              }
+            },
+            {
+              "uri": "file:///project/src/bar.tsx",
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 15
+                },
+                "end": {
+                  "line": 0,
+                  "character": 26
+                }
+              }
+            },
+            {
+              "uri": "file:///project/src/baz.tsx",
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 15
+                },
+                "end": {
+                  "line": 0,
+                  "character": 20
+                }
+              }
+            },
+            {
+              "uri": "file:///project/src/bat.tsx",
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 0
+                },
+                "end": {
+                  "line": 0,
+                  "character": 19
+                }
+              }
+            },
+            {
+              "uri": "file:///project/src/bam.tsx",
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 15
+                },
+                "end": {
+                  "line": 0,
+                  "character": 31
+                }
+              }
+            },
+            {
+              "uri": "file:///project/src/foo.ts",
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 20
+                },
+                "end": {
+                  "line": 0,
+                  "character": 40
+                }
+              }
+            }
+          ],
+          [
+            {
+              "uri": "file:///project/src/baz.tsx",
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 15
+                },
+                "end": {
+                  "line": 0,
+                  "character": 20
+                }
+              }
+            },
+            {
+              "uri": "file:///project/src/bat.tsx",
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 0
+                },
+                "end": {
+                  "line": 0,
+                  "character": 19
+                }
+              }
+            },
+            {
+              "uri": "file:///project/src/bam.tsx",
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 15
+                },
+                "end": {
+                  "line": 0,
+                  "character": 31
+                }
+              }
+            },
+            {
+              "uri": "file:///project/src/bal.tsx",
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 0
+                },
+                "end": {
+                  "line": 0,
+                  "character": 0
+                }
+              }
+            },
+            {
+              "uri": "file:///project/src/bar.tsx",
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 15
+                },
+                "end": {
+                  "line": 0,
+                  "character": 26
+                }
+              }
+            },
+            {
+              "uri": "file:///project/src/foo.ts",
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 20
+                },
+                "end": {
+                  "line": 0,
+                  "character": 40
+                }
+              }
+            }
+          ]
+        ]
+      }
+    ]
+  }
+}

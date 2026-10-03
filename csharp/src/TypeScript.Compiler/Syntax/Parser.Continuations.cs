@@ -1,4 +1,5 @@
 using TypeScript.Compiler.Ast;
+using TypeScript.Compiler.Diagnostics;
 using K = TypeScript.Compiler.Syntax.SyntaxKind;
 
 namespace TypeScript.Compiler.Syntax;
@@ -31,11 +32,15 @@ public sealed partial class Parser
         }
     }
 
-    private async ValueTask<SyntaxNode?> ReturnAnnotationCore()
+    private async ValueTask<SyntaxNode?> ReturnAnnotationCore(bool isType = false)
     {
         await ParseStack;
         if (!Take(K.ColonToken))
-            return null;
+        {
+            if (!isType || Token != K.EqualsGreaterThanToken) return null;
+            Error(Messages.X_0_expected, Utf8Literals.Colon);
+            Next();
+        }
         NodeFlags saved = context;
         context &= ~NodeFlags.DisallowConditionalTypesContext;
         try

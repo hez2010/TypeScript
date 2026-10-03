@@ -1,0 +1,41 @@
+{
+  "timestamp": "2026-10-02T20:11:25.329Z",
+  "recordFormat": "kind-range-flags-text-children-scalars-lists; parse and JavaScript diagnostic buckets",
+  "suite": "parser",
+  "expanded": true,
+  "candidate": "CoreCLR development check",
+  "sdk": "11.0.100-rtm.26473.115",
+  "runtime": null,
+  "instructionSet": null,
+  "optimizationPreference": "Speed",
+  "candidateSha256": "81d8e2ee9292a7a0226943631ca04265771ba36cff9489dd1d1de7b0daa7b14c",
+  "inputSha256": "945c22d139debaa18757527c6778e77920183772d7a21f2a2711808bddeb5940",
+  "cases": 17448,
+  "records": 1699364,
+  "runtimeAsync": true,
+  "comparison": "semantic policies with strict audit",
+  "independentParserVersion": "6.0.3",
+  "passed": 17448,
+  "failed": 0,
+  "strictPassed": 17189,
+  "strictFailed": 259,
+  "permittedDifferences": 259,
+  "failures": [],
+  "oracleSha256": "87afe601352006438b0c43d40a4434f49a02eb6ec79e101559a161023b29406b",
+  "compilerSha256": "29a4731d1a2bbabf7c136ac5c87e2a1d742521477daf60ca97ca8857977cc9d1",
+  "validationLog": "built/csharp/phase7-validation/parser-recovery2.log",
+  "priorUnresolvedCases": 10,
+  "priorStrictDifferences": 353,
+  "newStrictCases": [],
+  "semanticRegression": {
+    "evidence": "phase7-diagnostics-semantics.json",
+    "configurationsPerMode": 13446,
+    "modes": [
+      "single",
+      "default"
+    ],
+    "graphMismatches": 0,
+    "completeDiagnosticMismatches": 0,
+    "compilerSha256": "29a4731d1a2bbabf7c136ac5c87e2a1d742521477daf60ca97ca8857977cc9d1"
+  }
+}

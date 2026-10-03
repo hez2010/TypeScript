@@ -106,6 +106,28 @@ internal static class ResolutionTests
             writer.WriteEndArray();
             return;
         }
+        if (operation == "entrypoints"u8)
+        {
+            writer.WriteStartArray();
+            foreach (var entry in resolver.GetEntrypoints(resolver.Packages.Get(other), path,
+                input.TryGetProperty("recursive"u8, out var recursive) && recursive.GetBoolean()))
+            {
+                writer.WriteStartArray();
+                writer.WriteStringValue(entry.OriginalFileName);
+                writer.WriteStringValue(entry.ResolvedFileName);
+                writer.WriteStringValue(entry.ModuleSpecifier);
+                writer.WriteNumberValue((int)entry.Ending);
+                foreach (var conditions in new[] { entry.IncludeConditions, entry.ExcludeConditions })
+                {
+                    writer.WriteStartArray();
+                    foreach (var condition in (conditions ?? (IEnumerable<Utf8String>)[]).Order()) writer.WriteStringValue(condition);
+                    writer.WriteEndArray();
+                }
+                writer.WriteEndArray();
+            }
+            writer.WriteEndArray();
+            return;
+        }
         var result = operation == "config"u8 ? ModuleResolver.ResolveConfig(
             fs,
             directory,

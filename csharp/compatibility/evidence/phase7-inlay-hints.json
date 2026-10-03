@@ -1,0 +1,146 @@
+{
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "configuration": "Release CoreCLR",
+  "date": "2026-10-03",
+  "direct": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 64,
+    "originalTestFunctions": 64,
+    "selectedTestsWithoutRequests": [],
+    "unorderedProjectResults": [],
+    "unorderedFileRenameResults": [],
+    "unorderedCodeLensResults": [],
+    "unorderedReferenceResults": [],
+    "authoredTests": 13,
+    "encodings": [
+      "utf-8",
+      "utf-16"
+    ],
+    "requests": 776,
+    "differences": 0,
+    "compilerSha256": "e0cd2eca8cae8286ddf81a7398bd281556edd02919e8d7c7a023428769b5b00c",
+    "inputsSha256": "e45f704c0100042da25e7b19e1895d43281fc1f7fa71d4e69291595ed39216ee"
+  },
+  "lsp": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 64,
+    "requests": 506,
+    "clients": 259,
+    "differences": 0,
+    "mappedQueriesValidatedSeparately": 270,
+    "unorderedProjectResults": [],
+    "unorderedFileRenameResults": [],
+    "unorderedCodeLensResults": [],
+    "unorderedReferenceResults": [],
+    "compilerSha256": "e0cd2eca8cae8286ddf81a7398bd281556edd02919e8d7c7a023428769b5b00c",
+    "inputsSha256": "e45f704c0100042da25e7b19e1895d43281fc1f7fa71d4e69291595ed39216ee"
+  },
+  "build": {
+    "log": "built\\csharp\\phase7-validation\\inlay-hints-build6.log",
+    "warnings": 0,
+    "errors": 0
+  },
+  "safety": {
+    "syntaxServiceAssertions": 149,
+    "newInlayHintAssertions": 23,
+    "lspAssertions": 139,
+    "newLspAssertions": 14,
+    "logs": [
+      "built\\csharp\\phase7-validation\\inlay-hints-safety1.log",
+      "built\\csharp\\phase7-validation\\inlay-hints-lsp-safety1.log"
+    ],
+    "coverage": [
+      "2048 nested blocks",
+      "UTF-8 and UTF-16 hint positions and navigation targets",
+      "six concurrent queries",
+      "precanceled requests and cancellation while the only query checker is held",
+      "shared syntax immutability",
+      "optional padding fields",
+      "stable inverted suppression settings",
+      "preference refresh before and after snapshot publication",
+      "unsupported refresh capability",
+      "pending refresh callback does not block requests",
+      "shutdown cancels refresh requests",
+      "retained labels do not retain disposed projects"
+    ]
+  },
+  "unicodeCorrection": {
+    "initial": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 64,
+      "originalTestFunctions": 64,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 13,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 776,
+      "differences": 12,
+      "compilerSha256": "3c0725ccd509b6ee883001b926119ceb4752c2fa9c0e653bdcaad09c5034f924",
+      "inputsSha256": "e45f704c0100042da25e7b19e1895d43281fc1f7fa71d4e69291595ed39216ee"
+    },
+    "initialDifferences": "built\\csharp\\phase7-validation\\inlay-hints-complete\\initial-differences.json",
+    "cause": "OrdinalIgnoreCase does not implement Go strings.EqualFold for the Kelvin sign and long s.",
+    "correction": "Use the existing GoUnicode.EqualFold tables for name/type suppression.",
+    "controls": [
+      "K and Kelvin sign",
+      "S and long s",
+      "I and dotless i",
+      "Sigma and final sigma",
+      "matching-name hints explicitly enabled"
+    ],
+    "finalDifferences": 0
+  },
+  "priorComparisons": {
+    "originalOnly": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 64,
+      "originalTestFunctions": 64,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 128,
+      "differences": 0,
+      "compilerSha256": "3c0725ccd509b6ee883001b926119ceb4752c2fa9c0e653bdcaad09c5034f924",
+      "inputsSha256": "59116757734611a18b62c716558685d7a357c0a75a081fe9b9cdb14bb7e1d8aa"
+    },
+    "firstExpanded": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 64,
+      "originalTestFunctions": 64,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 12,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 722,
+      "differences": 0,
+      "compilerSha256": "3c0725ccd509b6ee883001b926119ceb4752c2fa9c0e653bdcaad09c5034f924",
+      "inputsSha256": "fdb95e33d5c4ebfb3f269474602a82f9f573f0ae9fced80feaaccb185b8bb8eb"
+    }
+  },
+  "boundaries": {
+    "phase7Complete": false,
+    "nativeAotExecuted": false,
+    "performanceMeasured": false,
+    "responseNormalization": "None. Hint order, part boundaries, optional fields, positions, and locations compare exactly.",
+    "mappedRequests": "270 requests through LanguageServiceDocument, separate from the 506 real LSP requests."
+  }
+}

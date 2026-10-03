@@ -41,16 +41,16 @@ public sealed partial class CompilerProgram
                 if (files.ContainsKey(absolute))
                 {
                     blockedEmitPaths.Add(absolute);
-                    yield return new(Messages.Cannot_write_file_0_because_it_would_overwrite_input_file, 0, 0, [path])
+                    yield return new(Messages.Cannot_write_file_0_because_it_would_overwrite_input_file, -1, 0, [path])
                     {
                         MessageChain = Configuration.FileName.Length == 0
-                            ? [new(Messages.Adding_a_tsconfig_json_file_will_help_organize_projects_that_contain_both_TypeScript_and_JavaScript_files_Learn_more_at_https_Colon_Slash_Slashaka_ms_Slashtsconfig, 0, 0, [])] : []
+                            ? [new(Messages.Adding_a_tsconfig_json_file_will_help_organize_projects_that_contain_both_TypeScript_and_JavaScript_files_Learn_more_at_https_Colon_Slash_Slashaka_ms_Slashtsconfig, -1, 0, [])] : []
                     };
                 }
                 if (!emitted.Add(absolute))
                 {
                     blockedEmitPaths.Add(absolute);
-                    yield return new(Messages.Cannot_write_file_0_because_it_would_be_overwritten_by_multiple_input_files, 0, 0, [path]);
+                    yield return new(Messages.Cannot_write_file_0_because_it_would_be_overwritten_by_multiple_input_files, -1, 0, [path]);
                 }
             }
         }

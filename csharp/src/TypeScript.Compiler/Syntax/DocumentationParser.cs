@@ -46,6 +46,7 @@ internal sealed class DocumentationParser(
                 break;
             if (collect
                 && kind == K.MultiLineCommentTrivia
+                && source.Length - scanner.TokenStart >= 4
                 && scanner.TokenText.StartsWith("/**"u8, StringComparison.Ordinal)
                 && !scanner.TokenText.StartsWith("/**/"u8, StringComparison.Ordinal))
             {
@@ -93,11 +94,16 @@ internal sealed class DocumentationParser(
                     quoted = !quoted;
                 continue;
             }
-            if (fenced || quoted || text[i] != '@' || i > contentStart && text[i - 1] == '{')
+            if (fenced || quoted || text[i] != '@'
+                || i > contentStart && text[i - 1] == '{' && text.Span[i..contentEnd].StartsWith("@link"u8))
                 continue;
-            if (i != contentStart && !WhiteSpace(PreviousPoint(i)) && text[i - 1] != '*')
+            if (i != contentStart && !WhiteSpace(PreviousPoint(i)) && text[i - 1] is not ((byte)'*' or (byte)'{'))
                 continue;
-            if (i + 1 == contentEnd || TokenFacts.IsIdentifierStart(Point(i + 1)) || WhiteSpace(Point(i + 1)))
+            bool beginningOfLine = true;
+            for (int before = i - 1; before >= contentStart && !TokenFacts.IsLineBreak(Point(before)); before--)
+                if (!WhiteSpace(Point(before)) && text[before] != '*') { beginningOfLine = false; break; }
+            if (i + 1 < contentEnd && TokenFacts.IsIdentifierStart(Point(i + 1))
+                || beginningOfLine && (i + 1 == contentEnd || WhiteSpace(Point(i + 1))))
                 positions.Add(i);
         }
         NodeList? comment = Comments(contentStart, positions.Count == 0 ? contentEnd : positions[0], true);
@@ -146,6 +152,16 @@ internal sealed class DocumentationParser(
         return pos == end && preserveTrailing ? original : pos;
     }
 
+    private int SkipWhitespace(int pos, int end)
+    {
+        while (pos < end && WhiteSpace(Point(pos)))
+        {
+            Wtf8.Decode(text.Span[pos..end], out int width);
+            pos += width;
+        }
+        return pos;
+    }
+
     private IdentifierNode Identifier(ref int pos, int end, bool reportMissing = true)
     {
         int start = pos;
@@ -168,16 +184,19 @@ internal sealed class DocumentationParser(
         return node;
     }
 
-    private SyntaxNode Name(ref int pos, int end, bool arrayQualifiers = false, bool reportMissing = true, bool linkName = false)
+    private SyntaxNode Name(ref int pos, int end, bool arrayQualifiers = false, bool reportMissing = true, bool linkName = false,
+        bool namespaceName = false)
     {
         int start = pos;
         SyntaxNode name = Identifier(ref pos, end, reportMissing);
         if (arrayQualifiers && pos + 1 < end && text[pos] == '[' && text[pos + 1] == ']')
             pos += 2;
-        while (pos < end && (text[pos] == '.' || !arrayQualifiers && text[pos] == '#'))
+        bool member = false;
+        while (pos < end && (text[pos] == '.' && (!linkName || !member) || !arrayQualifiers && text[pos] == '#'))
         {
+            member |= text[pos] == '#';
             pos++;
-            var right = Identifier(ref pos, end, !linkName || pos >= end || text[pos] != '#');
+            var right = Identifier(ref pos, end, !namespaceName && (!linkName || pos >= end || text[pos] != '#'));
             if (arrayQualifiers && pos + 1 < end && text[pos] == '[' && text[pos + 1] == ']')
                 pos += 2;
             name = Finish(factory.NewQualifiedName(name, right), start, pos);
@@ -203,7 +222,9 @@ internal sealed class DocumentationParser(
             context,
             cancellation).ConfigureAwait(false);
         pos = result.End;
-        Diagnostics.AddRange(result.Diagnostics);
+        foreach (var diagnostic in result.Diagnostics)
+            Diagnostics.Add(diagnostic.Length == 0 && diagnostic.Start == end && end < text.Length && text[end] == '@'
+                ? diagnostic with { Length = 1 } : diagnostic);
         SourceFlags |= result.SourceFlags;
         return (result.Node, pos);
     }
@@ -222,7 +243,7 @@ internal sealed class DocumentationParser(
         {
             var imported = await Parser.DocumentationImportAsync(source, scriptKind, start + 1, end, cancellation).ConfigureAwait(false);
             Diagnostics.AddRange(imported.Diagnostics);
-            NodeList? importedComment = Comments(imported.End, end);
+            NodeList? importedComment = Comments(imported.End, end, skipLeadingAsterisks: false);
             return Finish(
                 factory.NewJSDocImportTag(
                     tagName,
@@ -235,19 +256,22 @@ internal sealed class DocumentationParser(
         }
         if (tag.Span.SequenceEqual("implements"u8) || tag.Span.SequenceEqual("augments"u8) || tag.Span.SequenceEqual("extends"u8))
         {
+            bool braced = pos < end && text[pos] == '{';
             var parsed = await Parser.DocumentationHeritageAsync(source, scriptKind, pos, end, context, cancellation).ConfigureAwait(false);
             Diagnostics.AddRange(parsed.Diagnostics);
             SourceFlags |= parsed.SourceFlags;
             pos = parsed.End;
             var className = parsed.Node;
-            var comments = Comments(pos, end);
-            return tag == Utf8Literals.Implements ? Finish(factory.NewJSDocImplementsTag(tagName, className, comments), start, end)
-                : Finish(factory.NewJSDocAugmentsTag(tagName, className, comments), start, end);
+            var comments = Comments(pos, end, skipLeadingAsterisks: !braced);
+            int tagEnd = braced && comments is null ? parsed.End : end;
+            return tag == Utf8Literals.Implements ? Finish(factory.NewJSDocImplementsTag(tagName, className, comments), start, tagEnd)
+                : Finish(factory.NewJSDocAugmentsTag(tagName, className, comments), start, tagEnd);
         }
         if (tag.Span.SequenceEqual("param"u8) || tag.Span.SequenceEqual("arg"u8) || tag.Span.SequenceEqual("argument"u8) || tag.Span.SequenceEqual("property"u8) || tag.Span.SequenceEqual("prop"u8))
         {
             (type, pos) = await TypeAsync(pos, end, true).ConfigureAwait(false);
             nameFirst = type is null;
+            int nameFullStart = pos;
             pos = SkipSpace(pos, end);
             bracketed = pos < end && text[pos] == '[';
             if (bracketed)
@@ -256,6 +280,9 @@ internal sealed class DocumentationParser(
             if (backquoted)
                 pos++;
             name = Name(ref pos, end, true, tag.Span.SequenceEqual("property"u8) || tag.Span.SequenceEqual("prop"u8));
+            if (!bracketed && !backquoted && type is not null && (type.Flags & NodeFlags.ThisNodeHasError) != 0
+                && name is IdentifierNode { Text: { Length: 0 } })
+                name.Pos = name.End = pos = nameFullStart;
             if (backquoted && pos < end && text[pos] == '`')
                 pos++;
             if (bracketed)
@@ -299,12 +326,12 @@ internal sealed class DocumentationParser(
                     break;
                 pos = SkipSpace(pos + 1, end);
             }
-            parameters = new(list.ToArray(), parameterStart, list.Count == 0 ? parameterStart : list[^1].End);
+            parameters = new(list.ToArray(), 0, 0);
         }
         if (tag.Span.SequenceEqual("typedef"u8) || tag.Span.SequenceEqual("callback"u8))
         {
             pos = SkipSpace(pos, end);
-            name = NamespaceName(Name(ref pos, end));
+            name = NamespaceName(Name(ref pos, end, namespaceName: true));
         }
         if (tag == Utf8Literals.See)
         {
@@ -331,15 +358,22 @@ internal sealed class DocumentationParser(
             }
         }
         int nodeEnd = end;
+        if (tag == "example"u8) pos = tagName.End;
         bool commentOnNextLine = text.Span.Slice(pos, SkipSpace(pos, end, false) - pos).ContainsLineBreak();
         int? commentIndent = tag.Span.SequenceEqual("typedef"u8) || tag.Span.SequenceEqual("callback"u8) || tag.Span.SequenceEqual("overload"u8) || commentOnNextLine ? docIndent : null;
+        if (commentOnNextLine && (tag == "return"u8 || tag == "returns"u8))
+            commentIndent = null;
         NodeList? comment = Comments(
             pos,
             end,
             preserveLineIndentation: type is not null && (type.Flags & NodeFlags.ThisNodeHasError) != 0,
             baseIndent: commentIndent,
-            rangeStart: (tag.Span.SequenceEqual("param"u8) || tag.Span.SequenceEqual("arg"u8) || tag.Span.SequenceEqual("argument"u8) || tag.Span.SequenceEqual("property"u8) || tag.Span.SequenceEqual("prop"u8)) && (type is null || !nameFirst)
-                ? SkipSpace(pos, end, false) : null);
+            rangeStart: tag == "example"u8 ? SkipSpace(pos, end, false)
+                : (tag.Span.SequenceEqual("param"u8) || tag.Span.SequenceEqual("arg"u8) || tag.Span.SequenceEqual("argument"u8) || tag.Span.SequenceEqual("property"u8) || tag.Span.SequenceEqual("prop"u8)) && (type is null || !nameFirst)
+                ? name is IdentifierNode { Text: { Length: 0 } } ? name.Pos : SkipSpace(pos, end, false)
+                : tag == "this"u8 || tag == Utf8Literals.Typedef || tag == "callback"u8 || parameters is { Count: 0 }
+                    ? SkipWhitespace(pos, end) : null,
+            skipLeadingAsterisks: tag != "this"u8 && parameters is not { Count: 0 });
         if (tag == Utf8Literals.Typedef && comment is null)
             nodeEnd = name?.End ?? type?.End ?? tagName.End;
         SyntaxNode result = tag.Span switch
@@ -506,7 +540,8 @@ internal sealed class DocumentationParser(
             }
             else if (tag is JSDocParameterOrPropertyTagNode { Kind: K.JSDocPropertyTag } property)
                 grouped[^1] = Finish(
-                    factory.NewJSDocUnknownTag(property.TagName, Comments(property.TagName!.End, property.End)),
+                    factory.NewJSDocUnknownTag(property.TagName, Comments(property.TagName!.End, property.End,
+                        rangeStart: SkipSpace(property.TagName.End, property.End, false))),
                     property.Pos,
                     property.End);
         }
@@ -581,10 +616,16 @@ internal sealed class DocumentationParser(
     }
 
     private NodeList? Comments(int start, int end, bool fullComment = false, bool preserveLineIndentation = false, int? baseIndent = null,
-        int? rangeStart = null)
+        int? rangeStart = null, bool skipLeadingAsterisks = true)
     {
         int untrimmedStart = start;
-        start = SkipSpace(start, end, false);
+        if (skipLeadingAsterisks) start = SkipSpace(start, end, false);
+        else
+            while (start < end && WhiteSpace(Point(start)))
+            {
+                Wtf8.Decode(text.Span[start..end], out int width);
+                start += width;
+            }
         int margin = baseIndent ?? Column(start), leadingLines = 0;
         int initialPadding = baseIndent is not null
             && text.Span.Slice(untrimmedStart, start - untrimmedStart).ContainsLineBreak()
@@ -605,18 +646,29 @@ internal sealed class DocumentationParser(
         int rawEnd = end;
         end = start + text.Span[start..end].TrimEnd().Length;
         if (start >= end)
-            return null;
+            return fullComment ? new([], untrimmedStart - 3, rawEnd) : null;
         var nodes = new List<SyntaxNode>();
         int cursor = start;
+        bool inCode = false, inFence = false;
         while (cursor < end)
         {
-            int relative = text.Span.Slice(cursor, end - cursor).IndexOf("{@link"u8, StringComparison.Ordinal);
-            if (relative < 0)
+            int link = -1;
+            for (int search = cursor; search < end; search++)
+            {
+                if (!inFence && TokenFacts.IsLineBreak(Point(search))) inCode = false;
+                if (text[search] == '`')
+                {
+                    int count = 1; while (search + 1 < end && text[search + 1] == '`') { count++; search++; }
+                    if (count >= 3) inFence = !inFence;
+                    else if (!inFence) inCode = !inCode;
+                }
+                if (!inCode && !inFence && text.Span[search..end].StartsWith("{@link"u8)) { link = search; break; }
+            }
+            if (link < 0)
             {
                 AddText(cursor, end);
                 break;
             }
-            int link = cursor + relative;
             int pos = link + 2;
             int nameStart = pos;
             while (pos < end && Utf8Ascii.IsLetter(text[pos]))
@@ -642,19 +694,23 @@ internal sealed class DocumentationParser(
             while (targetEnd < close && !WhiteSpace(Point(targetEnd)) && text[targetEnd] != '|')
                 targetEnd++;
             if (pos < targetEnd
-                && !text.Span.Slice(pos, targetEnd - pos).Contains("://"u8, StringComparison.Ordinal)
                 && StartsIdentifier(pos, targetEnd))
                 target = Name(ref pos, targetEnd, linkName: true);
             if (target is not null)
                 pos = SkipSpace(pos, close);
-            Utf8String[] value = [text.Memory[(!terminated && target is null ? argumentsStart : pos)..close]];
+            var fragments = new List<Utf8String>();
+            var linkScanner = new Scanner(source, false);
+            linkScanner.SetTextRange(!terminated && target is null ? argumentsStart : pos, close);
+            while (linkScanner.ScanJSDocToken() != K.EndOfFile)
+                fragments.Add(text.Memory[linkScanner.TokenStart..linkScanner.Position]);
+            Utf8String[] value = fragments.ToArray();
             SyntaxNode node = kind.Span switch
             {
                 _ when kind.Span.SequenceEqual("linkcode"u8) => factory.NewJSDocLinkCode(target, value),
                 _ when kind.Span.SequenceEqual("linkplain"u8) => factory.NewJSDocLinkPlain(target, value),
                 _ => factory.NewJSDocLink(target, value)
             };
-            cursor = close < end ? close + 1 : end;
+            cursor = terminated ? close + 1 : rawEnd;
             nodes.Add(Finish(node, link, cursor));
         }
         if (fullComment && nodes.Count != 0 && nodes[^1].Kind is K.JSDocLink or K.JSDocLinkCode or K.JSDocLinkPlain)
@@ -675,7 +731,7 @@ internal sealed class DocumentationParser(
                 {
                     if (leadingLines > 1)
                         result.Append((byte)'\n', leadingLines - 1);
-                    result.Append((byte)' ', initialPadding);
+                    result.Append(text.Span.Slice(start - initialPadding, initialPadding));
                 }
                 bool first = true;
                 while (true)
@@ -729,7 +785,26 @@ internal sealed class DocumentationParser(
             if (value.Length == 0 && !force)
                 return;
             int nodeStart = nodes.Count == 0 ? rangeStart ?? (fullComment ? untrimmedStart - 3 : untrimmedStart) : from;
-            nodes.Add(Finish(factory.NewJSDocText([value]), nodeStart, to == end ? rawEnd : to));
+            Utf8String[] fragments = [value];
+            if ((!fullComment || nodes.Count != 0) && value.Length != 0
+                && (!value.Span.ContainsLineBreak() || !skipLeadingAsterisks))
+            {
+                var parts = new List<Utf8String>();
+                var fragmentScanner = new Scanner(new(value), false);
+                bool backticks = false;
+                K token = nodes.Count != 0 ? fragmentScanner.ScanJSDocCommentTextToken(false) : fragmentScanner.ScanJSDocToken();
+                while (token != K.EndOfFile)
+                {
+                    parts.Add(value[fragmentScanner.TokenStart..fragmentScanner.Position]);
+                    if (token == K.BacktickToken) backticks = !backticks;
+                    token = token is K.WhitespaceTrivia or K.NewLineTrivia ? fragmentScanner.ScanJSDocToken()
+                        : fragmentScanner.ScanJSDocCommentTextToken(backticks);
+                }
+                fragments = parts.ToArray();
+            }
+            if (fullComment && nodes.Count != 0 && value.Length != 0 && to == end && text.Span[end..rawEnd].ContainsLineBreak())
+                fragments = [.. fragments, Utf8String.Empty];
+            nodes.Add(Finish(factory.NewJSDocText(fragments), nodeStart, to == end ? rawEnd : to));
         }
     }
 }

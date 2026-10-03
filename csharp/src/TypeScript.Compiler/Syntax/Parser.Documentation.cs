@@ -17,15 +17,26 @@ public sealed partial class Parser
         var parser = new Parser(new(Utf8Literals.Documentation, scriptKind), source, cancellation, start, end, true);
         await parser.ParseStack;
         parser.Expected(K.ImportKeyword);
+        parser.scanner.SetSkipJSDocLeadingAsterisks(false);
         int clauseFullStart = parser.Pos;
         int clauseStart = parser.scanner.TokenStart;
-        IdentifierNode? name = parser.IsIdentifier ? parser.Identifier() : null;
+        IdentifierNode? name = null;
+        if (parser.IsIdentifier)
+        {
+            var nameScanner = new Scanner(source, false);
+            nameScanner.SetTextRange(clauseStart, end);
+            nameScanner.ScanJSDocToken();
+            name = parser.Finish(parser.factory.NewIdentifier(nameScanner.Value), clauseStart, nameScanner.Position);
+            parser.scanner.ResetPosition(nameScanner.Position);
+            parser.Next();
+        }
         ImportClauseNode? clause = null;
         if (name is not null || parser.Token is K.AsteriskToken or K.OpenBraceToken)
         {
             SyntaxNode? bindings = null;
             if (name is null || parser.Take(K.CommaToken))
             {
+                parser.scanner.SetSkipJSDocLeadingAsterisks(true);
                 int bindingsStart = name is null ? clauseStart : parser.Pos;
                 if (parser.Take(K.AsteriskToken))
                 {
@@ -41,6 +52,7 @@ public sealed partial class Parser
                     parser.Expected(K.CloseBraceToken);
                     bindings = parser.Finish(parser.factory.NewNamedImports(elements), bindingsStart);
                 }
+                parser.scanner.SetSkipJSDocLeadingAsterisks(false);
             }
             clause = parser.Finish(parser.factory.NewImportClause(K.TypeKeyword, name, bindings), clauseStart);
             parser.Expected(K.FromKeyword);
@@ -55,6 +67,8 @@ public sealed partial class Parser
             specifier = parser.Token == K.EndOfFile ? parser.Finish(parser.factory.NewIdentifier(Utf8String.Empty), parser.Pos, parser.Pos)
                 : await parser.ExpressionCore().ConfigureAwait(false);
         }
+        else if (parser.Token == K.StringLiteral)
+            specifier = parser.Literal();
         else
             specifier = await parser.ExpressionCore().ConfigureAwait(false);
         ImportAttributesNode? attributes = null;

@@ -1,0 +1,186 @@
+{
+  "phase": 7,
+  "phase7Complete": false,
+  "configuration": "Release CoreCLR; default GC; Windows x64",
+  "performanceMeasured": false,
+  "nativeAotExecuted": false,
+  "live": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": 66,
+    "requests": 188,
+    "classifiedDifferences": 2,
+    "differences": 0,
+    "compilerSha256": "d1bc47c7a1900a1f7017065a6f741364092f4ff616a6233538db0a91bb693079",
+    "inputsSha256": "b5a38f31f2498a32316bb280611e4fb3d89a1ad34d01538515f8f7b2a1d24452",
+    "fixture": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+      "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+      "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+    }
+  },
+  "diagnostics": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\diagnostics-expanded",
+    "originalTests": 220,
+    "originalTestFunctions": 220,
+    "selectedTestsWithoutRequests": [],
+    "unorderedProjectResults": [],
+    "unorderedFileRenameResults": [],
+    "unorderedCodeLensResults": [],
+    "unorderedReferenceResults": [],
+    "authoredTests": 19,
+    "encodings": [
+      "utf-8",
+      "utf-16"
+    ],
+    "requests": 1122,
+    "differences": 0,
+    "compilerSha256": "d1bc47c7a1900a1f7017065a6f741364092f4ff616a6233538db0a91bb693079",
+    "inputsSha256": "b8afa6ac3862c54597fa23bd1ee4b11595b694a70e13f353f4b30985eed2c166"
+  },
+  "safety": {
+    "telemetryAssertions": 28,
+    "lspAssertions": 283,
+    "serviceAssertions": 337,
+    "policy": {
+      "cases": 3,
+      "variedCases": 3,
+      "corruptionControls": 18
+    },
+    "coverage": [
+      "option allowlist and path/content exclusion",
+      "UTF-8 sizes and script kinds",
+      "disabled mode creates no timer",
+      "one project notification after successful send",
+      "I/O and disposed-transport failures allow retry",
+      "blocked-send cancellation",
+      "five-minute timer with a controllable TimeProvider",
+      "live CLR and project counter collection",
+      "repeated disposal and stopped timers",
+      "diagnostic code/range/message comparison",
+      "code-only diagnostic-flake telemetry"
+    ]
+  },
+  "initializationOptions": [
+    "disablePushDiagnostics",
+    "codeLensShowLocationsCommandName",
+    "userPreferences",
+    "enableTelemetry",
+    "logVerbosity",
+    "runExternalCode",
+    "trackFlakyDiagnostics"
+  ],
+  "telemetry": {
+    "project": "Config category, version, allowlisted boolean/enum compiler options, config shape, five script-kind counts and UTF-8 byte sizes. Config/JS/inferred, disabled/omitted, edit/close/reopen cases compare with Go.",
+    "periodic": "Five-minute timer samples the current leased snapshot and queues only serialized numeric summaries. The lease is released before publishing. No telemetry timer exists when disabled.",
+    "runtimeDifference": "Only current project/open-file/config/disk-cache counts and uptime use the shared names. CLR-specific counters use explicit clr prefixes. Go runtime, system-memory, and Go auto-import bucket metrics are omitted rather than approximated; these optional counters have runtime/architecture-specific definitions.",
+    "clrCounters": [
+      "clrHeapSizeBytes",
+      "clrHeapFragmentedBytes",
+      "clrTotalCommittedBytes",
+      "clrAllocatedBytes",
+      "clrGen0Collections",
+      "clrGen1Collections",
+      "clrGen2Collections",
+      "clrThreadPoolThreads"
+    ],
+    "failures": "Recovered unexpected exceptions report their type and compiler method frames, without messages, source paths, arguments, or external plugin frames.",
+    "flakyDiagnostics": "Off/log/panic initialization settings. Enabled collection holds the same checker across pre-emit diagnostics, emit with suppressed writes, and post-emit diagnostics. Compare code, range, and message exactly as Go; log full differences and send only codes in telemetry. Panic mode fails a request when a difference exists.",
+    "limits": "Live off/log/panic cases have stable diagnostics. Synthetic diagnostic differences validate comparison and sanitization separately. Functional resource-counter tests are not performance measurements."
+  },
+  "ordering": {
+    "evidence": "csharp/compatibility/evidence/phase7-telemetry-ordering.json",
+    "unchangedReferenceRuns": 2,
+    "varyingCases": 3,
+    "corruptionControls": 18,
+    "policy": "Parse only projectInfo.properties.compilerOptions as JSON. Original strings remain in complete saved frames; all values, other fields, and event order are exact."
+  },
+  "retainedFailures": [
+    {
+      "path": "built/csharp/phase7-validation/telemetry-build1.log",
+      "reason": "New telemetry code had a missing namespace import and nullable project-session access; corrected before validation."
+    },
+    {
+      "path": "built/csharp/phase7-validation/telemetry-build2.log",
+      "reason": "New test tuple literals required explicit UTF-8 conversion; replaced by direct option setters."
+    },
+    {
+      "path": "built/csharp/phase7-validation/lsp-telemetry",
+      "reason": "Raw compilerOptions strings exposed Go map-order variation; no telemetry values differed."
+    },
+    {
+      "path": "built/csharp/phase7-validation/lsp-telemetry-repeat",
+      "reason": "An unchanged Go control varied the same three option-string orders while preserving all decoded fields."
+    },
+    {
+      "path": "built/csharp/phase7-validation/telemetry-diagnostics.log",
+      "reason": "The replay invoked its default extra build. The verified owned build process was stopped and the runner repeated with --no-build."
+    },
+    {
+      "path": "built/csharp/phase7-validation/telemetry-diagnostics",
+      "reason": "The old 690-request capture lacked mappedFiles.transformFailed on two mapper-failure cases. The complete existing 1122-request capture contains that flag; no product or fixture edits were made for this rerun."
+    }
+  ],
+  "sources": {
+    "csharp/src/TypeScript.Compiler/LanguageServer/SessionTelemetry.cs": "f1222425c98fae4b3a98edb088e86fd029b09ab1e4950017a6d29f8db1f3859d",
+    "csharp/src/TypeScript.Compiler/LanguageServer/LanguageServerSession.Telemetry.cs": "73c3a6ad007338d863842aedca6d1c83856d16aef649726bba241d2c8e4f9ce9",
+    "csharp/src/TypeScript.Compiler/LanguageServer/FlakyDiagnostics.cs": "2c016939fb612214456e87340823fc84775eba16074d2eba9eae36ca7f699402",
+    "csharp/src/TypeScript.Compiler/LanguageServices/DocumentDiagnostics.cs": "7d46545ccd86acfcd10e5696a3720102faa760a772f7b579710533d38b36817a",
+    "csharp/tests/TypeScript.Compatibility/TelemetryTests.cs": "6d91b026a2671aa3420437789edb167949a62207bfa7ec4339c5cd185cc0b62f",
+    "csharp/tools/lsp-project-services.mjs": "6ea24c6e7dac32fa3c78c01c5b032a4b72bb5b2c798679b4539a9faf44b31eb9",
+    "csharp/tools/verify-telemetry-policy.mjs": "0bd44828d688d1b9aeae7852eb5aeb800e27b5845f611df713647911804773b9",
+    "csharp/tools/service-response-comparison.mjs": "e00e52a1290c18b1bf2c4c9312e9b1029fdb7437e639036c69b1c1c0da2648a2",
+    "tsc/internal/project/session.go": "9c2195c786f28f784aaa107deb4b25ff8ae5cd0585b12ffa943b350bea4f5425",
+    "tsc/internal/lsp/server.go": "b09b4f5023cfb6186b4dc0c80b636ea3e8bee81fd5a2a0d0e84c82a4bc0bde13",
+    "tsc/internal/lsp/lsproto/util.go": "fa42ac33d267dc6d955c3db3af6625ad5d830b387c447c01da5b0b6298de14e1"
+  },
+  "artifacts": [
+    {
+      "path": "built/csharp/phase7-validation/telemetry-build5.log",
+      "sha256": "360e45a4c3a55e40effd36635f0317eb702ca9828caf721544e3418c916ab47e"
+    },
+    {
+      "path": "built/csharp/phase7-validation/telemetry-safety3.log",
+      "sha256": "11d21974348f84c55056d95e0306dacf907061ef00da42ffedcdeb9a4b187bfb"
+    },
+    {
+      "path": "built/csharp/phase7-validation/telemetry-lsp-safety2.log",
+      "sha256": "c3b7648739ed5f2b32a7aafa4c13e3fa8f2a35af633cf7c98c51bdb64c998e7d"
+    },
+    {
+      "path": "built/csharp/phase7-validation/telemetry-services-safety.log",
+      "sha256": "9c2abacadafdb63687137f63d6521c566b65bfd45bcc09bb2254ccb1e225dad4"
+    },
+    {
+      "path": "built/csharp/phase7-validation/telemetry-policy.log",
+      "sha256": "91b8846989af052c96b40339cd10a7f07f6c3a427829d0039269bb18b05f4682"
+    },
+    {
+      "path": "built/csharp/phase7-validation/lsp-project-services-telemetry/inputs.json",
+      "sha256": "b5a38f31f2498a32316bb280611e4fb3d89a1ad34d01538515f8f7b2a1d24452"
+    },
+    {
+      "path": "built/csharp/phase7-validation/lsp-project-services-telemetry/results.json",
+      "sha256": "fef7ef5ffa7dc2bd86167ee6ee32a5f89c7dca87cfd0d3dda3ff1b5a18c9bfc0"
+    },
+    {
+      "path": "built/csharp/phase7-validation/telemetry-diagnostics-expanded/candidate.raw.jsonl",
+      "sha256": "cd78971826738a545ada585b1e79422d7acfa0fc98faff74108c918622b27a27"
+    },
+    {
+      "path": "built/csharp/phase7-validation/telemetry-diagnostics-expanded/candidate.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "built/csharp/phase7-validation/telemetry-diagnostics-expanded.log",
+      "sha256": "8b973ee0dcc8fe129e75ed1b94663c6ccace912e98081e852b13d826e54bfd66"
+    }
+  ],
+  "remainingPhase7": [
+    "original project coverage inventory",
+    "final API/transport/client/cancellation/disposal/retention gates",
+    "NativeAOT publish without execution",
+    "completion documentation"
+  ]
+}

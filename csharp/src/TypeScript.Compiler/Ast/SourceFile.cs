@@ -87,6 +87,7 @@ public sealed partial class SourceFileNode
     {
         var clone = (SourceFileNode)base.ShallowClone();
         clone.documentation = null;
+        clone.tokens = null;
         clone.ReparsedClones = [];
         return clone;
     }

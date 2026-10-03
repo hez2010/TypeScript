@@ -53,7 +53,8 @@ public sealed partial class Parser
                         reportInvalidElement();
                     else
                         Error(elementExpected!);
-                    if ((recoveryBoundary?.Invoke() ?? !recoveringReparse && Token != K.SemicolonToken && StartsStatement())
+                    if ((context & NodeFlags.JSDoc) != 0
+                        || (recoveryBoundary?.Invoke() ?? !recoveringReparse && Token != K.SemicolonToken && StartsStatement())
                         || variableDeclarationDepth != 0 && Token == K.EqualsGreaterThanToken
                         || !recoveringReparse && Token is K.CloseBraceToken or K.CloseParenToken or K.CloseBracketToken)
                         break;
@@ -100,7 +101,8 @@ public sealed partial class Parser
                 if (typeMembers && !Peek(static parser => parser.ScanTypeMemberStart()))
                 {
                     Error(Messages.Property_or_signature_expected);
-                    if (Token is K.CloseParenToken or K.CloseBracketToken || Token != K.SemicolonToken && StartsStatement())
+                    if ((context & NodeFlags.JSDoc) != 0
+                        || Token is K.CloseParenToken or K.CloseBracketToken || Token != K.SemicolonToken && StartsStatement())
                         break;
                     Next();
                     continue;

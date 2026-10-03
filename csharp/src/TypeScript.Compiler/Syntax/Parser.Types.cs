@@ -460,9 +460,14 @@ public sealed partial class Parser
         int start = Pos;
         var modifiers = await ModifiersCore(true).ConfigureAwait(false);
         var name = Identifier();
-        SyntaxNode? constraint = Take(K.ExtendsKeyword) ? await TypeCore().ConfigureAwait(false) : null;
+        SyntaxNode? constraint = null, expression = null;
+        if (Take(K.ExtendsKeyword))
+        {
+            if (StartsType() || !StartsExpression()) constraint = await TypeCore().ConfigureAwait(false);
+            else expression = await UnaryExpressionCore().ConfigureAwait(false);
+        }
         SyntaxNode? defaultType = Take(K.EqualsToken) ? await TypeCore().ConfigureAwait(false) : null;
-        return Finish(factory.NewTypeParameterDeclaration(modifiers, name, constraint, null, defaultType), start);
+        return Finish(factory.NewTypeParameterDeclaration(modifiers, name, constraint, expression, defaultType), start);
     }
 
     private async ValueTask<NodeList> ParametersCore(NodeFlags signatureFlags = 0, bool requireComplete = false)

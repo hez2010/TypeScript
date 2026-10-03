@@ -9,6 +9,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/collections"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/modulespecifiers"
+	"github.com/microsoft/TypeScript/tsc/internal/module"
 	"github.com/microsoft/TypeScript/tsc/internal/packagejson"
 	"github.com/microsoft/TypeScript/tsc/internal/parser"
 	"github.com/microsoft/TypeScript/tsc/internal/printer"
@@ -25,6 +26,7 @@ func main() {
 	for lines.Scan() {
 		var input struct {
 			WithoutSource                                                                                            bool
+			EntrypointEnding                                                                                         module.Ending
 			Operation, Source, FileName, Directory, Preference, OldSpecifier, Target, SourceDirectory, BaseDirectory string
 			Sensitive                                                                                                bool
 			DefaultMode, Mode                                                                                        core.ResolutionMode
@@ -168,6 +170,14 @@ func main() {
 			continue
 		}
 		file := parser.ParseSourceFile(ast.SourceFileParseOptions{FileName: input.FileName}, input.Source, core.EnsureScriptKindFromFileName(input.FileName))
+		if input.Operation == "entrypoint-ending" {
+			result := modulespecifiers.ProcessEntrypointEnding(&module.ResolvedEntrypoint{ModuleSpecifier: input.Target, Ending: input.EntrypointEnding},
+				modulespecifiers.UserPreferences{ImportModuleSpecifierEnding: modulespecifiers.ImportModuleSpecifierEndingPreference(input.Preference)},
+				&modulespecifiers.CSharpPathHost{Directory: input.Directory, Sensitive: input.Sensitive, DefaultMode: input.DefaultMode, Exists: host.FS().FileExists},
+				parsed.CompilerOptions(), file, input.Endings)
+			if err := output.Encode(result); err != nil { panic(err) }
+			continue
+		}
 		paths := collections.OrderedMap[string, []string]{}
 		for _, pair := range input.Paths {
 			var key string

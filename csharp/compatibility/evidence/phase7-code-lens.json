@@ -1,0 +1,228 @@
+{
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "configuration": "Release CoreCLR",
+  "date": "2026-10-03",
+  "direct": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 16,
+    "originalTestFunctions": 13,
+    "selectedTestsWithoutRequests": [],
+    "unorderedProjectResults": [],
+    "unorderedFileRenameResults": [],
+    "unorderedCodeLensResults": [
+      {
+        "name": "TestCodeLensAcrossProjects",
+        "kind": "references",
+        "uri": "file:///projects/container/lib/index.ts",
+        "position": 18
+      }
+    ],
+    "unorderedReferenceResults": [],
+    "authoredTests": 8,
+    "encodings": [
+      "utf-8",
+      "utf-16"
+    ],
+    "requests": 358,
+    "differences": 0,
+    "compilerSha256": "7329649e531081159701b2c3b52229d9d90b496b8d76d71d7c33bdb0a525c2b4",
+    "inputsSha256": "4080fbe19bea8a93e0657faf30703ea5f053a85fbe02c0e1e26e0df9c9b07936"
+  },
+  "lsp": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 16,
+    "requests": 282,
+    "clients": 100,
+    "differences": 0,
+    "mappedQueriesValidatedSeparately": 76,
+    "unorderedProjectResults": [],
+    "unorderedFileRenameResults": [],
+    "unorderedCodeLensResults": [
+      {
+        "name": "TestCodeLensAcrossProjects",
+        "kind": "references",
+        "uri": "file:///projects/container/lib/index.ts",
+        "position": 18
+      }
+    ],
+    "unorderedReferenceResults": [],
+    "compilerSha256": "7329649e531081159701b2c3b52229d9d90b496b8d76d71d7c33bdb0a525c2b4",
+    "inputsSha256": "4080fbe19bea8a93e0657faf30703ea5f053a85fbe02c0e1e26e0df9c9b07936"
+  },
+  "build": {
+    "log": "built\\csharp\\phase7-validation\\code-lens-build3.log",
+    "warnings": 0,
+    "errors": 0
+  },
+  "safety": {
+    "syntaxServiceAssertions": 126,
+    "newCodeLensAssertions": 26,
+    "newDefaultRenamePreferenceAssertions": 1,
+    "lspAssertions": 125,
+    "newLspAssertions": 16,
+    "logs": [
+      "built\\csharp\\phase7-validation\\code-lens-final-safety.log",
+      "built\\csharp\\phase7-validation\\code-lens-final-lsp-safety.log"
+    ],
+    "coverage": [
+      "2048 nested blocks",
+      "UTF-8 and UTF-16",
+      "six concurrent resolutions",
+      "enumeration and resolution cancellation",
+      "shared syntax immutability",
+      "resolved result does not retain disposed project",
+      "absent and empty navigation command",
+      "supplemental identity validation",
+      "changed and unchanged preferences",
+      "refresh capability negotiation",
+      "requests progress with a pending refresh reply",
+      "removed file reports ContentModified",
+      "shutdown cancels pending refresh"
+    ]
+  },
+  "regressions": {
+    "rename": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 217,
+      "originalTestFunctions": 204,
+      "selectedTestsWithoutRequests": [
+        "TestRenameJsSpecialAssignmentRhs2",
+        "TestRenameJsSpecialAssignmentRhs1",
+        "TestTsxRename8",
+        "TestJsObjectDefinePropertyRenameLocations",
+        "TestAllowRenameOfImportPath",
+        "TestDeclarationMapTestCasesForMaps/TestDeclarationMapsFindAllRefsStartingAtDefinition",
+        "TestDeclarationMapTestCasesForMaps/TestDeclarationMapsFindAllRefs",
+        "TestDeclarationMapTestCasesForMaps/TestDeclarationMapsFindAllRefsTargetDoesNotExist"
+      ],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 1,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 1526,
+      "differences": 0,
+      "compilerSha256": "7329649e531081159701b2c3b52229d9d90b496b8d76d71d7c33bdb0a525c2b4",
+      "inputsSha256": "c599c3f1dc6657929a2927856c90cc9d7e422b1b01f270eecf6cfd86b4532d22"
+    },
+    "lspRenameDefaultPreferences": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 213,
+      "requests": 1512,
+      "clients": 608,
+      "differences": 0,
+      "mappedQueriesValidatedSeparately": 14,
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "compilerSha256": "7329649e531081159701b2c3b52229d9d90b496b8d76d71d7c33bdb0a525c2b4",
+      "inputsSha256": "c599c3f1dc6657929a2927856c90cc9d7e422b1b01f270eecf6cfd86b4532d22"
+    },
+    "references": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 403,
+      "originalTestFunctions": 379,
+      "selectedTestsWithoutRequests": [
+        "TestDeclarationMapTestCasesForMaps/TestDeclarationMapsRenameTargetDoesNotExist",
+        "TestDeclarationMapTestCasesForMaps/TestDeclarationMapsRename",
+        "TestDeclarationMapTestCasesForMaps/TestDeclarationMapsRenameStartingAtDefinition"
+      ],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [
+        "TestTslibFindAllReferencesOnRuntimeImportWithPaths1",
+        "TestJsxFindAllReferencesOnRuntimeImportWithPaths1"
+      ],
+      "authoredTests": 1,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 2974,
+      "differences": 0,
+      "compilerSha256": "7329649e531081159701b2c3b52229d9d90b496b8d76d71d7c33bdb0a525c2b4",
+      "inputsSha256": "0ad99b99b677f00eff0ae85f426b48dd80bef80c4dbfb9ccb21181782fa2f820"
+    },
+    "implementations": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 69,
+      "originalTestFunctions": 69,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [
+        "TestImplementationsAcrossProjects"
+      ],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 1,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 248,
+      "differences": 0,
+      "compilerSha256": "7329649e531081159701b2c3b52229d9d90b496b8d76d71d7c33bdb0a525c2b4",
+      "inputsSha256": "0a74a08223636b0bb9a8e4ddbfac486ac3473ebccf3966260ee2111956fe1a1e"
+    }
+  },
+  "ordering": {
+    "evidence": "csharp/compatibility/evidence/phase7-code-lens-ordering.json",
+    "captures": 720,
+    "requests": 18,
+    "repetitionsPerRequest": 40,
+    "varyingRequests": 2,
+    "negativeControls": 26,
+    "policy": "Sort only the navigation locations for the recorded cross-project reference lens. All other fields, identities, ordering and duplicate counts remain exact."
+  },
+  "initialFailure": {
+    "summary": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 16,
+      "originalTestFunctions": 13,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 190,
+      "differences": 63,
+      "compilerSha256": "b263e046f174d6f379651e300f2f6d258cc75a7d32cd58e5e0ba4d7b1f76fd70",
+      "inputsSha256": "84e4422af33b969ba1e248e3dc5ef46b1713f43b79efef86b8d4e8cec50d1f09"
+    },
+    "differences": "built\\csharp\\phase7-validation\\code-lens\\differences.json",
+    "diagnosis": "32 enabled-but-empty results were null instead of arrays; 30 implementation resolutions used containing declaration ranges instead of name ranges; one cross-project location order varied. Empty results and name ranges were corrected. Repeated original controls establish the narrowly scoped ordering policy."
+  },
+  "boundaries": {
+    "ordinaryLsp": 282,
+    "mappedValidatedSeparatelyThroughProductionMapperHost": 76,
+    "methods": {
+      "textDocument/codeLens": 112,
+      "codeLens/resolve": 246
+    },
+    "originalRequests": 190,
+    "authoredRequests": 168,
+    "originalGoUnchanged": true,
+    "nativeAotExecuted": false,
+    "performanceMeasured": false,
+    "phase7Complete": false
+  },
+  "recording": "built\\csharp\\phase7-validation\\code-lens-expanded",
+  "logs": [
+    "built\\csharp\\phase7-validation\\code-lens-final-direct.log",
+    "built\\csharp\\phase7-validation\\code-lens-lsp.log",
+    "built\\csharp\\phase7-validation\\code-lens-rename-direct.log",
+    "built\\csharp\\phase7-validation\\code-lens-rename-lsp.log",
+    "built\\csharp\\phase7-validation\\code-lens-references-regression.log",
+    "built\\csharp\\phase7-validation\\code-lens-implementations-regression.log"
+  ]
+}

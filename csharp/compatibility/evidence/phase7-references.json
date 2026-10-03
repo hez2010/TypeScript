@@ -1,0 +1,130 @@
+{
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "configuration": "Release CoreCLR",
+  "directReferences": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 403,
+    "originalTestFunctions": 379,
+    "selectedTestsWithoutRequests": [
+      "TestDeclarationMapTestCasesForMaps/TestDeclarationMapsRenameTargetDoesNotExist",
+      "TestDeclarationMapTestCasesForMaps/TestDeclarationMapsRename",
+      "TestDeclarationMapTestCasesForMaps/TestDeclarationMapsRenameStartingAtDefinition"
+    ],
+    "unorderedProjectResults": [],
+    "unorderedReferenceResults": [
+      "TestTslibFindAllReferencesOnRuntimeImportWithPaths1",
+      "TestJsxFindAllReferencesOnRuntimeImportWithPaths1"
+    ],
+    "authoredTests": 1,
+    "encodings": [
+      "utf-8",
+      "utf-16"
+    ],
+    "requests": 2974,
+    "differences": 0,
+    "compilerSha256": "079c0b41a9c687cc52827808e789933fd4d08f1e1d4d8e335c4aafc41b4adb81",
+    "inputsSha256": "0ad99b99b677f00eff0ae85f426b48dd80bef80c4dbfb9ccb21181782fa2f820"
+  },
+  "directImplementations": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 69,
+    "originalTestFunctions": 69,
+    "selectedTestsWithoutRequests": [],
+    "unorderedProjectResults": [
+      "TestImplementationsAcrossProjects"
+    ],
+    "unorderedReferenceResults": [],
+    "authoredTests": 1,
+    "encodings": [
+      "utf-8",
+      "utf-16"
+    ],
+    "requests": 248,
+    "differences": 0,
+    "compilerSha256": "079c0b41a9c687cc52827808e789933fd4d08f1e1d4d8e335c4aafc41b4adb81",
+    "inputsSha256": "0a74a08223636b0bb9a8e4ddbfac486ac3473ebccf3966260ee2111956fe1a1e"
+  },
+  "lspReferences": {
+    "originalRun": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 398,
+      "requests": 2952,
+      "clients": 1193,
+      "differences": 4,
+      "mappedQueriesValidatedSeparately": 22,
+      "unorderedProjectResults": [],
+      "unorderedReferenceResults": [
+        "TestTslibFindAllReferencesOnRuntimeImportWithPaths1",
+        "TestJsxFindAllReferencesOnRuntimeImportWithPaths1"
+      ],
+      "compilerSha256": "079c0b41a9c687cc52827808e789933fd4d08f1e1d4d8e335c4aafc41b4adb81",
+      "inputsSha256": "0ad99b99b677f00eff0ae85f426b48dd80bef80c4dbfb9ccb21181782fa2f820"
+    },
+    "jsonDocumentReplay": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 20,
+      "requests": 124,
+      "clients": 113,
+      "differences": 0,
+      "mappedQueriesValidatedSeparately": 22,
+      "unorderedProjectResults": [],
+      "unorderedReferenceResults": [
+        "TestTslibFindAllReferencesOnRuntimeImportWithPaths1",
+        "TestJsxFindAllReferencesOnRuntimeImportWithPaths1"
+      ],
+      "compilerSha256": "079c0b41a9c687cc52827808e789933fd4d08f1e1d4d8e335c4aafc41b4adb81",
+      "inputsSha256": "0ad99b99b677f00eff0ae85f426b48dd80bef80c4dbfb9ccb21181782fa2f820"
+    },
+    "uniqueRequests": 2952,
+    "totalRequests": 3076,
+    "totalSessions": 1306,
+    "mappedRequestsValidatedSeparately": 22,
+    "boundary": "The original replay has four failures in TestFindAllRefsImportEqualsJsonFile, in both encodings. The harness incorrectly opened JSON documents as TypeScript. After correcting the language ID, all 124 requests from sessions opening JSON documents pass. Unaffected requests reuse the original run; the compiler and input hashes are identical. Original failures remain recorded."
+  },
+  "lspImplementations": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 68,
+    "requests": 238,
+    "clients": 170,
+    "differences": 0,
+    "mappedQueriesValidatedSeparately": 10,
+    "unorderedProjectResults": [
+      "TestImplementationsAcrossProjects"
+    ],
+    "unorderedReferenceResults": [],
+    "compilerSha256": "079c0b41a9c687cc52827808e789933fd4d08f1e1d4d8e335c4aafc41b4adb81",
+    "inputsSha256": "0a74a08223636b0bb9a8e4ddbfac486ac3473ebccf3966260ee2111956fe1a1e"
+  },
+  "orderingPolicy": {
+    "evidence": "csharp/compatibility/evidence/phase7-reference-ordering.json",
+    "comparison": "Three named fixtures permit result ordering differences established by repeated original runs. Complete locations and multiplicity are preserved; all other results are ordered.",
+    "negativeControls": 18
+  },
+  "regressions": {
+    "compilerSha256": "268617783a0973ee0ae8754e1596e8a65f89e54aba48e01abd57c010958e46fc",
+    "syntaxServiceSafetyAssertions": 52,
+    "projectSafetyAssertions": 89,
+    "apiRequests": 5963,
+    "originalProjectSessions": 147,
+    "originalProjectTransitions": 309,
+    "authoredProjectCases": 22,
+    "hoverRequests": 4604,
+    "signatureHelpRequests": 2580,
+    "definitionRequests": 1528,
+    "documentation": {
+      "inputs": 1228,
+      "exactMatches": 901,
+      "permittedDifferences": 327,
+      "failures": 0,
+      "negativeControls": 36
+    },
+    "boundary": "The shared source changes are covered by these regressions. The final complete semantic gate remains due before phase 7 completion."
+  },
+  "build": {
+    "compilerSha256": "079c0b41a9c687cc52827808e789933fd4d08f1e1d4d8e335c4aafc41b4adb81",
+    "warnings": 0,
+    "errors": 0,
+    "log": "built/csharp/phase7-validation/references-build15.log"
+  },
+  "phase7Complete": false
+}

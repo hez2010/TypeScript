@@ -164,7 +164,7 @@ internal static class ModuleSpecifierPaths
     private static bool AllowsTypeScript(CompilerOptions options) => options.AllowImportingTsExtensions == true
         || options.RewriteRelativeImportExtensions == true;
 
-    private static Utf8String ImportText(SyntaxNode node) => node switch
+    internal static Utf8String ImportText(SyntaxNode node) => node switch
     { StringLiteralNode text => text.Text, NoSubstitutionTemplateLiteralNode text => text.Text, _ => Utf8String.Empty };
 
     private static bool Relative(ReadOnlySpan<byte> path) =>

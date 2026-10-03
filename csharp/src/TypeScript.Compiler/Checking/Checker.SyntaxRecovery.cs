@@ -64,6 +64,7 @@ internal sealed partial class Checker
                     members.Add(await Visit(member));
                 }
                 var objectNode = f.NewTypeLiteralNode(new(members.ToArray()));
+                objectNode.Flags = node.Flags;
                 if (SemanticSyntax.Source(node) == SemanticSyntax.Source(state.Symbols.Enclosing))
                     (objectNode.Pos, objectNode.End) = (node.Pos, node.End);
                 if ((state.Flags & NodeBuilderFlags.MultilineObjectLiterals) == 0)
@@ -144,11 +145,22 @@ internal sealed partial class Checker
                 var parameterName = program.Symbols.Declaration(parameter) is { } symbol
                     ? f.NewIdentifier(TypeSyntaxParameterName(program.Scopes.Parameter(symbol), state, cancellation))
                     : CloneSyntaxBindingName(parameter.Name!, state);
-                return f.NewTypeParameterDeclaration(
+                if (SemanticSyntax.Source(parameter) == SemanticSyntax.Source(state.Symbols.Enclosing))
+                    (parameterName.Pos, parameterName.End) = (parameter.Name!.Pos, parameter.Name.End);
+                var parameterNode = f.NewTypeParameterDeclaration(
                     parameter.Modifiers is null ? null : new(parameter.Modifiers.Select(m => f.NewToken(m.Kind)).ToArray()),
                     (IdentifierNode)parameterName, parameter.Constraint is null ? null : await Visit(parameter.Constraint),
                     parameter.Expression is null ? null : await Visit(parameter.Expression),
                     parameter.DefaultType is null ? null : await Visit(parameter.DefaultType));
+                parameterNode.Flags = parameter.Flags;
+                if (SemanticSyntax.Source(parameter) == SemanticSyntax.Source(state.Symbols.Enclosing))
+                    (parameterNode.Pos, parameterNode.End) = (parameter.Pos, parameter.End);
+                return parameterNode;
+            case IdentifierNode identifier when node.Parent is TypePredicateNode predicate && predicate.ParameterName == node:
+                var predicateName = f.NewIdentifier(identifier.Text);
+                if (SemanticSyntax.Source(node) == SemanticSyntax.Source(state.Symbols.Enclosing))
+                    (predicateName.Pos, predicateName.End) = (node.Pos, node.End);
+                return predicateName;
         }
         if (node.Kind == K.JSDocAllType)
             return f.NewKeywordTypeNode(K.AnyKeyword);
@@ -185,6 +197,8 @@ internal sealed partial class Checker
         var clone = node.ShallowClone();
         clone.Parent = null;
         clone.RewriteChildren(copies);
+        if (clone is PropertySignatureDeclarationNode property) property.Initializer = null;
+        RecreateAnnotationLists(clone);
         if (SemanticSyntax.Source(node) != SemanticSyntax.Source(state.Symbols.Enclosing))
             clone.Pos = clone.End = -1;
         if (clone is StringLiteralNode text)
@@ -259,6 +273,7 @@ internal sealed partial class Checker
         {
             state.Tracker.TrackSymbol(symbol, state.Symbols.Enclosing, SymbolFlags.Type);
             var name = state.Factory.NewIdentifier(TypeSyntaxParameterName(program.Scopes.Parameter(symbol), state, cancellation));
+            if (state.DisplaySymbols is { } display) display[name] = symbol;
             if (SemanticSyntax.Source(reference) == SemanticSyntax.Source(state.Symbols.Enclosing))
                 (name.Pos, name.End) = (reference.TypeName!.Pos, reference.TypeName.End);
             return WithRange(state.Factory.NewTypeReferenceNode(name, await ArgumentsAsync()));
@@ -278,19 +293,25 @@ internal sealed partial class Checker
             {
                 if (current is not null)
                     await TrackTypeSymbolAsync(current, state.Symbols.Enclosing, meaning, state, cancellation);
-                return WithRange(state.Factory.NewTypeReferenceNode(CloneSyntaxBindingName(reference.TypeName!, state), await ArgumentsAsync()));
+                var name = CloneSyntaxBindingName(reference.TypeName!, state);
+                var leftmost = name;
+                while (leftmost is QualifiedNameNode qualification) leftmost = qualification.Left!;
+                if (state.DisplaySymbols is { } display && current is not null) display[leftmost] = current;
+                leftmost.Flags = NodeFlags.Synthesized;
+                return WithRange(state.Factory.NewTypeReferenceNode(name, await ArgumentsAsync()));
             }
         }
         if ((await SymbolAccessibilityAsync(symbol, state.Symbols.Enclosing, SymbolFlags.Type, false, true, cancellation)).Accessibility
             != SymbolAccessibility.Accessible)
         {
             state.Tracker.ReportInferenceFallback(reference.TypeName!);
-            return allowStructuralFallback ? await TypeSyntaxAsync(type, state, cancellation, expandAlias: true) : null;
+            return allowStructuralFallback ? await TypeSyntaxAsync(type, state, cancellation) : null;
         }
         return await SymbolTypeNodeAsync(symbol, SymbolFlags.Type, await ArgumentsAsync(), state.Symbols, false, cancellation);
 
         SyntaxNode WithRange(SyntaxNode node)
         {
+            node.Flags = reference.Flags;
             if (SemanticSyntax.Source(reference) == SemanticSyntax.Source(state.Symbols.Enclosing))
                 (node.Pos, node.End) = (reference.Pos, reference.End);
             return node;
@@ -303,7 +324,21 @@ internal sealed partial class Checker
             var arguments = new List<SyntaxNode>();
             foreach (var argument in originalArguments)
                 arguments.Add(await RecoverTypeSyntaxAsync(argument, state, cancellation));
-            return new(arguments.ToArray());
+            return new(arguments.ToArray(), originalArguments.Pos, originalArguments.End);
+        }
+    }
+
+    private static void RecreateAnnotationLists(SyntaxNode node)
+    {
+        static NodeList? Recreate(NodeList? list) => list is null ? null : new(list.ToArray());
+        switch (node)
+        {
+            case TypeLiteralNode literal: literal.Members = Recreate(literal.Members); break;
+            case TupleTypeNode tuple: tuple.Elements = Recreate(tuple.Elements); break;
+            case UnionTypeNode union: union.Types = Recreate(union.Types); break;
+            case IntersectionTypeNode intersection: intersection.Types = Recreate(intersection.Types); break;
+            case IFunctionSignature signature:
+                signature.TypeParameters = Recreate(signature.TypeParameters); signature.Parameters = Recreate(signature.Parameters); break;
         }
     }
 }

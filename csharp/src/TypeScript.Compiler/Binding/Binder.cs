@@ -58,6 +58,8 @@ public sealed partial class Binder
     public static BoundSourceFile Bind(SourceFileNode file, CancellationToken cancellation = default) =>
         Parser.RunParse(BindAsync(file, cancellation));
 
+    internal static bool IsBound(SourceFileNode file) => Cache.TryGetValue(file, out var entry) && Volatile.Read(ref entry.Value) is not null;
+
     public static async ValueTask<BoundSourceFile> BindAsync(SourceFileNode file, CancellationToken cancellation = default)
     {
         var entry = Cache.GetValue(file, static _ => new());

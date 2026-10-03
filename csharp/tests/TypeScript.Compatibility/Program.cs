@@ -14,6 +14,160 @@ internal static class Program
         Utf8String[] args = commandLine.Select(Utf8String.FromString).ToArray();
         try
         {
+            if (args is [var lspWatchLines] && lspWatchLines == "--lsp-watch-lines"u8) { LspWatchTests.Lines(); return 0; }
+            if (args is [var lspWatch] && lspWatch == "--lsp-watch-safety"u8)
+            {
+                Console.WriteLine($"LSP watch safety: {LspWatchTests.SafetyAsync().GetAwaiter().GetResult()} assertions"); return 0;
+            }
+            if (args is [var lspNativeWatch, var watchDirectory] && lspNativeWatch == "--lsp-native-watch-safety"u8)
+            {
+                Console.WriteLine($"LSP native watch safety: {LspWatchTests.NativeAsync(watchDirectory.ToString()).GetAwaiter().GetResult()} assertions"); return 0;
+            }
+            if (args is [var specifierRegex] && specifierRegex == "--specifier-regex-lines"u8)
+            {
+                SpecifierRegexTests.Lines();
+                return 0;
+            }
+            if (args is [var autoImportIndex] && autoImportIndex == "--autoimport-index-lines"u8)
+            {
+                AutoImportIndexTests.Lines();
+                return 0;
+            }
+            if (args is [var importSort] && importSort == "--import-sort-normalization"u8)
+            {
+                Console.WriteLine(ImportSortTests.NormalizationDigest());
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--formatting-safety"u8)
+            {
+                Console.WriteLine($"Formatting safety: {FormattingTests.SafetyAsync().GetAwaiter().GetResult()} assertions");
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--formatting-lines"u8)
+            {
+                FormattingTests.FormattingLinesAsync().GetAwaiter().GetResult();
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--insertion-lines"u8)
+            {
+                FormattingTests.InsertionLinesAsync().GetAwaiter().GetResult();
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--indentation-lines"u8)
+            {
+                FormattingTests.IndentationLinesAsync().GetAwaiter().GetResult();
+                return 0;
+            }
+            if (args is [var developerSafety, var developerProfileDirectory] && developerSafety == "--developer-safety"u8)
+            {
+                Console.WriteLine($"Developer services safety: {DeveloperTests.SafetyAsync(developerProfileDirectory).GetAwaiter().GetResult()} assertions");
+                return 0;
+            }
+            if (args is [var telemetrySafety] && telemetrySafety == "--telemetry-safety"u8)
+            {
+                Console.WriteLine($"Telemetry safety: {TelemetryTests.SafetyAsync().GetAwaiter().GetResult()} assertions");
+                return 0;
+            }
+            if (args is [var lspSafety] && lspSafety == "--lsp-safety"u8)
+            {
+                Console.WriteLine($"LSP safety: {LspTests.SafetyAsync().GetAwaiter().GetResult() + LspApiTests.SafetyAsync().GetAwaiter().GetResult() + LspSemanticTests.SafetyAsync().GetAwaiter().GetResult() + LspFormattingTests.SafetyAsync().GetAwaiter().GetResult() + CodeLensTests.LspSafetyAsync().GetAwaiter().GetResult() + InlayHintTests.LspSafetyAsync().GetAwaiter().GetResult() + DocumentDiagnosticTests.LspSafetyAsync().GetAwaiter().GetResult() + DocumentDiagnosticTests.PushSafetyAsync().GetAwaiter().GetResult() + DocumentDiagnosticTests.RefreshSafetyAsync().GetAwaiter().GetResult() + CompletionTests.LspSafetyAsync().GetAwaiter().GetResult() + CodeActionTests.LspSafetyAsync().GetAwaiter().GetResult() + LspProjectTests.SafetyAsync().GetAwaiter().GetResult() + ProgressTests.SafetyAsync().GetAwaiter().GetResult()} assertions");
+                return 0;
+            }
+            if (args is [var lspProtocol] && lspProtocol == "--lsp-protocol-lines"u8)
+            {
+                LspProtocolTests.Lines();
+                return 0;
+            }
+            if (args is [var lspMode, var lspFiles] && lspMode == "--lsp-test-server"u8)
+            {
+                LspTests.ServerAsync(lspFiles).GetAwaiter().GetResult();
+                return 0;
+            }
+            if (args is [var projectLspMode, var projectLspFiles] && projectLspMode == "--lsp-project-test-server"u8)
+            {
+                LspProjectTests.ServerAsync(projectLspFiles).GetAwaiter().GetResult();
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--syntax-services-lines"u8)
+            {
+                SyntaxServiceTests.LinesAsync().GetAwaiter().GetResult();
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--syntax-services-safety"u8)
+            {
+                Console.WriteLine($"Syntax service safety: {SyntaxServiceTests.SafetyAsync().GetAwaiter().GetResult() + HoverTests.SafetyAsync().GetAwaiter().GetResult() + SignatureHelpTests.SafetyAsync().GetAwaiter().GetResult() + DefinitionTests.SafetyAsync().GetAwaiter().GetResult() + ReferenceTests.SafetyAsync().GetAwaiter().GetResult() + HighlightTests.SafetyAsync().GetAwaiter().GetResult() + RenameTests.SafetyAsync().GetAwaiter().GetResult() + CallHierarchyTests.SafetyAsync().GetAwaiter().GetResult() + CodeLensTests.SafetyAsync().GetAwaiter().GetResult() + InlayHintTests.SafetyAsync().GetAwaiter().GetResult() + AutoInsertionTests.SafetyAsync().GetAwaiter().GetResult() + DocumentDiagnosticTests.SafetyAsync().GetAwaiter().GetResult() + CompletionTests.SafetyAsync().GetAwaiter().GetResult() + CodeActionTests.SafetyAsync().GetAwaiter().GetResult()} assertions");
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--navigation-lines"u8)
+            {
+                NavigationTests.LinesAsync().GetAwaiter().GetResult();
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--rpc-safety"u8)
+            {
+                Console.WriteLine($"RPC safety: {RpcTests.SafetyAsync().GetAwaiter().GetResult()} assertions");
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--api-session-lines"u8)
+            {
+                ApiSessionTests.LinesAsync().GetAwaiter().GetResult();
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--request-filesystem-safety"u8)
+            {
+                Console.WriteLine($"Request filesystem safety: {RequestFileSystemTests.SafetyAsync().GetAwaiter().GetResult()} assertions");
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--request-filesystem-lines"u8)
+            {
+                RequestFileSystemTests.Lines();
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--ast-decode-lines"u8)
+            {
+                AstCodecTests.DecodeLinesAsync().GetAwaiter().GetResult();
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--ast-codec-safety"u8)
+            {
+                Console.WriteLine($"AST codec safety: {AstCodecTests.SafetyAsync().GetAwaiter().GetResult()} assertions");
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--ast-codec-lines"u8)
+            {
+                AstCodecTests.LinesAsync().GetAwaiter().GetResult();
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--npm-process-safety"u8)
+            {
+                Console.WriteLine($"Npm process safety: {NpmProcessTests.SafetyAsync().GetAwaiter().GetResult()} assertions");
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--typings-safety"u8)
+            {
+                Console.WriteLine($"Typings safety: {TypingsTests.SafetyAsync().GetAwaiter().GetResult()} assertions");
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--typings-lines"u8)
+            {
+                TypingsTests.Lines();
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--project-lines"u8)
+            {
+                ProjectReplay.SnapshotLines();
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--overlay-lines"u8)
+            {
+                ProjectReplay.OverlayLines();
+                return 0;
+            }
+            if (args.Length == 1 && args[0] == "--project-safety"u8)
+            {
+                Console.WriteLine($"Project safety: {ProjectTests.SafetyAsync().GetAwaiter().GetResult()} assertions");
+                return 0;
+            }
             if (args.Length == 1 && args[0] == "--native-command-safety"u8)
             {
                 Console.WriteLine($"Native command safety: {WatchTests.CommandSafetyAsync().GetAwaiter().GetResult()} assertions; {System.Runtime.InteropServices.RuntimeInformation.OSDescription}");

@@ -1,0 +1,68 @@
+{
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "runtime": "Release CoreCLR, default GC; performance remains on hold",
+  "compilerSha256": "433364f09cb3dc16d269dcc4fbe1aa524510655989089a29c589119593c0ce96",
+  "direct": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 465,
+    "authoredTests": 1,
+    "encodings": [
+      "utf-8",
+      "utf-16"
+    ],
+    "requests": 4604,
+    "differences": 0,
+    "compilerSha256": "433364f09cb3dc16d269dcc4fbe1aa524510655989089a29c589119593c0ce96",
+    "inputsSha256": "3ce81d5c22e5dbdc8c9b573762642f2305c21ac1d315d1bc63fc687047add42c"
+  },
+  "lsp": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 458,
+    "requests": 4582,
+    "clients": 1056,
+    "differences": 0,
+    "mappedQueriesValidatedSeparately": 22,
+    "compilerSha256": "433364f09cb3dc16d269dcc4fbe1aa524510655989089a29c589119593c0ce96",
+    "inputsSha256": "3ce81d5c22e5dbdc8c9b573762642f2305c21ac1d315d1bc63fc687047add42c"
+  },
+  "syntaxSafetyAssertions": 20,
+  "lspSafetyAssertions": 109,
+  "documentationRegression": {
+    "exact": 901,
+    "reviewedDifferences": 327,
+    "compilerSha256": "433364f09cb3dc16d269dcc4fbe1aa524510655989089a29c589119593c0ce96",
+    "cases": 1228,
+    "failures": 0
+  },
+  "adapters": [
+    "UTF-8 or UTF-16 LSP capabilities and matching reference marker/baseline converters",
+    "Captured mapper spans converted from start/end coordinates to the start/length mapper wire format; responses are compared unchanged"
+  ],
+  "phase7Complete": false,
+  "semanticRegression": [
+    {
+      "mode": "single",
+      "availableConfigurations": 13446,
+      "referenceSkipped": 1762,
+      "candidateFailures": 0,
+      "graphMismatches": 0,
+      "diagnosticMismatches": 0,
+      "detailedDiagnosticMismatches": 0,
+      "compilerSha256": "433364f09cb3dc16d269dcc4fbe1aa524510655989089a29c589119593c0ce96",
+      "inputSha256": "df21bccda8a3bc5da534586c352dae0175cf4bf260c93ee15694afe19353d5bd",
+      "fullSemanticCorpusGateComplete": true
+    },
+    {
+      "mode": "default",
+      "availableConfigurations": 13446,
+      "referenceSkipped": 1762,
+      "candidateFailures": 0,
+      "graphMismatches": 0,
+      "diagnosticMismatches": 0,
+      "detailedDiagnosticMismatches": 0,
+      "compilerSha256": "433364f09cb3dc16d269dcc4fbe1aa524510655989089a29c589119593c0ce96",
+      "inputSha256": "b51e79a2ebc4428367c89bceb367fd82a86bdd85b43b847bc17f875b51743a77",
+      "fullSemanticCorpusGateComplete": true
+    }
+  ]
+}

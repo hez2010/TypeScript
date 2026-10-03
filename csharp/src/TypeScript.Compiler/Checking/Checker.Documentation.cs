@@ -144,7 +144,8 @@ internal sealed partial class Checker
                             DiagnosticCode.JSDocParamTagHasName0ButThereIsNoParameterWithThatName,
                             CheckerDiagnostic.DeclarationName(tag.Name!));
                     else
-                        ExpressionSuggestion(tag.Name!, DiagnosticCode.JSDocParamTagHasName0ButThereIsNoParameterWithThatName);
+                        ExpressionSuggestion(tag.Name!, CheckerDiagnostic.Create(tag.Name!,
+                            Messages.JSDoc_param_tag_has_name_0_but_there_is_no_parameter_with_that_name, CheckerDiagnostic.DeclarationName(tag.Name!)));
                 }
             }
     }

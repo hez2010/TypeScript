@@ -12,6 +12,7 @@ internal sealed partial class Checker
     private readonly HashSet<SourceFileNode> checkedFiles = [];
     private readonly Dictionary<SourceFileNode, List<SyntaxNode>> deferredSourceNodes = [];
     private bool sourceCheckCancelled;
+    internal bool WasCanceled => sourceCheckCancelled;
     internal SyntaxNode? CurrentSourceNode { get; private set; }
     internal int CheckedFileCount => checkedFiles.Count;
     internal Action<SyntaxNode>? BeforeSourceElement { get; set; }
@@ -726,6 +727,7 @@ internal sealed partial class Checker
                 case ClassExpressionNode expression:
                     foreach (var member in expression.Members!)
                         await CheckSourceElementAsync(member, cancellation).ConfigureAwait(false);
+                    RegisterUnused(expression);
                     break;
                 case GetAccessorDeclarationNode or SetAccessorDeclarationNode:
                     await CheckAccessorSourceAsync(node, cancellation).ConfigureAwait(false);
@@ -755,10 +757,10 @@ internal sealed partial class Checker
             if (member is INamedNode { Name: { } name } && name is not ComputedPropertyNameNode
                 && await Properties.PropertyAsync(
                     contextual,
-                    SyntaxNameText.Get(name),
+                    name switch { StringLiteralNode literalName => literalName.Text, NumericLiteralNode literalName => literalName.Text, _ => SyntaxNameText.Get(name) },
                     cancellation: cancellation).ConfigureAwait(false) is { Declarations.Length: > 0 } property
                 && program.Deprecations.Symbol(property))
-                program.Suggestion(name, DiagnosticCode.X0IsDeprecated, property.Name);
+                program.DeprecatedSuggestion(name, property.Declarations, property.Name);
         }
     }
 }

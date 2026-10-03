@@ -36,6 +36,9 @@ internal sealed partial class Checker
         var reference = program.Symbols.Program.GetFile(file.FileName)!.Resolutions.FirstOrDefault(
             r => resolutionMode is { } mode ? r.Specifier == name && r.Mode == mode
                 : implicitImport ? r.Node is null && r.Specifier == name : r.Node == specifier);
+        if (reference is null && ignoreErrors)
+            reference = program.Symbols.Program.GetFile(file.FileName)!.Resolutions.FirstOrDefault(candidate => candidate.Specifier == name
+                && candidate.Mode == (resolutionMode ?? ContainerResolutionMode(location)));
         var module = program.Symbols.Globals.GetValueOrDefault(Utf8String.Concat("\""u8, name, "\""u8));
         if (module is null && reference?.Resolution.IsResolved == true
             && !(reference.Resolution.IsArbitraryExtension && !file.IsDeclarationFile
@@ -131,17 +134,13 @@ internal sealed partial class Checker
                         resolved.FileName);
                 else if (!sideEffect)
                 {
-                    if (NoImplicitAny)
-                    {
-                        var diagnostic = CheckerDiagnostic.Create(node,
-                            Messages.Could_not_find_a_declaration_file_for_module_0_1_implicitly_has_an_any_type, name, resolved.FileName);
-                        if (!ModuleResolver.Relative(name.Span) && resolved.PackageId is { Name.Length: > 0 } package)
-                            diagnostic = diagnostic with { MessageChain = [MissingPackageTypes(node, name, resolved, package.Name) with
-                            { Repopulation = new(2, name, (int)reference.Mode, package.Name == name ? default : package.Name) }] };
-                        Error(node, diagnostic);
-                    }
-                    else
-                        program.Suggestion(node, DiagnosticCode.CouldNotFindADeclarationFileForModule01ImplicitlyHasAnAnyType, name);
+                    var diagnostic = CheckerDiagnostic.Create(node,
+                        Messages.Could_not_find_a_declaration_file_for_module_0_1_implicitly_has_an_any_type, name, resolved.FileName);
+                    if (!ModuleResolver.Relative(name.Span) && resolved.PackageId is { Name.Length: > 0 } package)
+                        diagnostic = diagnostic with { MessageChain = [MissingPackageTypes(node, name, resolved, package.Name) with
+                        { Repopulation = new(2, name, (int)reference.Mode, package.Name == name ? default : package.Name) }] };
+                    if (NoImplicitAny) Error(node, diagnostic);
+                    else program.Suggestion(node, diagnostic);
                 }
                 return;
             }

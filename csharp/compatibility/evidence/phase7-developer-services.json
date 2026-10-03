@@ -1,0 +1,84 @@
+{
+  "performanceMeasured": false,
+  "phase7Complete": false,
+  "api": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": 190,
+    "requests": 6335,
+    "differences": 0,
+    "compilerSha256": "8d9b266a7991c38a2c7b2464ae24ebae28e61569192bbc92e0b9a1d69c3b9c94",
+    "coordinateContract": "UTF-8 / AST v9; isolated oracle adapters listed separately"
+  },
+  "lsp": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": 49,
+    "requests": 148,
+    "differences": 0,
+    "compilerSha256": "8d9b266a7991c38a2c7b2464ae24ebae28e61569192bbc92e0b9a1d69c3b9c94",
+    "inputsSha256": "e659d2262f2c9e3986c0394b4aaee390afbb1af461ea64675ad7edd32f020706",
+    "fixture": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+      "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+      "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+    }
+  },
+  "failedCapture": {
+    "directory": "built/csharp/phase7-validation/lsp-developer-first",
+    "reason": "The initial harness sent null to NoParams methods. The reference rejects explicit null; the harness now omits params, and the product rejects explicit null/object payloads for runGC and stopCPUProfile."
+  },
+  "configuration": "Release CoreCLR",
+  "phase": 7,
+  "remaining": [
+    "Strict protocol parameter and callback validation",
+    "LSP watcher integration and original session inventory",
+    "Final retention and NativeAOT publish gates"
+  ],
+  "safety": {
+    "logs": [
+      "built/csharp/phase7-validation/developer-safety-first.log",
+      "built/csharp/phase7-validation/developer-lsp-safety.log"
+    ],
+    "profiles": [
+      {
+        "accepted": true,
+        "file": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\developer-safety-first\\api-cpu\\8840-1791015675137-cpuprofile.pb.gz",
+        "sha256": "d97aeffc181f9a433455376c105ed1db43b8da78799baabf75da991eb292e814",
+        "reader": "go tool pprof -raw"
+      },
+      {
+        "accepted": true,
+        "file": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\developer-safety-first\\api-heap\\8840-1791015675151-heapprofile.pb.gz",
+        "sha256": "51b858f2364f56924616dc91a2b83638823a4e120aedf32f2baf53c455306337",
+        "reader": "go tool pprof -raw"
+      },
+      {
+        "accepted": true,
+        "file": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\developer-safety-first\\disposed-cpu\\8840-1791015675153-cpuprofile.pb.gz",
+        "sha256": "ea52a8c9d72854c2d1557f01f961b776284ce09e6b1a136756b009c24d56d0d0",
+        "reader": "go tool pprof -raw"
+      },
+      {
+        "accepted": true,
+        "file": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\developer-safety-first\\next-session\\8840-1791015675158-cpuprofile.pb.gz",
+        "sha256": "78cfbe1d1b811164e3cb6dd847fb025414e7cc45ae3442b90f02738cd263855c",
+        "reader": "go tool pprof -raw"
+      }
+    ],
+    "lspAssertions": 275,
+    "developerCompilerSha256": "c41c300566c905d77a3df0ae14dbbddfaf45ffa68411edc5d2928a06853383ae",
+    "developerAssertions": 51
+  },
+  "validationDirectories": [
+    "built/csharp/phase7-validation/lsp-project-services-developer",
+    "built/csharp/phase7-validation/api-session-developer"
+  ],
+  "scope": "LSP verbosity controls and mapper logging; API and LSP CPU, heap, allocation and GC endpoints",
+  "nativeExecuted": false,
+  "policies": [
+    "Returned profile paths must name existing files in the requested directory with PID/timestamp/kind basenames and the expected pprof sample type. Only those dynamic paths are normalized; all result fields and errors compare unchanged.",
+    "Profiling tests validate endpoint lifecycle and pprof consumers, not performance or statistical attribution.",
+    "C# profiles retain the phase-6 phase/counter attribution differences assigned to phase 8; allocation snapshots report measured cumulative managed bytes without allocation-stack attribution.",
+    "C# session disposal completes its active CPU file and releases process-wide ownership. The reference session Close does not stop its CPUProfiler; this lifecycle correction is covered by a subsequent-session start."
+  ]
+}

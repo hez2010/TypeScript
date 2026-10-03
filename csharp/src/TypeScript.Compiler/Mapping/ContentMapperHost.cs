@@ -97,7 +97,11 @@ public sealed class ContentMapperHost : IAsyncDisposable
         }
     }
 
-    public static Utf8String Identity(ContentMapper mapper) => mapper.Name + (mapper.Version.Length == 0 ? Utf8String.Empty : Utf8Literals.At + mapper.Version);
+    public static Utf8String Identity(ContentMapper mapper)
+    {
+        var name = mapper.Name + (mapper.Version.Length == 0 ? Utf8String.Empty : Utf8Literals.At + mapper.Version);
+        return mapper.ContributionId.IsEmpty ? name : mapper.ContributionId + " ("u8 + name + ")"u8;
+    }
 
     internal static byte[] DeclaredOptions(ContentMapper mapper, CompilerOptions options)
         => SerializeOptions(options, mapper.CompilerOptions is { ValueKind: JsonValueKind.Array } names

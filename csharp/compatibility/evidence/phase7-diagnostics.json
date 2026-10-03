@@ -1,0 +1,257 @@
+{
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "configuration": "Release CoreCLR",
+  "date": "2026-10-03",
+  "direct": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 220,
+    "originalTestFunctions": 220,
+    "selectedTestsWithoutRequests": [],
+    "unorderedProjectResults": [],
+    "unorderedFileRenameResults": [],
+    "unorderedCodeLensResults": [],
+    "unorderedReferenceResults": [],
+    "authoredTests": 19,
+    "encodings": [
+      "utf-8",
+      "utf-16"
+    ],
+    "requests": 1122,
+    "differences": 0,
+    "compilerSha256": "29a4731d1a2bbabf7c136ac5c87e2a1d742521477daf60ca97ca8857977cc9d1",
+    "inputsSha256": "b8afa6ac3862c54597fa23bd1ee4b11595b694a70e13f353f4b30985eed2c166"
+  },
+  "lsp": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 217,
+    "requests": 900,
+    "clients": 799,
+    "differences": 0,
+    "mappedQueriesValidatedSeparately": 222,
+    "unorderedProjectResults": [],
+    "unorderedFileRenameResults": [],
+    "unorderedCodeLensResults": [],
+    "unorderedReferenceResults": [],
+    "compilerSha256": "d4790f8579fa492200ef23505d63b55467583b7555dee3d17e1e88dcd15149d0",
+    "inputsSha256": "b8afa6ac3862c54597fa23bd1ee4b11595b694a70e13f353f4b30985eed2c166"
+  },
+  "projectTransitions": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "compilerSha256": "29a4731d1a2bbabf7c136ac5c87e2a1d742521477daf60ca97ca8857977cc9d1",
+    "harnessSha256": "81d8e2ee9292a7a0226943631ca04265771ba36cff9489dd1d1de7b0daa7b14c",
+    "inputsSha256": "4e64b79acd22840e3c3a9cce3e13e14242dd687d359a2b26138606bf3b7656de",
+    "instrumented": [
+      {
+        "file": "internal/project/snapshot.go",
+        "originalSha256": "d1993747879fa6d7b8da5a500cbdd66abfccc4ab10905399231f8e4e13d7dda8",
+        "instrumentedSha256": "b9f2569065a19a4901cc7e5d26e305ad5af71af13d5dec6433fc41683bf235de"
+      },
+      {
+        "file": "internal/project/snapshot_test.go",
+        "originalSha256": "7bd2971632b4fae20a7642c568c0a6ae76ab1bce380d4719e3ddff4c4695d243",
+        "instrumentedSha256": "8724be572e95b3750587179e31086e6ded9f2e2402c363e1b9394f9fd00b019b"
+      },
+      {
+        "file": "internal/project/session_test.go",
+        "originalSha256": "75d137b27cab86b9a3941e26113e6f41a49cd74bb258f990680d45554b5da7b0",
+        "instrumentedSha256": "d8856b26ca4b57bc5b312f1357a3ff1f747c8ef9a8ec67a95212b51804f3068f"
+      },
+      {
+        "file": "internal/project/projectcollectionbuilder_test.go",
+        "originalSha256": "28b67579aceee1281be009e453e61be35d7a80a067c225308172227876095fd8",
+        "instrumentedSha256": "b6b93a4b48f9bb193d81e27011f34c54cc3ba7cb4ddfe2739ad8b4878a057f74"
+      },
+      {
+        "file": "internal/project/configfilechanges_test.go",
+        "originalSha256": "21bc37b93d2ed0d91dedc47620979abf43ea10f0d8354920ee6f822bf6b08fd4",
+        "instrumentedSha256": "5c9579714176da39f2224fcf779d31d845f06d08d250b1bf23d8d47efd57d2a2"
+      },
+      {
+        "file": "internal/project/projectlifetime_test.go",
+        "originalSha256": "a3295a0ff414deeec8e3dab6dc8a9bbd8114dd6bc9a23549bdef5963aebc4827",
+        "instrumentedSha256": "4743d4d4a620328ee1f32ea489fdda95e5edfe634ca6c848a87bc96809c927ae"
+      },
+      {
+        "file": "internal/project/projectcollectiondefaultproject_test.go",
+        "originalSha256": "60741cce734a8d74b3bb17ed553ef1d3171c7015045b50a0da0a9460191d94e6",
+        "instrumentedSha256": "25672c4d0f1b51e6df25cb3bbb7c4abcc74e4bd4b8d59b01eaa2acfde48a6115"
+      },
+      {
+        "file": "internal/project/projectreferencesprogram_test.go",
+        "originalSha256": "51ffa831ec9de034df390bd999fa66fc510291dbbe0f928197cae8ad06770104",
+        "instrumentedSha256": "e3352d7a5d074c0c5ad077955a36ec4777437dd020cf70b5a2e1f627a8eb3af3"
+      },
+      {
+        "file": "internal/project/untitled_test.go",
+        "originalSha256": "528c9d8a655c1a286c645d6fbdc143c766b35e16541f10a35081b6a80049e942",
+        "instrumentedSha256": "fa80cf809417b19365caf9e0c04b39615f22527594f0281c0e5896d98a4c0dd0"
+      },
+      {
+        "file": "internal/project/bulkcache_test.go",
+        "originalSha256": "b67d884d3a89b0d94eb843595c098d0cc503a79c619506850d671f5373bbbc8d",
+        "instrumentedSha256": "d15a7b0b713bc2101baa360a575edf2fb76280b8adb82274f8ed91c157b3804e"
+      },
+      {
+        "file": "internal/project/customconfigfilename_test.go",
+        "originalSha256": "f586d7e539678a4af9468256854850e47f34f43b6436483db87926aec2e5276f",
+        "instrumentedSha256": "eb1d45037f73e6715d3b5d3676ce653718e150fab9ba9109a9439a1ef8e9f266"
+      },
+      {
+        "file": "internal/project/project_test.go",
+        "originalSha256": "6c7212fd2b46b3f0ef882e215fb63557274bc0207e013dec705f0fd8cfea0d1a",
+        "instrumentedSha256": "4cba2a166811cbac75d44c0853f5e80e42074c90f6e8b1babb884f627a11a82a"
+      },
+      {
+        "file": "internal/project/ata/ata_test.go",
+        "originalSha256": "d77d9504f95324cfaa01f1628a71e0a72d20a304e881c6505d1f32b7c1d6632c",
+        "instrumentedSha256": "30f711aaa4d025c4a41b3c54b67379134775e4f86cf69b318f033da5c4a7f9e5"
+      },
+      {
+        "file": "internal/project/csharp_snapshot_record.go",
+        "instrumentedSha256": "774976f4ebaa4ca63243cda012e0906c8c086daec7105557d70107478b02f029"
+      },
+      {
+        "file": "internal/testutil/projecttestutil/csharp_snapshot_setup.go",
+        "instrumentedSha256": "7f15b95d8477f680b00d2c9f5dc61ec435ad0940a722bb696e00378e3df14da1"
+      },
+      {
+        "file": "internal/project/csharp_project_diagnostics_test.go",
+        "instrumentedSha256": "96a480b6f169fe6cb74d34fc16d8f539a69946aa74e75cc1b2086f129b1dfd31"
+      },
+      {
+        "file": "internal/project/csharp_diagnostic_changes.go",
+        "instrumentedSha256": "1dd5364d3082eadfc2d4a8352ff091f0107b68ebb2c07e221e41a2cad904c1ae"
+      }
+    ],
+    "transitions": 339,
+    "mismatches": [],
+    "sessions": 159,
+    "originalSessions": 157,
+    "authoredSessions": 2,
+    "authoredTransitions": 14,
+    "publications": 208,
+    "passedTopLevelTests": [
+      "TestCSharpProjectDiagnostics",
+      "TestProjectCollectionDefaultProject",
+      "TestImportsInUntitled",
+      "TestConfigFileChanges",
+      "TestUntitledReferences",
+      "TestUntitledFileInInferredProject",
+      "TestATA",
+      "TestProjectCollectionBuilder",
+      "TestProjectProgramUpdateKind",
+      "TestProject",
+      "TestPushDiagnostics",
+      "TestProjectReferencesProgram",
+      "TestSnapshot",
+      "TestCustomConfigFileName",
+      "TestProjectLifetime",
+      "TestBulkCacheInvalidation",
+      "TestSession"
+    ],
+    "skippedOriginalCases": [
+      "TestATA/deduplicate_from_local_@types_packages"
+    ],
+    "recording": "built/csharp/phase7-validation/diagnostics-projects-expanded/original-operations.jsonl",
+    "referenceAlgorithm": "The recorder copies the pinned publishProgramDiagnostics implementation and changes only the publication callback. Every captured snapshot pair compares complete publication arrays; original Go assertions remain unchanged.",
+    "responseNormalization": "None for project diagnostic publications. Existing graph-only ordering and internal update-kind policies remain documented in project-original.mjs."
+  },
+  "safety": {
+    "compilerSha256": "29a4731d1a2bbabf7c136ac5c87e2a1d742521477daf60ca97ca8857977cc9d1",
+    "diagnosticServiceAssertions": 25,
+    "diagnosticLspAssertions": 64,
+    "allSyntaxServiceAssertions": 197,
+    "allLspAssertions": 203,
+    "allProjectAssertions": 89,
+    "logs": [
+      "built/csharp/phase7-validation/parser-recovery-service-safety.log",
+      "built/csharp/phase7-validation/parser-recovery-lsp-safety.log",
+      "built/csharp/phase7-validation/diagnostics-project-safety2.log"
+    ],
+    "coverage": [
+      "2048 nested blocks",
+      "UTF-8 and UTF-16 ranges",
+      "pre-cancellation and cancellation waiting for a diagnostic checker",
+      "concurrent deterministic requests",
+      "unchanged syntax",
+      "validation and style-warning preferences",
+      "alias and external mapper diagnostics",
+      "localization",
+      "weak program lifetime while results remain alive",
+      "push-disable negotiation",
+      "open, close, reopen, and watched configuration changes without pull requests",
+      "new global diagnostics after checking",
+      "custom configuration names",
+      "refresh support, coalescing, cancellation, and client rejection",
+      "shutdown with pending refresh requests and project updates"
+    ],
+    "projectCompilerSha256": "d4790f8579fa492200ef23505d63b55467583b7555dee3d17e1e88dcd15149d0"
+  },
+  "build": {
+    "log": "built/csharp/phase7-validation/diagnostics-push-build10.log",
+    "warnings": 0,
+    "errors": 0
+  },
+  "preservedFailures": [
+    {
+      "log": "built/csharp/phase7-validation/diagnostics-direct1.log",
+      "differences": 44,
+      "records": "built/csharp/phase7-validation/diagnostics/initial-differences.json"
+    },
+    {
+      "log": "built/csharp/phase7-validation/diagnostics-direct2.log",
+      "differences": 20,
+      "records": "built/csharp/phase7-validation/diagnostics/second-differences.json"
+    },
+    {
+      "log": "built/csharp/phase7-validation/diagnostics-direct3.log",
+      "differences": 54,
+      "records": "built/csharp/phase7-validation/diagnostics-expanded/initial-differences.json"
+    },
+    {
+      "log": "built/csharp/phase7-validation/diagnostics-projects2.log",
+      "differences": 76
+    },
+    {
+      "log": "built/csharp/phase7-validation/diagnostics-projects3.log",
+      "differences": 4
+    },
+    {
+      "log": "built/csharp/phase7-validation/diagnostics-projects4.log",
+      "differences": 7
+    }
+  ],
+  "boundaries": {
+    "phase7Complete": false,
+    "nativeAotExecuted": false,
+    "performanceMeasured": false,
+    "mappedRequests": "222 mapped diagnostic requests pass directly; ordinary requests additionally pass through real LSP sessions.",
+    "validationVersions": "Direct diagnostics and the latest service/LSP safety runs use compiler 29a4731d after the parser recovery corrections. The complete 900-request LSP replay and project safety use d4790f85. Project transition hashes are recorded in projectTransitions. Full phase-7 regression gates remain pending.",
+    "expandedParser": "The subsequent phase7-parser audit passes all 17448 inputs with 259 documented strict differences and no unresolved cases. Its compiler and complete output ledger are recorded separately."
+  },
+  "previousLsp": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 217,
+    "requests": 900,
+    "clients": 799,
+    "differences": 0,
+    "mappedQueriesValidatedSeparately": 222,
+    "unorderedProjectResults": [],
+    "unorderedFileRenameResults": [],
+    "unorderedCodeLensResults": [],
+    "unorderedReferenceResults": [],
+    "compilerSha256": "af408aaf54367c111cbbda5625f5159ea189f7e1daf426a988f09660a911be68",
+    "inputsSha256": "b8afa6ac3862c54597fa23bd1ee4b11595b694a70e13f353f4b30985eed2c166"
+  },
+  "semanticRegression": {
+    "evidence": "phase7-diagnostics-semantics.json",
+    "configurationsPerMode": 13446,
+    "modes": [
+      "single",
+      "default"
+    ],
+    "graphMismatches": 0,
+    "completeDiagnosticMismatches": 0,
+    "compilerSha256": "29a4731d1a2bbabf7c136ac5c87e2a1d742521477daf60ca97ca8857977cc9d1"
+  }
+}

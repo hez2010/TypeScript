@@ -1,0 +1,94 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "scope": "API transport and callback foundations; not phase-7 completion",
+    "platform": "Windows x64",
+    "runtime": "Release CoreCLR, default GC",
+    "transport": {
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "requests": 94,
+        "transportPairs": 4,
+        "differences": 0,
+        "explicitDifferenceControls": [
+            {
+                "name": "jsonrpc-lone-surrogate",
+                "inputSha256": "5fac3e0e0caed7bf89524d8105418853a312edb5dfdf159283db45fdfc5e22a5"
+            },
+            {
+                "name": "jsonrpc-truncated-header",
+                "inputSha256": "99d7be023b0065c5deac2cc4a12400ab806e9d4514cb71e7f70738b0d9b44748"
+            }
+        ],
+        "compilerSha256": "5d85240c23ac208433d276a33618f6c63f6a6a3b8392aef314330ddf08d9cbbd",
+        "normalization": [
+            "snapshot identities retain allocation order",
+            "timing durations and timestamps checked before replacement",
+            "Go panic stack removed only for the exact callback test failure; complete messages retained"
+        ],
+        "adapter": "The API/session oracle adapts positions and AST protocol to the C# UTF-8 contract; transport and callback algorithms are original Go."
+    },
+    "rpcSafetyAssertions": 181,
+    "projectSafetyAssertions": 87,
+    "requestFileSystemSafetyAssertions": 19,
+    "projectReplay": {
+        "sessions": 147,
+        "transitions": 309,
+        "differences": 0
+    },
+    "requestFileSystemReplay": {
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "originalInputs": 466,
+        "cases": 616,
+        "transitions": 1830,
+        "queries": 99078,
+        "differences": 0,
+        "compilerSha256": "900d007d9d069f922d0415affe19340cc9df400b343a32eb106b4af68ab3a5b5"
+    },
+    "apiSessionReplay": {
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "cases": 6,
+        "requests": 46,
+        "differences": 0,
+        "compilerSha256": "900d007d9d069f922d0415affe19340cc9df400b343a32eb106b4af68ab3a5b5",
+        "coordinateContract": "UTF-8 / AST v9; isolated oracle adapters listed separately"
+    },
+    "referenceSourceHashes": [
+        {
+            "file": "tsc/internal/ipc/conn_sync.go",
+            "sha256": "e2ef7cd6013ed4b799f6f42b22489adce107183ae074618d847f3a4c90c3fa4a"
+        },
+        {
+            "file": "tsc/internal/ipc/conn_async.go",
+            "sha256": "6c6bf2a14c7dd847d208ebca0d075421ebe015bcef1606544dc77cd7cb030498"
+        },
+        {
+            "file": "tsc/internal/ipc/protocol_jsonrpc.go",
+            "sha256": "052a8f8d1a2b90db66284fd7731c3803a73aa0bbf94152e20a53adcd8cfec0b6"
+        },
+        {
+            "file": "tsc/internal/ipc/timing.go",
+            "sha256": "50a214b617bea782d8d62676b03ff53c74ee08b2bae1d1623ef04667b7931a4b"
+        },
+        {
+            "file": "tsc/internal/jsonrpc/baseproto.go",
+            "sha256": "a24b7a34b5fa88bcf96643c1a52caeace838727287ae6c5413f251e59ed65f4a"
+        },
+        {
+            "file": "tsc/internal/jsonrpc/jsonrpc.go",
+            "sha256": "2cd101bc6a2230e10bd3456757c0df77f5f89694a65f1194c2ab94d75b9104cc"
+        },
+        {
+            "file": "tsc/internal/api/protocol_msgpack.go",
+            "sha256": "f993814818bd69554ce2b7a82e18dd24fb41f0f70c04ec662624447f22d677e6"
+        },
+        {
+            "file": "tsc/internal/api/callbackfs.go",
+            "sha256": "9c3950c7a8c57bd610dead7673d2a3db14a79d6ad0dc5bd56f15802a30b75edf"
+        },
+        {
+            "file": "tsc/internal/api/server.go",
+            "sha256": "e2531613570b1e52df0c63895a44b14ba6a1329f4778871bb0b33ba47e722a38"
+        }
+    ],
+    "differenceLedgerSha256": "37759a3483d3cc0bbf3a6ed970dfe21aef9016837254a3a8db3b61e70e1de521",
+    "remaining": "Checker API and identities, shared language-server sessions, full language services/LSP, fourslash/client/editor replays, final retention and release gates"
+}

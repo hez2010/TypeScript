@@ -1,0 +1,36 @@
+{
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "configuration": "Release CoreCLR",
+  "direct": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 6,
+    "originalTestFunctions": 6,
+    "selectedTestsWithoutRequests": [],
+    "unorderedProjectResults": [],
+    "unorderedReferenceResults": [],
+    "authoredTests": 1,
+    "encodings": [
+      "utf-8",
+      "utf-16"
+    ],
+    "requests": 134,
+    "differences": 0,
+    "compilerSha256": "c60966c072505dd65ecdc169216f37b798150250aef88198924a688bae47fe83",
+    "inputsSha256": "b1aafdaba4a02e7d188ce95e4805f09d610271a2efc8539652f03bdfdc19ae61"
+  },
+  "lsp": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 5,
+    "requests": 132,
+    "clients": 31,
+    "differences": 0,
+    "mappedQueriesValidatedSeparately": 2,
+    "unorderedProjectResults": [],
+    "unorderedReferenceResults": [],
+    "compilerSha256": "c60966c072505dd65ecdc169216f37b798150250aef88198924a688bae47fe83",
+    "inputsSha256": "b1aafdaba4a02e7d188ce95e4805f09d610271a2efc8539652f03bdfdc19ae61"
+  },
+  "mappedRequests": 2,
+  "boundary": "The mapped harness now captures the original project ID instead of exposing its synthetic program ID. Initial differences and inputs are retained. Responses, grouping IDs, project identities, locations and classified text are compared in full, without normalization.",
+  "phase7Complete": false
+}

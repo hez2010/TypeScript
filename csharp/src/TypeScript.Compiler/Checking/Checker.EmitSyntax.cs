@@ -282,8 +282,12 @@ internal sealed partial class Checker
             if ((flags & NodeBuilderFlags.SuppressAnyReturnType) != 0 && (type.Flags & TypeFlags.Any) != 0)
                 return null;
             var predicate = await Signatures.PredicateAsync(signature, cancellation);
-            if (await RecoverReturnSyntaxAsync(signature, type, predicate, state, cancellation) is { } recovered)
+            if (!state.ActivelyExpanding && await RecoverReturnSyntaxAsync(signature, type, predicate, state, cancellation) is { } recovered)
+            {
+                await ProbeHoverTypeAsync(type, state, cancellation);
+                if (predicate?.Type is { } narrowedType) await ProbeHoverTypeAsync(narrowedType, state, cancellation);
                 return recovered;
+            }
             state.SuppressInferenceFallback = true;
             if (predicate is not null)
             {

@@ -5,11 +5,11 @@ using TypeScript.Compiler.Text;
 namespace TypeScript.Compiler.Emission;
 
 /// <summary>Writes UTF-8 text and tracks the UTF-16 columns required by source maps.</summary>
-public sealed class EmitTextWriter(Utf8String newLine = default, int indentSize = 4)
+public sealed class EmitTextWriter(Utf8String newLine = default, int indentSize = 4, bool inlineDisplay = false)
 {
     private readonly Utf8StringBuilder text = new();
     private readonly Utf8String newLine = newLine.Length == 0 ? "\n"u8 : newLine;
-    private readonly int indentSize = indentSize > 0 ? indentSize : 4;
+    private readonly int indentSize = indentSize >= 0 ? indentSize : 4;
     private int lineStart;
     private bool atLineStart = true;
     private bool carriageReturn;
@@ -17,7 +17,7 @@ public sealed class EmitTextWriter(Utf8String newLine = default, int indentSize 
     public int Position => text.Length;
     public int Line { get; private set; }
     public int Indentation { get; private set; }
-    public bool AtLineStart => atLineStart;
+    public bool AtLineStart => !inlineDisplay && atLineStart;
     public bool HasTrailingComment { get; private set; }
     public int Column => atLineStart ? Indentation * indentSize : Utf16Length(text.WrittenSpan[lineStart..]);
     public Utf8String Text => text.ToUtf8String();
@@ -50,7 +50,7 @@ public sealed class EmitTextWriter(Utf8String newLine = default, int indentSize 
             return;
         if (atLineStart)
         {
-            text.Append((byte)' ', checked(Indentation * indentSize));
+            if (!inlineDisplay) text.Append((byte)' ', checked(Indentation * indentSize));
             atLineStart = false;
         }
         RawWrite(value);
@@ -90,6 +90,7 @@ public sealed class EmitTextWriter(Utf8String newLine = default, int indentSize 
 
     public void WriteLine(bool force = false)
     {
+        if (inlineDisplay) { RawWrite(" "u8); return; }
         if (!atLineStart || force)
             RawWrite(newLine);
     }

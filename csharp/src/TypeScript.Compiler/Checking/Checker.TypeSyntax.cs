@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Emission;
 using TypeScript.Compiler.Semantics;
 using TypeScript.Compiler.Syntax;
 using K = TypeScript.Compiler.Syntax.SyntaxKind;
@@ -64,11 +65,11 @@ internal sealed partial class Checker
             false, state => PredicateTypeSyntaxAsync(predicate, state, cancellation), cancellation);
 
     private ValueTask<Utf8String> DiagnosticSyntaxAsync(SyntaxNode? enclosing, NodeBuilderFlags flags, bool neverAsciiEscape,
-        Func<TypeSyntaxContext, ValueTask<SyntaxNode>> build, CancellationToken cancellation)
+        Func<TypeSyntaxContext, ValueTask<SyntaxNode>> build, CancellationToken cancellation, HoverVerbosity? verbosity = null)
         => VisibilityOperationAsync(() => ChainOperationAsync(() => ContainerOperationAsync(async () =>
         {
             var state = new TypeSyntaxContext(enclosing, (flags & NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope) != 0,
-                flags: flags | NodeBuilderFlags.IgnoreErrors);
+                flags: flags | NodeBuilderFlags.IgnoreErrors, verbosity: verbosity);
             var node = await build(state);
             return PrintDiagnosticNode(
                 node,
@@ -88,14 +89,16 @@ internal sealed partial class Checker
             bool externalAliasesOnly = false,
             NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation,
             INodeBuilderSymbolTracker? tracker = null,
-            NodeBuilderInternalFlags internalFlags = NodeBuilderInternalFlags.None)
+            NodeBuilderInternalFlags internalFlags = NodeBuilderInternalFlags.None,
+            HoverVerbosity? verbosity = null)
         {
             Flags = flags;
             InternalFlags = internalFlags;
             Tracker = new NodeBuilderTracker(this, tracker);
             HasTracker = tracker is not null;
             ParameterNames = (flags & NodeBuilderFlags.GenerateNamesForShadowedTypeParams) != 0 ? new() : null;
-            Length = new((flags & NodeBuilderFlags.NoTruncation) != 0);
+            Verbosity = verbosity;
+            Length = new((flags & NodeBuilderFlags.NoTruncation) != 0, verbosity?.MaximumLength ?? 0);
             Symbols = new(enclosing,
                 (aliasesOutsideScope ? SymbolFormatFlags.UseAliasDefinedOutsideCurrentScope : SymbolFormatFlags.None)
                     | (externalAliasesOnly ? SymbolFormatFlags.UseOnlyExternalAliasing : SymbolFormatFlags.None))
@@ -112,6 +115,11 @@ internal sealed partial class Checker
         }
 
         internal NodeBuilderFlags Flags { get; set; }
+        internal HoverVerbosity? Verbosity { get; }
+        internal int ExpansionDepth { get; set; }
+        internal List<Type> TypeStack { get; } = [];
+        internal Dictionary<SyntaxNode, Symbol>? DisplaySymbols { get; init; }
+        internal bool ActivelyExpanding => Verbosity is { Level: > 0 } verbosity && ExpansionDepth < verbosity.Level;
         internal NodeBuilderInternalFlags InternalFlags { get; }
         internal INodeBuilderSymbolTracker Tracker { get; }
         internal bool HasTracker { get; }
@@ -131,6 +139,7 @@ internal sealed partial class Checker
         internal HashSet<SyntaxNode> NoAsciiEscape { get; } = [];
         internal HashSet<SyntaxNode> SingleLine { get; } = [];
         internal HashSet<SyntaxNode> Elided { get; } = [];
+        internal Dictionary<SyntaxNode, Utf8String> TrailingElisions { get; } = [];
         internal Dictionary<SyntaxNode, SyntaxNode> CommentSources { get; } = [];
         internal HashSet<Type> Active { get; } = [];
         internal Dictionary<(bool Constructor, Symbol? Symbol, SyntaxNode? Node), int> SymbolDepth { get; } = [];
@@ -147,6 +156,30 @@ internal sealed partial class Checker
     internal ValueTask<Utf8String> SerializeTypeSyntaxAsync(Type type, SyntaxNode? enclosing, NodeBuilderFlags flags,
         CancellationToken cancellation = default, INodeBuilderSymbolTracker? tracker = null,
         NodeBuilderInternalFlags internalFlags = NodeBuilderInternalFlags.None)
+        => BuildTypeSyntaxAsync(type, enclosing, flags, tracker, internalFlags, (node, state) => node is null ? Utf8String.Empty
+            : PrintDiagnosticNode(node, enclosing is SourceFileNode, cancellation,
+                enclosing is null ? null : SemanticSyntax.Source(enclosing), state.NoAsciiEscape, state.SingleLine), cancellation);
+
+    internal ValueTask<SyntaxNode?> TypeToTypeNodeAsync(Type type, SyntaxNode? enclosing, NodeBuilderFlags flags,
+        CancellationToken cancellation = default, NodeBuilderInternalFlags internalFlags = NodeBuilderInternalFlags.None, EmitContext? emitContext = null,
+        Dictionary<SyntaxNode, Symbol>? identifierSymbols = null)
+        => BuildTypeSyntaxAsync(type, enclosing, flags, null, internalFlags, (node, state) => TypeSyntaxWithEmitFlags(node, state, emitContext), cancellation, identifierSymbols);
+
+    private static SyntaxNode? TypeSyntaxWithEmitFlags(SyntaxNode? node, TypeSyntaxContext state, EmitContext? emitContext)
+    {
+        if (node is not null && emitContext is not null)
+        {
+            foreach (var child in state.SingleLine) emitContext.AddFlags(child, EmitFlags.SingleLine);
+            foreach (var child in state.NoAsciiEscape) emitContext.AddFlags(child, EmitFlags.NoAsciiEscaping);
+            foreach (var child in state.Elided) emitContext.AddLeadingComment(child, new(K.MultiLineCommentTrivia, "elided"u8));
+            foreach (var (child, comment) in state.TrailingElisions) emitContext.AddTrailingComment(child, new(K.MultiLineCommentTrivia, comment));
+        }
+        return node;
+    }
+
+    private ValueTask<T> BuildTypeSyntaxAsync<T>(Type type, SyntaxNode? enclosing, NodeBuilderFlags flags,
+        INodeBuilderSymbolTracker? tracker, NodeBuilderInternalFlags internalFlags,
+        Func<SyntaxNode?, TypeSyntaxContext, T> finish, CancellationToken cancellation, Dictionary<SyntaxNode, Symbol>? identifierSymbols = null)
     {
         const NodeBuilderFlags supported = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation
             | NodeBuilderFlags.WriteArrayAsGenericType | NodeBuilderFlags.UseOnlyExternalAliasing
@@ -165,16 +198,9 @@ internal sealed partial class Checker
         return VisibilityQueryAsync(enclosing, () => ChainOperationAsync(() => ContainerOperationAsync(async () =>
         {
             var state = new TypeSyntaxContext(enclosing, (flags & NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope) != 0,
-                (flags & NodeBuilderFlags.UseOnlyExternalAliasing) != 0, flags, tracker, internalFlags);
+                (flags & NodeBuilderFlags.UseOnlyExternalAliasing) != 0, flags, tracker, internalFlags) { DisplaySymbols = identifierSymbols };
             var node = await TypeSyntaxAsync(type, state, cancellation, (flags & NodeBuilderFlags.InTypeAlias) != 0);
-            if (!FinishTypeSyntax(state))
-                return Utf8String.Empty;
-            return PrintDiagnosticNode(
-                node,
-                enclosing is SourceFileNode,
-                cancellation,
-                enclosing is null ? null : SemanticSyntax.Source(enclosing),
-                state.NoAsciiEscape, state.SingleLine);
+            return finish(FinishTypeSyntax(state) ? node : null, state);
         }, cancellation), cancellation), cancellation);
     }
 
@@ -189,7 +215,16 @@ internal sealed partial class Checker
         return !state.EncounteredError;
     }
 
-    private async ValueTask<SyntaxNode> TypeSyntaxAsync(
+    private async ValueTask<SyntaxNode> TypeSyntaxAsync(Type type, TypeSyntaxContext state, CancellationToken cancellation, bool expandAlias = false)
+    {
+        if (state.Verbosity is null) return await TypeSyntaxWorkerAsync(type, state, cancellation, expandAlias);
+        state.TypeStack.Add(type is TypeParameter parameter ? parameter.NonDistributed : type);
+        int depth = state.ExpansionDepth;
+        try { return await TypeSyntaxWorkerAsync(type, state, cancellation, expandAlias); }
+        finally { state.TypeStack.RemoveAt(state.TypeStack.Count - 1); state.ExpansionDepth = depth; }
+    }
+
+    private async ValueTask<SyntaxNode> TypeSyntaxWorkerAsync(
         Type type,
         TypeSyntaxContext state,
         CancellationToken cancellation,
@@ -223,7 +258,8 @@ internal sealed partial class Checker
             return f.NewKeywordTypeNode(K.BigIntKeyword);
         if ((type.Flags & TypeFlags.Boolean) != 0 && type.Alias is null)
             return f.NewKeywordTypeNode(K.BooleanKeyword);
-        if ((type.Flags & TypeFlags.EnumLike) != 0 && type.Symbol is { } enumeration)
+        bool expandingEnum = type is UnionType && (type.Flags & TypeFlags.EnumLike) != 0 && ShouldExpandHoverType(type, false, state);
+        if (!expandingEnum && (type.Flags & TypeFlags.EnumLike) != 0 && type.Symbol is { } enumeration)
         {
             if ((enumeration.Flags & SymbolFlags.EnumMember) == 0)
                 return await SymbolTypeNodeAsync(enumeration, SymbolFlags.Type, null, state.Symbols, false, cancellation);
@@ -236,7 +272,7 @@ internal sealed partial class Checker
             if (parentNode is ImportTypeNode import)
                 import.IsTypeOf = true;
             else if (parentNode is TypeReferenceNode reference)
-                parentNode = f.NewTypeQueryNode(reference.TypeName, null);
+                parentNode = f.NewParenthesizedTypeNode(f.NewTypeQueryNode(reference.TypeName, null));
             else
                 throw new InvalidOperationException("Enum type has no named reference");
             return f.NewIndexedAccessTypeNode(
@@ -308,13 +344,16 @@ internal sealed partial class Checker
                 false,
                 true,
                 cancellation)).Accessibility == SymbolAccessibility.Accessible))
-            return await SymbolTypeNodeAsync(
+        {
+            if (!ShouldExpandHoverType(type, true, state)) return await SymbolTypeNodeAsync(
                 alias.Symbol,
                 SymbolFlags.Type,
                 await TypeSyntaxListAsync(alias.TypeArguments, state, cancellation),
                 state.Symbols,
                 false,
                 cancellation);
+            state.ExpansionDepth++;
+        }
         if (type is ObjectType { Symbol: { } objectSymbol } && (type.ObjectFlags & ObjectFlags.Anonymous) != 0
             && (type.ObjectFlags & ObjectFlags.InstantiationExpressionType) == 0)
         {
@@ -336,12 +375,19 @@ internal sealed partial class Checker
                             cancellation)).Accessibility == SymbolAccessibility.Accessible;
             }
             if (named)
-                return await SymbolTypeNodeAsync(objectSymbol, meaning, null, state.Symbols, false, cancellation);
+            {
+                if (!ShouldExpandHoverType(type, false, state))
+                    return await SymbolTypeNodeAsync(objectSymbol, meaning, null, state.Symbols, false, cancellation);
+                state.ExpansionDepth++;
+            }
             if ((state.Flags & NodeBuilderFlags.UseTypeOfFunction) != 0
                 && await NamedFunctionSyntaxAsync(objectSymbol, state, cancellation) is { } functionNode)
-                return functionNode;
+            {
+                if (!ShouldExpandHoverType(type, false, state)) return functionNode;
+                state.ExpansionDepth++;
+            }
         }
-        bool trackRecursion = type is not UnionType;
+        bool trackRecursion = type is not (UnionType or TypeReference) && type is not ObjectType { Symbol: null };
         if (trackRecursion && !state.Active.Add(type))
             return await RecursiveTypeSyntaxAsync(type, state, cancellation);
         var activeType = type;
@@ -349,11 +395,20 @@ internal sealed partial class Checker
         {
             if (type is TypeReference reference && (type.ObjectFlags & ObjectFlags.Reference) != 0)
             {
+                if (ShouldExpandHoverType(type, false, state))
+                {
+                    state.ExpansionDepth++;
+                    return await ObjectTypeSyntaxAsync(await Members.ResolveAsync((StructuredType)type, cancellation), state, cancellation);
+                }
                 if ((state.Flags & NodeBuilderFlags.WriteClassExpressionAsTypeLiteral) != 0 && reference.Symbol is { } classSymbol
                     && classSymbol.ValueDeclaration is ClassDeclarationNode or ClassExpressionNode
                     && (await SymbolAccessibilityAsync(classSymbol, state.Symbols.Enclosing, SymbolFlags.Value, false, true,
                         cancellation)).Accessibility != SymbolAccessibility.Accessible)
-                    return await ObjectTypeSyntaxAsync(await Members.ResolveAsync(reference, cancellation), state, cancellation);
+                {
+                    if (!state.Active.Add(reference)) return await RecursiveTypeSyntaxAsync(reference, state, cancellation);
+                    try { return await ObjectTypeSyntaxAsync(await Members.ResolveAsync(reference, cancellation), state, cancellation); }
+                    finally { state.Active.Remove(reference); }
+                }
                 return reference.Node is null ? await ReferenceTypeSyntaxAsync(reference, state, cancellation)
                     : await CachedTypeSyntaxAsync(reference, state,
                         () => ReferenceTypeSyntaxAsync(reference, state, cancellation), cancellation);
@@ -377,6 +432,11 @@ internal sealed partial class Checker
             }
             if (type is TypeParameter || (type.ObjectFlags & ObjectFlags.ClassOrInterface) != 0)
             {
+                if ((type.ObjectFlags & ObjectFlags.ClassOrInterface) != 0 && ShouldExpandHoverType(type, false, state))
+                {
+                    state.ExpansionDepth++;
+                    return await ObjectTypeSyntaxAsync(await Members.ResolveAsync((StructuredType)type, cancellation), state, cancellation);
+                }
                 if (type is TypeParameter parameter && state.ParameterNames is not null)
                 {
                     Utf8String name = TypeSyntaxParameterName(parameter, state, cancellation);
@@ -400,7 +460,7 @@ internal sealed partial class Checker
             if (type is UnionOrIntersectionType composite)
             {
                 IReadOnlyList<Type> types = type is UnionType
-                    ? await SyntaxUnionTypesAsync(composite.Types, cancellation)
+                    ? await SyntaxUnionTypesAsync(composite.Types, cancellation, expandingEnum)
                     : composite.Types;
                 if (types.Count == 1)
                     return await TypeSyntaxAsync(types[0], state, cancellation);
@@ -733,10 +793,15 @@ internal sealed partial class Checker
                 if (parameter.Symbol?.Declarations.Any(d => SemanticSyntax.HasModifier(d, kind)) == true)
                     modifiers.Add(f.NewToken(kind));
             Utf8String name = TypeSyntaxParameterName(parameter, state, cancellation);
+            var identifier = f.NewIdentifier(name);
+            if (state.DisplaySymbols is { } display && parameter.Symbol is { } displaySymbol) display[identifier] = displaySymbol;
+            if (parameter.Symbol?.Declarations.FirstOrDefault() is TypeParameterDeclarationNode { Name: { } original }
+                && original.Text == name && SemanticSyntax.Source(original) == SemanticSyntax.Source(state.Symbols.Enclosing))
+                (identifier.Pos, identifier.End) = (original.Pos, original.End);
             var defaultType = await Instantiation.Constraints.DefaultAsync(parameter, cancellation);
             return f.NewTypeParameterDeclaration(
                 modifiers.Count == 0 ? null : new(modifiers.ToArray()),
-                f.NewIdentifier(name),
+                identifier,
                 constraint,
                 null,
                 defaultType is null ? null : await TypeSyntaxAsync(defaultType, state, cancellation));
@@ -759,6 +824,7 @@ internal sealed partial class Checker
         {
             members.Add(state.Length.NoTruncation ? f.NewNotEmittedTypeElement()
                 : f.NewPropertySignatureDeclaration(null, f.NewIdentifier(Utf8Literals.Ellipsis), null, null, null));
+            if (state.Length.NoTruncation) state.TrailingElisions[members[^1]] = "elided"u8;
             return Finish();
         }
         foreach (var signature in type.CallSignatures)
@@ -768,13 +834,16 @@ internal sealed partial class Checker
         foreach (var index in type.IndexInfos)
             members.AddRange(await ObjectIndexSyntaxAsync(index, (type.ObjectFlags & ObjectFlags.ReverseMapped) != 0
                 ? ElidedTypeSyntax(state) : null, state, cancellation));
-        var properties = type.Properties ?? [];
+        IReadOnlyList<Symbol> properties = state.Verbosity is null ? type.Properties ?? []
+            : (type.Properties ?? []).Where(property => (property.Flags & SymbolFlags.Prototype) == 0).ToArray();
         for (int propertyIndex = 0; propertyIndex < properties.Count; propertyIndex++)
         {
             cancellation.ThrowIfCancellationRequested();
             if (state.Length.Truncated() && propertyIndex + 3 < properties.Count - 1)
             {
-                if (!state.Length.NoTruncation)
+                if (state.Length.NoTruncation)
+                    state.TrailingElisions[members[^1]] = "... "u8 + Utf8String.Format(properties.Count - propertyIndex - 1) + " more elided ..."u8;
+                else
                     members.Add(f.NewPropertySignatureDeclaration(null,
                         f.NewIdentifier(
                             Utf8String.Concat("... "u8, Utf8String.Format(properties.Count - propertyIndex - 1), " more ..."u8)),
@@ -782,191 +851,7 @@ internal sealed partial class Checker
                 propertyIndex = properties.Count - 1;
             }
             var property = properties[propertyIndex];
-            if (LateName(property.Name) && property.Declarations.Length == 0)
-                state.Tracker.ReportNonSerializableProperty(TypeDisplay.SymbolName(property));
-            if ((state.Flags & NodeBuilderFlags.WriteClassExpressionAsTypeLiteral) != 0 && (property.Flags & SymbolFlags.Prototype) != 0)
-                continue;
-            if ((state.Flags & NodeBuilderFlags.WriteClassExpressionAsTypeLiteral) != 0)
-            {
-                if (property.Declarations.Any(d => SemanticSyntax.HasModifier(d, K.PrivateKeyword)
-                    || SemanticSyntax.HasModifier(d, K.ProtectedKeyword)))
-                    state.Tracker.ReportPrivateInBaseOfClassExpression(property.Name);
-                if (SemanticSyntax.Name(property.ValueDeclaration) is PrivateIdentifierNode privateIdentifier)
-                    state.Tracker.ReportPrivateInBaseOfClassExpression(privateIdentifier.Text);
-            }
-            bool placeholder = ReverseMappedPlaceholder(property, state);
-            var value = placeholder ? context.AnyType
-                : Values.NonMissing(await Values.GetAsync(property, cancellation), (property.Flags & SymbolFlags.Optional) != 0);
-            SyntaxNode? reusedType = null;
-            var declaration = property.ValueDeclaration ?? property.Declarations.FirstOrDefault();
-            bool optionalDeclaration = declaration is PropertyDeclarationNode { PostfixToken.Kind: K.QuestionToken }
-                or PropertySignatureDeclarationNode { PostfixToken.Kind: K.QuestionToken };
-            if (LateName(property.Name)
-                && SemanticSyntax.Name(declaration) is ComputedPropertyNameNode { Expression: { } computedExpression }
-                && ConstantEvaluator.EntityName(computedExpression))
-                await TrackComputedNameAsync(computedExpression, state, false, cancellation);
-            if ((property.Flags & (SymbolFlags.Accessor | SymbolFlags.Method | SymbolFlags.Function)) == 0
-                && state.Symbols.Enclosing is not null && declaration is ITypedNode { Type: { } annotation }
-                && (value.ObjectFlags & ObjectFlags.RequiresWidening) == 0)
-            {
-                var annotated = await Nodes.FromNodeAsync(annotation, cancellation);
-                if (annotated != value)
-                {
-                    var comparable = optionalDeclaration ? await Facts.FilterAsync(value, TypeFacts.NEUndefined, cancellation) : value;
-                    if (annotated == comparable || annotated is UnionType && comparable is UnionType
-                        && await Relations.RelatedAsync(annotated, comparable, RelationKind.Identity, cancellation))
-                        value = annotated;
-                }
-                if (annotated == value)
-                    reusedType = ReuseLiteralTypeSyntax(annotation, state, cancellation)
-                        ?? await ReuseTypeAnnotationSyntaxAsync(annotation, state, cancellation);
-            }
-            var nameType = links.Values.TryGet(property)?.NameType;
-            SyntaxNode? computedName = null;
-            if (nameType?.Symbol is { } nameSymbol)
-            {
-                if (nameType is UniqueSymbolType)
-                {
-                    var sourceScope = new SymbolDisplayContext(declaration ?? state.Symbols.Enclosing, state.Symbols.Flags)
-                    { Length = state.Length, ExpressionNames = true };
-                    computedName = f.NewComputedPropertyName(await SymbolExpressionSyntaxAsync(nameSymbol, sourceScope, state, cancellation));
-                }
-                else if ((nameType.Flags & TypeFlags.EnumLiteral) != 0 && state.Symbols.Enclosing is not null
-                    && (await SymbolAccessibilityAsync(nameSymbol.Parent ?? nameSymbol, state.Symbols.Enclosing,
-                        SymbolFlags.Value, false, false, cancellation)).Accessibility == SymbolAccessibility.Accessible
-                    && await SymbolTypeNodeAsync(
-                        nameSymbol,
-                        SymbolFlags.Value,
-                        null,
-                        state.Symbols,
-                        false,
-                        cancellation) is TypeQueryNode query)
-                    computedName = f.NewComputedPropertyName(query.ExprName);
-            }
-            Utf8String name = property.Name;
-            if (nameType is LiteralType { Value: Utf8String text })
-                name = text;
-            else if (nameType is LiteralType { Value: double number })
-                name = TokenFacts.NumberText(number);
-            bool stringNamed = property.Declarations.Length != 0;
-            bool singleQuote = property.Declarations.Length != 0;
-            foreach (var propertyDeclaration in property.Declarations)
-            {
-                var declarationName = propertyDeclaration is BinaryExpressionNode { Left: ElementAccessExpressionNode elementAccess }
-                    ? elementAccess : DisplayDeclarationName(propertyDeclaration);
-                singleQuote &= declarationName is StringLiteralNode quoted && (quoted.TokenFlags & TokenFlags.SingleQuote) != 0;
-                stringNamed &= declarationName is StringLiteralNode
-                    || declarationName is ComputedPropertyNameNode computed
-                        && ((await ExpressionTypeForQueryAsync(computed.Expression!, cancellation)).Flags & TypeFlags.StringLike) != 0
-                    || declarationName is ElementAccessExpressionNode element
-                        && ((await ExpressionTypeForQueryAsync(element.ArgumentExpression!, cancellation)).Flags & TypeFlags.StringLike) != 0;
-            }
-            SyntaxNode propertyName;
-            if (computedName is not null)
-                propertyName = computedName;
-            else if (nameType is UniqueSymbolType)
-                throw new NotSupportedException("Computed property name has no value expression");
-            else if (SemanticSyntax.Name(property.ValueDeclaration) is PrivateIdentifierNode privateName)
-                propertyName = f.NewPrivateIdentifier(privateName.Text);
-            else if (IdentifierName(name))
-                propertyName = f.NewIdentifier(name);
-            else if (!stringNamed && TokenFacts.NumberText(JsNumber.FromString(name)) == name && JsNumber.FromString(name) >= 0)
-                propertyName = f.NewNumericLiteral(name, TokenFlags.None);
-            else if (nameType is LiteralType && name.Span.StartsWith((byte)'-') && TokenFacts.NumberText(JsNumber.FromString(name)) == name)
-                propertyName = f.NewComputedPropertyName(
-                    f.NewPrefixUnaryExpression(K.MinusToken, f.NewNumericLiteral(name[1..], TokenFlags.None)));
-            else
-                propertyName = f.NewStringLiteral(name, singleQuote ? TokenFlags.SingleQuote : TokenFlags.None);
-            state.Length.Add(Symbol.EscapeName(property.Name), 1);
-            bool readOnly = IsReadonly(property);
-            if ((property.Flags & SymbolFlags.Accessor) != 0)
-            {
-                var write = await Values.WriteAsync(property, cancellation);
-                if (value != context.ErrorType && write != context.ErrorType && (value != write
-                    || ((property.Parent?.Flags ?? 0) & SymbolFlags.Class) != 0 && !property.Declarations.Any(d => d is PropertyDeclarationNode)))
-                {
-                    foreach (var kind in new[] { K.GetAccessor, K.SetAccessor })
-                        if (property.Declarations.FirstOrDefault(d => d.Kind == kind) is { } accessor)
-                        {
-                            var signature = await Signatures.FromDeclarationAsync(accessor, cancellation);
-                            if (links.Values.TryGet(property)?.Mapper is { } mapper)
-                                signature = await Instantiation.Engine.SignatureAsync(signature, mapper, false, cancellation);
-                            var accessorNode = await SignatureSyntaxAsync(signature, kind, state, cancellation, propertyName);
-                            state.CommentSources[accessorNode] = accessor;
-                            members.Add(accessorNode);
-                        }
-                    continue;
-                }
-            }
-            if ((property.Flags & SymbolFlags.Accessor) != 0 && ((property.Parent?.Flags ?? 0) & SymbolFlags.Class) != 0
-                && property.Declarations.FirstOrDefault(d => d is PropertyDeclarationNode && SemanticSyntax.HasModifier(d, K.AccessorKeyword)) is { } autoAccessor)
-            {
-                var write = await Values.WriteAsync(property, cancellation);
-                if (value != context.ErrorType && write != context.ErrorType)
-                {
-                    var getter = f.NewGetAccessorDeclaration(null, propertyName, null, new([]), await TypeSyntaxAsync(value, state, cancellation), null, null);
-                    state.CommentSources[getter] = autoAccessor;
-                    members.Add(getter);
-                    members.Add(f.NewSetAccessorDeclaration(null, propertyName, null,
-                        new([f.NewParameterDeclaration(null, null, f.NewIdentifier("arg"u8), null, await TypeSyntaxAsync(write, state, cancellation), null)]),
-                        null, null, null));
-                    continue;
-                }
-            }
-            var question = (property.Flags & SymbolFlags.Optional) != 0 ? f.NewToken(K.QuestionToken) : null;
-            if ((property.Flags & (SymbolFlags.Method | SymbolFlags.Function)) != 0 && !readOnly
-                && (await Properties.GetAsync(value, cancellation)).Count == 0)
-            {
-                var signatures = await SignaturesAsync(
-                    Algebra.Filter(value, t => (t.Flags & TypeFlags.Undefined) == 0),
-                    false,
-                    cancellation);
-                foreach (var signature in signatures)
-                {
-                    var method = await SignatureSyntaxAsync(signature, K.MethodSignature, state, cancellation, propertyName,
-                        property.ValueDeclaration is MethodDeclarationNode { Parent: ObjectLiteralExpressionNode } ? null : question);
-                    if ((signature.Declaration ?? property.ValueDeclaration) is { } source) state.CommentSources[method] = source;
-                    members.Add(method);
-                }
-                if (signatures.Count != 0 || question is null)
-                    continue;
-            }
-            SyntaxNode propertyTypeNode;
-            if (placeholder)
-                propertyTypeNode = ElidedTypeSyntax(state);
-            else
-            {
-                bool reverseMapped = (property.CheckFlags & Binding.CheckFlags.ReverseMapped) != 0;
-                if (reverseMapped)
-                    state.ReverseMappedProperties.Add(property);
-                try
-                {
-                    propertyTypeNode = reusedType ?? ((property.Flags & SymbolFlags.Accessor) != 0
-                        ? await DeclarationTypeSyntaxAsync(value,
-                            property.Declarations.OfType<GetAccessorDeclarationNode>().FirstOrDefault() as SyntaxNode
-                                ?? property.Declarations.OfType<SetAccessorDeclarationNode>().FirstOrDefault()?.Parameters?.LastOrDefault(),
-                            false, state, cancellation)
-                        : await DeclarationTypeSyntaxAsync(
-                            value,
-                            declaration,
-                            optionalDeclaration,
-                            state,
-                            cancellation));
-                }
-                finally
-                {
-                    if (reverseMapped)
-                        state.ReverseMappedProperties.RemoveAt(state.ReverseMappedProperties.Count - 1);
-                }
-            }
-            if (readOnly)
-                state.Length.Add(9);
-            var propertyNode = f.NewPropertySignatureDeclaration(readOnly ? new([f.NewToken(K.ReadonlyKeyword)]) : null, propertyName,
-                question,
-                propertyTypeNode,
-                null);
-            if (property.ValueDeclaration is { } commentSource) state.CommentSources[propertyNode] = commentSource;
-            members.Add(propertyNode);
+            await AddPropertySyntaxAsync(property, members, state, cancellation);
         }
         return Finish();
 
@@ -1135,7 +1020,198 @@ internal sealed partial class Checker
         node is UnionTypeNode or IntersectionTypeNode or ConditionalTypeNode or FunctionTypeNode or ConstructorTypeNode
             || postfix && node is TypeOperatorNode or TypeQueryNode or InferTypeNode ? f.NewParenthesizedTypeNode(node) : node;
 
-    private async ValueTask<IReadOnlyList<Type>> SyntaxUnionTypesAsync(IReadOnlyList<Type> types, CancellationToken cancellation)
+    private async ValueTask AddPropertySyntaxAsync(Symbol property, List<SyntaxNode> members, TypeSyntaxContext state, CancellationToken cancellation)
+    {
+        var f = state.Factory;
+        if (LateName(property.Name) && property.Declarations.Length == 0)
+            state.Tracker.ReportNonSerializableProperty(TypeDisplay.SymbolName(property));
+        if ((state.Flags & NodeBuilderFlags.WriteClassExpressionAsTypeLiteral) != 0 && (property.Flags & SymbolFlags.Prototype) != 0)
+            return;
+        if ((state.Flags & NodeBuilderFlags.WriteClassExpressionAsTypeLiteral) != 0)
+        {
+            if (property.Declarations.Any(d => SemanticSyntax.HasModifier(d, K.PrivateKeyword)
+                || SemanticSyntax.HasModifier(d, K.ProtectedKeyword)))
+                state.Tracker.ReportPrivateInBaseOfClassExpression(property.Name);
+            if (SemanticSyntax.Name(property.ValueDeclaration) is PrivateIdentifierNode privateIdentifier)
+                state.Tracker.ReportPrivateInBaseOfClassExpression(privateIdentifier.Text);
+        }
+        bool placeholder = ReverseMappedPlaceholder(property, state);
+        var value = placeholder ? context.AnyType
+            : Values.NonMissing(await Values.GetAsync(property, cancellation), (property.Flags & SymbolFlags.Optional) != 0);
+        SyntaxNode? reusedType = null;
+        var declaration = property.ValueDeclaration ?? property.Declarations.FirstOrDefault();
+        bool optionalDeclaration = declaration is PropertyDeclarationNode { PostfixToken.Kind: K.QuestionToken }
+            or PropertySignatureDeclarationNode { PostfixToken.Kind: K.QuestionToken };
+        if (LateName(property.Name)
+            && SemanticSyntax.Name(declaration) is ComputedPropertyNameNode { Expression: { } computedExpression }
+            && ConstantEvaluator.EntityName(computedExpression))
+            await TrackComputedNameAsync(computedExpression, state, false, cancellation);
+        if (!state.ActivelyExpanding && (property.Flags & (SymbolFlags.Accessor | SymbolFlags.Method | SymbolFlags.Function)) == 0
+            && state.Symbols.Enclosing is not null && declaration is ITypedNode { Type: { } annotation }
+            && (value.ObjectFlags & ObjectFlags.RequiresWidening) == 0)
+        {
+            var annotated = await Nodes.FromNodeAsync(annotation, cancellation);
+            if (annotated != value)
+            {
+                var comparable = optionalDeclaration ? await Facts.FilterAsync(value, TypeFacts.NEUndefined, cancellation) : value;
+                if (annotated == comparable || annotated is UnionType && comparable is UnionType
+                    && await Relations.RelatedAsync(annotated, comparable, RelationKind.Identity, cancellation))
+                    value = annotated;
+            }
+            if (annotated == value)
+                reusedType = ReuseLiteralTypeSyntax(annotation, state, cancellation)
+                    ?? await ReuseTypeAnnotationSyntaxAsync(annotation, state, cancellation);
+        }
+        var nameType = links.Values.TryGet(property)?.NameType;
+        SyntaxNode? computedName = null;
+        if (nameType?.Symbol is { } nameSymbol)
+        {
+            if (nameType is UniqueSymbolType)
+            {
+                var sourceScope = new SymbolDisplayContext(declaration ?? state.Symbols.Enclosing, state.Symbols.Flags)
+                { Length = state.Length, ExpressionNames = true };
+                computedName = f.NewComputedPropertyName(await SymbolExpressionSyntaxAsync(nameSymbol, sourceScope, state, cancellation));
+            }
+            else if ((nameType.Flags & TypeFlags.EnumLiteral) != 0 && state.Symbols.Enclosing is not null
+                && (await SymbolAccessibilityAsync(nameSymbol.Parent ?? nameSymbol, state.Symbols.Enclosing,
+                    SymbolFlags.Value, false, false, cancellation)).Accessibility == SymbolAccessibility.Accessible
+                && await SymbolTypeNodeAsync(
+                    nameSymbol,
+                    SymbolFlags.Value,
+                    null,
+                    state.Symbols,
+                    false,
+                    cancellation) is TypeQueryNode query)
+                computedName = f.NewComputedPropertyName(query.ExprName);
+        }
+        Utf8String name = property.Name;
+        if (nameType is LiteralType { Value: Utf8String text })
+            name = text;
+        else if (nameType is LiteralType { Value: double number })
+            name = TokenFacts.NumberText(number);
+        bool stringNamed = property.Declarations.Length != 0;
+        bool singleQuote = property.Declarations.Length != 0;
+        foreach (var propertyDeclaration in property.Declarations)
+        {
+            var declarationName = propertyDeclaration is BinaryExpressionNode { Left: ElementAccessExpressionNode elementAccess }
+                ? elementAccess : DisplayDeclarationName(propertyDeclaration);
+            singleQuote &= declarationName is StringLiteralNode quoted && (quoted.TokenFlags & TokenFlags.SingleQuote) != 0;
+            stringNamed &= declarationName is StringLiteralNode
+                || declarationName is ComputedPropertyNameNode computed
+                    && ((await ExpressionTypeForQueryAsync(computed.Expression!, cancellation)).Flags & TypeFlags.StringLike) != 0
+                || declarationName is ElementAccessExpressionNode element
+                    && ((await ExpressionTypeForQueryAsync(element.ArgumentExpression!, cancellation)).Flags & TypeFlags.StringLike) != 0;
+        }
+        SyntaxNode propertyName;
+        if (computedName is not null)
+            propertyName = computedName;
+        else if (nameType is UniqueSymbolType)
+            throw new NotSupportedException("Computed property name has no value expression");
+        else if (SemanticSyntax.Name(property.ValueDeclaration) is PrivateIdentifierNode privateName)
+            propertyName = f.NewPrivateIdentifier(privateName.Text);
+        else if (IdentifierName(name))
+            propertyName = f.NewIdentifier(name);
+        else if (!stringNamed && TokenFacts.NumberText(JsNumber.FromString(name)) == name && JsNumber.FromString(name) >= 0)
+            propertyName = f.NewNumericLiteral(name, TokenFlags.None);
+        else if (nameType is LiteralType && name.Span.StartsWith((byte)'-') && TokenFacts.NumberText(JsNumber.FromString(name)) == name)
+            propertyName = f.NewComputedPropertyName(
+                f.NewPrefixUnaryExpression(K.MinusToken, f.NewNumericLiteral(name[1..], TokenFlags.None)));
+        else
+            propertyName = f.NewStringLiteral(name, singleQuote ? TokenFlags.SingleQuote : TokenFlags.None);
+        state.Length.Add(Symbol.EscapeName(property.Name), 1);
+        if (state.DisplaySymbols is { } display && propertyName is IdentifierNode) display[propertyName] = property;
+        bool readOnly = IsReadonly(property);
+        if ((property.Flags & SymbolFlags.Accessor) != 0)
+        {
+            var write = await Values.WriteAsync(property, cancellation);
+            if (value != context.ErrorType && write != context.ErrorType && (value != write
+                || ((property.Parent?.Flags ?? 0) & SymbolFlags.Class) != 0 && !property.Declarations.Any(d => d is PropertyDeclarationNode)))
+            {
+                foreach (var kind in new[] { K.GetAccessor, K.SetAccessor })
+                    if (property.Declarations.FirstOrDefault(d => d.Kind == kind) is { } accessor)
+                    {
+                        var signature = await Signatures.FromDeclarationAsync(accessor, cancellation);
+                        if (links.Values.TryGet(property)?.Mapper is { } mapper)
+                            signature = await Instantiation.Engine.SignatureAsync(signature, mapper, false, cancellation);
+                        var accessorNode = await SignatureSyntaxAsync(signature, kind, state, cancellation, propertyName);
+                        state.CommentSources[accessorNode] = accessor;
+                        members.Add(accessorNode);
+                    }
+                return;
+            }
+        }
+        if ((property.Flags & SymbolFlags.Accessor) != 0 && ((property.Parent?.Flags ?? 0) & SymbolFlags.Class) != 0
+            && property.Declarations.FirstOrDefault(d => d is PropertyDeclarationNode && SemanticSyntax.HasModifier(d, K.AccessorKeyword)) is { } autoAccessor)
+        {
+            var write = await Values.WriteAsync(property, cancellation);
+            if (value != context.ErrorType && write != context.ErrorType)
+            {
+                var getter = f.NewGetAccessorDeclaration(null, propertyName, null, new([]), await TypeSyntaxAsync(value, state, cancellation), null, null);
+                state.CommentSources[getter] = autoAccessor;
+                members.Add(getter);
+                members.Add(f.NewSetAccessorDeclaration(null, propertyName, null,
+                    new([f.NewParameterDeclaration(null, null, f.NewIdentifier("arg"u8), null, await TypeSyntaxAsync(write, state, cancellation), null)]),
+                    null, null, null));
+                return;
+            }
+        }
+        var question = (property.Flags & SymbolFlags.Optional) != 0 ? f.NewToken(K.QuestionToken) : null;
+        if ((property.Flags & (SymbolFlags.Method | SymbolFlags.Function)) != 0 && !readOnly
+            && (await Properties.GetAsync(value, cancellation)).Count == 0)
+        {
+            var signatures = await SignaturesAsync(
+                Algebra.Filter(value, t => (t.Flags & TypeFlags.Undefined) == 0),
+                false,
+                cancellation);
+            foreach (var signature in signatures)
+            {
+                var method = await SignatureSyntaxAsync(signature, K.MethodSignature, state, cancellation, propertyName,
+                    property.ValueDeclaration is MethodDeclarationNode { Parent: ObjectLiteralExpressionNode } ? null : question);
+                if ((signature.Declaration ?? property.ValueDeclaration) is { } source) state.CommentSources[method] = source;
+                members.Add(method);
+            }
+            if (signatures.Count != 0 || question is null)
+                return;
+        }
+        SyntaxNode propertyTypeNode;
+        if (placeholder)
+            propertyTypeNode = ElidedTypeSyntax(state);
+        else
+        {
+            bool reverseMapped = (property.CheckFlags & Binding.CheckFlags.ReverseMapped) != 0;
+            if (reverseMapped)
+                state.ReverseMappedProperties.Add(property);
+            try
+            {
+                propertyTypeNode = reusedType ?? ((property.Flags & SymbolFlags.Accessor) != 0
+                    ? await DeclarationTypeSyntaxAsync(value,
+                        property.Declarations.OfType<GetAccessorDeclarationNode>().FirstOrDefault() as SyntaxNode
+                            ?? property.Declarations.OfType<SetAccessorDeclarationNode>().FirstOrDefault()?.Parameters?.LastOrDefault(),
+                        false, state, cancellation)
+                    : await DeclarationTypeSyntaxAsync(
+                        value,
+                        declaration,
+                        optionalDeclaration,
+                        state,
+                        cancellation));
+            }
+            finally
+            {
+                if (reverseMapped)
+                    state.ReverseMappedProperties.RemoveAt(state.ReverseMappedProperties.Count - 1);
+            }
+        }
+        if (readOnly)
+            state.Length.Add(9);
+        var propertyNode = f.NewPropertySignatureDeclaration(readOnly ? new([f.NewToken(K.ReadonlyKeyword)]) : null, propertyName,
+            question,
+            propertyTypeNode,
+            null);
+        if (property.ValueDeclaration is { } commentSource) state.CommentSources[propertyNode] = commentSource;
+        members.Add(propertyNode);
+    }
+
+    private async ValueTask<IReadOnlyList<Type>> SyntaxUnionTypesAsync(IReadOnlyList<Type> types, CancellationToken cancellation, bool expandingEnum = false)
     {
         var result = new List<Type>();
         TypeFlags flags = 0;
@@ -1146,7 +1222,7 @@ internal sealed partial class Checker
             if ((type.Flags & TypeFlags.Nullable) != 0)
                 continue;
             Type? basis = (type.Flags & TypeFlags.BooleanLiteral) != 0 ? context.BooleanType
-                : (type.Flags & TypeFlags.EnumLike) != 0 && type.Symbol is { } symbol
+                : !expandingEnum && (type.Flags & TypeFlags.EnumLike) != 0 && type.Symbol is { } symbol
                     ? await Declared.GetAsync(
                         (symbol.Flags & SymbolFlags.EnumMember) != 0 ? program.Symbols.Parent(symbol)! : symbol,
                         cancellation) : null;

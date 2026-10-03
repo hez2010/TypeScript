@@ -17,15 +17,15 @@ const nodeModules = process.argv.includes("--node-modules");
 const generation = process.argv.includes("--generation");
 const programHost = process.argv.includes("--program");
 const printNodes = process.argv.includes("--print");
-const output = path.join(root, `built/csharp/module-specifier-${printNodes ? "node-printer" : programHost ? "program" : generation ? "generation" : nodeModules ? "node-modules" : packageMaps ? "packages" : "paths"}`);
+const option = (key, fallback) => process.argv.includes(key) ? process.argv[process.argv.indexOf(key) + 1] : fallback;
+const output = option("--directory", path.join(root, `built/csharp/module-specifier-${printNodes ? "node-printer" : programHost ? "program" : generation ? "generation" : nodeModules ? "node-modules" : packageMaps ? "packages" : "paths"}`));
 const hash = value => createHash("sha256").update(value).digest("hex");
-const dotnet = process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet";
-const oracle = path.join(root, "built/csharp/module-specifier-oracle.exe");
-const dll = path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll");
-const option = key => process.argv[process.argv.indexOf(key) + 1];
+const dotnet = option("--dotnet", process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet");
+const oracle = option("--oracle", path.join(root, "built/csharp/module-specifier-oracle.exe"));
+const dll = path.join(option("--managed-directory", path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0")), "TypeScript.Compatibility.dll");
 await mkdir(output, { recursive: true });
 const oracleHash = hash(await readFile(oracle));
-const candidateHash = hash(Buffer.concat([await readFile(dll), await readFile(path.join(root, "csharp/src/TypeScript.Compiler/bin/Release/net11.0/TypeScript.Compiler.dll"))]));
+const candidateHash = hash(Buffer.concat([await readFile(dll), await readFile(path.join(path.dirname(dll), "TypeScript.Compiler.dll"))]));
 const cases = [];
 const base = { source: "", fileName: "/project/main.ts", directory: "/project", sensitive: true, files: {}, options: {} };
 function add(operation, fields) {
@@ -265,6 +265,14 @@ if (printNodes) {
         }
     }
     for (const source of ["", "'use strict'; let x=1;", "#!/usr/bin/env node\nlet x=1;"]) add("print", { source, printMode: "source", neverAsciiEscape: true });
+}
+if (process.argv.includes("--entrypoints")) {
+    cases.length = 0;
+    for (const target of ["pkg", "pkg/index.ts", "pkg/sub/index.d.ts", "pkg/a.tsx", "pkg/a.d.ts", "pkg/a.mts", "pkg/a.cts", "pkg/a.d.mts", "pkg/a.d.cts", "pkg/a.js", "pkg/a.jsx", "pkg/a.mjs", "pkg/a.cjs", "pkg/a.json", "pkg/a.d.css.ts", "pkg/a.d.one.d.two.ts", "pkg/a.css", "pkg/a.TS"])
+        for (const entrypointEnding of [0, 1, 2]) for (const endings of [[], [0], [1], [2], [3]])
+            for (const options of [{}, { moduleResolution: "nodenext" }, { allowImportingTsExtensions: true, jsx: "preserve" }])
+                for (const preference of ["", "minimal", "index", "js"]) for (const defaultMode of [0, 1, 99])
+                    add("entrypoint-ending", { target, entrypointEnding, endings, options, preference, defaultMode });
 }
 const selected = process.argv.includes("--filter") ? cases.filter(c => c.operation === option("--filter")) : cases;
 await writeFile(path.join(output, "inputs.json"), JSON.stringify(selected));

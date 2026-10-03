@@ -90,6 +90,11 @@ public sealed partial class QualifiedNameNode : SyntaxNode
         if (Right is { } childRight && index-- == 0) return childRight;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Left is not null) result.Add(new(Left, null));
+        if (Right is not null) result.Add(new(Right, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Left is not null) Left = (SyntaxNode)copies[Left];
@@ -113,6 +118,10 @@ public sealed partial class ComputedPropertyNameNode : SyntaxNode
         if (Expression is { } childExpression && index-- == 0) return childExpression;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
@@ -134,6 +143,10 @@ public sealed partial class DecoratorNode : SyntaxNode
     {
         if (Expression is { } childExpression && index-- == 0) return childExpression;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -190,6 +203,12 @@ public sealed partial class IfStatementNode : SyntaxNode
         if (ElseStatement is { } childElseStatement && index-- == 0) return childElseStatement;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
+        if (ThenStatement is not null) result.Add(new(ThenStatement, null));
+        if (ElseStatement is not null) result.Add(new(ElseStatement, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
@@ -223,6 +242,11 @@ public sealed partial class DoStatementNode : SyntaxNode
         if (Expression is { } childExpression && index-- == 0) return childExpression;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Statement is not null) result.Add(new(Statement, null));
+        if (Expression is not null) result.Add(new(Expression, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Statement is not null) Statement = (SyntaxNode)copies[Statement];
@@ -254,6 +278,11 @@ public sealed partial class WhileStatementNode : SyntaxNode
         if (Expression is { } childExpression && index-- == 0) return childExpression;
         if (Statement is { } childStatement && index-- == 0) return childStatement;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
+        if (Statement is not null) result.Add(new(Statement, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -294,6 +323,13 @@ public sealed partial class ForStatementNode : SyntaxNode, IInitializedNode
         if (Incrementor is { } childIncrementor && index-- == 0) return childIncrementor;
         if (Statement is { } childStatement && index-- == 0) return childStatement;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Initializer is not null) result.Add(new(Initializer, null));
+        if (Condition is not null) result.Add(new(Condition, null));
+        if (Incrementor is not null) result.Add(new(Incrementor, null));
+        if (Statement is not null) result.Add(new(Statement, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -338,6 +374,13 @@ public sealed partial class ForInOrOfStatementNode : SyntaxNode, IInitializedNod
         if (Statement is { } childStatement && index-- == 0) return childStatement;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (AwaitModifier is not null) result.Add(new(AwaitModifier, null));
+        if (Initializer is not null) result.Add(new(Initializer, null));
+        if (Expression is not null) result.Add(new(Expression, null));
+        if (Statement is not null) result.Add(new(Statement, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (AwaitModifier is not null) AwaitModifier = (SyntaxNode)copies[AwaitModifier];
@@ -369,6 +412,10 @@ public sealed partial class BreakStatementNode : SyntaxNode
         if (Label is { } childLabel && index-- == 0) return childLabel;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Label is not null) result.Add(new(Label, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Label is not null) Label = (IdentifierNode)copies[Label];
@@ -397,6 +444,10 @@ public sealed partial class ContinueStatementNode : SyntaxNode
         if (Label is { } childLabel && index-- == 0) return childLabel;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Label is not null) result.Add(new(Label, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Label is not null) Label = (IdentifierNode)copies[Label];
@@ -424,6 +475,10 @@ public sealed partial class ReturnStatementNode : SyntaxNode
     {
         if (Expression is { } childExpression && index-- == 0) return childExpression;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -456,6 +511,11 @@ public sealed partial class WithStatementNode : SyntaxNode
         if (Statement is { } childStatement && index-- == 0) return childStatement;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
+        if (Statement is not null) result.Add(new(Statement, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
@@ -487,6 +547,11 @@ public sealed partial class SwitchStatementNode : SyntaxNode
         if (Expression is { } childExpression && index-- == 0) return childExpression;
         if (CaseBlock is { } childCaseBlock && index-- == 0) return childCaseBlock;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
+        if (CaseBlock is not null) result.Add(new(CaseBlock, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -521,6 +586,10 @@ public sealed partial class CaseBlockNode : SyntaxNode
             index -= listClauses.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Clauses is not null) result.Add(new(null, Clauses));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -559,6 +628,11 @@ public sealed partial class CaseOrDefaultClauseNode : SyntaxNode
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
+        if (Statements is not null) result.Add(new(null, Statements));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
@@ -587,6 +661,10 @@ public sealed partial class ThrowStatementNode : SyntaxNode
     {
         if (Expression is { } childExpression && index-- == 0) return childExpression;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -622,6 +700,12 @@ public sealed partial class TryStatementNode : SyntaxNode
         if (FinallyBlock is { } childFinallyBlock && index-- == 0) return childFinallyBlock;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TryBlock is not null) result.Add(new(TryBlock, null));
+        if (CatchClause is not null) result.Add(new(CatchClause, null));
+        if (FinallyBlock is not null) result.Add(new(FinallyBlock, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (TryBlock is not null) TryBlock = (BlockNode)copies[TryBlock];
@@ -654,6 +738,11 @@ public sealed partial class CatchClauseNode : SyntaxNode
         if (VariableDeclaration is { } childVariableDeclaration && index-- == 0) return childVariableDeclaration;
         if (Block is { } childBlock && index-- == 0) return childBlock;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (VariableDeclaration is not null) result.Add(new(VariableDeclaration, null));
+        if (Block is not null) result.Add(new(Block, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -708,6 +797,11 @@ public sealed partial class LabeledStatementNode : SyntaxNode
         if (Statement is { } childStatement && index-- == 0) return childStatement;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Label is not null) result.Add(new(Label, null));
+        if (Statement is not null) result.Add(new(Statement, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Label is not null) Label = (IdentifierNode)copies[Label];
@@ -736,6 +830,10 @@ public sealed partial class ExpressionStatementNode : SyntaxNode
     {
         if (Expression is { } childExpression && index-- == 0) return childExpression;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -772,6 +870,10 @@ public sealed partial class BlockNode : SyntaxNode
             index -= listStatements.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Statements is not null) result.Add(new(null, Statements));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -810,6 +912,11 @@ public sealed partial class VariableStatementNode : SyntaxNode, IModifiedNode
         if (DeclarationList is { } childDeclarationList && index-- == 0) return childDeclarationList;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (DeclarationList is not null) result.Add(new(DeclarationList, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Modifiers is not null) Modifiers = Modifiers.Map(copies);
@@ -838,6 +945,7 @@ public sealed partial class VariableDeclarationNode : SyntaxNode, ITypedNode, II
     }
     SyntaxNode? INamedNode.Name => Name;
     internal override SyntaxNode? DeclarationName => Name;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Name is { } childName) childName.Parent = this;
@@ -853,6 +961,13 @@ public sealed partial class VariableDeclarationNode : SyntaxNode, ITypedNode, II
         if (Type is { } childType && index-- == 0) return childType;
         if (Initializer is { } childInitializer && index-- == 0) return childInitializer;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Name is not null) result.Add(new(Name, null));
+        if (ExclamationToken is not null) result.Add(new(ExclamationToken, null));
+        if (Type is not null) result.Add(new(Type, null));
+        if (Initializer is not null) result.Add(new(Initializer, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -884,6 +999,10 @@ public sealed partial class VariableDeclarationListNode : SyntaxNode
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Declarations is not null) result.Add(new(null, Declarations));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Declarations is not null) Declarations = Declarations.Map(copies);
@@ -911,6 +1030,10 @@ public sealed partial class BindingPatternNode : SyntaxNode
             index -= listElements.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Elements is not null) result.Add(new(null, Elements));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -942,6 +1065,7 @@ public sealed partial class ParameterDeclarationNode : SyntaxNode, ITypedNode, I
     SyntaxNode? INamedNode.Name => Name;
     internal override SyntaxNode? DeclarationName => Name;
     internal override NodeList? ModifierList => Modifiers;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -966,6 +1090,15 @@ public sealed partial class ParameterDeclarationNode : SyntaxNode, ITypedNode, I
         if (Type is { } childType && index-- == 0) return childType;
         if (Initializer is { } childInitializer && index-- == 0) return childInitializer;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (DotDotDotToken is not null) result.Add(new(DotDotDotToken, null));
+        if (Name is not null) result.Add(new(Name, null));
+        if (QuestionToken is not null) result.Add(new(QuestionToken, null));
+        if (Type is not null) result.Add(new(Type, null));
+        if (Initializer is not null) result.Add(new(Initializer, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -999,6 +1132,7 @@ public sealed partial class BindingElementNode : SyntaxNode, IInitializedNode, I
     }
     SyntaxNode? INamedNode.Name => Name;
     internal override SyntaxNode? DeclarationName => Name;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (DotDotDotToken is { } childDotDotDotToken) childDotDotDotToken.Parent = this;
@@ -1014,6 +1148,13 @@ public sealed partial class BindingElementNode : SyntaxNode, IInitializedNode, I
         if (Name is { } childName && index-- == 0) return childName;
         if (Initializer is { } childInitializer && index-- == 0) return childInitializer;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (DotDotDotToken is not null) result.Add(new(DotDotDotToken, null));
+        if (PropertyName is not null) result.Add(new(PropertyName, null));
+        if (Name is not null) result.Add(new(Name, null));
+        if (Initializer is not null) result.Add(new(Initializer, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -1041,6 +1182,7 @@ public sealed partial class MissingDeclarationNode : SyntaxNode, IModifiedNode
         BindingFlow = null;
     }
     internal override NodeList? ModifierList => Modifiers;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -1055,6 +1197,10 @@ public sealed partial class MissingDeclarationNode : SyntaxNode, IModifiedNode
             index -= listModifiers.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -1095,6 +1241,7 @@ public sealed partial class FunctionDeclarationNode : SyntaxNode, ITypedNode, IF
     internal override SyntaxNode? DeclarationName => Name;
     internal override NodeList? ModifierList => Modifiers;
     internal override bool HasFunctionSignature => true;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -1134,6 +1281,17 @@ public sealed partial class FunctionDeclarationNode : SyntaxNode, ITypedNode, IF
         if (Body is { } childBody && index-- == 0) return childBody;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (AsteriskToken is not null) result.Add(new(AsteriskToken, null));
+        if (Name is not null) result.Add(new(Name, null));
+        if (TypeParameters is not null) result.Add(new(null, TypeParameters));
+        if (Parameters is not null) result.Add(new(null, Parameters));
+        if (Type is not null) result.Add(new(Type, null));
+        if (FullSignature is not null) result.Add(new(FullSignature, null));
+        if (Body is not null) result.Add(new(Body, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Modifiers is not null) Modifiers = Modifiers.Map(copies);
@@ -1172,6 +1330,7 @@ public sealed partial class ClassDeclarationNode : SyntaxNode, IModifiedNode, IN
     SyntaxNode? INamedNode.Name => Name;
     internal override SyntaxNode? DeclarationName => Name;
     internal override NodeList? ModifierList => Modifiers;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -1209,6 +1368,14 @@ public sealed partial class ClassDeclarationNode : SyntaxNode, IModifiedNode, IN
             index -= listMembers.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (Name is not null) result.Add(new(Name, null));
+        if (TypeParameters is not null) result.Add(new(null, TypeParameters));
+        if (HeritageClauses is not null) result.Add(new(null, HeritageClauses));
+        if (Members is not null) result.Add(new(null, Members));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -1245,6 +1412,7 @@ public sealed partial class ClassExpressionNode : SyntaxNode, IModifiedNode, INa
     SyntaxNode? INamedNode.Name => Name;
     internal override SyntaxNode? DeclarationName => Name;
     internal override NodeList? ModifierList => Modifiers;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -1282,6 +1450,14 @@ public sealed partial class ClassExpressionNode : SyntaxNode, IModifiedNode, INa
             index -= listMembers.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (Name is not null) result.Add(new(Name, null));
+        if (TypeParameters is not null) result.Add(new(null, TypeParameters));
+        if (HeritageClauses is not null) result.Add(new(null, HeritageClauses));
+        if (Members is not null) result.Add(new(null, Members));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -1315,6 +1491,10 @@ public sealed partial class HeritageClauseNode : SyntaxNode
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Types is not null) result.Add(new(null, Types));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Types is not null) Types = Types.Map(copies);
@@ -1346,6 +1526,7 @@ public sealed partial class InterfaceDeclarationNode : SyntaxNode, IModifiedNode
     SyntaxNode? INamedNode.Name => Name;
     internal override SyntaxNode? DeclarationName => Name;
     internal override NodeList? ModifierList => Modifiers;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -1383,6 +1564,14 @@ public sealed partial class InterfaceDeclarationNode : SyntaxNode, IModifiedNode
             index -= listMembers.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (Name is not null) result.Add(new(Name, null));
+        if (TypeParameters is not null) result.Add(new(null, TypeParameters));
+        if (HeritageClauses is not null) result.Add(new(null, HeritageClauses));
+        if (Members is not null) result.Add(new(null, Members));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -1419,6 +1608,7 @@ public sealed partial class TypeAliasDeclarationNode : SyntaxNode, ITypedNode, I
     SyntaxNode? INamedNode.Name => Name;
     internal override SyntaxNode? DeclarationName => Name;
     internal override NodeList? ModifierList => Modifiers;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -1444,6 +1634,13 @@ public sealed partial class TypeAliasDeclarationNode : SyntaxNode, ITypedNode, I
         }
         if (Type is { } childType && index-- == 0) return childType;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (Name is not null) result.Add(new(Name, null));
+        if (TypeParameters is not null) result.Add(new(null, TypeParameters));
+        if (Type is not null) result.Add(new(Type, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -1473,6 +1670,7 @@ public sealed partial class EnumMemberNode : SyntaxNode, IInitializedNode, IName
     }
     SyntaxNode? INamedNode.Name => Name;
     internal override SyntaxNode? DeclarationName => Name;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Name is { } childName) childName.Parent = this;
@@ -1484,6 +1682,11 @@ public sealed partial class EnumMemberNode : SyntaxNode, IInitializedNode, IName
         if (Name is { } childName && index-- == 0) return childName;
         if (Initializer is { } childInitializer && index-- == 0) return childInitializer;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Name is not null) result.Add(new(Name, null));
+        if (Initializer is not null) result.Add(new(Initializer, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -1515,6 +1718,7 @@ public sealed partial class EnumDeclarationNode : SyntaxNode, IModifiedNode, INa
     SyntaxNode? INamedNode.Name => Name;
     internal override SyntaxNode? DeclarationName => Name;
     internal override NodeList? ModifierList => Modifiers;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -1538,6 +1742,12 @@ public sealed partial class EnumDeclarationNode : SyntaxNode, IModifiedNode, INa
             index -= listMembers.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (Name is not null) result.Add(new(Name, null));
+        if (Members is not null) result.Add(new(null, Members));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -1573,6 +1783,10 @@ public sealed partial class ModuleBlockNode : SyntaxNode
             index -= listStatements.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Statements is not null) result.Add(new(null, Statements));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -1637,6 +1851,7 @@ public sealed partial class ImportDeclarationNode : SyntaxNode, IModifiedNode
         BindingFlow = null;
     }
     internal override NodeList? ModifierList => Modifiers;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -1657,6 +1872,13 @@ public sealed partial class ImportDeclarationNode : SyntaxNode, IModifiedNode
         if (ModuleSpecifier is { } childModuleSpecifier && index-- == 0) return childModuleSpecifier;
         if (Attributes is { } childAttributes && index-- == 0) return childAttributes;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (ImportClause is not null) result.Add(new(ImportClause, null));
+        if (ModuleSpecifier is not null) result.Add(new(ModuleSpecifier, null));
+        if (Attributes is not null) result.Add(new(Attributes, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -1683,6 +1905,10 @@ public sealed partial class ExternalModuleReferenceNode : SyntaxNode
         if (Expression is { } childExpression && index-- == 0) return childExpression;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
@@ -1707,6 +1933,7 @@ public sealed partial class NamespaceImportNode : SyntaxNode, INamedNode
     }
     SyntaxNode? INamedNode.Name => Name;
     internal override SyntaxNode? DeclarationName => Name;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Name is { } childName) childName.Parent = this;
@@ -1716,6 +1943,10 @@ public sealed partial class NamespaceImportNode : SyntaxNode, INamedNode
     {
         if (Name is { } childName && index-- == 0) return childName;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Name is not null) result.Add(new(Name, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -1744,6 +1975,10 @@ public sealed partial class NamedImportsNode : SyntaxNode
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Elements is not null) result.Add(new(null, Elements));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Elements is not null) Elements = Elements.Map(copies);
@@ -1770,6 +2005,7 @@ public sealed partial class ExportAssignmentNode : SyntaxNode, ITypedNode, IModi
         BindingFlow = null;
     }
     internal override NodeList? ModifierList => Modifiers;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -1788,6 +2024,12 @@ public sealed partial class ExportAssignmentNode : SyntaxNode, ITypedNode, IModi
         if (Type is { } childType && index-- == 0) return childType;
         if (Expression is { } childExpression && index-- == 0) return childExpression;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (Type is not null) result.Add(new(Type, null));
+        if (Expression is not null) result.Add(new(Expression, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -1817,6 +2059,7 @@ public sealed partial class NamespaceExportDeclarationNode : SyntaxNode, IModifi
     SyntaxNode? INamedNode.Name => Name;
     internal override SyntaxNode? DeclarationName => Name;
     internal override NodeList? ModifierList => Modifiers;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -1833,6 +2076,11 @@ public sealed partial class NamespaceExportDeclarationNode : SyntaxNode, IModifi
         }
         if (Name is { } childName && index-- == 0) return childName;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (Name is not null) result.Add(new(Name, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -1859,6 +2107,7 @@ public sealed partial class NamespaceExportNode : SyntaxNode, INamedNode
     }
     SyntaxNode? INamedNode.Name => Name;
     internal override SyntaxNode? DeclarationName => Name;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Name is { } childName) childName.Parent = this;
@@ -1868,6 +2117,10 @@ public sealed partial class NamespaceExportNode : SyntaxNode, INamedNode
     {
         if (Name is { } childName && index-- == 0) return childName;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Name is not null) result.Add(new(Name, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -1896,6 +2149,10 @@ public sealed partial class NamedExportsNode : SyntaxNode
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Elements is not null) result.Add(new(null, Elements));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Elements is not null) Elements = Elements.Map(copies);
@@ -1922,6 +2179,7 @@ public sealed partial class ExportSpecifierNode : SyntaxNode, INamedNode
     }
     SyntaxNode? INamedNode.Name => Name;
     internal override SyntaxNode? DeclarationName => Name;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (PropertyName is { } childPropertyName) childPropertyName.Parent = this;
@@ -1933,6 +2191,11 @@ public sealed partial class ExportSpecifierNode : SyntaxNode, INamedNode
         if (PropertyName is { } childPropertyName && index-- == 0) return childPropertyName;
         if (Name is { } childName && index-- == 0) return childName;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (PropertyName is not null) result.Add(new(PropertyName, null));
+        if (Name is not null) result.Add(new(Name, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -1962,6 +2225,7 @@ public sealed partial class CallSignatureDeclarationNode : SyntaxNode, ITypedNod
         BindingLocals = null;
     }
     internal override bool HasFunctionSignature => true;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (TypeParameters is { } listTypeParameters)
@@ -1985,6 +2249,12 @@ public sealed partial class CallSignatureDeclarationNode : SyntaxNode, ITypedNod
         }
         if (Type is { } childType && index-- == 0) return childType;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TypeParameters is not null) result.Add(new(null, TypeParameters));
+        if (Parameters is not null) result.Add(new(null, Parameters));
+        if (Type is not null) result.Add(new(Type, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -2015,6 +2285,7 @@ public sealed partial class ConstructSignatureDeclarationNode : SyntaxNode, ITyp
         BindingLocals = null;
     }
     internal override bool HasFunctionSignature => true;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (TypeParameters is { } listTypeParameters)
@@ -2038,6 +2309,12 @@ public sealed partial class ConstructSignatureDeclarationNode : SyntaxNode, ITyp
         }
         if (Type is { } childType && index-- == 0) return childType;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TypeParameters is not null) result.Add(new(null, TypeParameters));
+        if (Parameters is not null) result.Add(new(null, Parameters));
+        if (Type is not null) result.Add(new(Type, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -2076,6 +2353,7 @@ public sealed partial class ConstructorDeclarationNode : SyntaxNode, ITypedNode,
     }
     internal override NodeList? ModifierList => Modifiers;
     internal override bool HasFunctionSignature => true;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -2110,6 +2388,15 @@ public sealed partial class ConstructorDeclarationNode : SyntaxNode, ITypedNode,
         if (FullSignature is { } childFullSignature && index-- == 0) return childFullSignature;
         if (Body is { } childBody && index-- == 0) return childBody;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (TypeParameters is not null) result.Add(new(null, TypeParameters));
+        if (Parameters is not null) result.Add(new(null, Parameters));
+        if (Type is not null) result.Add(new(Type, null));
+        if (FullSignature is not null) result.Add(new(FullSignature, null));
+        if (Body is not null) result.Add(new(Body, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -2154,6 +2441,7 @@ public sealed partial class GetAccessorDeclarationNode : SyntaxNode, ITypedNode,
     internal override SyntaxNode? DeclarationName => Name;
     internal override NodeList? ModifierList => Modifiers;
     internal override bool HasFunctionSignature => true;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -2190,6 +2478,16 @@ public sealed partial class GetAccessorDeclarationNode : SyntaxNode, ITypedNode,
         if (FullSignature is { } childFullSignature && index-- == 0) return childFullSignature;
         if (Body is { } childBody && index-- == 0) return childBody;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (Name is not null) result.Add(new(Name, null));
+        if (TypeParameters is not null) result.Add(new(null, TypeParameters));
+        if (Parameters is not null) result.Add(new(null, Parameters));
+        if (Type is not null) result.Add(new(Type, null));
+        if (FullSignature is not null) result.Add(new(FullSignature, null));
+        if (Body is not null) result.Add(new(Body, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -2235,6 +2533,7 @@ public sealed partial class SetAccessorDeclarationNode : SyntaxNode, ITypedNode,
     internal override SyntaxNode? DeclarationName => Name;
     internal override NodeList? ModifierList => Modifiers;
     internal override bool HasFunctionSignature => true;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -2272,6 +2571,16 @@ public sealed partial class SetAccessorDeclarationNode : SyntaxNode, ITypedNode,
         if (Body is { } childBody && index-- == 0) return childBody;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (Name is not null) result.Add(new(Name, null));
+        if (TypeParameters is not null) result.Add(new(null, TypeParameters));
+        if (Parameters is not null) result.Add(new(null, Parameters));
+        if (Type is not null) result.Add(new(Type, null));
+        if (FullSignature is not null) result.Add(new(FullSignature, null));
+        if (Body is not null) result.Add(new(Body, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Modifiers is not null) Modifiers = Modifiers.Map(copies);
@@ -2305,6 +2614,7 @@ public sealed partial class IndexSignatureDeclarationNode : SyntaxNode, ITypedNo
         BindingLocals = null;
     }
     internal override NodeList? ModifierList => Modifiers;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -2328,6 +2638,12 @@ public sealed partial class IndexSignatureDeclarationNode : SyntaxNode, ITypedNo
         }
         if (Type is { } childType && index-- == 0) return childType;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (Parameters is not null) result.Add(new(null, Parameters));
+        if (Type is not null) result.Add(new(Type, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -2364,6 +2680,7 @@ public sealed partial class MethodSignatureDeclarationNode : SyntaxNode, ITypedN
     internal override SyntaxNode? DeclarationName => Name;
     internal override NodeList? ModifierList => Modifiers;
     internal override bool HasFunctionSignature => true;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -2398,6 +2715,15 @@ public sealed partial class MethodSignatureDeclarationNode : SyntaxNode, ITypedN
         }
         if (Type is { } childType && index-- == 0) return childType;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (Name is not null) result.Add(new(Name, null));
+        if (PostfixToken is not null) result.Add(new(PostfixToken, null));
+        if (TypeParameters is not null) result.Add(new(null, TypeParameters));
+        if (Parameters is not null) result.Add(new(null, Parameters));
+        if (Type is not null) result.Add(new(Type, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -2444,6 +2770,7 @@ public sealed partial class MethodDeclarationNode : SyntaxNode, ITypedNode, IFul
     internal override SyntaxNode? DeclarationName => Name;
     internal override NodeList? ModifierList => Modifiers;
     internal override bool HasFunctionSignature => true;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -2485,6 +2812,18 @@ public sealed partial class MethodDeclarationNode : SyntaxNode, ITypedNode, IFul
         if (Body is { } childBody && index-- == 0) return childBody;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (AsteriskToken is not null) result.Add(new(AsteriskToken, null));
+        if (Name is not null) result.Add(new(Name, null));
+        if (PostfixToken is not null) result.Add(new(PostfixToken, null));
+        if (TypeParameters is not null) result.Add(new(null, TypeParameters));
+        if (Parameters is not null) result.Add(new(null, Parameters));
+        if (Type is not null) result.Add(new(Type, null));
+        if (FullSignature is not null) result.Add(new(FullSignature, null));
+        if (Body is not null) result.Add(new(Body, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Modifiers is not null) Modifiers = Modifiers.Map(copies);
@@ -2522,6 +2861,7 @@ public sealed partial class PropertySignatureDeclarationNode : SyntaxNode, IType
     SyntaxNode? INamedNode.Name => Name;
     internal override SyntaxNode? DeclarationName => Name;
     internal override NodeList? ModifierList => Modifiers;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -2544,6 +2884,14 @@ public sealed partial class PropertySignatureDeclarationNode : SyntaxNode, IType
         if (Type is { } childType && index-- == 0) return childType;
         if (Initializer is { } childInitializer && index-- == 0) return childInitializer;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (Name is not null) result.Add(new(Name, null));
+        if (PostfixToken is not null) result.Add(new(PostfixToken, null));
+        if (Type is not null) result.Add(new(Type, null));
+        if (Initializer is not null) result.Add(new(Initializer, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -2578,6 +2926,7 @@ public sealed partial class PropertyDeclarationNode : SyntaxNode, ITypedNode, II
     SyntaxNode? INamedNode.Name => Name;
     internal override SyntaxNode? DeclarationName => Name;
     internal override NodeList? ModifierList => Modifiers;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -2600,6 +2949,14 @@ public sealed partial class PropertyDeclarationNode : SyntaxNode, ITypedNode, II
         if (Type is { } childType && index-- == 0) return childType;
         if (Initializer is { } childInitializer && index-- == 0) return childInitializer;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (Name is not null) result.Add(new(Name, null));
+        if (PostfixToken is not null) result.Add(new(PostfixToken, null));
+        if (Type is not null) result.Add(new(Type, null));
+        if (Initializer is not null) result.Add(new(Initializer, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -2626,6 +2983,7 @@ public sealed partial class SemicolonClassElementNode : SyntaxNode
         BindingLocalSymbol = null;
         BindingFlow = null;
     }
+    internal override bool IsDeclarationNode => true;
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
     {
@@ -2660,6 +3018,7 @@ public sealed partial class ClassStaticBlockDeclarationNode : SyntaxNode, IModif
         BindingReturnFlow = null;
     }
     internal override NodeList? ModifierList => Modifiers;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -2676,6 +3035,11 @@ public sealed partial class ClassStaticBlockDeclarationNode : SyntaxNode, IModif
         }
         if (Body is { } childBody && index-- == 0) return childBody;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (Body is not null) result.Add(new(Body, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -2835,6 +3199,7 @@ public sealed partial class NoSubstitutionTemplateLiteralNode : SyntaxNode
         BindingLocalSymbol = null;
         BindingFlow = null;
     }
+    internal override bool IsDeclarationNode => true;
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
     {
@@ -2866,6 +3231,7 @@ public sealed partial class BinaryExpressionNode : SyntaxNode, ITypedNode, IModi
         BindingFlow = null;
     }
     internal override NodeList? ModifierList => Modifiers;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -2888,6 +3254,14 @@ public sealed partial class BinaryExpressionNode : SyntaxNode, ITypedNode, IModi
         if (OperatorToken is { } childOperatorToken && index-- == 0) return childOperatorToken;
         if (Right is { } childRight && index-- == 0) return childRight;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (Left is not null) result.Add(new(Left, null));
+        if (Type is not null) result.Add(new(Type, null));
+        if (OperatorToken is not null) result.Add(new(OperatorToken, null));
+        if (Right is not null) result.Add(new(Right, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -2922,6 +3296,10 @@ public sealed partial class PrefixUnaryExpressionNode : SyntaxNode
         if (Operand is { } childOperand && index-- == 0) return childOperand;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Operand is not null) result.Add(new(Operand, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Operand is not null) Operand = (SyntaxNode)copies[Operand];
@@ -2950,6 +3328,10 @@ public sealed partial class PostfixUnaryExpressionNode : SyntaxNode
     {
         if (Operand is { } childOperand && index-- == 0) return childOperand;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Operand is not null) result.Add(new(Operand, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -2981,6 +3363,11 @@ public sealed partial class YieldExpressionNode : SyntaxNode
         if (AsteriskToken is { } childAsteriskToken && index-- == 0) return childAsteriskToken;
         if (Expression is { } childExpression && index-- == 0) return childExpression;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (AsteriskToken is not null) result.Add(new(AsteriskToken, null));
+        if (Expression is not null) result.Add(new(Expression, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -3019,6 +3406,7 @@ public sealed partial class ArrowFunctionNode : SyntaxNode, ITypedNode, IFullSig
     }
     internal override NodeList? ModifierList => Modifiers;
     internal override bool HasFunctionSignature => true;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -3055,6 +3443,16 @@ public sealed partial class ArrowFunctionNode : SyntaxNode, ITypedNode, IFullSig
         if (EqualsGreaterThanToken is { } childEqualsGreaterThanToken && index-- == 0) return childEqualsGreaterThanToken;
         if (Body is { } childBody && index-- == 0) return childBody;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (TypeParameters is not null) result.Add(new(null, TypeParameters));
+        if (Parameters is not null) result.Add(new(null, Parameters));
+        if (Type is not null) result.Add(new(Type, null));
+        if (FullSignature is not null) result.Add(new(FullSignature, null));
+        if (EqualsGreaterThanToken is not null) result.Add(new(EqualsGreaterThanToken, null));
+        if (Body is not null) result.Add(new(Body, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -3101,6 +3499,7 @@ public sealed partial class FunctionExpressionNode : SyntaxNode, ITypedNode, IFu
     internal override SyntaxNode? DeclarationName => Name;
     internal override NodeList? ModifierList => Modifiers;
     internal override bool HasFunctionSignature => true;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -3140,6 +3539,17 @@ public sealed partial class FunctionExpressionNode : SyntaxNode, ITypedNode, IFu
         if (Body is { } childBody && index-- == 0) return childBody;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (AsteriskToken is not null) result.Add(new(AsteriskToken, null));
+        if (Name is not null) result.Add(new(Name, null));
+        if (TypeParameters is not null) result.Add(new(null, TypeParameters));
+        if (Parameters is not null) result.Add(new(null, Parameters));
+        if (Type is not null) result.Add(new(Type, null));
+        if (FullSignature is not null) result.Add(new(FullSignature, null));
+        if (Body is not null) result.Add(new(Body, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Modifiers is not null) Modifiers = Modifiers.Map(copies);
@@ -3178,6 +3588,11 @@ public sealed partial class AsExpressionNode : SyntaxNode, ITypedNode
         if (Type is { } childType && index-- == 0) return childType;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
+        if (Type is not null) result.Add(new(Type, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
@@ -3209,6 +3624,11 @@ public sealed partial class SatisfiesExpressionNode : SyntaxNode, ITypedNode
         if (Expression is { } childExpression && index-- == 0) return childExpression;
         if (Type is { } childType && index-- == 0) return childType;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
+        if (Type is not null) result.Add(new(Type, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -3251,6 +3671,14 @@ public sealed partial class ConditionalExpressionNode : SyntaxNode
         if (WhenFalse is { } childWhenFalse && index-- == 0) return childWhenFalse;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Condition is not null) result.Add(new(Condition, null));
+        if (QuestionToken is not null) result.Add(new(QuestionToken, null));
+        if (WhenTrue is not null) result.Add(new(WhenTrue, null));
+        if (ColonToken is not null) result.Add(new(ColonToken, null));
+        if (WhenFalse is not null) result.Add(new(WhenFalse, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Condition is not null) Condition = (SyntaxNode)copies[Condition];
@@ -3291,6 +3719,12 @@ public sealed partial class PropertyAccessExpressionNode : SyntaxNode, INamedNod
         if (Name is { } childName && index-- == 0) return childName;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
+        if (QuestionDotToken is not null) result.Add(new(QuestionDotToken, null));
+        if (Name is not null) result.Add(new(Name, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
@@ -3327,6 +3761,12 @@ public sealed partial class ElementAccessExpressionNode : SyntaxNode
         if (ArgumentExpression is { } childArgumentExpression && index-- == 0) return childArgumentExpression;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
+        if (QuestionDotToken is not null) result.Add(new(QuestionDotToken, null));
+        if (ArgumentExpression is not null) result.Add(new(ArgumentExpression, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
@@ -3354,6 +3794,7 @@ public sealed partial class CallExpressionNode : SyntaxNode
         BindingLocalSymbol = null;
         BindingFlow = null;
     }
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Expression is { } childExpression) childExpression.Parent = this;
@@ -3379,6 +3820,13 @@ public sealed partial class CallExpressionNode : SyntaxNode
             index -= listArguments.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
+        if (QuestionDotToken is not null) result.Add(new(QuestionDotToken, null));
+        if (TypeArguments is not null) result.Add(new(null, TypeArguments));
+        if (Arguments is not null) result.Add(new(null, Arguments));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -3427,6 +3875,12 @@ public sealed partial class NewExpressionNode : SyntaxNode
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
+        if (TypeArguments is not null) result.Add(new(null, TypeArguments));
+        if (Arguments is not null) result.Add(new(null, Arguments));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
@@ -3460,6 +3914,10 @@ public sealed partial class MetaPropertyNode : SyntaxNode, INamedNode
         if (Name is { } childName && index-- == 0) return childName;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Name is not null) result.Add(new(Name, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Name is not null) Name = (IdentifierNode)copies[Name];
@@ -3488,6 +3946,10 @@ public sealed partial class NonNullExpressionNode : SyntaxNode
         if (Expression is { } childExpression && index-- == 0) return childExpression;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
@@ -3515,6 +3977,10 @@ public sealed partial class SpreadElementNode : SyntaxNode
     {
         if (Expression is { } childExpression && index-- == 0) return childExpression;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -3552,6 +4018,11 @@ public sealed partial class TemplateExpressionNode : SyntaxNode
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Head is not null) result.Add(new(Head, null));
+        if (TemplateSpans is not null) result.Add(new(null, TemplateSpans));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Head is not null) Head = (TemplateHeadNode)copies[Head];
@@ -3577,6 +4048,11 @@ public sealed partial class TemplateSpanNode : SyntaxNode
         if (Expression is { } childExpression && index-- == 0) return childExpression;
         if (Literal is { } childLiteral && index-- == 0) return childLiteral;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
+        if (Literal is not null) result.Add(new(Literal, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -3621,6 +4097,13 @@ public sealed partial class TaggedTemplateExpressionNode : SyntaxNode
         if (Template is { } childTemplate && index-- == 0) return childTemplate;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Tag is not null) result.Add(new(Tag, null));
+        if (QuestionDotToken is not null) result.Add(new(QuestionDotToken, null));
+        if (TypeArguments is not null) result.Add(new(null, TypeArguments));
+        if (Template is not null) result.Add(new(Template, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Tag is not null) Tag = (SyntaxNode)copies[Tag];
@@ -3651,6 +4134,10 @@ public sealed partial class ParenthesizedExpressionNode : SyntaxNode
     {
         if (Expression is { } childExpression && index-- == 0) return childExpression;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -3686,6 +4173,10 @@ public sealed partial class ArrayLiteralExpressionNode : SyntaxNode
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Elements is not null) result.Add(new(null, Elements));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Elements is not null) Elements = Elements.Map(copies);
@@ -3711,6 +4202,7 @@ public sealed partial class ObjectLiteralExpressionNode : SyntaxNode
         BindingFlow = null;
         BindingLocals = null;
     }
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Properties is { } listProperties)
@@ -3725,6 +4217,10 @@ public sealed partial class ObjectLiteralExpressionNode : SyntaxNode
             index -= listProperties.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Properties is not null) result.Add(new(null, Properties));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -3748,6 +4244,7 @@ public sealed partial class SpreadAssignmentNode : SyntaxNode
         BindingLocalSymbol = null;
         BindingFlow = null;
     }
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Expression is { } childExpression) childExpression.Parent = this;
@@ -3757,6 +4254,10 @@ public sealed partial class SpreadAssignmentNode : SyntaxNode
     {
         if (Expression is { } childExpression && index-- == 0) return childExpression;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -3787,6 +4288,7 @@ public sealed partial class PropertyAssignmentNode : SyntaxNode, ITypedNode, IIn
     SyntaxNode? INamedNode.Name => Name;
     internal override SyntaxNode? DeclarationName => Name;
     internal override NodeList? ModifierList => Modifiers;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -3809,6 +4311,14 @@ public sealed partial class PropertyAssignmentNode : SyntaxNode, ITypedNode, IIn
         if (Type is { } childType && index-- == 0) return childType;
         if (Initializer is { } childInitializer && index-- == 0) return childInitializer;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (Name is not null) result.Add(new(Name, null));
+        if (PostfixToken is not null) result.Add(new(PostfixToken, null));
+        if (Type is not null) result.Add(new(Type, null));
+        if (Initializer is not null) result.Add(new(Initializer, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -3844,6 +4354,7 @@ public sealed partial class ShorthandPropertyAssignmentNode : SyntaxNode, ITyped
     SyntaxNode? INamedNode.Name => Name;
     internal override SyntaxNode? DeclarationName => Name;
     internal override NodeList? ModifierList => Modifiers;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -3868,6 +4379,15 @@ public sealed partial class ShorthandPropertyAssignmentNode : SyntaxNode, ITyped
         if (EqualsToken is { } childEqualsToken && index-- == 0) return childEqualsToken;
         if (ObjectAssignmentInitializer is { } childObjectAssignmentInitializer && index-- == 0) return childObjectAssignmentInitializer;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (Name is not null) result.Add(new(Name, null));
+        if (PostfixToken is not null) result.Add(new(PostfixToken, null));
+        if (Type is not null) result.Add(new(Type, null));
+        if (EqualsToken is not null) result.Add(new(EqualsToken, null));
+        if (ObjectAssignmentInitializer is not null) result.Add(new(ObjectAssignmentInitializer, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -3902,6 +4422,10 @@ public sealed partial class DeleteExpressionNode : SyntaxNode
         if (Expression is { } childExpression && index-- == 0) return childExpression;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
@@ -3929,6 +4453,10 @@ public sealed partial class TypeOfExpressionNode : SyntaxNode
     {
         if (Expression is { } childExpression && index-- == 0) return childExpression;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -3958,6 +4486,10 @@ public sealed partial class VoidExpressionNode : SyntaxNode
         if (Expression is { } childExpression && index-- == 0) return childExpression;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
@@ -3985,6 +4517,10 @@ public sealed partial class AwaitExpressionNode : SyntaxNode
     {
         if (Expression is { } childExpression && index-- == 0) return childExpression;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -4016,6 +4552,11 @@ public sealed partial class TypeAssertionNode : SyntaxNode, ITypedNode
         if (Type is { } childType && index-- == 0) return childType;
         if (Expression is { } childExpression && index-- == 0) return childExpression;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Type is not null) result.Add(new(Type, null));
+        if (Expression is not null) result.Add(new(Expression, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -4060,6 +4601,10 @@ public sealed partial class UnionTypeNode : SyntaxNode
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Types is not null) result.Add(new(null, Types));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Types is not null) Types = Types.Map(copies);
@@ -4086,6 +4631,10 @@ public sealed partial class IntersectionTypeNode : SyntaxNode
             index -= listTypes.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Types is not null) result.Add(new(null, Types));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -4124,6 +4673,13 @@ public sealed partial class ConditionalTypeNode : SyntaxNode
         if (FalseType is { } childFalseType && index-- == 0) return childFalseType;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (CheckType is not null) result.Add(new(CheckType, null));
+        if (ExtendsType is not null) result.Add(new(ExtendsType, null));
+        if (TrueType is not null) result.Add(new(TrueType, null));
+        if (FalseType is not null) result.Add(new(FalseType, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (CheckType is not null) CheckType = (SyntaxNode)copies[CheckType];
@@ -4150,6 +4706,10 @@ public sealed partial class TypeOperatorNode : SyntaxNode, ITypedNode
         if (Type is { } childType && index-- == 0) return childType;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Type is not null) result.Add(new(Type, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Type is not null) Type = (SyntaxNode)copies[Type];
@@ -4172,6 +4732,10 @@ public sealed partial class InferTypeNode : SyntaxNode
         if (TypeParameter is { } childTypeParameter && index-- == 0) return childTypeParameter;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TypeParameter is not null) result.Add(new(TypeParameter, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (TypeParameter is not null) TypeParameter = (TypeParameterDeclarationNode)copies[TypeParameter];
@@ -4193,6 +4757,10 @@ public sealed partial class ArrayTypeNode : SyntaxNode
     {
         if (ElementType is { } childElementType && index-- == 0) return childElementType;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (ElementType is not null) result.Add(new(ElementType, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -4218,6 +4786,11 @@ public sealed partial class IndexedAccessTypeNode : SyntaxNode
         if (ObjectType is { } childObjectType && index-- == 0) return childObjectType;
         if (IndexType is { } childIndexType && index-- == 0) return childIndexType;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (ObjectType is not null) result.Add(new(ObjectType, null));
+        if (IndexType is not null) result.Add(new(IndexType, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -4249,6 +4822,11 @@ public sealed partial class TypeReferenceNode : SyntaxNode
             index -= listTypeArguments.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TypeName is not null) result.Add(new(TypeName, null));
+        if (TypeArguments is not null) result.Add(new(null, TypeArguments));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -4287,6 +4865,11 @@ public sealed partial class ExpressionWithTypeArgumentsNode : SyntaxNode
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
+        if (TypeArguments is not null) result.Add(new(null, TypeArguments));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
@@ -4309,6 +4892,10 @@ public sealed partial class LiteralTypeNode : SyntaxNode
     {
         if (Literal is { } childLiteral && index-- == 0) return childLiteral;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Literal is not null) result.Add(new(Literal, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -4353,6 +4940,12 @@ public sealed partial class TypePredicateNode : SyntaxNode, ITypedNode
         if (Type is { } childType && index-- == 0) return childType;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (AssertsModifier is not null) result.Add(new(AssertsModifier, null));
+        if (ParameterName is not null) result.Add(new(ParameterName, null));
+        if (Type is not null) result.Add(new(Type, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (AssertsModifier is not null) AssertsModifier = (SyntaxNode)copies[AssertsModifier];
@@ -4381,6 +4974,11 @@ public sealed partial class ImportAttributeNode : SyntaxNode, INamedNode
         if (Name is { } childName && index-- == 0) return childName;
         if (Value is { } childValue && index-- == 0) return childValue;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Name is not null) result.Add(new(Name, null));
+        if (Value is not null) result.Add(new(Value, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -4412,6 +5010,10 @@ public sealed partial class ImportAttributesNode : SyntaxNode
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Attributes is not null) result.Add(new(null, Attributes));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Attributes is not null) Attributes = Attributes.Map(copies);
@@ -4441,6 +5043,11 @@ public sealed partial class TypeQueryNode : SyntaxNode
             index -= listTypeArguments.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (ExprName is not null) result.Add(new(ExprName, null));
+        if (TypeArguments is not null) result.Add(new(null, TypeArguments));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -4472,6 +5079,7 @@ public sealed partial class MappedTypeNode : SyntaxNode, ITypedNode
         BindingFlow = null;
         BindingLocals = null;
     }
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (ReadonlyToken is { } childReadonlyToken) childReadonlyToken.Parent = this;
@@ -4496,6 +5104,15 @@ public sealed partial class MappedTypeNode : SyntaxNode, ITypedNode
             index -= listMembers.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (ReadonlyToken is not null) result.Add(new(ReadonlyToken, null));
+        if (TypeParameter is not null) result.Add(new(TypeParameter, null));
+        if (NameType is not null) result.Add(new(NameType, null));
+        if (QuestionToken is not null) result.Add(new(QuestionToken, null));
+        if (Type is not null) result.Add(new(Type, null));
+        if (Members is not null) result.Add(new(null, Members));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -4526,6 +5143,7 @@ public sealed partial class TypeLiteralNode : SyntaxNode
         BindingFlow = null;
         BindingLocals = null;
     }
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Members is { } listMembers)
@@ -4540,6 +5158,10 @@ public sealed partial class TypeLiteralNode : SyntaxNode
             index -= listMembers.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Members is not null) result.Add(new(null, Members));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -4568,6 +5190,10 @@ public sealed partial class TupleTypeNode : SyntaxNode
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Elements is not null) result.Add(new(null, Elements));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Elements is not null) Elements = Elements.Map(copies);
@@ -4595,6 +5221,7 @@ public sealed partial class NamedTupleMemberNode : SyntaxNode, ITypedNode, IName
     }
     SyntaxNode? INamedNode.Name => Name;
     internal override SyntaxNode? DeclarationName => Name;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (DotDotDotToken is { } childDotDotDotToken) childDotDotDotToken.Parent = this;
@@ -4610,6 +5237,13 @@ public sealed partial class NamedTupleMemberNode : SyntaxNode, ITypedNode, IName
         if (QuestionToken is { } childQuestionToken && index-- == 0) return childQuestionToken;
         if (Type is { } childType && index-- == 0) return childType;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (DotDotDotToken is not null) result.Add(new(DotDotDotToken, null));
+        if (Name is not null) result.Add(new(Name, null));
+        if (QuestionToken is not null) result.Add(new(QuestionToken, null));
+        if (Type is not null) result.Add(new(Type, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -4636,6 +5270,10 @@ public sealed partial class OptionalTypeNode : SyntaxNode, ITypedNode
         if (Type is { } childType && index-- == 0) return childType;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Type is not null) result.Add(new(Type, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Type is not null) Type = (SyntaxNode)copies[Type];
@@ -4658,6 +5296,10 @@ public sealed partial class RestTypeNode : SyntaxNode, ITypedNode
         if (Type is { } childType && index-- == 0) return childType;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Type is not null) result.Add(new(Type, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Type is not null) Type = (SyntaxNode)copies[Type];
@@ -4679,6 +5321,10 @@ public sealed partial class ParenthesizedTypeNode : SyntaxNode, ITypedNode
     {
         if (Type is { } childType && index-- == 0) return childType;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Type is not null) result.Add(new(Type, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -4707,6 +5353,7 @@ public sealed partial class FunctionTypeNode : SyntaxNode, ITypedNode, IFunction
         BindingLocals = null;
     }
     internal override bool HasFunctionSignature => true;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (TypeParameters is { } listTypeParameters)
@@ -4730,6 +5377,12 @@ public sealed partial class FunctionTypeNode : SyntaxNode, ITypedNode, IFunction
         }
         if (Type is { } childType && index-- == 0) return childType;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TypeParameters is not null) result.Add(new(null, TypeParameters));
+        if (Parameters is not null) result.Add(new(null, Parameters));
+        if (Type is not null) result.Add(new(Type, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -4762,6 +5415,7 @@ public sealed partial class ConstructorTypeNode : SyntaxNode, ITypedNode, IFunct
     }
     internal override NodeList? ModifierList => Modifiers;
     internal override bool HasFunctionSignature => true;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -4792,6 +5446,13 @@ public sealed partial class ConstructorTypeNode : SyntaxNode, ITypedNode, IFunct
         }
         if (Type is { } childType && index-- == 0) return childType;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (TypeParameters is not null) result.Add(new(null, TypeParameters));
+        if (Parameters is not null) result.Add(new(null, Parameters));
+        if (Type is not null) result.Add(new(Type, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -4880,6 +5541,11 @@ public sealed partial class TemplateLiteralTypeNode : SyntaxNode
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Head is not null) result.Add(new(Head, null));
+        if (TemplateSpans is not null) result.Add(new(null, TemplateSpans));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Head is not null) Head = (TemplateHeadNode)copies[Head];
@@ -4905,6 +5571,11 @@ public sealed partial class TemplateLiteralTypeSpanNode : SyntaxNode, ITypedNode
         if (Type is { } childType && index-- == 0) return childType;
         if (Literal is { } childLiteral && index-- == 0) return childLiteral;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Type is not null) result.Add(new(Type, null));
+        if (Literal is not null) result.Add(new(Literal, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -4937,6 +5608,10 @@ public sealed partial class SyntheticExpressionNode : SyntaxNode
         if (TupleNameSource is { } childTupleNameSource && index-- == 0) return childTupleNameSource;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TupleNameSource is not null) result.Add(new(TupleNameSource, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (TupleNameSource is not null) TupleNameSource = (SyntaxNode)copies[TupleNameSource];
@@ -4964,6 +5639,10 @@ public sealed partial class PartiallyEmittedExpressionNode : SyntaxNode
     {
         if (Expression is { } childExpression && index-- == 0) return childExpression;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -5004,6 +5683,12 @@ public sealed partial class JsxElementNode : SyntaxNode
         if (ClosingElement is { } childClosingElement && index-- == 0) return childClosingElement;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (OpeningElement is not null) result.Add(new(OpeningElement, null));
+        if (Children is not null) result.Add(new(null, Children));
+        if (ClosingElement is not null) result.Add(new(ClosingElement, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (OpeningElement is not null) OpeningElement = (JsxOpeningElementNode)copies[OpeningElement];
@@ -5030,6 +5715,7 @@ public sealed partial class JsxAttributesNode : SyntaxNode
         BindingFlow = null;
         BindingLocals = null;
     }
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Properties is { } listProperties)
@@ -5044,6 +5730,10 @@ public sealed partial class JsxAttributesNode : SyntaxNode
             index -= listProperties.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Properties is not null) result.Add(new(null, Properties));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -5077,6 +5767,11 @@ public sealed partial class JsxNamespacedNameNode : SyntaxNode, INamedNode
         if (Namespace is { } childNamespace && index-- == 0) return childNamespace;
         if (Name is { } childName && index-- == 0) return childName;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Namespace is not null) result.Add(new(Namespace, null));
+        if (Name is not null) result.Add(new(Name, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -5117,6 +5812,12 @@ public sealed partial class JsxOpeningElementNode : SyntaxNode
         }
         if (Attributes is { } childAttributes && index-- == 0) return childAttributes;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TagName is not null) result.Add(new(TagName, null));
+        if (TypeArguments is not null) result.Add(new(null, TypeArguments));
+        if (Attributes is not null) result.Add(new(Attributes, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -5159,6 +5860,12 @@ public sealed partial class JsxSelfClosingElementNode : SyntaxNode
         if (Attributes is { } childAttributes && index-- == 0) return childAttributes;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TagName is not null) result.Add(new(TagName, null));
+        if (TypeArguments is not null) result.Add(new(null, TypeArguments));
+        if (Attributes is not null) result.Add(new(Attributes, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (TagName is not null) TagName = (SyntaxNode)copies[TagName];
@@ -5199,6 +5906,12 @@ public sealed partial class JsxFragmentNode : SyntaxNode
         }
         if (ClosingFragment is { } childClosingFragment && index-- == 0) return childClosingFragment;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (OpeningFragment is not null) result.Add(new(OpeningFragment, null));
+        if (Children is not null) result.Add(new(null, Children));
+        if (ClosingFragment is not null) result.Add(new(ClosingFragment, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -5269,6 +5982,7 @@ public sealed partial class JsxAttributeNode : SyntaxNode, IInitializedNode, INa
     }
     SyntaxNode? INamedNode.Name => Name;
     internal override SyntaxNode? DeclarationName => Name;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Name is { } childName) childName.Parent = this;
@@ -5280,6 +5994,11 @@ public sealed partial class JsxAttributeNode : SyntaxNode, IInitializedNode, INa
         if (Name is { } childName && index-- == 0) return childName;
         if (Initializer is { } childInitializer && index-- == 0) return childInitializer;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Name is not null) result.Add(new(Name, null));
+        if (Initializer is not null) result.Add(new(Initializer, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -5304,6 +6023,10 @@ public sealed partial class JsxSpreadAttributeNode : SyntaxNode
         if (Expression is { } childExpression && index-- == 0) return childExpression;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
@@ -5325,6 +6048,10 @@ public sealed partial class JsxClosingElementNode : SyntaxNode
     {
         if (TagName is { } childTagName && index-- == 0) return childTagName;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TagName is not null) result.Add(new(TagName, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -5356,6 +6083,11 @@ public sealed partial class JsxExpressionNode : SyntaxNode
         if (DotDotDotToken is { } childDotDotDotToken && index-- == 0) return childDotDotDotToken;
         if (Expression is { } childExpression && index-- == 0) return childExpression;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (DotDotDotToken is not null) result.Add(new(DotDotDotToken, null));
+        if (Expression is not null) result.Add(new(Expression, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -5408,6 +6140,10 @@ public sealed partial class SyntaxListNode : SyntaxNode
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        foreach (var child in Children) result.Add(new(child, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         Children = Array.ConvertAll(Children, n => copies[n]);
@@ -5443,6 +6179,12 @@ public sealed partial class JSDocNode : SyntaxNode
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override NodeList? DocumentationComment => Comment;
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Comment is not null) result.Add(new(null, Comment));
+        if (Tags is not null) result.Add(new(null, Tags));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Comment is not null) Comment = Comment.Map(copies);
@@ -5466,6 +6208,10 @@ public sealed partial class JSDocTypeExpressionNode : SyntaxNode, ITypedNode
         if (Type is { } childType && index-- == 0) return childType;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Type is not null) result.Add(new(Type, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Type is not null) Type = (SyntaxNode)copies[Type];
@@ -5488,6 +6234,10 @@ public sealed partial class JSDocNonNullableTypeNode : SyntaxNode, ITypedNode
         if (Type is { } childType && index-- == 0) return childType;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Type is not null) result.Add(new(Type, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Type is not null) Type = (SyntaxNode)copies[Type];
@@ -5509,6 +6259,10 @@ public sealed partial class JSDocNullableTypeNode : SyntaxNode, ITypedNode
     {
         if (Type is { } childType && index-- == 0) return childType;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Type is not null) result.Add(new(Type, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -5547,6 +6301,10 @@ public sealed partial class JSDocVariadicTypeNode : SyntaxNode, ITypedNode
         if (Type is { } childType && index-- == 0) return childType;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Type is not null) result.Add(new(Type, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Type is not null) Type = (SyntaxNode)copies[Type];
@@ -5568,6 +6326,10 @@ public sealed partial class JSDocOptionalTypeNode : SyntaxNode, ITypedNode
     {
         if (Type is { } childType && index-- == 0) return childType;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Type is not null) result.Add(new(Type, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -5602,6 +6364,13 @@ public sealed partial class JSDocTypeTagNode : SyntaxNode, ITypeExpressionNode
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override NodeList? DocumentationComment => Comment;
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TagName is not null) result.Add(new(TagName, null));
+        if (TypeExpression is not null) result.Add(new(TypeExpression, null));
+        if (Comment is not null) result.Add(new(null, Comment));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (TagName is not null) TagName = (IdentifierNode)copies[TagName];
@@ -5633,6 +6402,12 @@ public sealed partial class JSDocUnknownTagNode : SyntaxNode
             index -= listComment.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override NodeList? DocumentationComment => Comment;
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TagName is not null) result.Add(new(TagName, null));
+        if (Comment is not null) result.Add(new(null, Comment));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -5676,6 +6451,14 @@ public sealed partial class JSDocTemplateTagNode : SyntaxNode
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override NodeList? DocumentationComment => Comment;
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TagName is not null) result.Add(new(TagName, null));
+        if (Constraint is not null) result.Add(new(Constraint, null));
+        if (TypeParameters is not null) result.Add(new(null, TypeParameters));
+        if (Comment is not null) result.Add(new(null, Comment));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (TagName is not null) TagName = (IdentifierNode)copies[TagName];
@@ -5712,6 +6495,13 @@ public sealed partial class JSDocReturnTagNode : SyntaxNode, ITypeExpressionNode
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override NodeList? DocumentationComment => Comment;
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TagName is not null) result.Add(new(TagName, null));
+        if (TypeExpression is not null) result.Add(new(TypeExpression, null));
+        if (Comment is not null) result.Add(new(null, Comment));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (TagName is not null) TagName = (IdentifierNode)copies[TagName];
@@ -5744,6 +6534,12 @@ public sealed partial class JSDocPublicTagNode : SyntaxNode
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override NodeList? DocumentationComment => Comment;
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TagName is not null) result.Add(new(TagName, null));
+        if (Comment is not null) result.Add(new(null, Comment));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (TagName is not null) TagName = (IdentifierNode)copies[TagName];
@@ -5774,6 +6570,12 @@ public sealed partial class JSDocPrivateTagNode : SyntaxNode
             index -= listComment.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override NodeList? DocumentationComment => Comment;
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TagName is not null) result.Add(new(TagName, null));
+        if (Comment is not null) result.Add(new(null, Comment));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -5806,6 +6608,12 @@ public sealed partial class JSDocProtectedTagNode : SyntaxNode
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override NodeList? DocumentationComment => Comment;
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TagName is not null) result.Add(new(TagName, null));
+        if (Comment is not null) result.Add(new(null, Comment));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (TagName is not null) TagName = (IdentifierNode)copies[TagName];
@@ -5836,6 +6644,12 @@ public sealed partial class JSDocReadonlyTagNode : SyntaxNode
             index -= listComment.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override NodeList? DocumentationComment => Comment;
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TagName is not null) result.Add(new(TagName, null));
+        if (Comment is not null) result.Add(new(null, Comment));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -5868,6 +6682,12 @@ public sealed partial class JSDocOverrideTagNode : SyntaxNode
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override NodeList? DocumentationComment => Comment;
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TagName is not null) result.Add(new(TagName, null));
+        if (Comment is not null) result.Add(new(null, Comment));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (TagName is not null) TagName = (IdentifierNode)copies[TagName];
@@ -5898,6 +6718,12 @@ public sealed partial class JSDocDeprecatedTagNode : SyntaxNode
             index -= listComment.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override NodeList? DocumentationComment => Comment;
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TagName is not null) result.Add(new(TagName, null));
+        if (Comment is not null) result.Add(new(null, Comment));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -5932,6 +6758,13 @@ public sealed partial class JSDocSeeTagNode : SyntaxNode
             index -= listComment.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override NodeList? DocumentationComment => Comment;
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TagName is not null) result.Add(new(TagName, null));
+        if (NameExpression is not null) result.Add(new(NameExpression, null));
+        if (Comment is not null) result.Add(new(null, Comment));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -5968,6 +6801,13 @@ public sealed partial class JSDocImplementsTagNode : SyntaxNode
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override NodeList? DocumentationComment => Comment;
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TagName is not null) result.Add(new(TagName, null));
+        if (ClassName is not null) result.Add(new(ClassName, null));
+        if (Comment is not null) result.Add(new(null, Comment));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (TagName is not null) TagName = (IdentifierNode)copies[TagName];
@@ -6002,6 +6842,13 @@ public sealed partial class JSDocAugmentsTagNode : SyntaxNode
             index -= listComment.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override NodeList? DocumentationComment => Comment;
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TagName is not null) result.Add(new(TagName, null));
+        if (ClassName is not null) result.Add(new(ClassName, null));
+        if (Comment is not null) result.Add(new(null, Comment));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -6038,6 +6885,13 @@ public sealed partial class JSDocSatisfiesTagNode : SyntaxNode, ITypeExpressionN
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override NodeList? DocumentationComment => Comment;
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TagName is not null) result.Add(new(TagName, null));
+        if (TypeExpression is not null) result.Add(new(TypeExpression, null));
+        if (Comment is not null) result.Add(new(null, Comment));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (TagName is not null) TagName = (IdentifierNode)copies[TagName];
@@ -6073,6 +6927,13 @@ public sealed partial class JSDocThrowsTagNode : SyntaxNode, ITypeExpressionNode
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override NodeList? DocumentationComment => Comment;
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TagName is not null) result.Add(new(TagName, null));
+        if (TypeExpression is not null) result.Add(new(TypeExpression, null));
+        if (Comment is not null) result.Add(new(null, Comment));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (TagName is not null) TagName = (IdentifierNode)copies[TagName];
@@ -6107,6 +6968,13 @@ public sealed partial class JSDocThisTagNode : SyntaxNode, ITypeExpressionNode
             index -= listComment.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override NodeList? DocumentationComment => Comment;
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TagName is not null) result.Add(new(TagName, null));
+        if (TypeExpression is not null) result.Add(new(TypeExpression, null));
+        if (Comment is not null) result.Add(new(null, Comment));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -6148,6 +7016,15 @@ public sealed partial class JSDocImportTagNode : SyntaxNode
             index -= listComment.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override NodeList? DocumentationComment => Comment;
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TagName is not null) result.Add(new(TagName, null));
+        if (ImportClause is not null) result.Add(new(ImportClause, null));
+        if (ModuleSpecifier is not null) result.Add(new(ModuleSpecifier, null));
+        if (Attributes is not null) result.Add(new(Attributes, null));
+        if (Comment is not null) result.Add(new(null, Comment));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -6191,6 +7068,14 @@ public sealed partial class JSDocCallbackTagNode : SyntaxNode, ITypeExpressionNo
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override NodeList? DocumentationComment => Comment;
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TagName is not null) result.Add(new(TagName, null));
+        if (TypeExpression is not null) result.Add(new(TypeExpression, null));
+        if (Name is not null) result.Add(new(Name, null));
+        if (Comment is not null) result.Add(new(null, Comment));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (TagName is not null) TagName = (IdentifierNode)copies[TagName];
@@ -6226,6 +7111,13 @@ public sealed partial class JSDocOverloadTagNode : SyntaxNode, ITypeExpressionNo
             index -= listComment.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override NodeList? DocumentationComment => Comment;
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TagName is not null) result.Add(new(TagName, null));
+        if (TypeExpression is not null) result.Add(new(TypeExpression, null));
+        if (Comment is not null) result.Add(new(null, Comment));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -6267,6 +7159,14 @@ public sealed partial class JSDocTypedefTagNode : SyntaxNode, ITypeExpressionNod
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override NodeList? DocumentationComment => Comment;
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TagName is not null) result.Add(new(TagName, null));
+        if (TypeExpression is not null) result.Add(new(TypeExpression, null));
+        if (Name is not null) result.Add(new(Name, null));
+        if (Comment is not null) result.Add(new(null, Comment));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (TagName is not null) TagName = (IdentifierNode)copies[TagName];
@@ -6297,6 +7197,7 @@ public sealed partial class JSDocSignatureNode : SyntaxNode, ITypedNode, IFuncti
         BindingLocals = null;
     }
     internal override bool HasFunctionSignature => true;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (TypeParameters is { } listTypeParameters)
@@ -6320,6 +7221,12 @@ public sealed partial class JSDocSignatureNode : SyntaxNode, ITypedNode, IFuncti
         }
         if (Type is { } childType && index-- == 0) return childType;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TypeParameters is not null) result.Add(new(null, TypeParameters));
+        if (Parameters is not null) result.Add(new(null, Parameters));
+        if (Type is not null) result.Add(new(Type, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -6347,6 +7254,10 @@ public sealed partial class JSDocNameReferenceNode : SyntaxNode, INamedNode
         if (Name is { } childName && index-- == 0) return childName;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Name is not null) result.Add(new(Name, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Name is not null) Name = (SyntaxNode)copies[Name];
@@ -6372,6 +7283,7 @@ public sealed partial class SourceFileNode : SyntaxNode
         BindingFlow = null;
         BindingLocals = null;
     }
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Statements is { } listStatements)
@@ -6388,6 +7300,11 @@ public sealed partial class SourceFileNode : SyntaxNode
         }
         if (EndOfFileToken is { } childEndOfFileToken && index-- == 0) return childEndOfFileToken;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Statements is not null) result.Add(new(null, Statements));
+        if (EndOfFileToken is not null) result.Add(new(EndOfFileToken, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -6421,6 +7338,7 @@ public sealed partial class ModuleDeclarationNode : SyntaxNode, IModifiedNode, I
     SyntaxNode? INamedNode.Name => Name;
     internal override SyntaxNode? DeclarationName => Name;
     internal override NodeList? ModifierList => Modifiers;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -6441,6 +7359,13 @@ public sealed partial class ModuleDeclarationNode : SyntaxNode, IModifiedNode, I
         if (Attributes is { } childAttributes && index-- == 0) return childAttributes;
         if (Body is { } childBody && index-- == 0) return childBody;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (Name is not null) result.Add(new(Name, null));
+        if (Attributes is not null) result.Add(new(Attributes, null));
+        if (Body is not null) result.Add(new(Body, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -6473,6 +7398,7 @@ public sealed partial class ImportEqualsDeclarationNode : SyntaxNode, IModifiedN
     SyntaxNode? INamedNode.Name => Name;
     internal override SyntaxNode? DeclarationName => Name;
     internal override NodeList? ModifierList => Modifiers;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -6491,6 +7417,12 @@ public sealed partial class ImportEqualsDeclarationNode : SyntaxNode, IModifiedN
         if (Name is { } childName && index-- == 0) return childName;
         if (ModuleReference is { } childModuleReference && index-- == 0) return childModuleReference;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (Name is not null) result.Add(new(Name, null));
+        if (ModuleReference is not null) result.Add(new(ModuleReference, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -6521,6 +7453,7 @@ public sealed partial class ExportDeclarationNode : SyntaxNode, IModifiedNode
         BindingFlow = null;
     }
     internal override NodeList? ModifierList => Modifiers;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -6541,6 +7474,13 @@ public sealed partial class ExportDeclarationNode : SyntaxNode, IModifiedNode
         if (ModuleSpecifier is { } childModuleSpecifier && index-- == 0) return childModuleSpecifier;
         if (Attributes is { } childAttributes && index-- == 0) return childAttributes;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (ExportClause is not null) result.Add(new(ExportClause, null));
+        if (ModuleSpecifier is not null) result.Add(new(ModuleSpecifier, null));
+        if (Attributes is not null) result.Add(new(Attributes, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -6582,6 +7522,13 @@ public sealed partial class ImportTypeNode : SyntaxNode
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Argument is not null) result.Add(new(Argument, null));
+        if (Attributes is not null) result.Add(new(Attributes, null));
+        if (Qualifier is not null) result.Add(new(Qualifier, null));
+        if (TypeArguments is not null) result.Add(new(null, TypeArguments));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Argument is not null) Argument = (SyntaxNode)copies[Argument];
@@ -6611,6 +7558,7 @@ public sealed partial class ImportClauseNode : SyntaxNode, INamedNode
     }
     SyntaxNode? INamedNode.Name => Name;
     internal override SyntaxNode? DeclarationName => Name;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Name is { } childName) childName.Parent = this;
@@ -6622,6 +7570,11 @@ public sealed partial class ImportClauseNode : SyntaxNode, INamedNode
         if (Name is { } childName && index-- == 0) return childName;
         if (NamedBindings is { } childNamedBindings && index-- == 0) return childNamedBindings;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Name is not null) result.Add(new(Name, null));
+        if (NamedBindings is not null) result.Add(new(NamedBindings, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -6650,6 +7603,7 @@ public sealed partial class ImportSpecifierNode : SyntaxNode, INamedNode
     }
     SyntaxNode? INamedNode.Name => Name;
     internal override SyntaxNode? DeclarationName => Name;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (PropertyName is { } childPropertyName) childPropertyName.Parent = this;
@@ -6661,6 +7615,11 @@ public sealed partial class ImportSpecifierNode : SyntaxNode, INamedNode
         if (PropertyName is { } childPropertyName && index-- == 0) return childPropertyName;
         if (Name is { } childName && index-- == 0) return childName;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (PropertyName is not null) result.Add(new(PropertyName, null));
+        if (Name is not null) result.Add(new(Name, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -6705,6 +7664,10 @@ public sealed partial class JSDocLinkNode : SyntaxNode, INamedNode
         if (Name is { } childName && index-- == 0) return childName;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Name is not null) result.Add(new(Name, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Name is not null) Name = (SyntaxNode)copies[Name];
@@ -6731,6 +7694,10 @@ public sealed partial class JSDocLinkPlainNode : SyntaxNode, INamedNode
         if (Name is { } childName && index-- == 0) return childName;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Name is not null) result.Add(new(Name, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Name is not null) Name = (SyntaxNode)copies[Name];
@@ -6756,6 +7723,10 @@ public sealed partial class JSDocLinkCodeNode : SyntaxNode, INamedNode
     {
         if (Name is { } childName && index-- == 0) return childName;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Name is not null) result.Add(new(Name, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -6787,6 +7758,7 @@ public sealed partial class TypeParameterDeclarationNode : SyntaxNode, IModified
     SyntaxNode? INamedNode.Name => Name;
     internal override SyntaxNode? DeclarationName => Name;
     internal override NodeList? ModifierList => Modifiers;
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (Modifiers is { } listModifiers)
@@ -6809,6 +7781,14 @@ public sealed partial class TypeParameterDeclarationNode : SyntaxNode, IModified
         if (Expression is { } childExpression && index-- == 0) return childExpression;
         if (DefaultType is { } childDefaultType && index-- == 0) return childDefaultType;
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Modifiers is not null) result.Add(new(null, Modifiers));
+        if (Name is not null) result.Add(new(Name, null));
+        if (Constraint is not null) result.Add(new(Constraint, null));
+        if (Expression is not null) result.Add(new(Expression, null));
+        if (DefaultType is not null) result.Add(new(DefaultType, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -6845,6 +7825,11 @@ public sealed partial class SyntheticReferenceExpressionNode : SyntaxNode
         if (ThisArg is { } childThisArg && index-- == 0) return childThisArg;
         throw new ArgumentOutOfRangeException(nameof(index));
     }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (Expression is not null) result.Add(new(Expression, null));
+        if (ThisArg is not null) result.Add(new(ThisArg, null));
+    }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
@@ -6869,6 +7854,7 @@ public sealed partial class JSDocTypeLiteralNode : SyntaxNode
         BindingLocalSymbol = null;
         BindingFlow = null;
     }
+    internal override bool IsDeclarationNode => true;
     internal override void SetChildParents()
     {
         if (JSDocPropertyTags is { } listJSDocPropertyTags)
@@ -6883,6 +7869,10 @@ public sealed partial class JSDocTypeLiteralNode : SyntaxNode
             index -= listJSDocPropertyTags.Length;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        foreach (var child in JSDocPropertyTags) result.Add(new(child, null));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
@@ -6925,6 +7915,14 @@ public sealed partial class JSDocParameterOrPropertyTagNode : SyntaxNode, ITypeE
             index -= listComment.Count;
         }
         throw new ArgumentOutOfRangeException(nameof(index));
+    }
+    internal override NodeList? DocumentationComment => Comment;
+    internal override void GetChildGroups(List<SyntaxChild> result)
+    {
+        if (TagName is not null) result.Add(new(TagName, null));
+        if (Name is not null) result.Add(new(Name, null));
+        if (TypeExpression is not null) result.Add(new(TypeExpression, null));
+        if (Comment is not null) result.Add(new(null, Comment));
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {

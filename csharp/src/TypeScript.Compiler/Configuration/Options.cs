@@ -384,7 +384,7 @@ public sealed class CommandLineParser(IFileSystem fileSystem, Utf8String current
         var activeResponses = new HashSet<Utf8String>(fileSystem.CaseSensitive ? Utf8StringComparer.Ordinal : Utf8StringComparer.OrdinalIgnoreCase);
         var stack = new Stack<(IReadOnlyList<Utf8String> Args, int Index, Utf8String? Response)>();
         stack.Push((arguments, 0, null));
-        void Error(DiagnosticMessage message, params Utf8String[] args) => errors.Add(new(message, 0, 0, args));
+        void Error(DiagnosticMessage message, params Utf8String[] args) => errors.Add(new(message, -1, 0, args));
         JsonElement CommandPath(JsonElement value, bool filePath) => resolvePaths && filePath && value.ValueKind == JsonValueKind.String
             && OptionValues.IsTemplate(JsonStrings.GetString(value)) ? OptionValues.String(CompilerPath.Resolve(currentDirectory, JsonStrings.GetString(value))) : value;
         while (stack.TryPop(out var frame))
@@ -572,7 +572,7 @@ public sealed class CommandLineParser(IFileSystem fileSystem, Utf8String current
                 pos++;
             if (quoted && pos == text.Length)
             {
-                errors.Add(new(Messages.Unterminated_quoted_string_in_response_file_0, 0, 0, [path]));
+                errors.Add(new(Messages.Unterminated_quoted_string_in_response_file_0, -1, 0, [path]));
                 break;
             }
             result.Add(text[start..pos]);

@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using TypeScript.Compiler.Configuration;
 using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
@@ -14,6 +15,8 @@ public sealed class ProjectReferences
     private readonly Dictionary<Utf8String, ParsedConfig> projects;
     private readonly Dictionary<Utf8String, ProjectFileRedirect> sources, outputs;
     private readonly Dictionary<Utf8String, Utf8String[]> references;
+    private readonly ConcurrentDictionary<Utf8String, Utf8String> outputAliases;
+    private readonly HashSet<Utf8String> declarationDirectories;
     public IReadOnlyDictionary<Utf8String, ParsedConfig> Projects => projects;
     public IReadOnlyDictionary<Utf8String, ProjectFileRedirect> Sources => sources;
     public IReadOnlyDictionary<Utf8String, ProjectFileRedirect> Outputs => outputs;
@@ -36,6 +39,8 @@ public sealed class ProjectReferences
         sources = new(comparer);
         outputs = new(comparer);
         references = new(comparer);
+        outputAliases = new(comparer);
+        declarationDirectories = new(comparer);
         var errors = new List<Diagnostic>();
         var parser = new ConfigParser(fs, currentDirectory);
         var stack = new Stack<ParsedConfig>();
@@ -76,6 +81,8 @@ public sealed class ProjectReferences
             references[config.FileName] = paths.ToArray();
             if (config != root)
             {
+                if ((config.Options.DeclarationDir ?? config.Options.OutDir) is { IsEmpty: false } declarationDirectory)
+                    declarationDirectories.Add(declarationDirectory);
                 Utf8String rootDir = config.Options.RootDir ?? (config.Options.Composite == true
                     ? CompilerPath.DirectoryName(config.FileName) : CommonDirectory(
                         config.FileNames.Where(f => !CompilerPath.IsDeclarationFile(f)),
@@ -105,7 +112,24 @@ public sealed class ProjectReferences
 
     public ProjectFileRedirect? Find(Utf8String path) => sources.GetValueOrDefault(path) ?? outputs.GetValueOrDefault(path)
         ?? (preserveSymlinks && path.Contains("/node_modules/"u8, StringComparison.Ordinal)
-            ? outputs.GetValueOrDefault(CompilerPath.Normalize(fs.RealPath(path))) : null);
+            ? outputs.GetValueOrDefault(outputAliases.GetValueOrDefault(path, OutputRealPath(path))) : null);
+
+    private Utf8String OutputRealPath(Utf8String path)
+    {
+        var real = CompilerPath.Normalize(fs.RealPath(path));
+        if (!outputs.Comparer.Equals(path, real)) return real;
+        int start = path.LastIndexOf("/node_modules/"u8);
+        if (start < 0) return path;
+        start += "/node_modules/"u8.Length;
+        if (start == path.Length) return path;
+        int end = path.IndexOf((byte)'/', start);
+        if (end >= 0 && path[start] == '@') end = path.IndexOf((byte)'/', end + 1);
+        if (end < 0) return path;
+        var root = path[..end];
+        if (!fs.DirectoryExists(root)) return path;
+        var target = fs.RealPath(root);
+        return outputs.Comparer.Equals(root, target) ? path : CompilerPath.Normalize(target + path[end..]);
+    }
 
     public Utf8String Redirect(Utf8String path)
     {
@@ -142,14 +166,21 @@ public sealed class ProjectReferences
     {
         public bool CaseSensitive => fs.CaseSensitive;
 
-        public bool FileExists(Utf8String path) => fs.FileExists(path) || CompilerPath.IsDeclarationFile(path)
-                    && (references.outputs.GetValueOrDefault(path) ?? references.outputs.GetValueOrDefault(CompilerPath.Normalize(fs.RealPath(path)))) is { } redirect
-                    && fs.FileExists(redirect.Source);
+        public bool FileExists(Utf8String path)
+        {
+            if (fs.FileExists(path)) return true;
+            if (!CompilerPath.IsDeclarationFile(path)) return false;
+            var real = references.OutputRealPath(path);
+            var redirect = references.outputs.GetValueOrDefault(path) ?? references.outputs.GetValueOrDefault(real);
+            if (redirect is null || !fs.FileExists(redirect.Source)) return false;
+            if (!references.outputs.Comparer.Equals(real, path)) references.outputAliases[path] = real;
+            return true;
+        }
 
         public bool DirectoryExists(Utf8String path) => fs.DirectoryExists(path)
-                    || references.outputs.Values.Any(
-                        r => CompilerPath.Contains(CompilerPath.Normalize(fs.RealPath(path)), r.Output, CaseSensitive)
-                            && fs.FileExists(r.Source));
+                    || references.declarationDirectories.Any(directory =>
+                        CompilerPath.Contains(directory, references.OutputRealPath(path), CaseSensitive)
+                        || CompilerPath.Contains(references.OutputRealPath(path), directory, CaseSensitive));
 
         public byte[]? ReadFile(Utf8String path) => fs.ReadFile(path);
 
@@ -157,7 +188,7 @@ public sealed class ProjectReferences
 
         public FileEntry? Stat(Utf8String path) => fs.Stat(path);
 
-        public Utf8String RealPath(Utf8String path) => fs.RealPath(path);
+        public Utf8String RealPath(Utf8String path) => references.outputAliases.GetValueOrDefault(path, fs.RealPath(path));
 
         public void WriteFile(Utf8String path, ReadOnlySpan<byte> contents) =>
             throw new NotSupportedException("Resolution filesystem is read only");

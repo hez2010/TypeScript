@@ -1,0 +1,431 @@
+{
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "directory": "built/csharp/phase7-validation/completion-autoimport-order-control",
+  "inputsSha256": "af28e72e0e903d5cf4f04a59fd9a963ef77f56c0ab740f71a4dbff91db21cdad",
+  "repetitions": 16,
+  "captures": 224,
+  "policy": "Only TestCompletionsImport_jsModuleExportsAssignment's named defaults entries from ./third_party/marked/src/defaults are ordered by kind within their occupied tie positions. The default-import entry and every other tie, field and duplicate remain exact.",
+  "semicolonControl": "The reference consistently retains a semicolon for TestCompletionPropertyShorthandForObjectLiteral5. The tracker calculates detected writing options for indentation but passes the original context options to FormatNodeGivenIndentation.",
+  "groups": [
+    {
+      "name": "TestCompletionsImport_jsModuleExportsAssignment",
+      "encoding": "utf-8",
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "file:///home/src/workspaces/project/index.ts"
+        },
+        "position": {
+          "line": 0,
+          "character": 0
+        },
+        "context": {
+          "triggerKind": 0
+        }
+      },
+      "captures": 16,
+      "variants": [
+        {
+          "count": 10,
+          "value": [
+            [
+              6,
+              0
+            ],
+            [
+              5,
+              0
+            ],
+            [
+              5,
+              1
+            ]
+          ]
+        },
+        {
+          "count": 6,
+          "value": [
+            [
+              5,
+              0
+            ],
+            [
+              6,
+              0
+            ],
+            [
+              5,
+              1
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TestCompletionsImport_jsModuleExportsAssignment",
+      "encoding": "utf-8",
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "file:///home/src/workspaces/project/index.ts"
+        },
+        "position": {
+          "line": 0,
+          "character": 0
+        },
+        "context": {
+          "triggerKind": 0
+        }
+      },
+      "captures": 32,
+      "variants": [
+        {
+          "count": 20,
+          "value": [
+            [
+              6,
+              0
+            ],
+            [
+              5,
+              0
+            ],
+            [
+              5,
+              1
+            ]
+          ]
+        },
+        {
+          "count": 12,
+          "value": [
+            [
+              5,
+              0
+            ],
+            [
+              6,
+              0
+            ],
+            [
+              5,
+              1
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TestCompletionPropertyShorthandForObjectLiteral5",
+      "encoding": "utf-8",
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "file:///b.ts"
+        },
+        "position": {
+          "line": 1,
+          "character": 17
+        },
+        "context": {
+          "triggerKind": 0
+        }
+      },
+      "captures": 16,
+      "variants": [
+        {
+          "count": 16,
+          "value": []
+        }
+      ]
+    },
+    {
+      "name": "TestCompletionsImport_jsModuleExportsAssignment",
+      "encoding": "utf-8",
+      "method": "completionItem/resolve",
+      "captures": 20,
+      "variants": [
+        {
+          "count": 20,
+          "value": [
+            {
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 0
+                },
+                "end": {
+                  "line": 0,
+                  "character": 0
+                }
+              },
+              "newText": "import { defaults } from \"./third_party/marked/src/defaults\";\n\n"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TestCompletionPropertyShorthandForObjectLiteral5",
+      "encoding": "utf-8",
+      "method": "completionItem/resolve",
+      "captures": 16,
+      "variants": [
+        {
+          "count": 16,
+          "value": [
+            {
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 0
+                },
+                "end": {
+                  "line": 0,
+                  "character": 0
+                }
+              },
+              "newText": "import { exportedConstant } from \"./a\";\n\n"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TestCompletionsImport_jsModuleExportsAssignment",
+      "encoding": "utf-8",
+      "method": "completionItem/resolve",
+      "captures": 12,
+      "variants": [
+        {
+          "count": 12,
+          "value": [
+            {
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 0
+                },
+                "end": {
+                  "line": 0,
+                  "character": 0
+                }
+              },
+              "newText": "import { defaults } from \"./third_party/marked/src/defaults\";\n\n"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TestCompletionsImport_jsModuleExportsAssignment",
+      "encoding": "utf-16",
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "file:///home/src/workspaces/project/index.ts"
+        },
+        "position": {
+          "line": 0,
+          "character": 0
+        },
+        "context": {
+          "triggerKind": 0
+        }
+      },
+      "captures": 16,
+      "variants": [
+        {
+          "count": 3,
+          "value": [
+            [
+              5,
+              0
+            ],
+            [
+              6,
+              0
+            ],
+            [
+              5,
+              1
+            ]
+          ]
+        },
+        {
+          "count": 13,
+          "value": [
+            [
+              6,
+              0
+            ],
+            [
+              5,
+              0
+            ],
+            [
+              5,
+              1
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TestCompletionsImport_jsModuleExportsAssignment",
+      "encoding": "utf-16",
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "file:///home/src/workspaces/project/index.ts"
+        },
+        "position": {
+          "line": 0,
+          "character": 0
+        },
+        "context": {
+          "triggerKind": 0
+        }
+      },
+      "captures": 32,
+      "variants": [
+        {
+          "count": 12,
+          "value": [
+            [
+              5,
+              0
+            ],
+            [
+              6,
+              0
+            ],
+            [
+              5,
+              1
+            ]
+          ]
+        },
+        {
+          "count": 20,
+          "value": [
+            [
+              6,
+              0
+            ],
+            [
+              5,
+              0
+            ],
+            [
+              5,
+              1
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TestCompletionsImport_jsModuleExportsAssignment",
+      "encoding": "utf-16",
+      "method": "completionItem/resolve",
+      "captures": 12,
+      "variants": [
+        {
+          "count": 12,
+          "value": [
+            {
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 0
+                },
+                "end": {
+                  "line": 0,
+                  "character": 0
+                }
+              },
+              "newText": "import { defaults } from \"./third_party/marked/src/defaults\";\n\n"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TestCompletionPropertyShorthandForObjectLiteral5",
+      "encoding": "utf-16",
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "file:///b.ts"
+        },
+        "position": {
+          "line": 1,
+          "character": 17
+        },
+        "context": {
+          "triggerKind": 0
+        }
+      },
+      "captures": 16,
+      "variants": [
+        {
+          "count": 16,
+          "value": []
+        }
+      ]
+    },
+    {
+      "name": "TestCompletionPropertyShorthandForObjectLiteral5",
+      "encoding": "utf-16",
+      "method": "completionItem/resolve",
+      "captures": 16,
+      "variants": [
+        {
+          "count": 16,
+          "value": [
+            {
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 0
+                },
+                "end": {
+                  "line": 0,
+                  "character": 0
+                }
+              },
+              "newText": "import { exportedConstant } from \"./a\";\n\n"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TestCompletionsImport_jsModuleExportsAssignment",
+      "encoding": "utf-16",
+      "method": "completionItem/resolve",
+      "captures": 20,
+      "variants": [
+        {
+          "count": 20,
+          "value": [
+            {
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 0
+                },
+                "end": {
+                  "line": 0,
+                  "character": 0
+                }
+              },
+              "newText": "import { defaults } from \"./third_party/marked/src/defaults\";\n\n"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

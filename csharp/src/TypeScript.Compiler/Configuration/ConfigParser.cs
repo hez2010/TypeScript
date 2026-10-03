@@ -9,6 +9,7 @@ namespace TypeScript.Compiler.Configuration;
 
 public readonly record struct ProjectReference(Utf8String Path, bool Prepend = false, bool Circular = false)
 {
+    internal Utf8String OriginalPath { get; init; }
     internal int SourceStart { get; init; }
     internal int SourceLength { get; init; }
 }
@@ -18,6 +19,8 @@ public sealed record ParsedConfig(Utf8String FileName, CompilerOptions Options, 
     public CompilerOptions WatchOptions { get; init; } = new();
     public CompilerOptions TypeAcquisition { get; init; } = new();
     public bool CompileOnSave { get; init; }
+    internal JsonElement Raw { get; init; }
+    internal CompilerOptions? ApiOptions { get; init; }
     public SourceFileNode? SourceFile { get; init; }
     public ContentMapper[] ContentMappers { get; init; } = [];
     public IReadOnlyDictionary<Utf8String, bool> WildcardDirectories { get; init; } = new Dictionary<Utf8String, bool>();
@@ -31,7 +34,7 @@ public sealed record ParsedConfig(Utf8String FileName, CompilerOptions Options, 
 
 public sealed partial class ConfigParser(IFileSystem fileSystem, Utf8String currentDirectory)
 {
-    private sealed record ConfigLayer(ConfigSyntax Syntax, Utf8String[] Parents, Utf8String Identity);
+    private sealed record ConfigLayer(ConfigSyntax Syntax, Utf8String[] Parents, Utf8String Identity, int DiagnosticOffset);
 
     private sealed record ConfigValues(
         CompilerOptions Options,
@@ -44,7 +47,8 @@ public sealed partial class ConfigParser(IFileSystem fileSystem, Utf8String curr
         JsonElement? Mappers,
         ConfigSyntax? MapperSource,
         JsonElement? DisplayInclude,
-        JsonElement? DisplayExclude);
+        JsonElement? DisplayExclude,
+        JsonElement Raw);
 
     private static readonly JsonDocumentOptions JsonOptions = new()
     {
@@ -71,6 +75,30 @@ public sealed partial class ConfigParser(IFileSystem fileSystem, Utf8String curr
     }
 
     public ParsedConfig Parse(Utf8String fileName, CompilerOptions? existing = null, CancellationToken cancellation = default)
+        => ParseCore(fileName, existing, true, cancellation);
+
+    internal ParsedConfig ParseForApi(Utf8String fileName, CancellationToken cancellation)
+        => ParseCore(fileName, null, false, cancellation);
+
+    internal ParsedConfig ParseForProject(Utf8String fileName, CompilerOptions sessionOptions, CancellationToken cancellation)
+        => ParseCore(fileName, sessionOptions, true, cancellation, preserveConfigOptions: true);
+
+    internal ParsedConfig ParseJson(JsonElement json, Utf8String directory, Utf8String fileName, CancellationToken cancellation)
+    {
+        var sourceName = fileName.IsEmpty ? CompilerPath.Combine(directory, "tsconfig.json"u8) : fileName;
+        var parsed = ParseCore(sourceName, null, false, cancellation,
+            new SourceText(json.ValueKind == JsonValueKind.Object ? JsonStrings.Raw(json) : (Utf8String)"{}"u8));
+        return parsed with { FileName = fileName, SourceFile = null, Raw = json.ValueKind == JsonValueKind.Object ? parsed.Raw : default, Diagnostics = parsed.Diagnostics.Select(diagnostic =>
+        {
+            var value = diagnostic.FileName == sourceName ? diagnostic with { FileName = null, Start = -1, Length = 0 } : diagnostic;
+            return value.Code is DiagnosticCode.NoInputsWereFoundInConfigFile0SpecifiedIncludePathsWere1AndExcludePathsWere2
+                or DiagnosticCode.TheFilesListInConfigFile0IsEmpty
+                ? value with { Arguments = [fileName, .. value.Arguments.Skip(1)] } : value;
+        }).ToArray() };
+    }
+
+    private ParsedConfig ParseCore(Utf8String fileName, CompilerOptions? existing, bool includeSyntaxDiagnostics, CancellationToken cancellation,
+        SourceText? rootText = null, bool preserveConfigOptions = false)
     {
         fileName = CompilerPath.Resolve(currentDirectory, fileName);
         Utf8StringComparer comparer = fileSystem.CaseSensitive ? Utf8StringComparer.Ordinal : Utf8StringComparer.OrdinalIgnoreCase;
@@ -99,15 +127,17 @@ public sealed partial class ConfigParser(IFileSystem fileSystem, Utf8String curr
                             [Utf8String.Join(" -> "u8, active.Append(item.Path))]));
                     continue;
                 }
-                byte[]? bytes = fileSystem.ReadFile(item.Path);
-                if (bytes is null)
+                SourceText? text = item.Path == fileName && rootText is not null ? rootText
+                    : fileSystem is ICompilerSourceProvider provider ? provider.ReadSource(item.Path)?.Text
+                    : fileSystem.ReadFile(item.Path) is { } bytes ? new(SourceEncoding.DecodeBytes(bytes)) : null;
+                if (text is null)
                 {
-                    errors.Add(new(Messages.Cannot_read_file_0, 0, 0, [item.Path]));
+                    errors.Add(new(Messages.Cannot_read_file_0, -1, 0, [item.Path]));
                     if (item.Path != fileName) extended.Add(item.Path);
                     active.Remove(identity);
                     continue;
                 }
-                var syntax = new ConfigSyntax(item.Path, bytes, errors, cancellation);
+                var syntax = new ConfigSyntax(item.Path, text, errors, cancellation, includeSyntaxDiagnostics);
                 JsonElement root = syntax.Root;
                 var parents = new List<Utf8String>();
                 if (root.TryGetProperty("extends"u8, out var extends))
@@ -142,13 +172,14 @@ public sealed partial class ConfigParser(IFileSystem fileSystem, Utf8String curr
                             parents.Add(parent.Value);
                     }
                 }
-                layers[item.Path] = new(syntax, parents.ToArray(), identity);
+                layers[item.Path] = new(syntax, parents.ToArray(), identity, errors.Count);
                 work.Push((item.Path, true));
                 for (int i = parents.Count - 1; i >= 0; i--)
                     work.Push((parents[i], false));
                 continue;
             }
             ConfigLayer current = layers[item.Path];
+            int ownErrorsStart = errors.Count;
             ConfigSyntax source = current.Syntax;
             JsonElement currentRoot = source.Root;
             var options = new CompilerOptions();
@@ -159,6 +190,7 @@ public sealed partial class ConfigParser(IFileSystem fileSystem, Utf8String curr
             JsonElement? mappers = null;
             JsonElement? displayInclude = null, displayExclude = null;
             ConfigSyntax? mapperSource = null;
+            var inheritedRaw = new Dictionary<Utf8String, JsonElement>();
             foreach (Utf8String parent in current.Parents)
                 if (values.TryGetValue(parent, out var inherited))
                 {
@@ -178,6 +210,10 @@ public sealed partial class ConfigParser(IFileSystem fileSystem, Utf8String curr
                     }
                     displayInclude = InheritSpecs(inherited.DisplayInclude) ?? displayInclude;
                     displayExclude = InheritSpecs(inherited.DisplayExclude) ?? displayExclude;
+                    foreach (Utf8String key in new Utf8String[] { "include"u8, "exclude"u8, "files"u8, "contentMappers"u8, "compileOnSave"u8 })
+                        if (!currentRoot.TryGetProperty(key, out _) && inherited.Raw.ValueKind == JsonValueKind.Object
+                            && inherited.Raw.TryGetProperty(key, out var raw))
+                            inheritedRaw[key] = key == "include"u8 || key == "exclude"u8 || key == "files"u8 ? InheritSpecs(raw)!.Value : raw;
                     compileOnSave = inherited.CompileOnSave ?? compileOnSave;
                     if (inherited.Mappers is { } value)
                     {
@@ -295,7 +331,7 @@ public sealed partial class ConfigParser(IFileSystem fileSystem, Utf8String curr
                     index++;
                     if (element.ValueKind != JsonValueKind.String)
                     {
-                        if (element.ValueKind != JsonValueKind.Null)
+                        if (element.ValueKind != JsonValueKind.Null || rootText is not null && item.Path == fileName)
                             Error(Messages.Compiler_option_0_requires_a_value_of_type_1, node, key, Utf8Literals.StringKeyword);
                         continue;
                     }
@@ -319,7 +355,14 @@ public sealed partial class ConfigParser(IFileSystem fileSystem, Utf8String curr
                 mappers = ownMappers;
                 mapperSource = source;
             }
-            values[item.Path] = new(options, watch, acquisition, files, include, exclude, compileOnSave, mappers, mapperSource, displayInclude, displayExclude);
+            values[item.Path] = new(options, watch, acquisition, files, include, exclude, compileOnSave, mappers, mapperSource, displayInclude, displayExclude,
+                source.HasObjectRoot ? MergeRaw(currentRoot, inheritedRaw) : default);
+            if (ownErrorsStart > current.DiagnosticOffset && errors.Count > ownErrorsStart)
+            {
+                var ownErrors = errors.GetRange(ownErrorsStart, errors.Count - ownErrorsStart);
+                errors.RemoveRange(ownErrorsStart, ownErrors.Count);
+                errors.InsertRange(current.DiagnosticOffset, ownErrors);
+            }
             if (item.Path != fileName)
                 extended.Add(item.Path);
             active.Remove(current.Identity);
@@ -369,6 +412,8 @@ public sealed partial class ConfigParser(IFileSystem fileSystem, Utf8String curr
         }
         SubstituteOptions(result.Options, OptionGroup.Compiler);
         SubstituteOptions(result.Watch, OptionGroup.Watch);
+        CompilerOptions? apiOptions = null;
+        if (preserveConfigOptions) { apiOptions = new(); apiOptions.Merge(result.Options); }
         if (existing is not null)
             result.Options.Merge(existing);
         Utf8String[] includes = (result.Include ?? (result.Files is null
@@ -471,7 +516,7 @@ public sealed partial class ConfigParser(IFileSystem fileSystem, Utf8String curr
                     }
                     var location = main.Span(referenceNode);
                     references.Add(new(CompilerPath.Resolve(rootDirectory, JsonStrings.GetString(referencePath)), Circular: circular)
-                    { SourceStart = location.Start, SourceLength = location.Length });
+                    { SourceStart = location.Start, SourceLength = location.Length, OriginalPath = JsonStrings.GetString(referencePath) });
                 }
             }
         }
@@ -479,7 +524,7 @@ public sealed partial class ConfigParser(IFileSystem fileSystem, Utf8String curr
             errors.Add(
                 new(
                     Messages.No_inputs_were_found_in_config_file_0_Specified_include_paths_were_1_and_exclude_paths_were_2,
-                    0,
+                    -1,
                     0,
                     [
                             fileName,
@@ -500,9 +545,11 @@ public sealed partial class ConfigParser(IFileSystem fileSystem, Utf8String curr
             errors.ToArray(),
             extended.Distinct(comparer).ToArray())
         {
+            ApiOptions = apiOptions,
             WatchOptions = result.Watch,
             TypeAcquisition = result.Acquisition,
             CompileOnSave = result.CompileOnSave ?? false,
+            Raw = result.Raw,
             SourceFile = main.Source,
             ContentMappers = contentMappers,
             WildcardDirectories = FileMatcher.WildcardDirectories(includes, excludes, rootDirectory, fileSystem.CaseSensitive),
@@ -510,6 +557,22 @@ public sealed partial class ConfigParser(IFileSystem fileSystem, Utf8String curr
             DisplayIncludes = DisplaySpecs(Utf8Literals.Include, includes), DisplayExcludes = DisplaySpecs(Utf8Literals.Exclude, excludes),
             HasReferences = main.Root.TryGetProperty("references"u8, out var rawReferences) && rawReferences.ValueKind == JsonValueKind.Array
         };
+    }
+
+    private static JsonElement MergeRaw(JsonElement own, Dictionary<Utf8String, JsonElement> inherited)
+    {
+        if (inherited.Count == 0) return own;
+        using var buffer = new MemoryStream();
+        using (var writer = new Utf8JsonWriter(buffer))
+        {
+            writer.WriteStartObject();
+            foreach (var property in own.EnumerateObject())
+            { JsonStrings.WriteName(writer, JsonStrings.GetName(property)); JsonStrings.WriteValue(writer, property.Value); }
+            foreach (var (name, value) in inherited)
+            { JsonStrings.WriteName(writer, name); JsonStrings.WriteValue(writer, value); }
+            writer.WriteEndObject();
+        }
+        return JsonStrings.Parse(buffer);
     }
 
     internal ParsedConfig ReloadFiles(ParsedConfig config, CancellationToken cancellation) => config with

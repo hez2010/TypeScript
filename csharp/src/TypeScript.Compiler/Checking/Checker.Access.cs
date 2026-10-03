@@ -120,13 +120,13 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
     public async ValueTask PropertyDeprecatedAsync(Symbol property, SyntaxNode node, SyntaxNode errorNode, CancellationToken cancellation)
     {
         if (program.Deprecations.Symbol(property) && await program.Deprecations.UncalledAsync(node, property, FlowReferences, cancellation))
-            program.Suggestion(errorNode, DiagnosticCode.X0IsDeprecated, property.Name);
+            program.DeprecatedSuggestion(errorNode, property.Declarations, property.Name);
     }
 
     public ValueTask IndexDeprecatedAsync(IndexInfo index, SyntaxNode node, CancellationToken cancellation)
     {
         if (index.Declaration is { } declaration && program.Deprecations.Declaration(declaration))
-            program.Suggestion(node, DiagnosticCode.X0IsDeprecated, SyntaxNameText.Get(node));
+            program.DeprecatedSuggestion(node, [declaration], SyntaxNameText.Get(node));
         return ValueTask.CompletedTask;
     }
 

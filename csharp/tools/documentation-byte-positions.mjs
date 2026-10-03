@@ -2,7 +2,15 @@
 // numeric source coordinates; current compiler and Go results use byte offsets.
 export function documentationBytePositions(input, output) {
     const text = Buffer.from(input.text, "base64").toString("utf8");
-    const byte = position => position < 0 ? position : Buffer.byteLength(text.slice(0, position));
+    const offsets = new Uint32Array(text.length + 1);
+    for (let i = 0, offset = 0; i < text.length;) {
+        const unit = text.charCodeAt(i++);
+        offsets[i] = offset + (unit < 0x80 ? 1 : unit < 0x800 ? 2 : 3);
+        if (unit >= 0xd800 && unit <= 0xdbff && text.charCodeAt(i) >= 0xdc00 && text.charCodeAt(i) <= 0xdfff)
+            offsets[++i] = offset + 4;
+        offset = offsets[i];
+    }
+    const byte = position => position < 0 ? position : offsets[Math.min(position, text.length)];
     const result = structuredClone(output);
     for (const host of result[0]) {
         host[1] = byte(host[1]);

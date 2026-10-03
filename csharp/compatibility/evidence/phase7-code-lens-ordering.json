@@ -1,0 +1,1521 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "recording": "built/csharp/phase7-validation/code-lens-ordering",
+    "inputsSha256": "47b2e863afb278ae8c71223b338c7c0b67e0cc91160f084a0da45c37ea4b4ca4",
+    "captures": 720,
+    "repetitionsPerRequest": 40,
+    "policy": [
+        {
+            "name": "TestCodeLensAcrossProjects",
+            "kind": "references",
+            "uri": "file:///projects/container/lib/index.ts",
+            "position": 18
+        }
+    ],
+    "requests": [
+        {
+            "name": "TestCodeLensAcrossProjects",
+            "method": "textDocument/codeLens",
+            "encoding": "utf-8",
+            "params": {
+                "textDocument": {
+                    "uri": "file:///projects/container/lib/index.ts"
+                }
+            },
+            "variants": [
+                {
+                    "count": 40,
+                    "result": [
+                        {
+                            "range": {
+                                "start": {
+                                    "line": 1,
+                                    "character": 17
+                                },
+                                "end": {
+                                    "line": 4,
+                                    "character": 1
+                                }
+                            },
+                            "data": {
+                                "kind": "references",
+                                "uri": "file:///projects/container/lib/index.ts",
+                                "position": 18
+                            }
+                        },
+                        {
+                            "range": {
+                                "start": {
+                                    "line": 1,
+                                    "character": 17
+                                },
+                                "end": {
+                                    "line": 4,
+                                    "character": 1
+                                }
+                            },
+                            "data": {
+                                "kind": "implementations",
+                                "uri": "file:///projects/container/lib/index.ts",
+                                "position": 18
+                            }
+                        },
+                        {
+                            "range": {
+                                "start": {
+                                    "line": 2,
+                                    "character": 2
+                                },
+                                "end": {
+                                    "line": 2,
+                                    "character": 17
+                                }
+                            },
+                            "data": {
+                                "kind": "references",
+                                "uri": "file:///projects/container/lib/index.ts",
+                                "position": 32
+                            }
+                        },
+                        {
+                            "range": {
+                                "start": {
+                                    "line": 2,
+                                    "character": 2
+                                },
+                                "end": {
+                                    "line": 2,
+                                    "character": 17
+                                }
+                            },
+                            "data": {
+                                "kind": "implementations",
+                                "uri": "file:///projects/container/lib/index.ts",
+                                "position": 32
+                            }
+                        },
+                        {
+                            "range": {
+                                "start": {
+                                    "line": 3,
+                                    "character": 2
+                                },
+                                "end": {
+                                    "line": 3,
+                                    "character": 17
+                                }
+                            },
+                            "data": {
+                                "kind": "references",
+                                "uri": "file:///projects/container/lib/index.ts",
+                                "position": 50
+                            }
+                        },
+                        {
+                            "range": {
+                                "start": {
+                                    "line": 3,
+                                    "character": 2
+                                },
+                                "end": {
+                                    "line": 3,
+                                    "character": 17
+                                }
+                            },
+                            "data": {
+                                "kind": "implementations",
+                                "uri": "file:///projects/container/lib/index.ts",
+                                "position": 50
+                            }
+                        },
+                        {
+                            "range": {
+                                "start": {
+                                    "line": 5,
+                                    "character": 13
+                                },
+                                "end": {
+                                    "line": 5,
+                                    "character": 21
+                                }
+                            },
+                            "data": {
+                                "kind": "references",
+                                "uri": "file:///projects/container/lib/index.ts",
+                                "position": 81
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "TestCodeLensAcrossProjects",
+            "method": "codeLens/resolve",
+            "encoding": "utf-8",
+            "params": {
+                "range": {
+                    "start": {
+                        "line": 1,
+                        "character": 17
+                    },
+                    "end": {
+                        "line": 4,
+                        "character": 1
+                    }
+                },
+                "data": {
+                    "kind": "references",
+                    "uri": "file:///projects/container/lib/index.ts",
+                    "position": 18
+                }
+            },
+            "variants": [
+                {
+                    "count": 26,
+                    "result": {
+                        "range": {
+                            "start": {
+                                "line": 1,
+                                "character": 17
+                            },
+                            "end": {
+                                "line": 4,
+                                "character": 1
+                            }
+                        },
+                        "command": {
+                            "title": "3 references",
+                            "command": "typescript.showCodeLensLocations",
+                            "arguments": [
+                                "file:///projects/container/lib/index.ts",
+                                {
+                                    "line": 1,
+                                    "character": 17
+                                },
+                                [
+                                    {
+                                        "uri": "file:///projects/container/lib/bar.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 1,
+                                                "character": 23
+                                            },
+                                            "end": {
+                                                "line": 1,
+                                                "character": 32
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "uri": "file:///projects/container/compositeExec/index.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 1,
+                                                "character": 24
+                                            },
+                                            "end": {
+                                                "line": 1,
+                                                "character": 33
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "uri": "file:///projects/container/exec/index.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 1,
+                                                "character": 24
+                                            },
+                                            "end": {
+                                                "line": 1,
+                                                "character": 33
+                                            }
+                                        }
+                                    }
+                                ]
+                            ]
+                        },
+                        "data": {
+                            "kind": "references",
+                            "uri": "file:///projects/container/lib/index.ts",
+                            "position": 18
+                        }
+                    }
+                },
+                {
+                    "count": 14,
+                    "result": {
+                        "range": {
+                            "start": {
+                                "line": 1,
+                                "character": 17
+                            },
+                            "end": {
+                                "line": 4,
+                                "character": 1
+                            }
+                        },
+                        "command": {
+                            "title": "3 references",
+                            "command": "typescript.showCodeLensLocations",
+                            "arguments": [
+                                "file:///projects/container/lib/index.ts",
+                                {
+                                    "line": 1,
+                                    "character": 17
+                                },
+                                [
+                                    {
+                                        "uri": "file:///projects/container/lib/bar.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 1,
+                                                "character": 23
+                                            },
+                                            "end": {
+                                                "line": 1,
+                                                "character": 32
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "uri": "file:///projects/container/exec/index.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 1,
+                                                "character": 24
+                                            },
+                                            "end": {
+                                                "line": 1,
+                                                "character": 33
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "uri": "file:///projects/container/compositeExec/index.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 1,
+                                                "character": 24
+                                            },
+                                            "end": {
+                                                "line": 1,
+                                                "character": 33
+                                            }
+                                        }
+                                    }
+                                ]
+                            ]
+                        },
+                        "data": {
+                            "kind": "references",
+                            "uri": "file:///projects/container/lib/index.ts",
+                            "position": 18
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "TestCodeLensAcrossProjects",
+            "method": "codeLens/resolve",
+            "encoding": "utf-8",
+            "params": {
+                "range": {
+                    "start": {
+                        "line": 1,
+                        "character": 17
+                    },
+                    "end": {
+                        "line": 4,
+                        "character": 1
+                    }
+                },
+                "data": {
+                    "kind": "implementations",
+                    "uri": "file:///projects/container/lib/index.ts",
+                    "position": 18
+                }
+            },
+            "variants": [
+                {
+                    "count": 40,
+                    "result": {
+                        "range": {
+                            "start": {
+                                "line": 1,
+                                "character": 17
+                            },
+                            "end": {
+                                "line": 4,
+                                "character": 1
+                            }
+                        },
+                        "command": {
+                            "title": "3 implementations",
+                            "command": "typescript.showCodeLensLocations",
+                            "arguments": [
+                                "file:///projects/container/lib/index.ts",
+                                {
+                                    "line": 1,
+                                    "character": 17
+                                },
+                                [
+                                    {
+                                        "uri": "file:///projects/container/lib/bar.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 1,
+                                                "character": 6
+                                            },
+                                            "end": {
+                                                "line": 1,
+                                                "character": 11
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "uri": "file:///projects/container/compositeExec/index.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 1,
+                                                "character": 6
+                                            },
+                                            "end": {
+                                                "line": 1,
+                                                "character": 12
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "uri": "file:///projects/container/exec/index.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 1,
+                                                "character": 6
+                                            },
+                                            "end": {
+                                                "line": 1,
+                                                "character": 12
+                                            }
+                                        }
+                                    }
+                                ]
+                            ]
+                        },
+                        "data": {
+                            "kind": "implementations",
+                            "uri": "file:///projects/container/lib/index.ts",
+                            "position": 18
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "TestCodeLensAcrossProjects",
+            "method": "codeLens/resolve",
+            "encoding": "utf-8",
+            "params": {
+                "range": {
+                    "start": {
+                        "line": 2,
+                        "character": 2
+                    },
+                    "end": {
+                        "line": 2,
+                        "character": 17
+                    }
+                },
+                "data": {
+                    "kind": "references",
+                    "uri": "file:///projects/container/lib/index.ts",
+                    "position": 32
+                }
+            },
+            "variants": [
+                {
+                    "count": 40,
+                    "result": {
+                        "range": {
+                            "start": {
+                                "line": 2,
+                                "character": 2
+                            },
+                            "end": {
+                                "line": 2,
+                                "character": 17
+                            }
+                        },
+                        "command": {
+                            "title": "0 references",
+                            "command": ""
+                        },
+                        "data": {
+                            "kind": "references",
+                            "uri": "file:///projects/container/lib/index.ts",
+                            "position": 32
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "TestCodeLensAcrossProjects",
+            "method": "codeLens/resolve",
+            "encoding": "utf-8",
+            "params": {
+                "range": {
+                    "start": {
+                        "line": 2,
+                        "character": 2
+                    },
+                    "end": {
+                        "line": 2,
+                        "character": 17
+                    }
+                },
+                "data": {
+                    "kind": "implementations",
+                    "uri": "file:///projects/container/lib/index.ts",
+                    "position": 32
+                }
+            },
+            "variants": [
+                {
+                    "count": 40,
+                    "result": {
+                        "range": {
+                            "start": {
+                                "line": 2,
+                                "character": 2
+                            },
+                            "end": {
+                                "line": 2,
+                                "character": 17
+                            }
+                        },
+                        "command": {
+                            "title": "3 implementations",
+                            "command": "typescript.showCodeLensLocations",
+                            "arguments": [
+                                "file:///projects/container/lib/index.ts",
+                                {
+                                    "line": 2,
+                                    "character": 2
+                                },
+                                [
+                                    {
+                                        "uri": "file:///projects/container/lib/bar.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 2,
+                                                "character": 2
+                                            },
+                                            "end": {
+                                                "line": 2,
+                                                "character": 6
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "uri": "file:///projects/container/compositeExec/index.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 2,
+                                                "character": 2
+                                            },
+                                            "end": {
+                                                "line": 2,
+                                                "character": 6
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "uri": "file:///projects/container/exec/index.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 2,
+                                                "character": 2
+                                            },
+                                            "end": {
+                                                "line": 2,
+                                                "character": 6
+                                            }
+                                        }
+                                    }
+                                ]
+                            ]
+                        },
+                        "data": {
+                            "kind": "implementations",
+                            "uri": "file:///projects/container/lib/index.ts",
+                            "position": 32
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "TestCodeLensAcrossProjects",
+            "method": "codeLens/resolve",
+            "encoding": "utf-8",
+            "params": {
+                "range": {
+                    "start": {
+                        "line": 3,
+                        "character": 2
+                    },
+                    "end": {
+                        "line": 3,
+                        "character": 17
+                    }
+                },
+                "data": {
+                    "kind": "references",
+                    "uri": "file:///projects/container/lib/index.ts",
+                    "position": 50
+                }
+            },
+            "variants": [
+                {
+                    "count": 40,
+                    "result": {
+                        "range": {
+                            "start": {
+                                "line": 3,
+                                "character": 2
+                            },
+                            "end": {
+                                "line": 3,
+                                "character": 17
+                            }
+                        },
+                        "command": {
+                            "title": "0 references",
+                            "command": ""
+                        },
+                        "data": {
+                            "kind": "references",
+                            "uri": "file:///projects/container/lib/index.ts",
+                            "position": 50
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "TestCodeLensAcrossProjects",
+            "method": "codeLens/resolve",
+            "encoding": "utf-8",
+            "params": {
+                "range": {
+                    "start": {
+                        "line": 3,
+                        "character": 2
+                    },
+                    "end": {
+                        "line": 3,
+                        "character": 17
+                    }
+                },
+                "data": {
+                    "kind": "implementations",
+                    "uri": "file:///projects/container/lib/index.ts",
+                    "position": 50
+                }
+            },
+            "variants": [
+                {
+                    "count": 40,
+                    "result": {
+                        "range": {
+                            "start": {
+                                "line": 3,
+                                "character": 2
+                            },
+                            "end": {
+                                "line": 3,
+                                "character": 17
+                            }
+                        },
+                        "command": {
+                            "title": "3 implementations",
+                            "command": "typescript.showCodeLensLocations",
+                            "arguments": [
+                                "file:///projects/container/lib/index.ts",
+                                {
+                                    "line": 3,
+                                    "character": 2
+                                },
+                                [
+                                    {
+                                        "uri": "file:///projects/container/lib/bar.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 5,
+                                                "character": 2
+                                            },
+                                            "end": {
+                                                "line": 5,
+                                                "character": 6
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "uri": "file:///projects/container/compositeExec/index.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 5,
+                                                "character": 2
+                                            },
+                                            "end": {
+                                                "line": 5,
+                                                "character": 6
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "uri": "file:///projects/container/exec/index.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 5,
+                                                "character": 2
+                                            },
+                                            "end": {
+                                                "line": 5,
+                                                "character": 6
+                                            }
+                                        }
+                                    }
+                                ]
+                            ]
+                        },
+                        "data": {
+                            "kind": "implementations",
+                            "uri": "file:///projects/container/lib/index.ts",
+                            "position": 50
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "TestCodeLensAcrossProjects",
+            "method": "codeLens/resolve",
+            "encoding": "utf-8",
+            "params": {
+                "range": {
+                    "start": {
+                        "line": 5,
+                        "character": 13
+                    },
+                    "end": {
+                        "line": 5,
+                        "character": 21
+                    }
+                },
+                "data": {
+                    "kind": "references",
+                    "uri": "file:///projects/container/lib/index.ts",
+                    "position": 81
+                }
+            },
+            "variants": [
+                {
+                    "count": 40,
+                    "result": {
+                        "range": {
+                            "start": {
+                                "line": 5,
+                                "character": 13
+                            },
+                            "end": {
+                                "line": 5,
+                                "character": 21
+                            }
+                        },
+                        "command": {
+                            "title": "0 references",
+                            "command": ""
+                        },
+                        "data": {
+                            "kind": "references",
+                            "uri": "file:///projects/container/lib/index.ts",
+                            "position": 81
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "TestCodeLensAcrossProjects",
+            "method": "textDocument/codeLens",
+            "encoding": "utf-8",
+            "params": {
+                "textDocument": {
+                    "uri": "file:///projects/temp/temp.ts"
+                }
+            },
+            "variants": [
+                {
+                    "count": 40,
+                    "result": []
+                }
+            ]
+        },
+        {
+            "name": "TestCodeLensAcrossProjects",
+            "method": "textDocument/codeLens",
+            "encoding": "utf-16",
+            "params": {
+                "textDocument": {
+                    "uri": "file:///projects/container/lib/index.ts"
+                }
+            },
+            "variants": [
+                {
+                    "count": 40,
+                    "result": [
+                        {
+                            "range": {
+                                "start": {
+                                    "line": 1,
+                                    "character": 17
+                                },
+                                "end": {
+                                    "line": 4,
+                                    "character": 1
+                                }
+                            },
+                            "data": {
+                                "kind": "references",
+                                "uri": "file:///projects/container/lib/index.ts",
+                                "position": 18
+                            }
+                        },
+                        {
+                            "range": {
+                                "start": {
+                                    "line": 1,
+                                    "character": 17
+                                },
+                                "end": {
+                                    "line": 4,
+                                    "character": 1
+                                }
+                            },
+                            "data": {
+                                "kind": "implementations",
+                                "uri": "file:///projects/container/lib/index.ts",
+                                "position": 18
+                            }
+                        },
+                        {
+                            "range": {
+                                "start": {
+                                    "line": 2,
+                                    "character": 2
+                                },
+                                "end": {
+                                    "line": 2,
+                                    "character": 17
+                                }
+                            },
+                            "data": {
+                                "kind": "references",
+                                "uri": "file:///projects/container/lib/index.ts",
+                                "position": 32
+                            }
+                        },
+                        {
+                            "range": {
+                                "start": {
+                                    "line": 2,
+                                    "character": 2
+                                },
+                                "end": {
+                                    "line": 2,
+                                    "character": 17
+                                }
+                            },
+                            "data": {
+                                "kind": "implementations",
+                                "uri": "file:///projects/container/lib/index.ts",
+                                "position": 32
+                            }
+                        },
+                        {
+                            "range": {
+                                "start": {
+                                    "line": 3,
+                                    "character": 2
+                                },
+                                "end": {
+                                    "line": 3,
+                                    "character": 17
+                                }
+                            },
+                            "data": {
+                                "kind": "references",
+                                "uri": "file:///projects/container/lib/index.ts",
+                                "position": 50
+                            }
+                        },
+                        {
+                            "range": {
+                                "start": {
+                                    "line": 3,
+                                    "character": 2
+                                },
+                                "end": {
+                                    "line": 3,
+                                    "character": 17
+                                }
+                            },
+                            "data": {
+                                "kind": "implementations",
+                                "uri": "file:///projects/container/lib/index.ts",
+                                "position": 50
+                            }
+                        },
+                        {
+                            "range": {
+                                "start": {
+                                    "line": 5,
+                                    "character": 13
+                                },
+                                "end": {
+                                    "line": 5,
+                                    "character": 21
+                                }
+                            },
+                            "data": {
+                                "kind": "references",
+                                "uri": "file:///projects/container/lib/index.ts",
+                                "position": 81
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "TestCodeLensAcrossProjects",
+            "method": "codeLens/resolve",
+            "encoding": "utf-16",
+            "params": {
+                "range": {
+                    "start": {
+                        "line": 1,
+                        "character": 17
+                    },
+                    "end": {
+                        "line": 4,
+                        "character": 1
+                    }
+                },
+                "data": {
+                    "kind": "references",
+                    "uri": "file:///projects/container/lib/index.ts",
+                    "position": 18
+                }
+            },
+            "variants": [
+                {
+                    "count": 19,
+                    "result": {
+                        "range": {
+                            "start": {
+                                "line": 1,
+                                "character": 17
+                            },
+                            "end": {
+                                "line": 4,
+                                "character": 1
+                            }
+                        },
+                        "command": {
+                            "title": "3 references",
+                            "command": "typescript.showCodeLensLocations",
+                            "arguments": [
+                                "file:///projects/container/lib/index.ts",
+                                {
+                                    "line": 1,
+                                    "character": 17
+                                },
+                                [
+                                    {
+                                        "uri": "file:///projects/container/lib/bar.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 1,
+                                                "character": 23
+                                            },
+                                            "end": {
+                                                "line": 1,
+                                                "character": 32
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "uri": "file:///projects/container/exec/index.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 1,
+                                                "character": 24
+                                            },
+                                            "end": {
+                                                "line": 1,
+                                                "character": 33
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "uri": "file:///projects/container/compositeExec/index.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 1,
+                                                "character": 24
+                                            },
+                                            "end": {
+                                                "line": 1,
+                                                "character": 33
+                                            }
+                                        }
+                                    }
+                                ]
+                            ]
+                        },
+                        "data": {
+                            "kind": "references",
+                            "uri": "file:///projects/container/lib/index.ts",
+                            "position": 18
+                        }
+                    }
+                },
+                {
+                    "count": 21,
+                    "result": {
+                        "range": {
+                            "start": {
+                                "line": 1,
+                                "character": 17
+                            },
+                            "end": {
+                                "line": 4,
+                                "character": 1
+                            }
+                        },
+                        "command": {
+                            "title": "3 references",
+                            "command": "typescript.showCodeLensLocations",
+                            "arguments": [
+                                "file:///projects/container/lib/index.ts",
+                                {
+                                    "line": 1,
+                                    "character": 17
+                                },
+                                [
+                                    {
+                                        "uri": "file:///projects/container/lib/bar.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 1,
+                                                "character": 23
+                                            },
+                                            "end": {
+                                                "line": 1,
+                                                "character": 32
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "uri": "file:///projects/container/compositeExec/index.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 1,
+                                                "character": 24
+                                            },
+                                            "end": {
+                                                "line": 1,
+                                                "character": 33
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "uri": "file:///projects/container/exec/index.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 1,
+                                                "character": 24
+                                            },
+                                            "end": {
+                                                "line": 1,
+                                                "character": 33
+                                            }
+                                        }
+                                    }
+                                ]
+                            ]
+                        },
+                        "data": {
+                            "kind": "references",
+                            "uri": "file:///projects/container/lib/index.ts",
+                            "position": 18
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "TestCodeLensAcrossProjects",
+            "method": "codeLens/resolve",
+            "encoding": "utf-16",
+            "params": {
+                "range": {
+                    "start": {
+                        "line": 1,
+                        "character": 17
+                    },
+                    "end": {
+                        "line": 4,
+                        "character": 1
+                    }
+                },
+                "data": {
+                    "kind": "implementations",
+                    "uri": "file:///projects/container/lib/index.ts",
+                    "position": 18
+                }
+            },
+            "variants": [
+                {
+                    "count": 40,
+                    "result": {
+                        "range": {
+                            "start": {
+                                "line": 1,
+                                "character": 17
+                            },
+                            "end": {
+                                "line": 4,
+                                "character": 1
+                            }
+                        },
+                        "command": {
+                            "title": "3 implementations",
+                            "command": "typescript.showCodeLensLocations",
+                            "arguments": [
+                                "file:///projects/container/lib/index.ts",
+                                {
+                                    "line": 1,
+                                    "character": 17
+                                },
+                                [
+                                    {
+                                        "uri": "file:///projects/container/lib/bar.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 1,
+                                                "character": 6
+                                            },
+                                            "end": {
+                                                "line": 1,
+                                                "character": 11
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "uri": "file:///projects/container/compositeExec/index.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 1,
+                                                "character": 6
+                                            },
+                                            "end": {
+                                                "line": 1,
+                                                "character": 12
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "uri": "file:///projects/container/exec/index.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 1,
+                                                "character": 6
+                                            },
+                                            "end": {
+                                                "line": 1,
+                                                "character": 12
+                                            }
+                                        }
+                                    }
+                                ]
+                            ]
+                        },
+                        "data": {
+                            "kind": "implementations",
+                            "uri": "file:///projects/container/lib/index.ts",
+                            "position": 18
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "TestCodeLensAcrossProjects",
+            "method": "codeLens/resolve",
+            "encoding": "utf-16",
+            "params": {
+                "range": {
+                    "start": {
+                        "line": 2,
+                        "character": 2
+                    },
+                    "end": {
+                        "line": 2,
+                        "character": 17
+                    }
+                },
+                "data": {
+                    "kind": "references",
+                    "uri": "file:///projects/container/lib/index.ts",
+                    "position": 32
+                }
+            },
+            "variants": [
+                {
+                    "count": 40,
+                    "result": {
+                        "range": {
+                            "start": {
+                                "line": 2,
+                                "character": 2
+                            },
+                            "end": {
+                                "line": 2,
+                                "character": 17
+                            }
+                        },
+                        "command": {
+                            "title": "0 references",
+                            "command": ""
+                        },
+                        "data": {
+                            "kind": "references",
+                            "uri": "file:///projects/container/lib/index.ts",
+                            "position": 32
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "TestCodeLensAcrossProjects",
+            "method": "codeLens/resolve",
+            "encoding": "utf-16",
+            "params": {
+                "range": {
+                    "start": {
+                        "line": 2,
+                        "character": 2
+                    },
+                    "end": {
+                        "line": 2,
+                        "character": 17
+                    }
+                },
+                "data": {
+                    "kind": "implementations",
+                    "uri": "file:///projects/container/lib/index.ts",
+                    "position": 32
+                }
+            },
+            "variants": [
+                {
+                    "count": 40,
+                    "result": {
+                        "range": {
+                            "start": {
+                                "line": 2,
+                                "character": 2
+                            },
+                            "end": {
+                                "line": 2,
+                                "character": 17
+                            }
+                        },
+                        "command": {
+                            "title": "3 implementations",
+                            "command": "typescript.showCodeLensLocations",
+                            "arguments": [
+                                "file:///projects/container/lib/index.ts",
+                                {
+                                    "line": 2,
+                                    "character": 2
+                                },
+                                [
+                                    {
+                                        "uri": "file:///projects/container/lib/bar.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 2,
+                                                "character": 2
+                                            },
+                                            "end": {
+                                                "line": 2,
+                                                "character": 6
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "uri": "file:///projects/container/compositeExec/index.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 2,
+                                                "character": 2
+                                            },
+                                            "end": {
+                                                "line": 2,
+                                                "character": 6
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "uri": "file:///projects/container/exec/index.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 2,
+                                                "character": 2
+                                            },
+                                            "end": {
+                                                "line": 2,
+                                                "character": 6
+                                            }
+                                        }
+                                    }
+                                ]
+                            ]
+                        },
+                        "data": {
+                            "kind": "implementations",
+                            "uri": "file:///projects/container/lib/index.ts",
+                            "position": 32
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "TestCodeLensAcrossProjects",
+            "method": "codeLens/resolve",
+            "encoding": "utf-16",
+            "params": {
+                "range": {
+                    "start": {
+                        "line": 3,
+                        "character": 2
+                    },
+                    "end": {
+                        "line": 3,
+                        "character": 17
+                    }
+                },
+                "data": {
+                    "kind": "references",
+                    "uri": "file:///projects/container/lib/index.ts",
+                    "position": 50
+                }
+            },
+            "variants": [
+                {
+                    "count": 40,
+                    "result": {
+                        "range": {
+                            "start": {
+                                "line": 3,
+                                "character": 2
+                            },
+                            "end": {
+                                "line": 3,
+                                "character": 17
+                            }
+                        },
+                        "command": {
+                            "title": "0 references",
+                            "command": ""
+                        },
+                        "data": {
+                            "kind": "references",
+                            "uri": "file:///projects/container/lib/index.ts",
+                            "position": 50
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "TestCodeLensAcrossProjects",
+            "method": "codeLens/resolve",
+            "encoding": "utf-16",
+            "params": {
+                "range": {
+                    "start": {
+                        "line": 3,
+                        "character": 2
+                    },
+                    "end": {
+                        "line": 3,
+                        "character": 17
+                    }
+                },
+                "data": {
+                    "kind": "implementations",
+                    "uri": "file:///projects/container/lib/index.ts",
+                    "position": 50
+                }
+            },
+            "variants": [
+                {
+                    "count": 40,
+                    "result": {
+                        "range": {
+                            "start": {
+                                "line": 3,
+                                "character": 2
+                            },
+                            "end": {
+                                "line": 3,
+                                "character": 17
+                            }
+                        },
+                        "command": {
+                            "title": "3 implementations",
+                            "command": "typescript.showCodeLensLocations",
+                            "arguments": [
+                                "file:///projects/container/lib/index.ts",
+                                {
+                                    "line": 3,
+                                    "character": 2
+                                },
+                                [
+                                    {
+                                        "uri": "file:///projects/container/lib/bar.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 5,
+                                                "character": 2
+                                            },
+                                            "end": {
+                                                "line": 5,
+                                                "character": 6
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "uri": "file:///projects/container/compositeExec/index.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 5,
+                                                "character": 2
+                                            },
+                                            "end": {
+                                                "line": 5,
+                                                "character": 6
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "uri": "file:///projects/container/exec/index.ts",
+                                        "range": {
+                                            "start": {
+                                                "line": 5,
+                                                "character": 2
+                                            },
+                                            "end": {
+                                                "line": 5,
+                                                "character": 6
+                                            }
+                                        }
+                                    }
+                                ]
+                            ]
+                        },
+                        "data": {
+                            "kind": "implementations",
+                            "uri": "file:///projects/container/lib/index.ts",
+                            "position": 50
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "TestCodeLensAcrossProjects",
+            "method": "codeLens/resolve",
+            "encoding": "utf-16",
+            "params": {
+                "range": {
+                    "start": {
+                        "line": 5,
+                        "character": 13
+                    },
+                    "end": {
+                        "line": 5,
+                        "character": 21
+                    }
+                },
+                "data": {
+                    "kind": "references",
+                    "uri": "file:///projects/container/lib/index.ts",
+                    "position": 81
+                }
+            },
+            "variants": [
+                {
+                    "count": 40,
+                    "result": {
+                        "range": {
+                            "start": {
+                                "line": 5,
+                                "character": 13
+                            },
+                            "end": {
+                                "line": 5,
+                                "character": 21
+                            }
+                        },
+                        "command": {
+                            "title": "0 references",
+                            "command": ""
+                        },
+                        "data": {
+                            "kind": "references",
+                            "uri": "file:///projects/container/lib/index.ts",
+                            "position": 81
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "TestCodeLensAcrossProjects",
+            "method": "textDocument/codeLens",
+            "encoding": "utf-16",
+            "params": {
+                "textDocument": {
+                    "uri": "file:///projects/temp/temp.ts"
+                }
+            },
+            "variants": [
+                {
+                    "count": 40,
+                    "result": []
+                }
+            ]
+        }
+    ]
+}

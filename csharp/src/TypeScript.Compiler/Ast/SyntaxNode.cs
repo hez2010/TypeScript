@@ -18,6 +18,7 @@ public interface IFunctionSignature : ITypedNode
 }
 public interface IModifiedNode { NodeList? Modifiers { get; set; } }
 public interface INamedNode { SyntaxNode? Name { get; } }
+internal readonly record struct SyntaxChild(SyntaxNode? Node, NodeList? List);
 
 public abstract class SyntaxNode(SyntaxKind kind)
 {
@@ -29,7 +30,10 @@ public abstract class SyntaxNode(SyntaxKind kind)
     internal virtual SyntaxNode? DeclarationName => null;
     internal virtual NodeList? ModifierList => null;
     internal virtual bool HasFunctionSignature => false;
+    internal virtual bool IsDeclarationNode => false;
     internal virtual void SetChildParents() { }
+    internal virtual void GetChildGroups(List<SyntaxChild> result) { }
+    internal virtual NodeList? DocumentationComment => null;
     internal long BindingId;
     internal NodeFlags BindingFlags;
     internal virtual Symbol? BindingSymbol
@@ -138,6 +142,7 @@ public sealed class NodeList(SyntaxNode[] nodes, int pos = -1, int end = -1, boo
     private readonly SyntaxNode[] nodes = nodes;
     public int Pos { get; private set; } = pos;
     public int End { get; private set; } = end;
+    internal void SetRange(int start, int end) { Pos = start; End = end; }
     public bool IsMissing { get; } = isMissing;
     public bool HasTrailingComma => trailingComma ?? (Count != 0 && this[Count - 1].End < End);
     public int Count => nodes.Length;

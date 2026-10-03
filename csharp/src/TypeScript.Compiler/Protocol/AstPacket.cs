@@ -29,9 +29,8 @@ public readonly record struct NodeRecord(SyntaxKind Kind, int Pos, int End, uint
     }
 }
 
-// A lossless packet view for the representation experiment. It validates the
-// section envelope and node links; it does not yet decode structured MessagePack
-// metadata or replace the source-file AST encoder.
+// A lossless packet view. AstDecoder additionally validates typed children,
+// string references, and structured metadata while reconstructing the tree.
 public sealed class AstPacket
 {
     public const byte FormatVersion = 9;
@@ -40,8 +39,9 @@ public sealed class AstPacket
     public int NodesOffset { get; }
     public int NodeCount => (bytes.Length - NodesOffset) / NodeRecord.Size;
 
-    public AstPacket(ReadOnlySpan<byte> source)
+    public AstPacket(ReadOnlySpan<byte> source, CancellationToken cancellation = default)
     {
+        cancellation.ThrowIfCancellationRequested();
         // The implementation puts version in the high byte of an LE uint32.
         // The Go format comment saying byte 0 is inconsistent with its writer.
         if (source.Length < HeaderSize || BinaryPrimitives.ReadUInt32LittleEndian(source) >> 24 != FormatVersion)
@@ -60,14 +60,28 @@ public sealed class AstPacket
         bytes = source.ToArray();
         if (GetNode(0) != default)
             throw new InvalidDataException("Expected null record");
+        var previousSiblings = new int[NodeCount];
+        var ancestors = new Stack<int>(); ancestors.Push(0);
         for (int i = 1; i < NodeCount; i++)
         {
+            cancellation.ThrowIfCancellationRequested();
             NodeRecord node = GetNode(i);
             // Source order guarantees earlier parents and forward siblings.
             if (node.Parent >= i || node.Next != 0 && (node.Next <= i || node.Next >= NodeCount))
                 throw new InvalidDataException(
                     $"Invalid AST topology at {i}/{NodeCount}: parent={node.Parent}, next={node.Next}, kind={node.Kind}, offset={NodesOffset}");
+            if (node.Pos < -1 || node.End < node.Pos || i > 1 && node.Parent == 0)
+                throw new InvalidDataException("Invalid AST root or range");
+            while (ancestors.Count != 0 && ancestors.Peek() != node.Parent) ancestors.Pop();
+            if (ancestors.Count == 0) throw new InvalidDataException("AST children are not in preorder");
+            ancestors.Push(i);
+            int previousSibling = previousSiblings[node.Parent];
+            if (previousSibling != 0 && GetNode(previousSibling).Next != i)
+                throw new InvalidDataException("Invalid AST sibling link");
+            previousSiblings[node.Parent] = i;
         }
+        foreach (int last in previousSiblings)
+            if (last != 0 && GetNode(last).Next != 0) throw new InvalidDataException("Invalid final AST sibling");
     }
 
     public NodeRecord GetNode(int index)

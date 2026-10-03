@@ -71,7 +71,7 @@ internal sealed partial class Checker
             Error(node, DiagnosticCode.CannotUseJSXUnlessTheJsxFlagIsProvided);
         await MarkJsxFactoryAsync(node, cancellation);
         var signature = await CallResolution.GetAsync(node, cancellation: cancellation);
-        DeprecatedSignature(node, signature);
+        await DeprecatedSignatureAsync(node, signature, cancellation);
         if (node is JsxOpeningFragmentNode)
             return;
         Type? constraint = null;

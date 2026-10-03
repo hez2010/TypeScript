@@ -20,13 +20,14 @@ internal sealed partial class Checker
     private async ValueTask<SyntaxNode> CachedTypeSyntaxAsync(Type type, TypeSyntaxContext state,
         Func<ValueTask<SyntaxNode>> build, CancellationToken cancellation)
     {
+        bool cacheable = state.Verbosity is null && state.DisplaySymbols is null;
         var enclosing = state.Symbols.Enclosing;
         var flags = state.Flags | (state.Symbols.FullyQualified ? NodeBuilderFlags.UseFullyQualifiedType : 0)
             | ((state.Symbols.Flags & SymbolFormatFlags.UseAliasDefinedOutsideCurrentScope) != 0
                 ? NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope : 0)
             | ((state.Symbols.Flags & SymbolFormatFlags.UseOnlyExternalAliasing) != 0 ? NodeBuilderFlags.UseOnlyExternalAliasing : 0);
         var key = new SerializedTypeKey(enclosing!, type, flags, state.InternalFlags);
-        if (enclosing is not null && (state.PendingTypes.TryGetValue(key, out var cached) || serializedTypeSyntax.TryGetValue(key, out cached)))
+        if (cacheable && enclosing is not null && (state.PendingTypes.TryGetValue(key, out var cached) || serializedTypeSyntax.TryGetValue(key, out cached)))
         {
             foreach (var symbol in cached.Symbols)
                 await TrackTypeSymbolAsync(symbol.Symbol, symbol.Enclosing, symbol.Meaning, state, cancellation);
@@ -73,7 +74,7 @@ internal sealed partial class Checker
         try
         {
             var node = await build();
-            if (enclosing is not null && !state.ReportedDiagnostic && !state.EncounteredError)
+            if (cacheable && enclosing is not null && !state.ReportedDiagnostic && !state.EncounteredError)
             {
                 var pending = new Stack<SyntaxNode>();
                 pending.Push(node);

@@ -1,0 +1,16 @@
+{
+  "sourceSha256": "4dc5fcc495f54e0c1678cd94eb207f58bcc61301fdb4403cbe223d68458eca94",
+  "compilerSha256": "ad26227ff98ba480a8a3438a171c4342ce906f2baa7b5168d0d9f18a0595eae2",
+  "reference": "1122320 c0b61c8762ea80bcbe8f601acfe8e5ce3a2df64152f36a58d73f48eb48428591",
+  "candidate": "1122320 c0b61c8762ea80bcbe8f601acfe8e5ce3a2df64152f36a58d73f48eb48428591",
+  "match": true,
+  "scope": "All Unicode scalar values, 10,000 combining-mark/Hangul/stream-safe sequences, and 256 invalid UTF-8 sequences; lower-case text and canonical import-sort keys",
+  "bclControl": {
+    "invariantGlobalization": true,
+    "input": "éÅáö",
+    "observedFormDHex": "C3A9C385C3A1C3B6",
+    "log": "built/csharp/phase7-validation/normalization-probe2.log",
+    "reason": "String.Normalize leaves text unchanged under invariant globalization. Pinned Unicode 17 canonical-decomposition and combining-class data implements the reference sorting semantics without changing globalization mode."
+  },
+  "generator": "csharp/tools/generate-normalization.mjs"
+}

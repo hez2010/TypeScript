@@ -1,0 +1,93 @@
+{
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "runtime": "Release CoreCLR, default GC; performance remains on hold",
+  "direct": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 345,
+    "authoredTests": 1,
+    "encodings": [
+      "utf-8",
+      "utf-16"
+    ],
+    "requests": 1528,
+    "differences": 0,
+    "compilerSha256": "9419c82c26f6bc66854830f470d288ed0d37ad2b1e87f93db4ab6bb20bff5210",
+    "inputsSha256": "79f3543f772ceb5f02913518db0c3e14682a04f03b70f66f8b6f87852d45a4aa"
+  },
+  "lsp": {
+    "baseReplay": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 339,
+      "requests": 1458,
+      "clients": 805,
+      "differences": 0,
+      "mappedQueriesValidatedSeparately": 34,
+      "compilerSha256": "435958af4206e6cc3917850386c3d6b0be05fc6982fcd8297b2d4d6d065fcb46",
+      "inputsSha256": "be8a93364dbef1e3b530ea16de45bba7d2d83b23d988ed6c8bdf3f0fffc8a79d"
+    },
+    "expandedCapabilityMatrix": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 0,
+      "requests": 228,
+      "clients": 36,
+      "differences": 0,
+      "mappedQueriesValidatedSeparately": 0,
+      "compilerSha256": "9419c82c26f6bc66854830f470d288ed0d37ad2b1e87f93db4ab6bb20bff5210",
+      "inputsSha256": "79f3543f772ceb5f02913518db0c3e14682a04f03b70f66f8b6f87852d45a4aa"
+    },
+    "uniqueOrdinaryRequests": 1494,
+    "executedRequests": 1686,
+    "additionalEdgeRequests": 36,
+    "repeatedCapabilityRequests": 192,
+    "scope": "The base replay covers the original cases and the first capability matrix. The expanded matrix repeats those 192 requests and adds 36 requests for relative directory imports and arbitrary declaration extensions; these additions use the later build. All 34 mapped requests are validated by the direct replay."
+  },
+  "safety": {
+    "syntaxAssertions": 38,
+    "lspAssertions": 109,
+    "syntaxCompilerSha256": "9419c82c26f6bc66854830f470d288ed0d37ad2b1e87f93db4ab6bb20bff5210",
+    "lspCompilerSha256": "435958af4206e6cc3917850386c3d6b0be05fc6982fcd8297b2d4d6d065fcb46"
+  },
+  "regressions": {
+    "api": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "cases": 139,
+      "requests": 5963,
+      "differences": 0,
+      "compilerSha256": "435958af4206e6cc3917850386c3d6b0be05fc6982fcd8297b2d4d6d065fcb46",
+      "coordinateContract": "UTF-8 / AST v9; isolated oracle adapters listed separately"
+    },
+    "hover": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 465,
+      "authoredTests": 1,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 4604,
+      "differences": 0,
+      "compilerSha256": "435958af4206e6cc3917850386c3d6b0be05fc6982fcd8297b2d4d6d065fcb46",
+      "inputsSha256": "3ce81d5c22e5dbdc8c9b573762642f2305c21ac1d315d1bc63fc687047add42c"
+    }
+  },
+  "builds": {
+    "solution": {
+      "configuration": "Release",
+      "path": "built/csharp/phase7-build",
+      "compilerSha256": "b113a92947c91ec38cf1124ea812b78bfd2eeb95dca8fa63ff7769d2ec6ae75a",
+      "warnings": 0,
+      "errors": 0,
+      "log": "built/csharp/phase7-validation/definitions-current-build.log"
+    },
+    "edgeValidation": {
+      "configuration": "Release",
+      "path": "built/csharp/phase7-definitions-build",
+      "compilerSha256": "9419c82c26f6bc66854830f470d288ed0d37ad2b1e87f93db4ab6bb20bff5210",
+      "warnings": 0,
+      "errors": 0,
+      "log": "built/csharp/phase7-validation/definitions-edge-build.log"
+    }
+  },
+  "boundary": "The later source changes extend relative module classification and sibling implementation lookup for arbitrary declaration extensions. Shared checker changes were validated by the API and hover regressions. Earlier failed and cancelled development runs remain in the validation directory. No production Go sources or original client tests were changed.",
+  "phase7Complete": false
+}

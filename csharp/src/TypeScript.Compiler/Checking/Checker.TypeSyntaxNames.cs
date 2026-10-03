@@ -225,6 +225,7 @@ internal sealed partial class Checker
             if (parameter.Symbol is { } symbol)
                 state.Tracker.TrackSymbol(symbol, state.Symbols.Enclosing, SymbolFlags.Type);
             var identifier = state.Factory.NewIdentifier(TypeSyntaxParameterName(parameter, state, cancellation));
+            if (state.DisplaySymbols is { } display && parameter.Symbol is { } displaySymbol) display[identifier] = displaySymbol;
             if (SemanticSyntax.Source(node) == SemanticSyntax.Source(state.Symbols.Enclosing))
                 (identifier.Pos, identifier.End) = (node.Pos, node.End);
             state.NoAsciiEscape.Add(identifier);
@@ -283,8 +284,17 @@ internal sealed partial class Checker
             }
         }
         var clone = node.ShallowClone();
+        if (state.DisplaySymbols is { } symbols && node is IdentifierNode && await SymbolAtLocationAsync(node, cancellation) is { } mappedSymbol)
+            symbols[clone] = mappedSymbol;
         clone.Parent = null;
         clone.RewriteChildren(copies);
+        if (clone is PropertySignatureDeclarationNode property) property.Initializer = null;
+        RecreateAnnotationLists(clone);
+        if (clone is TypeReferenceNode { TypeName: { } name })
+        {
+            while (name is QualifiedNameNode qualification) name = qualification.Left!;
+            name.Flags = TypeScript.Compiler.Syntax.NodeFlags.Synthesized;
+        }
         if (node.Pos < 0 || SemanticSyntax.Source(node) != SemanticSyntax.Source(state.Symbols.Enclosing))
             clone.Pos = clone.End = -1;
         if (clone is StringLiteralNode literal)

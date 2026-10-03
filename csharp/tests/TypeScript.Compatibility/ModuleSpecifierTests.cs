@@ -337,6 +337,10 @@ internal static class ModuleSpecifierTests
         Utf8String result;
         switch (Text("operation"u8))
         {
+            case var entrypoint when entrypoint == "entrypoint-ending"u8:
+                result = new ResolvedEntrypoint(default, default, target, (EntrypointEnding)Number("entrypointEnding"u8))
+                    .Format(options, source, (ReferenceResolutionMode)Number("defaultMode"u8), Text("preference"u8), default, endings);
+                break;
             case var matchedText9 when matchedText9 == "process"u8:
                 result = ModuleSpecifierPaths.ProcessEnding(target, endings, options, fs, directory);
                 break;

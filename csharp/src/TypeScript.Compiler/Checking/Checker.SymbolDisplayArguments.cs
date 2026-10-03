@@ -54,7 +54,7 @@ internal sealed partial class Checker
     private async ValueTask<SyntaxNode> ConstraintSyntaxAsync(TypeParameter parameter, Type constraint,
         TypeSyntaxContext state, CancellationToken cancellation)
     {
-        if (TypeConstraints.ConstraintDeclaration(parameter) is { } annotation
+        if (!state.ActivelyExpanding && TypeConstraints.ConstraintDeclaration(parameter) is { } annotation
             && await Instantiation.Engine.InstantiateAsync(await Nodes.FromNodeAsync(annotation, cancellation), state.Mapper,
                 cancellation: cancellation) == constraint
             && await ReuseTypeAnnotationSyntaxAsync(annotation, state, cancellation) is { } reused)
@@ -65,6 +65,7 @@ internal sealed partial class Checker
     private async ValueTask<SyntaxNode?> ReuseTypeAnnotationSyntaxAsync(SyntaxNode annotation, TypeSyntaxContext state,
         CancellationToken cancellation)
     {
+        await ProbeHoverSyntaxAsync(annotation, state, cancellation);
         Dictionary<SyntaxNode, Type> parameters = [];
         foreach (var node in annotation.DescendantsAndSelf())
         {

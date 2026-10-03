@@ -7,6 +7,18 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
+    internal async ValueTask<Symbol?> GetImmediateAliasedSymbolAsync(Symbol symbol, CancellationToken cancellation = default)
+    {
+        using var query = await EnterQueryAsync(null, cancellation).ConfigureAwait(false);
+        return await program.Aliases.ImmediateAsync(symbol, cancellation);
+    }
+
+    internal async ValueTask<Symbol?> GetMemberInModuleExportsAsync(Symbol symbol, Utf8String name, CancellationToken cancellation = default)
+    {
+        using var query = await EnterQueryAsync(null, cancellation).ConfigureAwait(false);
+        return (await program.ModuleExports.ResolveAsync(symbol, cancellation)).GetValueOrDefault(name);
+    }
+
     internal async ValueTask<Symbol> GetAliasedSymbolAsync(Symbol symbol, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(symbol);
@@ -17,6 +29,11 @@ internal sealed partial class Checker
     internal async ValueTask<Symbol?> GetExportSpecifierLocalTargetSymbolAsync(SyntaxNode node, CancellationToken cancellation = default)
     {
         using var query = await EnterQueryAsync(node, cancellation).ConfigureAwait(false);
+        return await ExportSpecifierLocalTargetSymbolAsync(node, cancellation).ConfigureAwait(false);
+    }
+
+    private async ValueTask<Symbol?> ExportSpecifierLocalTargetSymbolAsync(SyntaxNode node, CancellationToken cancellation)
+    {
         if (node is ExportSpecifierNode specifier)
         {
             var export = (ExportDeclarationNode)specifier.Parent!.Parent!;
@@ -61,6 +78,11 @@ internal sealed partial class Checker
     {
         ArgumentNullException.ThrowIfNull(symbol);
         using var query = await EnterQueryAsync(location, cancellation).ConfigureAwait(false);
+        return await TypeOfSymbolAtLocationAsync(symbol, location, cancellation);
+    }
+
+    private async ValueTask<Type> TypeOfSymbolAtLocationAsync(Symbol symbol, SyntaxNode? location, CancellationToken cancellation)
+    {
         symbol = program.Symbols.ExportedValue(symbol)!;
         if (location is not null)
         {

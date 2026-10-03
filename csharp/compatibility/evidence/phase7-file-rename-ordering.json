@@ -1,0 +1,4134 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "method": "workspace/willRenameFiles",
+    "requests": 5760,
+    "queries": [
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///%E6%BA%90/a.ts",
+                        "newUri": "file:///%E6%BA%90/%E6%96%B0.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 2
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///%E6%BA%90",
+                        "newUri": "file:///%E6%96%B0%E3%81%97%E3%81%84"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 2
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///%E4%BD%BF%E7%94%A8.ts",
+                        "newUri": "file:///%E5%88%A5/%E4%BD%BF%E7%94%A8.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 2
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///absent.ts",
+                        "newUri": "file:///new.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///%E6%BA%90/a.ts",
+                        "newUri": "file:///%E6%BA%90/%E6%96%B0.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///%E6%BA%90",
+                        "newUri": "file:///%E6%96%B0%E3%81%97%E3%81%84"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///%E4%BD%BF%E7%94%A8.ts",
+                        "newUri": "file:///%E5%88%A5/%E4%BD%BF%E7%94%A8.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///absent.ts",
+                        "newUri": "file:///new.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///dir/a.ts",
+                        "newUri": "file:///outside/a.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 2
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///dir/b.ts",
+                        "newUri": "file:///outside/b.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 2
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///dir/a.ts",
+                        "newUri": "file:///outside/a.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///dir/b.ts",
+                        "newUri": "file:///outside/b.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///app.d.css.ts",
+                        "newUri": "file:///%E6%96%B0.d.css.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///app.css",
+                        "newUri": "file:///%E6%96%B0.css"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///app.d.css.ts",
+                        "newUri": "file:///%E6%96%B0.d.css.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///app.css",
+                        "newUri": "file:///%E6%96%B0.css"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_tsconfig_empty_include",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///a/foo.ts",
+                        "newUri": "file:///a/bar.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_resolveJsonModule",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///a.ts",
+                        "newUri": "file:///src/a.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_unresolvableNodeModule",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///modules/%40app/something",
+                        "newUri": "file:///modules/%40app/something-2"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_resolveJsonModule",
+            "encoding": "utf-8",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_symlink",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///user.ts",
+                        "newUri": "file:///luser.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_caseInsensitive",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///a.ts",
+                        "newUri": "file:///eh.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_js_simple",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///b.js",
+                        "newUri": "file:///c.js"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_nodeModuleDirectoryCase",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///a/b",
+                        "newUri": "file:///a/B"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_unresolvableImport",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///modules/%40app/something",
+                        "newUri": "file:///modules/%40app/something-2"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_tsconfig_include_noChange",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/dir/a.ts",
+                        "newUri": "file:///src/dir/b.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_caseInsensitive",
+            "encoding": "utf-8",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_ambientModule",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///a.ts",
+                        "newUri": "file:///b.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_directory_noUpdateNodeModulesImport",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///a/b",
+                        "newUri": "file:///a/d"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_keepFileExtensions",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/person.ts",
+                        "newUri": "file:///src/vip.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_unaffectedNonRelativePath",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///sub/b.ts",
+                        "newUri": "file:///sub/c/d.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_notAffectedByJsFile",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///a.ts",
+                        "newUri": "file:///a2.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_casing",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///dir",
+                        "newUri": "file:///newDir"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_cssImport2",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///app.d.css.ts",
+                        "newUri": "file:///app2.d.css.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_js_simple",
+            "encoding": "utf-8",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRenameWithSolutionConfigFile",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/b.ts",
+                        "newUri": "file:///src/c.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 2
+        },
+        {
+            "name": "TestGetEditsForFileRename_tsconfig",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/old",
+                        "newUri": "file:///src/new"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_preferences",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///dir/a.ts",
+                        "newUri": "file:///dir/a1.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestContentMapperFileRenameAcrossDuplicateProjections",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///dep.ts",
+                        "newUri": "file:///renamed.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_directory",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/old",
+                        "newUri": "file:///src/new"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 4
+        },
+        {
+            "name": "TestGetEditsForFileRename_shortenRelativePaths",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/old.ts",
+                        "newUri": "file:///src/foo/new.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_notAffectedByJsFile",
+            "encoding": "utf-8",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_casing",
+            "encoding": "utf-8",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_shortenRelativePaths",
+            "encoding": "utf-8",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_subDir",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/old.ts",
+                        "newUri": "file:///src/dir/new.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_keepFileExtensions",
+            "encoding": "utf-8",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_directory_down",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/old",
+                        "newUri": "file:///src/newDir/new"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 5
+        },
+        {
+            "name": "TestGetEditsForFileRename",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/old.ts",
+                        "newUri": "file:///src/new.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 4
+        },
+        {
+            "name": "TestGetEditsForFileRenameWithSolutionConfigFile",
+            "encoding": "utf-8",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_subDir",
+            "encoding": "utf-8",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_preferences",
+            "encoding": "utf-8",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_tsconfig",
+            "encoding": "utf-8",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_jsExtension",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///b.js",
+                        "newUri": "file:///src/b.js"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestContentMapperFileRenameAcrossDuplicateProjections",
+            "encoding": "utf-8",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_jsExtension",
+            "encoding": "utf-8",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_cssImport2",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///app.css",
+                        "newUri": "file:///app2.css"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_directory_down",
+            "encoding": "utf-8",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_directory",
+            "encoding": "utf-8",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_tsconfig_include_add",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/dir/a.ts",
+                        "newUri": "file:///src/newDir/b.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_renameFromIndex",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/index.ts",
+                        "newUri": "file:///src/new.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 4
+        },
+        {
+            "name": "TestGetEditsForFileRename_renameToIndex",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/old.ts",
+                        "newUri": "file:///src/index.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 4
+        },
+        {
+            "name": "TestGetEditsForFileRename",
+            "encoding": "utf-8",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_tsconfig_include_add",
+            "encoding": "utf-8",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_directory_up",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/old",
+                        "newUri": "file:///newDir/new"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 5
+        },
+        {
+            "name": "TestGetEditsForFileRename_preservePathEnding",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///a.js",
+                        "newUri": "file:///b.js"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_renameToIndex",
+            "encoding": "utf-8",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_renameFromIndex",
+            "encoding": "utf-8",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_directory_up",
+            "encoding": "utf-8",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_preservePathEnding",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///b.js",
+                        "newUri": "file:///src/b.js"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_preservePathEnding",
+            "encoding": "utf-8",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_duplicateUnresolvedImports",
+            "encoding": "utf-8",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/file0.ts",
+                        "newUri": "file:///src/file0-renamed.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_duplicateUnresolvedImports",
+            "encoding": "utf-8",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///%E6%BA%90/a.ts",
+                        "newUri": "file:///%E6%BA%90/%E6%96%B0.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 2
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///%E6%BA%90",
+                        "newUri": "file:///%E6%96%B0%E3%81%97%E3%81%84"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 2
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///%E4%BD%BF%E7%94%A8.ts",
+                        "newUri": "file:///%E5%88%A5/%E4%BD%BF%E7%94%A8.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 2
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///absent.ts",
+                        "newUri": "file:///new.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///%E6%BA%90/a.ts",
+                        "newUri": "file:///%E6%BA%90/%E6%96%B0.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///%E6%BA%90",
+                        "newUri": "file:///%E6%96%B0%E3%81%97%E3%81%84"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///%E4%BD%BF%E7%94%A8.ts",
+                        "newUri": "file:///%E5%88%A5/%E4%BD%BF%E7%94%A8.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///absent.ts",
+                        "newUri": "file:///new.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///dir/a.ts",
+                        "newUri": "file:///outside/a.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 2
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///dir/b.ts",
+                        "newUri": "file:///outside/b.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 2
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///dir/a.ts",
+                        "newUri": "file:///outside/a.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///dir/b.ts",
+                        "newUri": "file:///outside/b.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///app.d.css.ts",
+                        "newUri": "file:///%E6%96%B0.d.css.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///app.css",
+                        "newUri": "file:///%E6%96%B0.css"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///app.d.css.ts",
+                        "newUri": "file:///%E6%96%B0.d.css.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestCSharpFileRename",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///app.css",
+                        "newUri": "file:///%E6%96%B0.css"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_subDir",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/old.ts",
+                        "newUri": "file:///src/dir/new.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_casing",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///dir",
+                        "newUri": "file:///newDir"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_subDir",
+            "encoding": "utf-16",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_resolveJsonModule",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///a.ts",
+                        "newUri": "file:///src/a.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_shortenRelativePaths",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/old.ts",
+                        "newUri": "file:///src/foo/new.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_casing",
+            "encoding": "utf-16",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_resolveJsonModule",
+            "encoding": "utf-16",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_shortenRelativePaths",
+            "encoding": "utf-16",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_jsExtension",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///b.js",
+                        "newUri": "file:///src/b.js"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_directory_noUpdateNodeModulesImport",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///a/b",
+                        "newUri": "file:///a/d"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_caseInsensitive",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///a.ts",
+                        "newUri": "file:///eh.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_jsExtension",
+            "encoding": "utf-16",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_keepFileExtensions",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/person.ts",
+                        "newUri": "file:///src/vip.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_cssImport2",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///app.d.css.ts",
+                        "newUri": "file:///app2.d.css.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_unresolvableNodeModule",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///modules/%40app/something",
+                        "newUri": "file:///modules/%40app/something-2"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_unresolvableImport",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///modules/%40app/something",
+                        "newUri": "file:///modules/%40app/something-2"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_caseInsensitive",
+            "encoding": "utf-16",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_notAffectedByJsFile",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///a.ts",
+                        "newUri": "file:///a2.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_directory_down",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/old",
+                        "newUri": "file:///src/newDir/new"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 5
+        },
+        {
+            "name": "TestGetEditsForFileRename_keepFileExtensions",
+            "encoding": "utf-16",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_preferences",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///dir/a.ts",
+                        "newUri": "file:///dir/a1.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_notAffectedByJsFile",
+            "encoding": "utf-16",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_nodeModuleDirectoryCase",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///a/b",
+                        "newUri": "file:///a/B"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestContentMapperFileRenameAcrossDuplicateProjections",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///dep.ts",
+                        "newUri": "file:///renamed.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_js_simple",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///b.js",
+                        "newUri": "file:///c.js"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_symlink",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///user.ts",
+                        "newUri": "file:///luser.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_js_simple",
+            "encoding": "utf-16",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_directory_up",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/old",
+                        "newUri": "file:///newDir/new"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 5
+        },
+        {
+            "name": "TestGetEditsForFileRename_directory",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/old",
+                        "newUri": "file:///src/new"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 4
+        },
+        {
+            "name": "TestContentMapperFileRenameAcrossDuplicateProjections",
+            "encoding": "utf-16",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/old.ts",
+                        "newUri": "file:///src/new.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 4
+        },
+        {
+            "name": "TestGetEditsForFileRename_preferences",
+            "encoding": "utf-16",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_preservePathEnding",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///a.js",
+                        "newUri": "file:///b.js"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_cssImport2",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///app.css",
+                        "newUri": "file:///app2.css"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_ambientModule",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///a.ts",
+                        "newUri": "file:///b.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_directory_down",
+            "encoding": "utf-16",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_tsconfig_empty_include",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///a/foo.ts",
+                        "newUri": "file:///a/bar.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_directory",
+            "encoding": "utf-16",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename",
+            "encoding": "utf-16",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_tsconfig_include_noChange",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/dir/a.ts",
+                        "newUri": "file:///src/dir/b.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_directory_up",
+            "encoding": "utf-16",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_preservePathEnding",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///b.js",
+                        "newUri": "file:///src/b.js"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_tsconfig",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/old",
+                        "newUri": "file:///src/new"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_renameFromIndex",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/index.ts",
+                        "newUri": "file:///src/new.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 4
+        },
+        {
+            "name": "TestGetEditsForFileRename_preservePathEnding",
+            "encoding": "utf-16",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRenameWithSolutionConfigFile",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/b.ts",
+                        "newUri": "file:///src/c.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 2
+        },
+        {
+            "name": "TestGetEditsForFileRename_unaffectedNonRelativePath",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///sub/b.ts",
+                        "newUri": "file:///sub/c/d.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_renameToIndex",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/old.ts",
+                        "newUri": "file:///src/index.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 4
+        },
+        {
+            "name": "TestGetEditsForFileRename_tsconfig",
+            "encoding": "utf-16",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_renameFromIndex",
+            "encoding": "utf-16",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRenameWithSolutionConfigFile",
+            "encoding": "utf-16",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_renameToIndex",
+            "encoding": "utf-16",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_tsconfig_include_add",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/dir/a.ts",
+                        "newUri": "file:///src/newDir/b.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_tsconfig_include_add",
+            "encoding": "utf-16",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_duplicateUnresolvedImports",
+            "encoding": "utf-16",
+            "params": {
+                "files": [
+                    {
+                        "oldUri": "file:///src/file0.ts",
+                        "newUri": "file:///src/file0-renamed.ts"
+                    }
+                ]
+            },
+            "runs": 40,
+            "variants": 1
+        },
+        {
+            "name": "TestGetEditsForFileRename_duplicateUnresolvedImports",
+            "encoding": "utf-16",
+            "params": {
+                "files": []
+            },
+            "runs": 40,
+            "variants": 1
+        }
+    ],
+    "cases": [
+        {
+            "name": "TestCSharpFileRename",
+            "examples": [
+                {
+                    "documentChanges": [
+                        {
+                            "textDocument": {
+                                "uri": "file:///tsconfig.json",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 11
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 19
+                                        }
+                                    },
+                                    "newText": "源/新.ts"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///%E4%BD%BF%E7%94%A8.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 31
+                                        }
+                                    },
+                                    "newText": "./源/新.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 24
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 31
+                                        }
+                                    },
+                                    "newText": "./源/新"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "documentChanges": [
+                        {
+                            "textDocument": {
+                                "uri": "file:///%E4%BD%BF%E7%94%A8.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 31
+                                        }
+                                    },
+                                    "newText": "./源/新.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 24
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 31
+                                        }
+                                    },
+                                    "newText": "./源/新"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///tsconfig.json",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 11
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 19
+                                        }
+                                    },
+                                    "newText": "源/新.ts"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "TestGetEditsForFileRenameWithSolutionConfigFile",
+            "examples": [
+                {
+                    "documentChanges": [
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/a.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 19
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 22
+                                        }
+                                    },
+                                    "newText": "./c"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/tsconfig.json",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 4,
+                                            "character": 23
+                                        },
+                                        "end": {
+                                            "line": 4,
+                                            "character": 29
+                                        }
+                                    },
+                                    "newText": "c.ts"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "documentChanges": [
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/tsconfig.json",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 4,
+                                            "character": 23
+                                        },
+                                        "end": {
+                                            "line": 4,
+                                            "character": 29
+                                        }
+                                    },
+                                    "newText": "c.ts"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/a.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 19
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 22
+                                        }
+                                    },
+                                    "newText": "./c"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "TestGetEditsForFileRename_directory",
+            "examples": [
+                {
+                    "documentChanges": [
+                        {
+                            "textDocument": {
+                                "uri": "file:///tsconfig.json",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 49
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 65
+                                        }
+                                    },
+                                    "newText": "src/new/index.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 69
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 84
+                                        }
+                                    },
+                                    "newText": "src/new/file.ts"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/b.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 34
+                                        }
+                                    },
+                                    "newText": "./new/file.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 22
+                                        }
+                                    },
+                                    "newText": "./new"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 18
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 28
+                                        }
+                                    },
+                                    "newText": "./new/file"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/foo/c.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 35
+                                        }
+                                    },
+                                    "newText": "../new/file.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 23
+                                        }
+                                    },
+                                    "newText": "../new"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 18
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 29
+                                        }
+                                    },
+                                    "newText": "../new/file"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///a.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 38
+                                        }
+                                    },
+                                    "newText": "./src/new/file.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 26
+                                        }
+                                    },
+                                    "newText": "./src/new"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 18
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 32
+                                        }
+                                    },
+                                    "newText": "./src/new/file"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "documentChanges": [
+                        {
+                            "textDocument": {
+                                "uri": "file:///a.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 38
+                                        }
+                                    },
+                                    "newText": "./src/new/file.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 26
+                                        }
+                                    },
+                                    "newText": "./src/new"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 18
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 32
+                                        }
+                                    },
+                                    "newText": "./src/new/file"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///tsconfig.json",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 49
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 65
+                                        }
+                                    },
+                                    "newText": "src/new/index.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 69
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 84
+                                        }
+                                    },
+                                    "newText": "src/new/file.ts"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/b.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 34
+                                        }
+                                    },
+                                    "newText": "./new/file.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 22
+                                        }
+                                    },
+                                    "newText": "./new"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 18
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 28
+                                        }
+                                    },
+                                    "newText": "./new/file"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/foo/c.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 35
+                                        }
+                                    },
+                                    "newText": "../new/file.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 23
+                                        }
+                                    },
+                                    "newText": "../new"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 18
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 29
+                                        }
+                                    },
+                                    "newText": "../new/file"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "TestGetEditsForFileRename_directory_down",
+            "examples": [
+                {
+                    "documentChanges": [
+                        {
+                            "textDocument": {
+                                "uri": "file:///tsconfig.json",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 49
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 65
+                                        }
+                                    },
+                                    "newText": "src/newDir/new/index.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 69
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 84
+                                        }
+                                    },
+                                    "newText": "src/newDir/new/file.ts"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/b.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 34
+                                        }
+                                    },
+                                    "newText": "./newDir/new/file.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 22
+                                        }
+                                    },
+                                    "newText": "./newDir/new"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 18
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 28
+                                        }
+                                    },
+                                    "newText": "./newDir/new/file"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/foo/c.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 35
+                                        }
+                                    },
+                                    "newText": "../newDir/new/file.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 23
+                                        }
+                                    },
+                                    "newText": "../newDir/new"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 18
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 29
+                                        }
+                                    },
+                                    "newText": "../newDir/new/file"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/old/index.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 15
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 22
+                                        }
+                                    },
+                                    "newText": "../../../a"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 16
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 20
+                                        }
+                                    },
+                                    "newText": "../../b"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 16
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 24
+                                        }
+                                    },
+                                    "newText": "../../foo/c"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///a.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 38
+                                        }
+                                    },
+                                    "newText": "./src/newDir/new/file.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 26
+                                        }
+                                    },
+                                    "newText": "./src/newDir/new"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 18
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 32
+                                        }
+                                    },
+                                    "newText": "./src/newDir/new/file"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "documentChanges": [
+                        {
+                            "textDocument": {
+                                "uri": "file:///a.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 38
+                                        }
+                                    },
+                                    "newText": "./src/newDir/new/file.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 26
+                                        }
+                                    },
+                                    "newText": "./src/newDir/new"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 18
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 32
+                                        }
+                                    },
+                                    "newText": "./src/newDir/new/file"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///tsconfig.json",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 49
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 65
+                                        }
+                                    },
+                                    "newText": "src/newDir/new/index.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 69
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 84
+                                        }
+                                    },
+                                    "newText": "src/newDir/new/file.ts"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/b.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 34
+                                        }
+                                    },
+                                    "newText": "./newDir/new/file.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 22
+                                        }
+                                    },
+                                    "newText": "./newDir/new"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 18
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 28
+                                        }
+                                    },
+                                    "newText": "./newDir/new/file"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/foo/c.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 35
+                                        }
+                                    },
+                                    "newText": "../newDir/new/file.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 23
+                                        }
+                                    },
+                                    "newText": "../newDir/new"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 18
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 29
+                                        }
+                                    },
+                                    "newText": "../newDir/new/file"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/old/index.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 15
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 22
+                                        }
+                                    },
+                                    "newText": "../../../a"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 16
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 20
+                                        }
+                                    },
+                                    "newText": "../../b"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 16
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 24
+                                        }
+                                    },
+                                    "newText": "../../foo/c"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "TestGetEditsForFileRename",
+            "examples": [
+                {
+                    "documentChanges": [
+                        {
+                            "textDocument": {
+                                "uri": "file:///tsconfig.json",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 49
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 59
+                                        }
+                                    },
+                                    "newText": "src/new.ts"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///a.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 33
+                                        }
+                                    },
+                                    "newText": "./src/new.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 26
+                                        }
+                                    },
+                                    "newText": "./src/new"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/a.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 29
+                                        }
+                                    },
+                                    "newText": "./new.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 22
+                                        }
+                                    },
+                                    "newText": "./new"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/foo/a.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 30
+                                        }
+                                    },
+                                    "newText": "../new.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 23
+                                        }
+                                    },
+                                    "newText": "../new"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "documentChanges": [
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/a.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 29
+                                        }
+                                    },
+                                    "newText": "./new.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 22
+                                        }
+                                    },
+                                    "newText": "./new"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/foo/a.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 30
+                                        }
+                                    },
+                                    "newText": "../new.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 23
+                                        }
+                                    },
+                                    "newText": "../new"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///tsconfig.json",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 49
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 59
+                                        }
+                                    },
+                                    "newText": "src/new.ts"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///a.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 33
+                                        }
+                                    },
+                                    "newText": "./src/new.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 26
+                                        }
+                                    },
+                                    "newText": "./src/new"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "TestGetEditsForFileRename_renameFromIndex",
+            "examples": [
+                {
+                    "documentChanges": [
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/a.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 31
+                                        }
+                                    },
+                                    "newText": "./new.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 18
+                                        }
+                                    },
+                                    "newText": "./new"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 18
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 25
+                                        }
+                                    },
+                                    "newText": "./new"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/foo/a.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 32
+                                        }
+                                    },
+                                    "newText": "../new.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 19
+                                        }
+                                    },
+                                    "newText": "../new"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 18
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 26
+                                        }
+                                    },
+                                    "newText": "../new"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///tsconfig.json",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 49
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 61
+                                        }
+                                    },
+                                    "newText": "src/new.ts"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///a.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 35
+                                        }
+                                    },
+                                    "newText": "./src/new.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 22
+                                        }
+                                    },
+                                    "newText": "./src/new"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 18
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 29
+                                        }
+                                    },
+                                    "newText": "./src/new"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "documentChanges": [
+                        {
+                            "textDocument": {
+                                "uri": "file:///a.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 35
+                                        }
+                                    },
+                                    "newText": "./src/new.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 22
+                                        }
+                                    },
+                                    "newText": "./src/new"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 18
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 29
+                                        }
+                                    },
+                                    "newText": "./src/new"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/a.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 31
+                                        }
+                                    },
+                                    "newText": "./new.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 18
+                                        }
+                                    },
+                                    "newText": "./new"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 18
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 25
+                                        }
+                                    },
+                                    "newText": "./new"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/foo/a.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 32
+                                        }
+                                    },
+                                    "newText": "../new.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 19
+                                        }
+                                    },
+                                    "newText": "../new"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 18
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 26
+                                        }
+                                    },
+                                    "newText": "../new"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///tsconfig.json",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 49
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 61
+                                        }
+                                    },
+                                    "newText": "src/new.ts"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "TestGetEditsForFileRename_renameToIndex",
+            "examples": [
+                {
+                    "documentChanges": [
+                        {
+                            "textDocument": {
+                                "uri": "file:///tsconfig.json",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 49
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 59
+                                        }
+                                    },
+                                    "newText": "src/index.ts"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///a.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 33
+                                        }
+                                    },
+                                    "newText": "./src/index.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 26
+                                        }
+                                    },
+                                    "newText": "./src"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/a.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 29
+                                        }
+                                    },
+                                    "newText": "./index.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 22
+                                        }
+                                    },
+                                    "newText": "."
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/foo/a.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 30
+                                        }
+                                    },
+                                    "newText": "../index.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 23
+                                        }
+                                    },
+                                    "newText": ".."
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "documentChanges": [
+                        {
+                            "textDocument": {
+                                "uri": "file:///a.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 33
+                                        }
+                                    },
+                                    "newText": "./src/index.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 26
+                                        }
+                                    },
+                                    "newText": "./src"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/a.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 29
+                                        }
+                                    },
+                                    "newText": "./index.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 22
+                                        }
+                                    },
+                                    "newText": "."
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/foo/a.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 30
+                                        }
+                                    },
+                                    "newText": "../index.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 23
+                                        }
+                                    },
+                                    "newText": ".."
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///tsconfig.json",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 49
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 59
+                                        }
+                                    },
+                                    "newText": "src/index.ts"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "TestGetEditsForFileRename_directory_up",
+            "examples": [
+                {
+                    "documentChanges": [
+                        {
+                            "textDocument": {
+                                "uri": "file:///tsconfig.json",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 49
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 65
+                                        }
+                                    },
+                                    "newText": "newDir/new/index.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 69
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 84
+                                        }
+                                    },
+                                    "newText": "newDir/new/file.ts"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/b.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 34
+                                        }
+                                    },
+                                    "newText": "../newDir/new/file.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 22
+                                        }
+                                    },
+                                    "newText": "../newDir/new"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 18
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 28
+                                        }
+                                    },
+                                    "newText": "../newDir/new/file"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/foo/c.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 35
+                                        }
+                                    },
+                                    "newText": "../../newDir/new/file.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 23
+                                        }
+                                    },
+                                    "newText": "../../newDir/new"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 18
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 29
+                                        }
+                                    },
+                                    "newText": "../../newDir/new/file"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/old/index.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 16
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 20
+                                        }
+                                    },
+                                    "newText": "../../src/b"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 16
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 24
+                                        }
+                                    },
+                                    "newText": "../../src/foo/c"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///a.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 38
+                                        }
+                                    },
+                                    "newText": "./newDir/new/file.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 26
+                                        }
+                                    },
+                                    "newText": "./newDir/new"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 18
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 32
+                                        }
+                                    },
+                                    "newText": "./newDir/new/file"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "documentChanges": [
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/b.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 34
+                                        }
+                                    },
+                                    "newText": "../newDir/new/file.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 22
+                                        }
+                                    },
+                                    "newText": "../newDir/new"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 18
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 28
+                                        }
+                                    },
+                                    "newText": "../newDir/new/file"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/foo/c.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 35
+                                        }
+                                    },
+                                    "newText": "../../newDir/new/file.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 23
+                                        }
+                                    },
+                                    "newText": "../../newDir/new"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 18
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 29
+                                        }
+                                    },
+                                    "newText": "../../newDir/new/file"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///src/old/index.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 16
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 20
+                                        }
+                                    },
+                                    "newText": "../../src/b"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 16
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 24
+                                        }
+                                    },
+                                    "newText": "../../src/foo/c"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///a.ts",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 21
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 38
+                                        }
+                                    },
+                                    "newText": "./newDir/new/file.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 1,
+                                            "character": 17
+                                        },
+                                        "end": {
+                                            "line": 1,
+                                            "character": 26
+                                        }
+                                    },
+                                    "newText": "./newDir/new"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 2,
+                                            "character": 18
+                                        },
+                                        "end": {
+                                            "line": 2,
+                                            "character": 32
+                                        }
+                                    },
+                                    "newText": "./newDir/new/file"
+                                }
+                            ]
+                        },
+                        {
+                            "textDocument": {
+                                "uri": "file:///tsconfig.json",
+                                "version": null
+                            },
+                            "edits": [
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 49
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 65
+                                        }
+                                    },
+                                    "newText": "newDir/new/index.ts"
+                                },
+                                {
+                                    "range": {
+                                        "start": {
+                                            "line": 0,
+                                            "character": 69
+                                        },
+                                        "end": {
+                                            "line": 0,
+                                            "character": 84
+                                        }
+                                    },
+                                    "newText": "newDir/new/file.ts"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "inputsSha256": "d888eb8c8186d0d932e80a218c72dcfcf534a8ccba1b3b0fa89e9b1f387a65b9",
+    "policy": "Sort contiguous text-document edits only when each edits a distinct URI; preserve resource-operation positions, text-edit ordering, every field, and duplicates.",
+    "reproduction": "node csharp/tools/syntax-services.mjs --file-rename --record-only --reference-count 40 --directory built/csharp/phase7-validation/file-rename-ordering"
+}

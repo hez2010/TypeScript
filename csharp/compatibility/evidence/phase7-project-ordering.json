@@ -1,0 +1,1430 @@
+{
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "policy": "Sort only roots and source-file arrays for these two original tests. Preserve every element, field, diagnostic, project identity and other array order.",
+  "captures": [
+    {
+      "name": "TestProjectProgramUpdateKind/NewFiles_on_root_addition",
+      "file": "built/csharp/phase7-validation/root-addition-order-control.jsonl",
+      "sha256": "fb401ebf577d9d9a00afbc1d7a15efa8c079ba1204f46e312672f4bdcc31961c",
+      "input": {
+        "base": 1,
+        "caseSensitive": false,
+        "cwd": "/",
+        "encoding": "utf-8",
+        "files": {
+          "/src/index.ts": "export {}",
+          "/src/newfile.ts": "export const y = 2;",
+          "/src/tsconfig.json": "{}"
+        },
+        "name": "TestProjectProgramUpdateKind/NewFiles_on_root_addition",
+        "npm": null,
+        "params": {
+          "ensureConfiguredFiles": null,
+          "ensureEditorFiles": [
+            "/src/newfile.ts"
+          ],
+          "fileChanges": [
+            {
+              "edits": [],
+              "fileName": "/src/newfile.ts",
+              "kind": 0,
+              "scriptKind": 3,
+              "text": "export const y = 2;",
+              "version": 1
+            }
+          ],
+          "invalidateAll": false,
+          "replaceFileSystem": false,
+          "resourceProjects": null,
+          "typeAcquisitionDisabled": false
+        },
+        "queries": [
+          "/src/index.ts",
+          "/src/newfile.ts"
+        ],
+        "snapshot": 2,
+        "symlinks": {},
+        "typingsLocation": "/home/src/Library/Caches/typescript"
+      },
+      "outputs": [
+        {
+          "created": [],
+          "defaults": {
+            "/src/index.ts": "/src/tsconfig.json",
+            "/src/newfile.ts": "/src/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/src/tsconfig.json",
+              "dirty": false,
+              "id": "/src/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/src/newfile.ts",
+                "/src/index.ts"
+              ],
+              "sources": [
+                {
+                  "fileName": "/src/newfile.ts",
+                  "kind": 3,
+                  "text": "export const y = 2;"
+                },
+                {
+                  "fileName": "/src/index.ts",
+                  "kind": 3,
+                  "text": "export {}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/src/index.ts": "/src/tsconfig.json",
+            "/src/newfile.ts": "/src/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/src/tsconfig.json",
+              "dirty": false,
+              "id": "/src/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/src/index.ts",
+                "/src/newfile.ts"
+              ],
+              "sources": [
+                {
+                  "fileName": "/src/index.ts",
+                  "kind": 3,
+                  "text": "export {}"
+                },
+                {
+                  "fileName": "/src/newfile.ts",
+                  "kind": 3,
+                  "text": "export const y = 2;"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/src/index.ts": "/src/tsconfig.json",
+            "/src/newfile.ts": "/src/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/src/tsconfig.json",
+              "dirty": false,
+              "id": "/src/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/src/index.ts",
+                "/src/newfile.ts"
+              ],
+              "sources": [
+                {
+                  "fileName": "/src/index.ts",
+                  "kind": 3,
+                  "text": "export {}"
+                },
+                {
+                  "fileName": "/src/newfile.ts",
+                  "kind": 3,
+                  "text": "export const y = 2;"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/src/index.ts": "/src/tsconfig.json",
+            "/src/newfile.ts": "/src/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/src/tsconfig.json",
+              "dirty": false,
+              "id": "/src/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/src/index.ts",
+                "/src/newfile.ts"
+              ],
+              "sources": [
+                {
+                  "fileName": "/src/index.ts",
+                  "kind": 3,
+                  "text": "export {}"
+                },
+                {
+                  "fileName": "/src/newfile.ts",
+                  "kind": 3,
+                  "text": "export const y = 2;"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/src/index.ts": "/src/tsconfig.json",
+            "/src/newfile.ts": "/src/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/src/tsconfig.json",
+              "dirty": false,
+              "id": "/src/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/src/newfile.ts",
+                "/src/index.ts"
+              ],
+              "sources": [
+                {
+                  "fileName": "/src/newfile.ts",
+                  "kind": 3,
+                  "text": "export const y = 2;"
+                },
+                {
+                  "fileName": "/src/index.ts",
+                  "kind": 3,
+                  "text": "export {}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/src/index.ts": "/src/tsconfig.json",
+            "/src/newfile.ts": "/src/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/src/tsconfig.json",
+              "dirty": false,
+              "id": "/src/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/src/index.ts",
+                "/src/newfile.ts"
+              ],
+              "sources": [
+                {
+                  "fileName": "/src/index.ts",
+                  "kind": 3,
+                  "text": "export {}"
+                },
+                {
+                  "fileName": "/src/newfile.ts",
+                  "kind": 3,
+                  "text": "export const y = 2;"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/src/index.ts": "/src/tsconfig.json",
+            "/src/newfile.ts": "/src/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/src/tsconfig.json",
+              "dirty": false,
+              "id": "/src/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/src/index.ts",
+                "/src/newfile.ts"
+              ],
+              "sources": [
+                {
+                  "fileName": "/src/index.ts",
+                  "kind": 3,
+                  "text": "export {}"
+                },
+                {
+                  "fileName": "/src/newfile.ts",
+                  "kind": 3,
+                  "text": "export const y = 2;"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/src/index.ts": "/src/tsconfig.json",
+            "/src/newfile.ts": "/src/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/src/tsconfig.json",
+              "dirty": false,
+              "id": "/src/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/src/index.ts",
+                "/src/newfile.ts"
+              ],
+              "sources": [
+                {
+                  "fileName": "/src/index.ts",
+                  "kind": 3,
+                  "text": "export {}"
+                },
+                {
+                  "fileName": "/src/newfile.ts",
+                  "kind": 3,
+                  "text": "export const y = 2;"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/src/index.ts": "/src/tsconfig.json",
+            "/src/newfile.ts": "/src/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/src/tsconfig.json",
+              "dirty": false,
+              "id": "/src/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/src/index.ts",
+                "/src/newfile.ts"
+              ],
+              "sources": [
+                {
+                  "fileName": "/src/index.ts",
+                  "kind": 3,
+                  "text": "export {}"
+                },
+                {
+                  "fileName": "/src/newfile.ts",
+                  "kind": 3,
+                  "text": "export const y = 2;"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/src/index.ts": "/src/tsconfig.json",
+            "/src/newfile.ts": "/src/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/src/tsconfig.json",
+              "dirty": false,
+              "id": "/src/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/src/index.ts",
+                "/src/newfile.ts"
+              ],
+              "sources": [
+                {
+                  "fileName": "/src/index.ts",
+                  "kind": 3,
+                  "text": "export {}"
+                },
+                {
+                  "fileName": "/src/newfile.ts",
+                  "kind": 3,
+                  "text": "export const y = 2;"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/src/index.ts": "/src/tsconfig.json",
+            "/src/newfile.ts": "/src/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/src/tsconfig.json",
+              "dirty": false,
+              "id": "/src/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/src/index.ts",
+                "/src/newfile.ts"
+              ],
+              "sources": [
+                {
+                  "fileName": "/src/index.ts",
+                  "kind": 3,
+                  "text": "export {}"
+                },
+                {
+                  "fileName": "/src/newfile.ts",
+                  "kind": 3,
+                  "text": "export const y = 2;"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/src/index.ts": "/src/tsconfig.json",
+            "/src/newfile.ts": "/src/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/src/tsconfig.json",
+              "dirty": false,
+              "id": "/src/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/src/index.ts",
+                "/src/newfile.ts"
+              ],
+              "sources": [
+                {
+                  "fileName": "/src/index.ts",
+                  "kind": 3,
+                  "text": "export {}"
+                },
+                {
+                  "fileName": "/src/newfile.ts",
+                  "kind": 3,
+                  "text": "export const y = 2;"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/src/index.ts": "/src/tsconfig.json",
+            "/src/newfile.ts": "/src/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/src/tsconfig.json",
+              "dirty": false,
+              "id": "/src/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/src/index.ts",
+                "/src/newfile.ts"
+              ],
+              "sources": [
+                {
+                  "fileName": "/src/index.ts",
+                  "kind": 3,
+                  "text": "export {}"
+                },
+                {
+                  "fileName": "/src/newfile.ts",
+                  "kind": 3,
+                  "text": "export const y = 2;"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/src/index.ts": "/src/tsconfig.json",
+            "/src/newfile.ts": "/src/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/src/tsconfig.json",
+              "dirty": false,
+              "id": "/src/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/src/index.ts",
+                "/src/newfile.ts"
+              ],
+              "sources": [
+                {
+                  "fileName": "/src/index.ts",
+                  "kind": 3,
+                  "text": "export {}"
+                },
+                {
+                  "fileName": "/src/newfile.ts",
+                  "kind": 3,
+                  "text": "export const y = 2;"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/src/index.ts": "/src/tsconfig.json",
+            "/src/newfile.ts": "/src/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/src/tsconfig.json",
+              "dirty": false,
+              "id": "/src/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/src/newfile.ts",
+                "/src/index.ts"
+              ],
+              "sources": [
+                {
+                  "fileName": "/src/newfile.ts",
+                  "kind": 3,
+                  "text": "export const y = 2;"
+                },
+                {
+                  "fileName": "/src/index.ts",
+                  "kind": 3,
+                  "text": "export {}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/src/index.ts": "/src/tsconfig.json",
+            "/src/newfile.ts": "/src/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/src/tsconfig.json",
+              "dirty": false,
+              "id": "/src/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/src/index.ts",
+                "/src/newfile.ts"
+              ],
+              "sources": [
+                {
+                  "fileName": "/src/index.ts",
+                  "kind": 3,
+                  "text": "export {}"
+                },
+                {
+                  "fileName": "/src/newfile.ts",
+                  "kind": 3,
+                  "text": "export const y = 2;"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/src/index.ts": "/src/tsconfig.json",
+            "/src/newfile.ts": "/src/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/src/tsconfig.json",
+              "dirty": false,
+              "id": "/src/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/src/index.ts",
+                "/src/newfile.ts"
+              ],
+              "sources": [
+                {
+                  "fileName": "/src/index.ts",
+                  "kind": 3,
+                  "text": "export {}"
+                },
+                {
+                  "fileName": "/src/newfile.ts",
+                  "kind": 3,
+                  "text": "export const y = 2;"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/src/index.ts": "/src/tsconfig.json",
+            "/src/newfile.ts": "/src/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/src/tsconfig.json",
+              "dirty": false,
+              "id": "/src/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/src/index.ts",
+                "/src/newfile.ts"
+              ],
+              "sources": [
+                {
+                  "fileName": "/src/index.ts",
+                  "kind": 3,
+                  "text": "export {}"
+                },
+                {
+                  "fileName": "/src/newfile.ts",
+                  "kind": 3,
+                  "text": "export const y = 2;"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/src/index.ts": "/src/tsconfig.json",
+            "/src/newfile.ts": "/src/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/src/tsconfig.json",
+              "dirty": false,
+              "id": "/src/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/src/index.ts",
+                "/src/newfile.ts"
+              ],
+              "sources": [
+                {
+                  "fileName": "/src/index.ts",
+                  "kind": 3,
+                  "text": "export {}"
+                },
+                {
+                  "fileName": "/src/newfile.ts",
+                  "kind": 3,
+                  "text": "export const y = 2;"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/src/index.ts": "/src/tsconfig.json",
+            "/src/newfile.ts": "/src/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/src/tsconfig.json",
+              "dirty": false,
+              "id": "/src/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/src/index.ts",
+                "/src/newfile.ts"
+              ],
+              "sources": [
+                {
+                  "fileName": "/src/index.ts",
+                  "kind": 3,
+                  "text": "export {}"
+                },
+                {
+                  "fileName": "/src/newfile.ts",
+                  "kind": 3,
+                  "text": "export const y = 2;"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TestContentMapperCreatedFileAdoptedByConfiguredProject",
+      "file": "built/csharp/phase7-validation/project-created-mapper-ordering/original-operations.jsonl",
+      "sha256": "f87854db4c42d9e06920172017f7d4cbba845c99abaa91a92dd47b6ca7779c23",
+      "input": {
+        "base": 1,
+        "caseSensitive": false,
+        "cwd": "/home/project",
+        "directories": [
+          "/",
+          "/home",
+          "/home/project",
+          "/home/project/node_modules",
+          "/home/project/node_modules/mapper"
+        ],
+        "encoding": "utf-8",
+        "files": {
+          "/home/project/main.ts": "export const main = true;\n",
+          "/home/project/new.box": "export const version = #{target};\n",
+          "/home/project/node_modules/mapper/package.json": "{\n\t\"name\": \"mapper\",\n\t\"version\": \"1.0.0\",\n\t\"typescript\": { \"contentMapper\": { \"exec\": [\"compiler-test-mapper\"], \"compilerOptions\": [\"target\", \"jsx\"] } }\n}",
+          "/home/project/tsconfig.json": "{\n\t\t\t\"compilerOptions\": { \"target\": \"es2020\", \"module\": \"esnext\", \"moduleResolution\": \"bundler\" },\n\t\t\t\"contentMappers\": [ { \"package\": \"mapper\", \"extensions\": [\".box\"] } ]\n\t\t}"
+        },
+        "name": "TestContentMapperCreatedFileAdoptedByConfiguredProject",
+        "npm": null,
+        "params": {
+          "ensureConfiguredFiles": null,
+          "ensureEditorFiles": [
+            "/home/project/new.box"
+          ],
+          "fileChanges": [
+            {
+              "edits": [],
+              "fileName": "/home/project/new.box",
+              "kind": 0,
+              "scriptKind": 0,
+              "text": "export const version = #{target};\n",
+              "version": 1
+            }
+          ],
+          "invalidateAll": false,
+          "replaceFileSystem": false,
+          "resourceProjects": null,
+          "typeAcquisitionDisabled": false
+        },
+        "pushDiagnostics": false,
+        "queries": [
+          "/home/project/main.ts",
+          "/home/project/new.box"
+        ],
+        "runExternalCode": true,
+        "snapshot": 2,
+        "symlinks": {},
+        "typingsLocation": "/home/src/Library/Caches/typescript"
+      },
+      "outputs": [
+        {
+          "created": [],
+          "defaults": {
+            "/home/project/main.ts": "/home/project/tsconfig.json",
+            "/home/project/new.box": "/home/project/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/home/project/tsconfig.json",
+              "dirty": false,
+              "id": "/home/project/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/home/project/new.box",
+                "/home/project/main.ts"
+              ],
+              "sources": [
+                {
+                  "fileName": "/home/project/new.box",
+                  "kind": 3,
+                  "text": "const __VERSION = \"1.0.0\";\nexport const version = 7;\n"
+                },
+                {
+                  "fileName": "/home/project/main.ts",
+                  "kind": 3,
+                  "text": "export const main = true;\n"
+                }
+              ],
+              "updateKind": 3
+            }
+          ],
+          "pushes": []
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/home/project/main.ts": "/home/project/tsconfig.json",
+            "/home/project/new.box": "/home/project/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/home/project/tsconfig.json",
+              "dirty": false,
+              "id": "/home/project/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/home/project/main.ts",
+                "/home/project/new.box"
+              ],
+              "sources": [
+                {
+                  "fileName": "/home/project/main.ts",
+                  "kind": 3,
+                  "text": "export const main = true;\n"
+                },
+                {
+                  "fileName": "/home/project/new.box",
+                  "kind": 3,
+                  "text": "const __VERSION = \"1.0.0\";\nexport const version = 7;\n"
+                }
+              ],
+              "updateKind": 3
+            }
+          ],
+          "pushes": []
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/home/project/main.ts": "/home/project/tsconfig.json",
+            "/home/project/new.box": "/home/project/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/home/project/tsconfig.json",
+              "dirty": false,
+              "id": "/home/project/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/home/project/main.ts",
+                "/home/project/new.box"
+              ],
+              "sources": [
+                {
+                  "fileName": "/home/project/main.ts",
+                  "kind": 3,
+                  "text": "export const main = true;\n"
+                },
+                {
+                  "fileName": "/home/project/new.box",
+                  "kind": 3,
+                  "text": "const __VERSION = \"1.0.0\";\nexport const version = 7;\n"
+                }
+              ],
+              "updateKind": 3
+            }
+          ],
+          "pushes": []
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/home/project/main.ts": "/home/project/tsconfig.json",
+            "/home/project/new.box": "/home/project/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/home/project/tsconfig.json",
+              "dirty": false,
+              "id": "/home/project/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/home/project/new.box",
+                "/home/project/main.ts"
+              ],
+              "sources": [
+                {
+                  "fileName": "/home/project/new.box",
+                  "kind": 3,
+                  "text": "const __VERSION = \"1.0.0\";\nexport const version = 7;\n"
+                },
+                {
+                  "fileName": "/home/project/main.ts",
+                  "kind": 3,
+                  "text": "export const main = true;\n"
+                }
+              ],
+              "updateKind": 3
+            }
+          ],
+          "pushes": []
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/home/project/main.ts": "/home/project/tsconfig.json",
+            "/home/project/new.box": "/home/project/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/home/project/tsconfig.json",
+              "dirty": false,
+              "id": "/home/project/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/home/project/main.ts",
+                "/home/project/new.box"
+              ],
+              "sources": [
+                {
+                  "fileName": "/home/project/main.ts",
+                  "kind": 3,
+                  "text": "export const main = true;\n"
+                },
+                {
+                  "fileName": "/home/project/new.box",
+                  "kind": 3,
+                  "text": "const __VERSION = \"1.0.0\";\nexport const version = 7;\n"
+                }
+              ],
+              "updateKind": 3
+            }
+          ],
+          "pushes": []
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/home/project/main.ts": "/home/project/tsconfig.json",
+            "/home/project/new.box": "/home/project/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/home/project/tsconfig.json",
+              "dirty": false,
+              "id": "/home/project/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/home/project/main.ts",
+                "/home/project/new.box"
+              ],
+              "sources": [
+                {
+                  "fileName": "/home/project/main.ts",
+                  "kind": 3,
+                  "text": "export const main = true;\n"
+                },
+                {
+                  "fileName": "/home/project/new.box",
+                  "kind": 3,
+                  "text": "const __VERSION = \"1.0.0\";\nexport const version = 7;\n"
+                }
+              ],
+              "updateKind": 3
+            }
+          ],
+          "pushes": []
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/home/project/main.ts": "/home/project/tsconfig.json",
+            "/home/project/new.box": "/home/project/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/home/project/tsconfig.json",
+              "dirty": false,
+              "id": "/home/project/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/home/project/new.box",
+                "/home/project/main.ts"
+              ],
+              "sources": [
+                {
+                  "fileName": "/home/project/new.box",
+                  "kind": 3,
+                  "text": "const __VERSION = \"1.0.0\";\nexport const version = 7;\n"
+                },
+                {
+                  "fileName": "/home/project/main.ts",
+                  "kind": 3,
+                  "text": "export const main = true;\n"
+                }
+              ],
+              "updateKind": 3
+            }
+          ],
+          "pushes": []
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/home/project/main.ts": "/home/project/tsconfig.json",
+            "/home/project/new.box": "/home/project/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/home/project/tsconfig.json",
+              "dirty": false,
+              "id": "/home/project/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/home/project/main.ts",
+                "/home/project/new.box"
+              ],
+              "sources": [
+                {
+                  "fileName": "/home/project/main.ts",
+                  "kind": 3,
+                  "text": "export const main = true;\n"
+                },
+                {
+                  "fileName": "/home/project/new.box",
+                  "kind": 3,
+                  "text": "const __VERSION = \"1.0.0\";\nexport const version = 7;\n"
+                }
+              ],
+              "updateKind": 3
+            }
+          ],
+          "pushes": []
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/home/project/main.ts": "/home/project/tsconfig.json",
+            "/home/project/new.box": "/home/project/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/home/project/tsconfig.json",
+              "dirty": false,
+              "id": "/home/project/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/home/project/main.ts",
+                "/home/project/new.box"
+              ],
+              "sources": [
+                {
+                  "fileName": "/home/project/main.ts",
+                  "kind": 3,
+                  "text": "export const main = true;\n"
+                },
+                {
+                  "fileName": "/home/project/new.box",
+                  "kind": 3,
+                  "text": "const __VERSION = \"1.0.0\";\nexport const version = 7;\n"
+                }
+              ],
+              "updateKind": 3
+            }
+          ],
+          "pushes": []
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/home/project/main.ts": "/home/project/tsconfig.json",
+            "/home/project/new.box": "/home/project/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/home/project/tsconfig.json",
+              "dirty": false,
+              "id": "/home/project/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/home/project/main.ts",
+                "/home/project/new.box"
+              ],
+              "sources": [
+                {
+                  "fileName": "/home/project/main.ts",
+                  "kind": 3,
+                  "text": "export const main = true;\n"
+                },
+                {
+                  "fileName": "/home/project/new.box",
+                  "kind": 3,
+                  "text": "const __VERSION = \"1.0.0\";\nexport const version = 7;\n"
+                }
+              ],
+              "updateKind": 3
+            }
+          ],
+          "pushes": []
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/home/project/main.ts": "/home/project/tsconfig.json",
+            "/home/project/new.box": "/home/project/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/home/project/tsconfig.json",
+              "dirty": false,
+              "id": "/home/project/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/home/project/new.box",
+                "/home/project/main.ts"
+              ],
+              "sources": [
+                {
+                  "fileName": "/home/project/new.box",
+                  "kind": 3,
+                  "text": "const __VERSION = \"1.0.0\";\nexport const version = 7;\n"
+                },
+                {
+                  "fileName": "/home/project/main.ts",
+                  "kind": 3,
+                  "text": "export const main = true;\n"
+                }
+              ],
+              "updateKind": 3
+            }
+          ],
+          "pushes": []
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/home/project/main.ts": "/home/project/tsconfig.json",
+            "/home/project/new.box": "/home/project/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/home/project/tsconfig.json",
+              "dirty": false,
+              "id": "/home/project/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/home/project/main.ts",
+                "/home/project/new.box"
+              ],
+              "sources": [
+                {
+                  "fileName": "/home/project/main.ts",
+                  "kind": 3,
+                  "text": "export const main = true;\n"
+                },
+                {
+                  "fileName": "/home/project/new.box",
+                  "kind": 3,
+                  "text": "const __VERSION = \"1.0.0\";\nexport const version = 7;\n"
+                }
+              ],
+              "updateKind": 3
+            }
+          ],
+          "pushes": []
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/home/project/main.ts": "/home/project/tsconfig.json",
+            "/home/project/new.box": "/home/project/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/home/project/tsconfig.json",
+              "dirty": false,
+              "id": "/home/project/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/home/project/new.box",
+                "/home/project/main.ts"
+              ],
+              "sources": [
+                {
+                  "fileName": "/home/project/new.box",
+                  "kind": 3,
+                  "text": "const __VERSION = \"1.0.0\";\nexport const version = 7;\n"
+                },
+                {
+                  "fileName": "/home/project/main.ts",
+                  "kind": 3,
+                  "text": "export const main = true;\n"
+                }
+              ],
+              "updateKind": 3
+            }
+          ],
+          "pushes": []
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/home/project/main.ts": "/home/project/tsconfig.json",
+            "/home/project/new.box": "/home/project/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/home/project/tsconfig.json",
+              "dirty": false,
+              "id": "/home/project/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/home/project/main.ts",
+                "/home/project/new.box"
+              ],
+              "sources": [
+                {
+                  "fileName": "/home/project/main.ts",
+                  "kind": 3,
+                  "text": "export const main = true;\n"
+                },
+                {
+                  "fileName": "/home/project/new.box",
+                  "kind": 3,
+                  "text": "const __VERSION = \"1.0.0\";\nexport const version = 7;\n"
+                }
+              ],
+              "updateKind": 3
+            }
+          ],
+          "pushes": []
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/home/project/main.ts": "/home/project/tsconfig.json",
+            "/home/project/new.box": "/home/project/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/home/project/tsconfig.json",
+              "dirty": false,
+              "id": "/home/project/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/home/project/main.ts",
+                "/home/project/new.box"
+              ],
+              "sources": [
+                {
+                  "fileName": "/home/project/main.ts",
+                  "kind": 3,
+                  "text": "export const main = true;\n"
+                },
+                {
+                  "fileName": "/home/project/new.box",
+                  "kind": 3,
+                  "text": "const __VERSION = \"1.0.0\";\nexport const version = 7;\n"
+                }
+              ],
+              "updateKind": 3
+            }
+          ],
+          "pushes": []
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/home/project/main.ts": "/home/project/tsconfig.json",
+            "/home/project/new.box": "/home/project/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/home/project/tsconfig.json",
+              "dirty": false,
+              "id": "/home/project/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/home/project/main.ts",
+                "/home/project/new.box"
+              ],
+              "sources": [
+                {
+                  "fileName": "/home/project/main.ts",
+                  "kind": 3,
+                  "text": "export const main = true;\n"
+                },
+                {
+                  "fileName": "/home/project/new.box",
+                  "kind": 3,
+                  "text": "const __VERSION = \"1.0.0\";\nexport const version = 7;\n"
+                }
+              ],
+              "updateKind": 3
+            }
+          ],
+          "pushes": []
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/home/project/main.ts": "/home/project/tsconfig.json",
+            "/home/project/new.box": "/home/project/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/home/project/tsconfig.json",
+              "dirty": false,
+              "id": "/home/project/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/home/project/main.ts",
+                "/home/project/new.box"
+              ],
+              "sources": [
+                {
+                  "fileName": "/home/project/main.ts",
+                  "kind": 3,
+                  "text": "export const main = true;\n"
+                },
+                {
+                  "fileName": "/home/project/new.box",
+                  "kind": 3,
+                  "text": "const __VERSION = \"1.0.0\";\nexport const version = 7;\n"
+                }
+              ],
+              "updateKind": 3
+            }
+          ],
+          "pushes": []
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/home/project/main.ts": "/home/project/tsconfig.json",
+            "/home/project/new.box": "/home/project/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/home/project/tsconfig.json",
+              "dirty": false,
+              "id": "/home/project/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/home/project/main.ts",
+                "/home/project/new.box"
+              ],
+              "sources": [
+                {
+                  "fileName": "/home/project/main.ts",
+                  "kind": 3,
+                  "text": "export const main = true;\n"
+                },
+                {
+                  "fileName": "/home/project/new.box",
+                  "kind": 3,
+                  "text": "const __VERSION = \"1.0.0\";\nexport const version = 7;\n"
+                }
+              ],
+              "updateKind": 3
+            }
+          ],
+          "pushes": []
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/home/project/main.ts": "/home/project/tsconfig.json",
+            "/home/project/new.box": "/home/project/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/home/project/tsconfig.json",
+              "dirty": false,
+              "id": "/home/project/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/home/project/main.ts",
+                "/home/project/new.box"
+              ],
+              "sources": [
+                {
+                  "fileName": "/home/project/main.ts",
+                  "kind": 3,
+                  "text": "export const main = true;\n"
+                },
+                {
+                  "fileName": "/home/project/new.box",
+                  "kind": 3,
+                  "text": "const __VERSION = \"1.0.0\";\nexport const version = 7;\n"
+                }
+              ],
+              "updateKind": 3
+            }
+          ],
+          "pushes": []
+        },
+        {
+          "created": [],
+          "defaults": {
+            "/home/project/main.ts": "/home/project/tsconfig.json",
+            "/home/project/new.box": "/home/project/tsconfig.json"
+          },
+          "projects": [
+            {
+              "config": "/home/project/tsconfig.json",
+              "dirty": false,
+              "id": "/home/project/tsconfig.json",
+              "kind": 1,
+              "program": 2,
+              "roots": [
+                "/home/project/main.ts",
+                "/home/project/new.box"
+              ],
+              "sources": [
+                {
+                  "fileName": "/home/project/main.ts",
+                  "kind": 3,
+                  "text": "export const main = true;\n"
+                },
+                {
+                  "fileName": "/home/project/new.box",
+                  "kind": 3,
+                  "text": "const __VERSION = \"1.0.0\";\nexport const version = 7;\n"
+                }
+              ],
+              "updateKind": 3
+            }
+          ],
+          "pushes": []
+        }
+      ]
+    }
+  ]
+}

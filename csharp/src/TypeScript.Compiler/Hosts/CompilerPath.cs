@@ -15,6 +15,9 @@ public static class CompilerPath
 
     public static bool IsDynamic(Utf8String path) => path.StartsWith("^/"u8, StringComparison.Ordinal);
 
+    public static Utf8String ResolveFileName(Utf8String currentDirectory, Utf8String fileName) =>
+        IsDynamic(fileName) ? fileName : Resolve(currentDirectory, fileName);
+
     public static bool HasTrailingSeparator(Utf8String path) => path.Length != 0 && path[^1] is (byte)'/' or (byte)'\\';
 
     public static int RootLength(Utf8String path)

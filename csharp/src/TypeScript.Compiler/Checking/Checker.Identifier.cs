@@ -31,7 +31,7 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
     public async ValueTask CheckDeprecatedAsync(IdentifierNode node, Symbol symbol, CancellationToken cancellation)
     {
         if (program.Deprecations.Symbol(symbol) && await program.Deprecations.UncalledAsync(node, symbol, FlowReferences, cancellation))
-            program.Suggestion(node, DiagnosticCode.X0IsDeprecated, node.Text);
+            program.DeprecatedSuggestion(node, symbol.Declarations, node.Text);
     }
 
     public ValueTask<Type> NarrowedSymbolAsync(Symbol symbol, SyntaxNode location, CancellationToken cancellation) =>

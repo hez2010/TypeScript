@@ -97,6 +97,8 @@ internal sealed partial class Checker
                 emission.AddFlags(child, EmitFlags.SingleLine);
             if (state.Elided.Contains(original))
                 emission.AddLeadingComment(child, new(SyntaxKind.MultiLineCommentTrivia, "elided"u8));
+            if (state.TrailingElisions.TryGetValue(original, out var elision))
+                emission.AddTrailingComment(child, new(SyntaxKind.MultiLineCommentTrivia, elision));
             if (state.CommentSources.TryGetValue(original, out var commentSource)
                 && SemanticSyntax.Source(commentSource) == SemanticSyntax.Source(state.Symbols.Enclosing))
                 emission.SetCommentRange(child, new(commentSource.Pos, commentSource.End));

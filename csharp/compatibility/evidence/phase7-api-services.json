@@ -1,0 +1,114 @@
+{
+  "phase": 7,
+  "phase7Complete": false,
+  "methods": [
+    "getCompletionsAtPosition",
+    "getImportAdderEdits",
+    "getReferencedSymbolsForNode",
+    "getSignatureUsages"
+  ],
+  "initial": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": 31,
+    "requests": 251,
+    "differences": 21,
+    "compilerSha256": "5ef008bf5fa6097a94865900bf326ee56c160a69df038d2c16b68604b32b39ea",
+    "coordinateContract": "UTF-8 / AST v9; isolated oracle adapters listed separately",
+    "directory": "built/csharp/phase7-validation/api-services-first"
+  },
+  "configuredRetry": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": 56,
+    "requests": 400,
+    "differences": 4,
+    "compilerSha256": "8d262254f7ae5fa22076443f2ec353f1e0635c9eb52000a2f0f111688309969a",
+    "coordinateContract": "UTF-8 / AST v9; isolated oracle adapters listed separately",
+    "directory": "built/csharp/phase7-validation/api-services-second"
+  },
+  "directApi": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": 189,
+    "requests": 6321,
+    "differences": 0,
+    "compilerSha256": "8d262254f7ae5fa22076443f2ec353f1e0635c9eb52000a2f0f111688309969a",
+    "coordinateContract": "UTF-8 / AST v9; isolated oracle adapters listed separately",
+    "directory": "built/csharp/phase7-validation/api-services-full"
+  },
+  "originalClients": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "filter": ".*",
+    "results": [
+      {
+        "label": "reference",
+        "mode": "async",
+        "exitCode": 0,
+        "tests": 303,
+        "pass": 303,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      {
+        "label": "candidate",
+        "mode": "async",
+        "exitCode": 0,
+        "tests": 303,
+        "pass": 303,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      {
+        "label": "reference",
+        "mode": "sync",
+        "exitCode": 0,
+        "tests": 296,
+        "pass": 296,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      {
+        "label": "candidate",
+        "mode": "sync",
+        "exitCode": 0,
+        "tests": 296,
+        "pass": 296,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    ],
+    "compilerSha256": "8d262254f7ae5fa22076443f2ec353f1e0635c9eb52000a2f0f111688309969a",
+    "clientAdaptations": "Executable selection, AST v9, and UTF-8 insertion positions for both backends; original test assertions retained",
+    "directory": "built/csharp/phase7-validation/api-client-complete"
+  },
+  "completionRegression": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-sessions",
+    "originalTests": 1056,
+    "originalTestFunctions": 1056,
+    "selectedTestsWithoutRequests": [
+      "TestCompletionColonToken"
+    ],
+    "unorderedProjectResults": [],
+    "unorderedFileRenameResults": [],
+    "unorderedCodeLensResults": [],
+    "unorderedReferenceResults": [],
+    "authoredTests": 52,
+    "encodings": [
+      "utf-8",
+      "utf-16"
+    ],
+    "requests": 8270,
+    "differences": 0,
+    "compilerSha256": "8d262254f7ae5fa22076443f2ec353f1e0635c9eb52000a2f0f111688309969a",
+    "inputsSha256": "5dcc20422768a7ef176535bdbc1cc9f128f4342a382dbfec85d00c6cfaf30ed8",
+    "directory": "built/csharp/phase7-validation/completion-api-symbols"
+  },
+  "comparisonPolicy": "Private names preserve the class-symbol identity relation. Completion lists sort by sortText/name with stable ties; eight original runs and corruption controls are pinned in phase7-api-service-ordering.json.",
+  "coordinateContract": "UTF-8 byte positions and AST v9",
+  "configuration": "Release CoreCLR",
+  "performanceMeasured": false,
+  "nativeExecuted": false
+}

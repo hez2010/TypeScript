@@ -167,16 +167,26 @@ public sealed partial class NativeProfile : IDisposable
 
     public void Stop(Utf8String directory)
     {
+        End(requireClosedScopes: true);
+        WriteProfiles(directory);
+    }
+
+    private void End(bool requireClosedScopes)
+    {
         lock (gate)
         {
             if (stopped)
                 throw new InvalidOperationException("CPU profiling not in progress");
-            if (Volatile.Read(ref openScopes) != 0)
+            if (requireClosedScopes && Volatile.Read(ref openScopes) != 0)
                 throw new InvalidOperationException("Cannot stop while compiler scopes are active");
             if (!ReferenceEquals(Interlocked.CompareExchange(ref active, null, this), this))
                 throw new InvalidOperationException("Profile ownership changed");
             stopped = true;
         }
+    }
+
+    private void WriteProfiles(Utf8String directory)
+    {
         Directory.CreateDirectory(directory.ToString());
         long duration = (long)(Stopwatch.GetElapsedTime(started).TotalMilliseconds * 1_000_000);
         var records = samples.Values.OrderBy(sample => Utf8String.Join("\0"u8, sample.Stack), Utf8StringComparer.Ordinal).ToArray();
@@ -231,6 +241,23 @@ public sealed partial class NativeProfile : IDisposable
             Utf8Literals.InuseSpaceIsMeasuredWholeProcess,
             0);
     }
+
+    internal void StopCpu(Utf8String path)
+    {
+        // Editor profiling may stop while unrelated requests still own instrumented scopes.
+        // Their unfinished CPU time remains in the whole-process remainder, as documented for this profiler.
+        End(requireClosedScopes: false);
+        var records = samples.Values.ToArray();
+        long other = Math.Max(0, ProcessCpu() - processCpuStart - records.Sum(sample => sample.Cpu));
+        Write(path, [(Utf8Literals.Cpu, Utf8Literals.Nanoseconds)],
+            records.Select(sample => (sample.Stack, new[] { sample.Cpu })).Append(
+                (new Utf8String[] { Utf8Literals.RuntimeAndOtherProcessWorkOutside }, new[] { other })),
+            Utf8Literals.InstrumentedCompilerPhaseThreadCPUTime, (long)(Stopwatch.GetElapsedTime(started).TotalMilliseconds * 1_000_000));
+    }
+
+    internal void SaveAllocations(Utf8String path) => Write(path, [(Utf8Literals.AllocSpace, Utf8Literals.Bytes)],
+        [(new Utf8String[] { "Managed allocations, whole process"u8 }, new[] { GC.GetTotalAllocatedBytes(precise: true) })],
+        "Measured cumulative managed allocation bytes; allocation-stack attribution is unavailable without an active instrumented profile."u8, 0);
 
     public void Dispose()
     {

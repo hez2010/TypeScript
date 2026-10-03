@@ -17,10 +17,17 @@ public sealed partial class Parser
             int start = node.Pos == node.End ? node.Pos : trivia.TokenStart;
             diagnostics.Add(new(message, start, node.End - start, []));
         }
-        var work = new Stack<SyntaxNode>();
-        work.Push(root);
-        while (work.TryPop(out SyntaxNode? node))
+        var work = new Stack<(SyntaxNode Node, bool PropertyName)>();
+        work.Push((root, false));
+        while (work.TryPop(out var item))
         {
+            var node = item.Node;
+            if (item.PropertyName)
+            {
+                if (node is not StringLiteralNode text || (text.TokenFlags & TokenFlags.SingleQuote) != 0)
+                    NodeError(node, Messages.String_literal_with_double_quotes_expected);
+                continue;
+            }
             switch (node)
             {
                 case KeywordExpressionNode { Kind: K.TrueKeyword or K.FalseKeyword or K.NullKeyword }:
@@ -40,16 +47,15 @@ public sealed partial class Parser
                             NodeError(properties[i], Messages.Property_assignment_expected);
                             continue;
                         }
-                        if (property.Name is { } name && name is not StringLiteralNode { TokenFlags: var flags }
-                            || property.Name is StringLiteralNode { TokenFlags: var flags2 } && (flags2 & TokenFlags.SingleQuote) != 0)
-                            NodeError(property.Name!, Messages.String_literal_with_double_quotes_expected);
                         if (property.Initializer is not null)
-                            work.Push(property.Initializer);
+                            work.Push((property.Initializer, false));
+                        if (property.Name is not null)
+                            work.Push((property.Name, true));
                     }
                     break;
                 case ArrayLiteralExpressionNode { Elements: { } elements }:
                     for (int i = elements.Count - 1; i >= 0; i--)
-                        work.Push(elements[i]);
+                        work.Push((elements[i], false));
                     break;
                 default:
                     NodeError(

@@ -10,7 +10,13 @@ namespace TypeScript.Compiler.Programs;
 
 public sealed partial class CompilerProgram
 {
-    public async ValueTask<EmitResult> EmitAsync(EmitOptions? emitOptions = null, CancellationToken cancellation = default)
+    public ValueTask<EmitResult> EmitAsync(EmitOptions? emitOptions = null, CancellationToken cancellation = default)
+        => EmitCoreAsync(emitOptions, null, cancellation);
+
+    internal ValueTask<EmitResult> EmitWithCheckerAsync(EmitOptions emitOptions, Checker checker, CancellationToken cancellation)
+        => EmitCoreAsync(emitOptions, checker, cancellation);
+
+    private async ValueTask<EmitResult> EmitCoreAsync(EmitOptions? emitOptions, Checker? externalChecker, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         emitOptions ??= new();
@@ -22,10 +28,10 @@ public sealed partial class CompilerProgram
         bool signature = emitOptions.Only == EmitOnly.BuilderSignature;
         if (!emitOptions.Force && !signature && options.NoEmit == true)
             return new(emitOptions.SourceFiles is not null, [], [], []);
-        var checker = await CreateCheckerAsync(cancellation);
+        var checker = externalChecker ?? await CreateCheckerAsync(cancellation);
         if (!emitOptions.Force && !signature && options.NoEmitOnError == true)
         {
-            var errors = await DiagnosticsBeforeEmitAsync(checker, targets, cancellation);
+            var errors = await DiagnosticsBeforeEmitAsync(checker, targets, externalChecker is null, cancellation);
             if (errors.Count != 0) return new(true, errors, [], []);
         }
         bool forceDeclarations = signature || emitOptions.Force && emitOptions.Only == EmitOnly.Declarations;
@@ -68,7 +74,7 @@ public sealed partial class CompilerProgram
     }
 
     private async ValueTask<IReadOnlyList<Diagnostic>> DiagnosticsBeforeEmitAsync(Checker checker,
-        IReadOnlyList<SourceFileNode> targets, CancellationToken cancellation)
+        IReadOnlyList<SourceFileNode> targets, bool includeGlobalDiagnostics, CancellationToken cancellation)
     {
         List<Diagnostic> result = [.. Configuration.Diagnostics];
         foreach (var source in targets)
@@ -77,12 +83,12 @@ public sealed partial class CompilerProgram
         if (result.Count != Configuration.Diagnostics.Length) return result.ToArray();
         result.AddRange(Diagnostics.Where(diagnostic => !Configuration.Diagnostics.Contains(diagnostic, DiagnosticEqualityComparer.Instance)));
         if (Configuration.Options.ListFilesOnly == true) return result.ToArray();
-        result.AddRange(DiagnosticCollection.SortAndDeduplicate(checker.DetailedDiagnosticsForFile(null)));
+        if (includeGlobalDiagnostics) result.AddRange(DiagnosticCollection.SortAndDeduplicate(checker.DetailedDiagnosticsForFile(null)));
         if (result.Count != Configuration.Diagnostics.Length) return result.ToArray();
         foreach (var source in targets)
             if (!checker.SkipProgramFile(source)) await checker.CheckSourceFileAsync(source, cancellation);
         foreach (var source in targets) result.AddRange(DiagnosticCollection.SortAndDeduplicate(checker.DetailedDiagnosticsForProgramFile(source)));
-        result.AddRange(DiagnosticCollection.SortAndDeduplicate(checker.DetailedDiagnosticsForFile(null)));
+        if (includeGlobalDiagnostics) result.AddRange(DiagnosticCollection.SortAndDeduplicate(checker.DetailedDiagnosticsForFile(null)));
         if (result.Count == Configuration.Diagnostics.Length && (Configuration.Options.Declaration == true || Configuration.Options.Composite == true))
             foreach (var source in targets)
             {

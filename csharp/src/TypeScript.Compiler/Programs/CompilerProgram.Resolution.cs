@@ -33,6 +33,13 @@ public sealed partial class CompilerProgram
         };
     }
 
+    internal ReferenceResolutionMode ImpliedFormatForEmit(SourceFileNode source)
+    {
+        var file = GetFile(source.FileName) ?? throw new ArgumentException("Source belongs to another program", nameof(source));
+        return Builder.ImpliedMode(source.FileName, ProjectReferences.Find(source.FileName)?.Project.Options ?? Configuration.Options,
+            file.ImpliedFormat, file.PackageType);
+    }
+
     internal ReferenceResolutionMode ResolutionModeForUsage(SourceFileNode source, SyntaxNode? specifier)
     {
         var file = GetFile(source.FileName) ?? throw new ArgumentException("Source belongs to another program", nameof(source));
@@ -61,7 +68,7 @@ public sealed partial class CompilerProgram
 
         private Utf8String RootPath(Utf8String path)
         {
-            path = CompilerPath.Resolve(cwd, path);
+            path = CompilerPath.ResolveFileName(cwd, path);
             if (CompilerPath.Extension(path).Length != 0)
                 return path;
             if (config.Options.AllowNonTsExtensions == true && resolutionFs.FileExists(path))

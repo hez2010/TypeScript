@@ -1,0 +1,135 @@
+{
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "date": "2026-10-03",
+  "configuration": "Release CoreCLR",
+  "scope": "JSDoc comment template provider only; symbol, keyword, tag, string, and auto-import completions and resolve are still pending",
+  "direct": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 30,
+    "scope": "Exact null and JSDoc-template completion responses plus template absence in other contexts; other provider contents remain deferred",
+    "exactResponseRequests": 982,
+    "templateAbsenceChecks": 672,
+    "deferredCompletionRequests": 672,
+    "originalTestFunctions": 30,
+    "selectedTestsWithoutRequests": [],
+    "unorderedProjectResults": [],
+    "unorderedFileRenameResults": [],
+    "unorderedCodeLensResults": [],
+    "unorderedReferenceResults": [],
+    "authoredTests": 15,
+    "encodings": [
+      "utf-8",
+      "utf-16"
+    ],
+    "requests": 1654,
+    "differences": 0,
+    "compilerSha256": "32447feb686d74cfb3bb2ebd4a0650dfca1406fd9e0995e23e5696e6b327d111",
+    "inputsSha256": "edaaac3f23dd18ef227aa0b2f2bdba0477b2ab0e0b61487c2400621270e3a696"
+  },
+  "lspExactResponses": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 28,
+    "requests": 726,
+    "clients": 436,
+    "differences": 0,
+    "mappedQueriesValidatedSeparately": 256,
+    "unorderedProjectResults": [],
+    "unorderedFileRenameResults": [],
+    "unorderedCodeLensResults": [],
+    "unorderedReferenceResults": [],
+    "compilerSha256": "32447feb686d74cfb3bb2ebd4a0650dfca1406fd9e0995e23e5696e6b327d111",
+    "inputsSha256": "edaaac3f23dd18ef227aa0b2f2bdba0477b2ab0e0b61487c2400621270e3a696"
+  },
+  "lspTemplateAbsenceChecks": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 19,
+    "scope": "Exact null and JSDoc-template completion responses plus template absence in other contexts; other provider contents remain deferred",
+    "exactResponseRequests": 0,
+    "requests": 544,
+    "clients": 260,
+    "differences": 0,
+    "mappedQueriesValidatedSeparately": 128,
+    "unorderedProjectResults": [],
+    "unorderedFileRenameResults": [],
+    "unorderedCodeLensResults": [],
+    "unorderedReferenceResults": [],
+    "compilerSha256": "32447feb686d74cfb3bb2ebd4a0650dfca1406fd9e0995e23e5696e6b327d111",
+    "inputsSha256": "540821b18a33745f0f93f46a21530033b52733b9236e49c004b7b18a726131aa"
+  },
+  "safety": {
+    "syntaxServiceAssertions": 225,
+    "newCompletionServiceAssertions": 28,
+    "lspAssertions": 215,
+    "newCompletionLspAssertions": 12,
+    "compilerSha256": "32447feb686d74cfb3bb2ebd4a0650dfca1406fd9e0995e23e5696e6b327d111",
+    "harnessSha256": "0e01e578b2300420d7655314c89802cb1ac20eed82fc17df178b9e65304f2c49",
+    "logs": [
+      "built/csharp/phase7-validation/jsdoc-completion-service-safety1.log",
+      "built/csharp/phase7-validation/jsdoc-completion-lsp-safety1.log"
+    ]
+  },
+  "originalSelectedFunctions": 39,
+  "originalActiveFunctions": 30,
+  "originalSkippedFunctions": [
+    "TestDocCommentTemplateClassDecl01",
+    "TestDocCommentTemplateClassDeclMethods01",
+    "TestDocCommentTemplateFunctionExpression",
+    "TestDocCommentTemplateIndentation",
+    "TestDocCommentTemplateJsSpecialPropertyAssignment",
+    "TestDocCommentTemplatePrototypeMethod",
+    "TestDocCommentTemplateWithMultipleJSDoc1",
+    "TestDocCommentTemplateWithMultipleJSDoc3",
+    "TestDocCommentTemplateWithMultipleJSDocAndParameters"
+  ],
+  "authoredScenarios": 14,
+  "instrumentation": {
+    "file": "internal/fourslash/fourslash.go",
+    "originalSha256": "3b8b8841e0b5dc36e61d9fd81a3bcf9aa1b22a4f18e1f94af96b31c735335358",
+    "recordedSha256": "3e9936a5a5b69ee7674b43f8e49aa8c15b7f7da9215b1b29c691f21f010488af",
+    "coordinateSources": [
+      {
+        "file": "internal/fourslash/test_parser.go",
+        "originalSha256": "08692d80654a2ea0c13cb6df51820f5462088d4fdd6cf4e37aeff767d69ae299",
+        "recordedSha256": "7f29d1fcdc79e5d3700d19434915caa4e0225405e2f5a2b44d47ce6d502dec45"
+      },
+      {
+        "file": "internal/fourslash/baselineutil.go",
+        "originalSha256": "ae8b2d833e196181c35e107aedbb48e21b042348014ab81ad34805476f18d8b0",
+        "recordedSha256": "58cc27d724d047ce6a4c03a07bf207e4620bfecb9720c294abf2172a129dd79c"
+      },
+      {
+        "file": "internal/fourslash/semantictokens.go",
+        "originalSha256": "5885b15d81417609d8473bc97c0d0a66581fab939aecb4f81a4710afeec7d881",
+        "recordedSha256": "69fb207190489a8bc3e7ab10ff46ffe855435d759851329bcda07789a9dfa314"
+      }
+    ]
+  },
+  "previousValidation": {
+    "firstReplay": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 30,
+      "originalTestFunctions": 30,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 310,
+      "differences": 310,
+      "compilerSha256": "32447feb686d74cfb3bb2ebd4a0650dfca1406fd9e0995e23e5696e6b327d111",
+      "inputsSha256": "cbdf809acc54a652b67742744e6edcd74ffd2771367875caa6ab8a550a1b0601"
+    },
+    "firstReplayReason": "The new completion method was routed through the reference-search replay branch. The replay dispatcher was corrected; these results are harness failures, not provider differences. Full original responses remain recorded for later completion work.",
+    "failedAuthoredRecording": "The JavaScript fixture lacked allowJs and the reference found no project. The author-provided fixture now enables allowJs; the original tests were unchanged. Failure output remains in built/csharp/phase7-validation/jsdoc-completion-authored-missing-allowjs.jsonl"
+  },
+  "phase7Complete": false,
+  "performanceMeasured": false,
+  "nativeAotExecuted": false,
+  "lspTotalRequests": 1270,
+  "mappedQueriesValidatedSeparately": 384
+}

@@ -1,0 +1,1096 @@
+{
+  "phase": 7,
+  "phase7Complete": false,
+  "completionProviderComplete": true,
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "fullOracle": {
+    "directory": "built/csharp/phase7-validation/completion-full",
+    "requests": 7646,
+    "methods": {
+      "textDocument/completion": 5990,
+      "completionItem/resolve": 1656
+    },
+    "orderingEvidence": "csharp/compatibility/evidence/phase7-completion-ordering.json"
+  },
+  "validation": [
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-full",
+      "originalTests": 1056,
+      "originalTestFunctions": 1056,
+      "selectedTestsWithoutRequests": [
+        "TestCompletionColonToken"
+      ],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 32,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 7646,
+      "differences": 2498,
+      "compilerSha256": "1faffea593cc2c1787da5073abf6ddcba74ed685ef7b4c9a63835863f59f3f20",
+      "inputsSha256": "84281451bca7cb2107ed934dad9f31d9e6927eba0942db73759009e28ac3a97f",
+      "directory": "built/csharp/phase7-validation/completion-literals",
+      "matchingRequests": 5148
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-full",
+      "originalTests": 21,
+      "originalTestFunctions": 21,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 80,
+      "differences": 4,
+      "compilerSha256": "b27d0b9e9803ef416f40169142601627f488475193e0d17aea924ea789258c01",
+      "inputsSha256": "84281451bca7cb2107ed934dad9f31d9e6927eba0942db73759009e28ac3a97f",
+      "directory": "built/csharp/phase7-validation/completion-constraints",
+      "matchingRequests": 76
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-full",
+      "originalTests": 85,
+      "originalTestFunctions": 85,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 460,
+      "differences": 170,
+      "compilerSha256": "73f3033f775d20fe78ea99a3cc57f589803a0a3e460178dd45d1b1f9935223e2",
+      "inputsSha256": "84281451bca7cb2107ed934dad9f31d9e6927eba0942db73759009e28ac3a97f",
+      "directory": "built/csharp/phase7-validation/completion-strings",
+      "matchingRequests": 290
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-full",
+      "originalTests": 42,
+      "originalTestFunctions": 42,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 210,
+      "differences": 12,
+      "compilerSha256": "01ab9af5bfd8dfc6913ff37ace86814fcda00c5a4e6631913876609ede65008b",
+      "inputsSha256": "84281451bca7cb2107ed934dad9f31d9e6927eba0942db73759009e28ac3a97f",
+      "directory": "built/csharp/phase7-validation/completion-core-fixes",
+      "matchingRequests": 198
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-full",
+      "originalTests": 49,
+      "originalTestFunctions": 49,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 412,
+      "differences": 20,
+      "compilerSha256": "d1c1d4a02ae83be34b2e99e47d7418f148ac56b0606a21be2205be544e851295",
+      "inputsSha256": "84281451bca7cb2107ed934dad9f31d9e6927eba0942db73759009e28ac3a97f",
+      "directory": "built/csharp/phase7-validation/completion-jsx",
+      "matchingRequests": 392
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-full",
+      "originalTests": 122,
+      "originalTestFunctions": 122,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 816,
+      "differences": 234,
+      "compilerSha256": "fba9d81ead2bf17f6c0155293b39b49165461dfacce1ddb803897374497422c2",
+      "inputsSha256": "84281451bca7cb2107ed934dad9f31d9e6927eba0942db73759009e28ac3a97f",
+      "directory": "built/csharp/phase7-validation/completion-paths-basic",
+      "matchingRequests": 582
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-full",
+      "originalTests": 122,
+      "originalTestFunctions": 122,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 816,
+      "differences": 86,
+      "compilerSha256": "a42768df988c94242af135ede1e864aaed0185caadb9f04db07b6fa6e5aab73d",
+      "inputsSha256": "84281451bca7cb2107ed934dad9f31d9e6927eba0942db73759009e28ac3a97f",
+      "directory": "built/csharp/phase7-validation/completion-path-mappings",
+      "matchingRequests": 730
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-full",
+      "originalTests": 122,
+      "originalTestFunctions": 122,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 816,
+      "differences": 40,
+      "compilerSha256": "85e0ee37370b88e4d45a7b71d3bcfe1eca0dd28a5240df6e917669a51dddb6b2",
+      "inputsSha256": "84281451bca7cb2107ed934dad9f31d9e6927eba0942db73759009e28ac3a97f",
+      "directory": "built/csharp/phase7-validation/completion-reference-paths",
+      "matchingRequests": 776
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-full",
+      "originalTests": 122,
+      "originalTestFunctions": 122,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 816,
+      "differences": 40,
+      "compilerSha256": "bbdf534c4175f7988e744fdf4f1edcc64a48222a483f282ca3d4cb92de1e41d4",
+      "inputsSha256": "84281451bca7cb2107ed934dad9f31d9e6927eba0942db73759009e28ac3a97f",
+      "directory": "built/csharp/phase7-validation/completion-paths-final",
+      "matchingRequests": 776
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-full",
+      "originalTests": 122,
+      "originalTestFunctions": 122,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 816,
+      "differences": 16,
+      "compilerSha256": "b00446d4805999aa3123a53c10a3e166a0751ba5614e24f53cb90fc0bcbfe7ec",
+      "inputsSha256": "84281451bca7cb2107ed934dad9f31d9e6927eba0942db73759009e28ac3a97f",
+      "directory": "built/csharp/phase7-validation/completion-paths-corrected",
+      "matchingRequests": 800,
+      "remainingDifferences": {
+        "TestCompletionsImportPathsConflict": 8,
+        "TestCompletionsImport_ofAlias_preferShortPath": 8
+      },
+      "classification": "All 16 remaining requests in this selection exercise unimplemented auto-import completion/resolve."
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-full",
+      "originalTests": 1056,
+      "originalTestFunctions": 1056,
+      "selectedTestsWithoutRequests": [
+        "TestCompletionColonToken"
+      ],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 32,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 7646,
+      "differences": 1238,
+      "compilerSha256": "a36d1582a84adc27cedb24be890e20af2a8d2a5dd53466bac1c9b0b9956f68e6",
+      "inputsSha256": "84281451bca7cb2107ed934dad9f31d9e6927eba0942db73759009e28ac3a97f",
+      "directory": "built/csharp/phase7-validation/completion-general",
+      "matchingRequests": 6408
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-full",
+      "originalTests": 21,
+      "originalTestFunctions": 21,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 82,
+      "differences": 26,
+      "compilerSha256": "00f0302394bc7e2de75c0e0e43282fe86e1ed6ccae38f63d60b5fa59b1f87e5c",
+      "inputsSha256": "84281451bca7cb2107ed934dad9f31d9e6927eba0942db73759009e28ac3a97f",
+      "directory": "built/csharp/phase7-validation/completion-object-comma",
+      "matchingRequests": 56
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-full",
+      "originalTests": 21,
+      "originalTestFunctions": 21,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 82,
+      "differences": 0,
+      "compilerSha256": "88e7ff1d67e7b1072dce6be9fc3fba8c4ec29896134e35707360a9514eb8e563",
+      "inputsSha256": "84281451bca7cb2107ed934dad9f31d9e6927eba0942db73759009e28ac3a97f",
+      "directory": "built/csharp/phase7-validation/completion-object-snippets",
+      "matchingRequests": 82
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-full",
+      "originalTests": 17,
+      "originalTestFunctions": 17,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 112,
+      "differences": 30,
+      "compilerSha256": "aeea87e599b1101aa1f7cb8fcb8982ce3f6562fb3d9d5f71150b58d5a0c95642",
+      "inputsSha256": "84281451bca7cb2107ed934dad9f31d9e6927eba0942db73759009e28ac3a97f",
+      "directory": "built/csharp/phase7-validation/completion-switch",
+      "matchingRequests": 82
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-full",
+      "originalTests": 23,
+      "originalTestFunctions": 23,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 140,
+      "differences": 10,
+      "compilerSha256": "234254dbde9ae5b29a74815cc98f6f4e41ed3e87d5c44062fb6744bea142483b",
+      "inputsSha256": "84281451bca7cb2107ed934dad9f31d9e6927eba0942db73759009e28ac3a97f",
+      "directory": "built/csharp/phase7-validation/completion-contexts",
+      "matchingRequests": 130
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 0,
+      "originalTestFunctions": 0,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 7,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 176,
+      "differences": 0,
+      "compilerSha256": "234254dbde9ae5b29a74815cc98f6f4e41ed3e87d5c44062fb6744bea142483b",
+      "inputsSha256": "fbf22991ac06baa4e9d993de2ecc36f40cc60784dde8f002995ab126d51fda61",
+      "directory": "built/csharp/phase7-validation/completion-snippet-capabilities",
+      "matchingRequests": 176
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-full",
+      "originalTests": 1056,
+      "originalTestFunctions": 1056,
+      "selectedTestsWithoutRequests": [
+        "TestCompletionColonToken"
+      ],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 32,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 7646,
+      "differences": 1088,
+      "compilerSha256": "234254dbde9ae5b29a74815cc98f6f4e41ed3e87d5c44062fb6744bea142483b",
+      "inputsSha256": "84281451bca7cb2107ed934dad9f31d9e6927eba0942db73759009e28ac3a97f",
+      "directory": "built/csharp/phase7-validation/completion-snippets-full",
+      "matchingRequests": 6558
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-full",
+      "originalTests": 35,
+      "originalTestFunctions": 35,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 120,
+      "differences": 22,
+      "compilerSha256": "4f73df4b850ca99ded8ade79beb040da111a61509eef497d3910d0ff99c2b1e5",
+      "inputsSha256": "84281451bca7cb2107ed934dad9f31d9e6927eba0942db73759009e28ac3a97f",
+      "directory": "built/csharp/phase7-validation/completion-class",
+      "matchingRequests": 98
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-full",
+      "originalTests": 35,
+      "originalTestFunctions": 35,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 120,
+      "differences": 16,
+      "compilerSha256": "641441d32abd40407064741cd1138060afe12db51e7faf231ce24c48065d35a8",
+      "inputsSha256": "84281451bca7cb2107ed934dad9f31d9e6927eba0942db73759009e28ac3a97f",
+      "directory": "built/csharp/phase7-validation/completion-class-fixes",
+      "matchingRequests": 104
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 0,
+      "originalTestFunctions": 0,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 13,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 352,
+      "differences": 0,
+      "compilerSha256": "f9fc85f834ed469fab0e37fe21359adfa71de0a4bc11a3109bd65d496d941a09",
+      "inputsSha256": "fa93cb81134625d08b1f97accd79066ca9fa56637c599c68920aeacbe4d11418",
+      "directory": "built/csharp/phase7-validation/completion-class-capabilities",
+      "matchingRequests": 352
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-full",
+      "originalTests": 12,
+      "originalTestFunctions": 12,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 78,
+      "differences": 0,
+      "compilerSha256": "cf333c02be8c531a12e06a3181a5242fa6f0e985951fcdc3e793bcb8014b8525",
+      "inputsSha256": "84281451bca7cb2107ed934dad9f31d9e6927eba0942db73759009e28ac3a97f",
+      "directory": "built/csharp/phase7-validation/completion-recovery",
+      "matchingRequests": 78
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-full",
+      "originalTests": 1056,
+      "originalTestFunctions": 1056,
+      "selectedTestsWithoutRequests": [
+        "TestCompletionColonToken"
+      ],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 32,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 7646,
+      "differences": 964,
+      "compilerSha256": "8748da5f76ffce712e2c230d7f1324540767335b0fb9d09a93c680b275394913",
+      "inputsSha256": "84281451bca7cb2107ed934dad9f31d9e6927eba0942db73759009e28ac3a97f",
+      "directory": "built/csharp/phase7-validation/completion-class-full",
+      "matchingRequests": 6682
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-full",
+      "originalTests": 35,
+      "originalTestFunctions": 35,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 120,
+      "differences": 0,
+      "compilerSha256": "689844f438176b4ce2bc73b7df6e8a7b72f9b651ae184e975ee2e870c4f71800",
+      "inputsSha256": "84281451bca7cb2107ed934dad9f31d9e6927eba0942db73759009e28ac3a97f",
+      "directory": "built/csharp/phase7-validation/completion-snippet-imports",
+      "matchingRequests": 120
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-class-capabilities",
+      "originalTests": 0,
+      "originalTestFunctions": 0,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 13,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 352,
+      "differences": 0,
+      "compilerSha256": "689844f438176b4ce2bc73b7df6e8a7b72f9b651ae184e975ee2e870c4f71800",
+      "inputsSha256": "fa93cb81134625d08b1f97accd79066ca9fa56637c599c68920aeacbe4d11418",
+      "directory": "built/csharp/phase7-validation/completion-import-capabilities",
+      "matchingRequests": 352
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-full",
+      "originalTests": 15,
+      "originalTestFunctions": 15,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 68,
+      "differences": 6,
+      "compilerSha256": "689844f438176b4ce2bc73b7df6e8a7b72f9b651ae184e975ee2e870c4f71800",
+      "inputsSha256": "84281451bca7cb2107ed934dad9f31d9e6927eba0942db73759009e28ac3a97f",
+      "directory": "built/csharp/phase7-validation/completion-exhaustive-imports",
+      "matchingRequests": 62,
+      "remainingDifference": "Six requests include additional general auto-import suggestions; the exhaustive switch snippets and their import edits match."
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-import-matrix",
+      "originalTests": 0,
+      "originalTestFunctions": 0,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 20,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 624,
+      "differences": 16,
+      "compilerSha256": "689844f438176b4ce2bc73b7df6e8a7b72f9b651ae184e975ee2e870c4f71800",
+      "inputsSha256": "d915bca93eefa4f0e801b8345e23af021cbfcb3a7e71b7807b8c5b94cd1095ca",
+      "directory": "built/csharp/phase7-validation/completion-import-matrix-focused",
+      "matchingRequests": 608
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-import-matrix",
+      "originalTests": 0,
+      "originalTestFunctions": 0,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 20,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 624,
+      "differences": 0,
+      "compilerSha256": "a6425eeb30062bc9d704db4faf3b0b94b6df43b7e3972e8a7e1d78638f005ac2",
+      "inputsSha256": "d915bca93eefa4f0e801b8345e23af021cbfcb3a7e71b7807b8c5b94cd1095ca",
+      "directory": "built/csharp/phase7-validation/completion-import-matrix-fixed",
+      "matchingRequests": 624
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 1056,
+      "originalTestFunctions": 1056,
+      "selectedTestsWithoutRequests": [
+        "TestCompletionColonToken"
+      ],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 52,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 8270,
+      "differences": 942,
+      "compilerSha256": "689844f438176b4ce2bc73b7df6e8a7b72f9b651ae184e975ee2e870c4f71800",
+      "inputsSha256": "d915bca93eefa4f0e801b8345e23af021cbfcb3a7e71b7807b8c5b94cd1095ca",
+      "directory": "built/csharp/phase7-validation/completion-import-matrix",
+      "matchingRequests": 7328,
+      "authoredSnippetDifferencesResolvedSeparately": 16,
+      "authoredSnippetFixEvidence": "built/csharp/phase7-validation/completion-import-matrix-fixed/summary.json"
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-import-matrix",
+      "originalTests": 195,
+      "originalTestFunctions": 195,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 1096,
+      "differences": 128,
+      "compilerSha256": "c65a0eb4ff2a1c9355f376afcfd89e772a39acadaf5e949d326210dcee5ac4e8",
+      "inputsSha256": "d915bca93eefa4f0e801b8345e23af021cbfcb3a7e71b7807b8c5b94cd1095ca",
+      "directory": "built/csharp/phase7-validation/completion-autoimports-basic",
+      "note": "Intermediate auto-import implementation; package discovery and remaining provider differences are unfinished."
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-import-matrix",
+      "originalTests": 195,
+      "originalTestFunctions": 195,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 1096,
+      "differences": 106,
+      "compilerSha256": "8ca3e98e3298e0024bab5e51202dd9eae33259d648db225759e05dcc25286ead",
+      "inputsSha256": "d915bca93eefa4f0e801b8345e23af021cbfcb3a7e71b7807b8c5b94cd1095ca",
+      "directory": "built/csharp/phase7-validation/completion-autoimports-metadata",
+      "note": "Intermediate auto-import implementation; package discovery and remaining provider differences are unfinished."
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-import-matrix",
+      "originalTests": 1056,
+      "originalTestFunctions": 1056,
+      "selectedTestsWithoutRequests": [
+        "TestCompletionColonToken"
+      ],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 52,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 8270,
+      "differences": 88,
+      "compilerSha256": "c43015d156d47176529545d1d9ee7e258648b4b0cd7fd6821b0ae7f3cafdebb7",
+      "inputsSha256": "d915bca93eefa4f0e801b8345e23af021cbfcb3a7e71b7807b8c5b94cd1095ca",
+      "originalDifferences": 90,
+      "comparisonSha256": "3ad855a69591da642e0f6dd1fdd724a79c57de26dad47c9ff1ac8e8cbedc660e",
+      "note": "All 8270 requests replayed without query errors; 88 differences remain after the narrow original-order control. Four import-keyword replacement-range differences have a subsequent source fix awaiting its focused replay; the remaining differences concern package discovery and visibility.",
+      "directory": "built/csharp/phase7-validation/completion-autoimports-core-full"
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-import-matrix",
+      "originalTests": 21,
+      "originalTestFunctions": 21,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 84,
+      "differences": 2,
+      "compilerSha256": "2febd3206a59e2c08ff6903af78229cb2a0575178f7a682eccb6185abeed8a2a",
+      "inputsSha256": "d915bca93eefa4f0e801b8345e23af021cbfcb3a7e71b7807b8c5b94cd1095ca",
+      "directory": "built/csharp/phase7-validation/completion-autoimports-keyword",
+      "note": "All keyword, type-only, shorthand import editing and tied CommonJS ordering cases pass. The two remaining requests are pnpm package discovery."
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-import-matrix",
+      "originalTests": 148,
+      "originalTestFunctions": 148,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 858,
+      "differences": 10,
+      "compilerSha256": "0c0c40d66c632d6d8164378a545ce75146cfe69200ee996819f71fd0facd76da",
+      "inputsSha256": "d915bca93eefa4f0e801b8345e23af021cbfcb3a7e71b7807b8c5b94cd1095ca",
+      "directory": "built/csharp/phase7-validation/completion-entrypoints-first"
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-import-matrix",
+      "originalTests": 1056,
+      "originalTestFunctions": 1056,
+      "selectedTestsWithoutRequests": [
+        "TestCompletionColonToken"
+      ],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 52,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 8270,
+      "differences": 2,
+      "compilerSha256": "2f0a9b32491bc7fe058bd2138bde819515b54234ec864d84c3f6095657985a8b",
+      "inputsSha256": "d915bca93eefa4f0e801b8345e23af021cbfcb3a7e71b7807b8c5b94cd1095ca",
+      "directory": "built/csharp/phase7-validation/completion-entrypoints-full"
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-entrypoints-history2",
+      "originalTests": 1,
+      "originalTestFunctions": 1,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 0,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 8,
+      "differences": 0,
+      "compilerSha256": "4dadf7da50d75e699b5cc83857234a5bb772bb910253a55e38180fcc4365e74f",
+      "inputsSha256": "dccf74a842ba7fe35cb93f067aafcd063f4def45142d580d3e155cf4080ffbf7",
+      "directory": "built/csharp/phase7-validation/completion-entrypoints-history-check"
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-sessions",
+      "originalTests": 1056,
+      "originalTestFunctions": 1056,
+      "selectedTestsWithoutRequests": [
+        "TestCompletionColonToken"
+      ],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 52,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 8270,
+      "differences": 0,
+      "compilerSha256": "4dadf7da50d75e699b5cc83857234a5bb772bb910253a55e38180fcc4365e74f",
+      "inputsSha256": "5dcc20422768a7ef176535bdbc1cc9f128f4342a382dbfec85d00c6cfaf30ed8",
+      "directory": "built/csharp/phase7-validation/completion-sessions-full",
+      "notes": "Complete recapture with preceding completion queries while project inputs remain unchanged; all prior original fixtures remain retained."
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-sessions",
+      "originalTests": 1056,
+      "originalTestFunctions": 1056,
+      "selectedTestsWithoutRequests": [
+        "TestCompletionColonToken"
+      ],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 52,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 8270,
+      "differences": 0,
+      "compilerSha256": "2c0d997c84966102c47cd8c8cc63b036c25ba3f0cae4ad2b9bd3375ce65dd8eb",
+      "inputsSha256": "5dcc20422768a7ef176535bdbc1cc9f128f4342a382dbfec85d00c6cfaf30ed8",
+      "directory": "built/csharp/phase7-validation/completion-regex-full"
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-sessions",
+      "originalTests": 1056,
+      "originalTestFunctions": 1056,
+      "selectedTestsWithoutRequests": [
+        "TestCompletionColonToken"
+      ],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 52,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 8270,
+      "differences": 0,
+      "compilerSha256": "006efff02dc1f2852704d45a5e84621e2a52c6e8acc15878dc529ba18fa6c535",
+      "inputsSha256": "5dcc20422768a7ef176535bdbc1cc9f128f4342a382dbfec85d00c6cfaf30ed8",
+      "directory": "built/csharp/phase7-validation/completion-registry-full"
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-sessions",
+      "originalTests": 1056,
+      "originalTestFunctions": 1056,
+      "selectedTestsWithoutRequests": [
+        "TestCompletionColonToken"
+      ],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 52,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 8270,
+      "differences": 0,
+      "compilerSha256": "88e7ce6fa8522577186e88e2a12b1bb63c140614b9dbb9fcff8b4d87a3d63998",
+      "inputsSha256": "5dcc20422768a7ef176535bdbc1cc9f128f4342a382dbfec85d00c6cfaf30ed8",
+      "directory": "built/csharp/phase7-validation/completion-code-actions-imports-retry",
+      "note": "Regression after ambient-import package discovery and package-level realpath corrections for code actions."
+    }
+  ],
+  "interruptedAttempts": [
+    {
+      "directory": "built/csharp/phase7-validation/completion-core",
+      "compilerSha256": "661aaf61ba98060338452fb56ab663544982cb37d628aabd5d8b8639e0b63c51",
+      "completedResponses": 1847,
+      "errors": 32,
+      "rawResponsesSha256": "a47f9328756c39a73c20fc7720c4bcf028d463bd9b1762d294969111207c5ebd",
+      "reason": "Stopped after identifying nested checker query-gate acquisition in new object/module completion helpers. Private ungated helpers now run under the existing gate. Partial raw responses are retained; no full result is claimed."
+    },
+    {
+      "directory": "built/csharp/phase7-validation/completion-imports",
+      "compilerSha256": "2ff4a191b72475d0ea26569fe3b5a12df40f1f1b87f6edaca626f3407b2d9be7",
+      "completedResponses": 14,
+      "errors": 11,
+      "rawResponsesSha256": "35f3617fed6d4ceb7a2ec46925d4e59cc854072efe0241b00cca828c445830e7",
+      "reason": "Stopped after identifying nested checker query-gate acquisition in new object/module completion helpers. Private ungated helpers now run under the existing gate. Partial raw responses are retained; no full result is claimed."
+    }
+  ],
+  "remaining": [],
+  "safety": {
+    "directory": "built/csharp/phase7-literals-build/bin/TypeScript.Compatibility/release",
+    "compilerSha256": "f9fc85f834ed469fab0e37fe21359adfa71de0a4bc11a3109bd65d496d941a09",
+    "compatibilitySha256": "631b27b901e4af18dabcfece51eb9cfa808c829f661ed4907c48e326609785df",
+    "assertions": 269,
+    "log": "built/csharp/phase7-validation/completion-class-safety1.log",
+    "addedChecks": "Semantic and snippet completion checks cover a single available checker, concurrent queries, cancellation recovery, Unicode and dollar escaping, source-tree immutability, class modifier edits and resolution identity.",
+    "lspAssertions": 223,
+    "lspLog": "built/csharp/phase7-validation/completion-class-lsp-safety1.log",
+    "formattingAssertions": 11,
+    "formattingLog": "built/csharp/phase7-validation/completion-class-formatting-safety1.log"
+  },
+  "compilerBuildAttempts": [
+    {
+      "log": "built/csharp/phase7-validation/completion-recovery-build2.log",
+      "result": "Compatibility csc process exited with access violation 0xc0000005 after the compiler library built. No source change was made in response."
+    },
+    {
+      "log": "built/csharp/phase7-validation/completion-recovery-build3.log",
+      "result": "Identical retry succeeded with zero warnings and zero errors."
+    },
+    {
+      "log": "built/csharp/phase7-validation/completion-autoimports-build2.log",
+      "result": "Replay was started before build completion and locked the previous compiler assembly. Build and partial replay were discarded. Identical build3 completed with zero warnings and errors before the recorded basic replay."
+    },
+    {
+      "log": "built/csharp/phase7-validation/completion-entrypoints-build7.log",
+      "result": "The compatibility C# compiler process reported a fatal internal CLR error (0x80131506); no source change was made in response."
+    },
+    {
+      "log": "built/csharp/phase7-validation/completion-entrypoints-build8.log",
+      "result": "Identical retry succeeded with zero warnings and zero errors."
+    }
+  ],
+  "snippetLsp": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 0,
+    "requests": 224,
+    "clients": 128,
+    "differences": 0,
+    "mappedQueriesValidatedSeparately": 128,
+    "unorderedProjectResults": [],
+    "unorderedFileRenameResults": [],
+    "unorderedCodeLensResults": [],
+    "unorderedReferenceResults": [],
+    "compilerSha256": "8748da5f76ffce712e2c230d7f1324540767335b0fb9d09a93c680b275394913",
+    "inputsSha256": "fa93cb81134625d08b1f97accd79066ca9fa56637c599c68920aeacbe4d11418",
+    "directory": "built/csharp/phase7-validation/lsp-completion-snippets"
+  },
+  "recovery": {
+    "parserEvidence": "phase7-completion-parser.json",
+    "serviceSafetyAssertions": 269,
+    "serviceSafetyLog": "built/csharp/phase7-validation/completion-recovery-safety1.log",
+    "compilerSha256": "8748da5f76ffce712e2c230d7f1324540767335b0fb9d09a93c680b275394913",
+    "semanticEvidence": "phase7-completion-semantics.json"
+  },
+  "importNormalizationEvidence": "phase7-import-normalization.json",
+  "importSnippetSafety": {
+    "assertions": 269,
+    "log": "built/csharp/phase7-validation/completion-import-snippet-safety2.log",
+    "compilerSha256": "a6425eeb30062bc9d704db4faf3b0b94b6df43b7e3972e8a7e1d78638f005ac2"
+  },
+  "importSnippetLsp": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 0,
+    "requests": 400,
+    "clients": 248,
+    "differences": 0,
+    "mappedQueriesValidatedSeparately": 224,
+    "unorderedProjectResults": [],
+    "unorderedFileRenameResults": [],
+    "unorderedCodeLensResults": [],
+    "unorderedReferenceResults": [],
+    "compilerSha256": "a6425eeb30062bc9d704db4faf3b0b94b6df43b7e3972e8a7e1d78638f005ac2",
+    "inputsSha256": "d915bca93eefa4f0e801b8345e23af021cbfcb3a7e71b7807b8c5b94cd1095ca",
+    "directory": "built/csharp/phase7-validation/lsp-completion-import-snippets"
+  },
+  "autoImportOrderingEvidence": "phase7-autoimport-ordering.json",
+  "autoImportCoreSafety": {
+    "serviceAssertions": 269,
+    "lspAssertions": 223,
+    "serviceLog": "built/csharp/phase7-validation/completion-autoimports-safety1.log",
+    "lspLog": "built/csharp/phase7-validation/completion-autoimports-lsp-safety1.log",
+    "compilerSha256": "c43015d156d47176529545d1d9ee7e258648b4b0cd7fd6821b0ae7f3cafdebb7"
+  },
+  "autoImportPackageSafety": {
+    "serviceAssertions": 288,
+    "serviceLog": "built/csharp/phase7-validation/completion-entrypoints-safety2.log",
+    "projectAssertions": 89,
+    "projectLog": "built/csharp/phase7-validation/completion-entrypoints-project-safety1.log",
+    "compilerSha256": "7689dbcdae1bf26c52e9ff1d5f6f7aa15becc2f6c73713ac37cea3c6e1ae953e",
+    "projectCompilerSha256": "4dadf7da50d75e699b5cc83857234a5bb772bb910253a55e38180fcc4365e74f",
+    "scope": "Snapshot package changes without main-program rebuild, retained snapshots, preference invalidation, concurrent queries, cancellation before index publication, import resolution and detached metadata retention. The retention probe yields before collection to release the producer async stack.",
+    "lspAssertions": 223,
+    "lspLog": "built/csharp/phase7-validation/completion-entrypoints-lsp-safety1.log"
+  },
+  "autoImportHistoryLsp": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 1,
+    "requests": 8,
+    "clients": 8,
+    "differences": 0,
+    "mappedQueriesValidatedSeparately": 0,
+    "unorderedProjectResults": [],
+    "unorderedFileRenameResults": [],
+    "unorderedCodeLensResults": [],
+    "unorderedReferenceResults": [],
+    "compilerSha256": "4dadf7da50d75e699b5cc83857234a5bb772bb910253a55e38180fcc4365e74f",
+    "inputsSha256": "dccf74a842ba7fe35cb93f067aafcd063f4def45142d580d3e155cf4080ffbf7",
+    "directory": "built/csharp/phase7-validation/lsp-completion-entrypoints-history"
+  },
+  "completionHistory": {
+    "recordedDirectory": "built/csharp/phase7-validation/completion-sessions",
+    "scope": "Prior completion requests, preferences and capabilities are recorded while files, compiler options, project identity, open files and mapped projections are unchanged. Filesystem/editor transition coverage remains in the separate lifecycle tests.",
+    "recorderSha256": "fc90d5e436e2d4a87ce90f5725ecbc823f38267700888d6d829826981767b5c6",
+    "toolSha256": "39af58a641d7902925d9b33068aa5014d4db056d6eca7cfb9267db992a3bb342",
+    "inputSha256": "5dcc20422768a7ef176535bdbc1cc9f128f4342a382dbfec85d00c6cfaf30ed8"
+  },
+  "autoImportIndexEvidence": "phase7-autoimport-index.json",
+  "specifierRegexEvidence": "phase7-specifier-regex.json",
+  "completionLspAttempts": [
+    {
+      "directory": "built/csharp/phase7-validation/lsp-completion-sessions-full",
+      "completedSessions": 4291,
+      "requests": 7400,
+      "differences": 4,
+      "result": "All requests executed; the four differences were untitled URI misrouting in the replay harness. Combined response serialization then exceeded the JavaScript string-size limit; no successful summary counted."
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 4,
+      "requests": 8,
+      "clients": 8,
+      "differences": 0,
+      "mappedQueriesValidatedSeparately": 0,
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "compilerSha256": "7689dbcdae1bf26c52e9ff1d5f6f7aa15becc2f6c73713ac37cea3c6e1ae953e",
+      "inputsSha256": "5dcc20422768a7ef176535bdbc1cc9f128f4342a382dbfec85d00c6cfaf30ed8",
+      "directory": "built/csharp/phase7-validation/lsp-completion-untitled-fixed",
+      "result": "Correct URI replay passes all eight requests from the four original untitled tests."
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 1042,
+      "requests": 7400,
+      "clients": 4291,
+      "differences": 0,
+      "mappedQueriesValidatedSeparately": 870,
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "compilerSha256": "2c0d997c84966102c47cd8c8cc63b036c25ba3f0cae4ad2b9bd3375ce65dd8eb",
+      "inputsSha256": "5dcc20422768a7ef176535bdbc1cc9f128f4342a382dbfec85d00c6cfaf30ed8",
+      "directory": "built/csharp/phase7-validation/lsp-completion-regex-full",
+      "result": "All requests and shutdowns pass; streamed response arrays were saved successfully."
+    }
+  ],
+  "autoImportRegistryEvidence": "phase7-autoimport-registry.json",
+  "completionLsp": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 1042,
+    "requests": 7400,
+    "clients": 4291,
+    "differences": 0,
+    "mappedQueriesValidatedSeparately": 870,
+    "unorderedProjectResults": [],
+    "unorderedFileRenameResults": [],
+    "unorderedCodeLensResults": [],
+    "unorderedReferenceResults": [],
+    "compilerSha256": "2c0d997c84966102c47cd8c8cc63b036c25ba3f0cae4ad2b9bd3375ce65dd8eb",
+    "inputsSha256": "5dcc20422768a7ef176535bdbc1cc9f128f4342a382dbfec85d00c6cfaf30ed8",
+    "directory": "built/csharp/phase7-validation/lsp-completion-regex-full"
+  },
+  "completionCapabilitiesEvidence": "csharp/compatibility/evidence/phase7-completion-capabilities.json"
+}

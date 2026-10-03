@@ -1,0 +1,133 @@
+{
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "date": "2026-10-03",
+  "configuration": "Release CoreCLR",
+  "scope": "JSDoc tag names, parameter names, parameter annotations and their completion item resolution",
+  "directAuthored": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 0,
+    "originalTestFunctions": 0,
+    "selectedTestsWithoutRequests": [],
+    "unorderedProjectResults": [],
+    "unorderedFileRenameResults": [],
+    "unorderedCodeLensResults": [],
+    "unorderedReferenceResults": [],
+    "authoredTests": 17,
+    "encodings": [
+      "utf-8",
+      "utf-16"
+    ],
+    "requests": 736,
+    "differences": 0,
+    "compilerSha256": "69280a56a984f59fce79786e98b28e6e79c636a3112a01ae58736674d2c20f79",
+    "inputsSha256": "9500dbe5f78d587bf1a20551e987eb96e2f3fb495b8c0ce9a8397c75a3fa7414"
+  },
+  "lspAuthored": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 0,
+    "requests": 544,
+    "clients": 192,
+    "differences": 0,
+    "mappedQueriesValidatedSeparately": 192,
+    "unorderedProjectResults": [],
+    "unorderedFileRenameResults": [],
+    "unorderedCodeLensResults": [],
+    "unorderedReferenceResults": [],
+    "compilerSha256": "69280a56a984f59fce79786e98b28e6e79c636a3112a01ae58736674d2c20f79",
+    "inputsSha256": "9500dbe5f78d587bf1a20551e987eb96e2f3fb495b8c0ce9a8397c75a3fa7414"
+  },
+  "original": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 3,
+    "originalTestFunctions": 3,
+    "selectedTestsWithoutRequests": [],
+    "unorderedProjectResults": [],
+    "unorderedFileRenameResults": [],
+    "unorderedCodeLensResults": [],
+    "unorderedReferenceResults": [],
+    "authoredTests": 0,
+    "encodings": [
+      "utf-8",
+      "utf-16"
+    ],
+    "requests": 28,
+    "differences": 2,
+    "compilerSha256": "69280a56a984f59fce79786e98b28e6e79c636a3112a01ae58736674d2c20f79",
+    "inputsSha256": "d50a0bcdc0284013264d828142a015db62d89d6e60c69eeb340926fb638a4d4e"
+  },
+  "originalClassification": {
+    "exactTagAndResolveResponses": 26,
+    "unimplementedGeneralTypeCompletionResponses": 2,
+    "remainingDifferences": "The two other responses are general type completions inside the JSDoc type expression in TestBasicJSDocCompletions. They remain in the full completion corpus."
+  },
+  "safety": {
+    "syntaxAssertions": 242,
+    "lspAssertions": 223,
+    "compilerSha256": "69280a56a984f59fce79786e98b28e6e79c636a3112a01ae58736674d2c20f79",
+    "harnessSha256": "5a88361d0321022090d1f66c5c21faff4dcf9611d1967388c4da30f7235ba94b"
+  },
+  "sharedCommentNavigationRegression": {
+    "hover": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 465,
+      "originalTestFunctions": 465,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 1,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 4604,
+      "differences": 0,
+      "compilerSha256": "69280a56a984f59fce79786e98b28e6e79c636a3112a01ae58736674d2c20f79",
+      "inputsSha256": "3ce81d5c22e5dbdc8c9b573762642f2305c21ac1d315d1bc63fc687047add42c"
+    },
+    "signatureHelp": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 181,
+      "originalTestFunctions": 181,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 1,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 2580,
+      "differences": 0,
+      "compilerSha256": "69280a56a984f59fce79786e98b28e6e79c636a3112a01ae58736674d2c20f79",
+      "inputsSha256": "ebf62d5aadf8ddc09b8ede5b3952758638744eb9d3fb4d86e4ae5b4fdad28395"
+    }
+  },
+  "failuresRetained": {
+    "initialCompletionReplay": "built/csharp/phase7-validation/jsdoc-tags-initial-differences.json",
+    "initialReplaySummary": "built/csharp/phase7-validation/jsdoc-tags-initial-summary.json",
+    "cause": "Comment navigation did not redirect a JSDoc token to its owner before locating enclosing comment trivia. The shared helper now performs this redirect.",
+    "authoredGoCompile": "built/csharp/phase7-validation/jsdoc-tags-authored1.log",
+    "authoredGoCause": "The new fixture initially accessed a CompletionResponse union as its list instead of reading response.List.",
+    "lspSafety": "built/csharp/phase7-validation/jsdoc-tags-lsp-safety1.log",
+    "lspSafetyCause": "The client wraps remote RpcException in IOException; the assertion now examines the structured inner exception."
+  },
+  "fullCompletionCapture": {
+    "requests": 7646,
+    "completionLists": 5990,
+    "resolutions": 1656,
+    "passingRootFunctions": 1059,
+    "originalSkippedFunctions": 158,
+    "inputsSha256": "84281451bca7cb2107ed934dad9f31d9e6927eba0942db73759009e28ac3a97f",
+    "path": "built\\csharp\\phase7-validation\\completion-full\\original-inputs.jsonl",
+    "passingOriginalRootFunctions": 1057,
+    "passingAuthoredRootFunctions": 2
+  },
+  "completionOrderingEvidence": "csharp/compatibility/evidence/phase7-completion-ordering.json",
+  "phase7Complete": false,
+  "nativeAotExecuted": false,
+  "performanceMeasured": false
+}

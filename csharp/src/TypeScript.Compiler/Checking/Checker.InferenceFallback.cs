@@ -31,19 +31,19 @@ internal sealed partial class Checker
                     continue;
                 if (await Signatures.PredicateAsync(await Signatures.FromDeclarationAsync(node, cancellation), cancellation) is not null)
                 {
-                    state.Tracker.ReportInferenceFallback(node);
+                    ReportReturnFallback(node);
                     continue;
                 }
                 var expression = SemanticSyntax.Generator(node) || SemanticSyntax.HasModifier(node, SyntaxKind.AsyncKeyword)
                     ? null : SingleReturnExpression(node, cancellation);
                 if (node is GetAccessorDeclarationNode && (expression is null || PlainInferredExpression(expression)))
                 {
-                    state.Tracker.ReportInferenceFallback(node);
+                    ReportReturnFallback(node);
                     continue;
                 }
                 if (expression is null || ContextualReturnExpression(expression) && !SemanticSyntax.ConstAssertion(expression)
                     && expression is not (AsExpressionNode or TypeAssertionNode))
-                    state.Tracker.ReportInferenceFallback(node);
+                    ReportReturnFallback(node);
                 else
                     pending.Push((expression, InferenceSyntaxKind.Expression));
                 continue;
@@ -173,6 +173,14 @@ internal sealed partial class Checker
                 state.Tracker.ReportInferenceFallback(!returnType && ConstantEvaluator.EntityName(node)
                     && QuerySyntax.Declaration(node.Parent) ? node.Parent! : target);
             }
+        }
+
+        void ReportReturnFallback(SyntaxNode node)
+        {
+            state.Tracker.ReportInferenceFallback(node);
+            if (node is GetAccessorDeclarationNode && program.Symbols.Declaration(node)?.Declarations
+                .OfType<SetAccessorDeclarationNode>().FirstOrDefault() is { } setter)
+                state.Tracker.ReportInferenceFallback(setter);
         }
 
         void PushFunction(SyntaxNode function)

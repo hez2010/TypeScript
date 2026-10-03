@@ -146,8 +146,8 @@ Utf8String.ConcatMany(prefix, Utf8Literals.NumberIsNaN, name, Utf8Literals.Close
             else
                 Error(node, code, arguments);
         }
-        else if (suggestionLocations.Add((node, code)))
-            Suggestions.Add(code);
+        else
+            ExpressionSuggestion(node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), suppliedArguments));
     }
 
     public async ValueTask<bool> GlobalNaNAsync(SyntaxNode node, CancellationToken cancellation)

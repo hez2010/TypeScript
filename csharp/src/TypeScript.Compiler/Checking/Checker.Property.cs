@@ -15,6 +15,22 @@ internal sealed partial class Checker : ITypePropertyHost, ITypeViewHost, ICompo
     public Type GlobalCallableFunction => program.Globals.Types[Utf8Literals.CallableFunction];
     public Type GlobalNewableFunction => program.Globals.Types[Utf8Literals.NewableFunction];
 
+    internal async ValueTask<IReadOnlyList<Symbol>> GetApparentPropertiesAsync(Type type, CancellationToken cancellation)
+    {
+        type = await Views.ApparentAsync(type, cancellation);
+        var members = new Dictionary<Utf8String, Symbol>();
+        foreach (var symbol in await Properties.GetAsync(type, cancellation)) members[symbol.Name] = symbol;
+        var function = (await SignaturesAsync(type, false, cancellation)).Count > 0 ? GlobalCallableFunction
+            : (await SignaturesAsync(type, true, cancellation)).Count > 0 ? GlobalNewableFunction : null;
+        if (function is not null)
+            foreach (var symbol in await Properties.GetAsync(function, cancellation)) members.TryAdd(symbol.Name, symbol);
+        var result = new List<Symbol>();
+        foreach (var (name, symbol) in members)
+            if (await Members.NamedAsync(name, symbol, cancellation)) result.Add(symbol);
+        result.Sort(Algebra.Order.CompareSymbols);
+        return result;
+    }
+
     public ValueTask<Type> ReducedApparentAsync(Type type, CancellationToken cancellation) =>
         Views.ReducedApparentAsync(type, cancellation);
 

@@ -1,0 +1,120 @@
+{
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "configuration": "Release CoreCLR",
+  "date": "2026-10-03",
+  "direct": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 3,
+    "originalTestFunctions": 3,
+    "selectedTestsWithoutRequests": [],
+    "unorderedProjectResults": [],
+    "unorderedFileRenameResults": [],
+    "unorderedCodeLensResults": [],
+    "unorderedReferenceResults": [],
+    "authoredTests": 16,
+    "encodings": [
+      "utf-8",
+      "utf-16"
+    ],
+    "requests": 734,
+    "differences": 0,
+    "compilerSha256": "4b7d0dd54107911ad3857dc0403bdddcc673ae2aa2a9dfdc1072c3cce8cdf20e",
+    "inputsSha256": "b9611873b1ca76e756bb8d6cd56207551ae24c55466bdaa2ff3b633bc2f37481"
+  },
+  "lsp": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 3,
+    "requests": 734,
+    "clients": 152,
+    "differences": 0,
+    "mappedQueriesValidatedSeparately": 0,
+    "unorderedProjectResults": [],
+    "unorderedFileRenameResults": [],
+    "unorderedCodeLensResults": [],
+    "unorderedReferenceResults": [],
+    "compilerSha256": "4b7d0dd54107911ad3857dc0403bdddcc673ae2aa2a9dfdc1072c3cce8cdf20e",
+    "inputsSha256": "b9611873b1ca76e756bb8d6cd56207551ae24c55466bdaa2ff3b633bc2f37481"
+  },
+  "build": {
+    "log": "built\\csharp\\phase7-validation\\auto-insert-build3.log",
+    "warnings": 0,
+    "errors": 0
+  },
+  "safety": {
+    "syntaxServiceAssertions": 172,
+    "newAutoInsertionAssertions": 23,
+    "lspAssertions": 139,
+    "logs": [
+      "built\\csharp\\phase7-validation\\auto-insert-safety1.log",
+      "built\\csharp\\phase7-validation\\auto-insert-lsp-safety.log"
+    ],
+    "coverage": [
+      "2048 nested matching tags and an unclosed ancestor",
+      "syntax immutability",
+      "cancellation",
+      "UTF-8 and UTF-16 insertion positions",
+      "snippet dollar escaping",
+      "non-trigger character",
+      "disabled preference",
+      "exact versus atom and alias positions",
+      "feature-disabled positions",
+      "ambiguous duplicate projections",
+      "unmapped synthesized positions",
+      "stable and legacy preference precedence"
+    ]
+  },
+  "sharedRegressions": {
+    "inlayHints": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 64,
+      "originalTestFunctions": 64,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 13,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 776,
+      "differences": 0,
+      "compilerSha256": "4b7d0dd54107911ad3857dc0403bdddcc673ae2aa2a9dfdc1072c3cce8cdf20e",
+      "inputsSha256": "e45f704c0100042da25e7b19e1895d43281fc1f7fa71d4e69291595ed39216ee"
+    },
+    "codeLens": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 16,
+      "originalTestFunctions": 13,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedCodeLensResults": [
+        {
+          "name": "TestCodeLensAcrossProjects",
+          "kind": "references",
+          "uri": "file:///projects/container/lib/index.ts",
+          "position": 18
+        }
+      ],
+      "unorderedReferenceResults": [],
+      "authoredTests": 8,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 358,
+      "differences": 0,
+      "compilerSha256": "4b7d0dd54107911ad3857dc0403bdddcc673ae2aa2a9dfdc1072c3cce8cdf20e",
+      "inputsSha256": "4080fbe19bea8a93e0657faf30703ea5f053a85fbe02c0e1e26e0df9c9b07936"
+    }
+  },
+  "boundaries": {
+    "phase7Complete": false,
+    "nativeAotExecuted": false,
+    "performanceMeasured": false,
+    "responseNormalization": "None. Complete nullable snippet responses compare exactly.",
+    "mappedRequests": "Mapping conditions are covered by direct safety assertions; the original and authored LSP replay inputs are ordinary TSX documents."
+  }
+}

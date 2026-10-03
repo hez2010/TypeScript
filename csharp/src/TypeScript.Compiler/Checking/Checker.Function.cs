@@ -25,9 +25,15 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
             && (program.ReferenceSymbols.Resolve(identifier).Flags & SymbolFlags.ModuleExports) != 0;
 
     public void ExpressionSuggestion(SyntaxNode node, DiagnosticCode code)
+        => ExpressionSuggestion(node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code)));
+
+    private void ExpressionSuggestion(SyntaxNode node, Diagnostic diagnostic)
     {
-        if (suggestionLocations.Add((node, code)))
-            Suggestions.Add(code);
+        if (suggestionLocations.Add((node, diagnostic.Code)))
+        {
+            Suggestions.Add(diagnostic.Code);
+            suggestionDiagnostics.Add(diagnostic with { Message = diagnostic.Message with { Category = DiagnosticCategory.Suggestion } });
+        }
     }
 
     public ValueTask<bool> CheckConstraintAsync(Type source, Type target, SyntaxNode node, CancellationToken cancellation)
@@ -68,6 +74,7 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
                 {
                     InstantiationGrammar(reference, reference.TypeArguments);
                     await TypeReferenceChecks.CheckAsync(reference, cancellation);
+                    await DeprecatedTypeAsync(reference, cancellation);
                 }
                 else if (item.Node.Kind == SyntaxKind.ThisType
                     && !(item.Node.Parent is TypePredicateNode thisPredicate && thisPredicate.ParameterName == item.Node))
@@ -94,6 +101,7 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
                     await ImportTypeAsync(import, cancellation);
                     if (!import.IsTypeOf)
                         await TypeReferenceChecks.CheckAsync(import, cancellation);
+                    await DeprecatedTypeAsync(import, cancellation);
                     await CheckImportAttributesAsync(import, import.Attributes, cancellation);
                 }
                 else if (item.Node is TypeLiteralNode literal)

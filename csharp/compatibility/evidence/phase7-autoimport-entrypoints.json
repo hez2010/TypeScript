@@ -1,0 +1,49 @@
+{
+  "phase": 7,
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "discovery": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": 984,
+    "passed": 984,
+    "differences": 0,
+    "inputsSha256": "82c56d9d3c0a9787c91b5f272921160f6c28d85feb266e5aa903e176d67e44c8",
+    "oracleSha256": "045cd4d09ac3885c7b332a260f1b084318eb5dfc7db6c0e546f1f540754e2a66",
+    "compilerSha256": "7689dbcdae1bf26c52e9ff1d5f6f7aa15becc2f6c73713ac37cea3c6e1ae953e",
+    "harnessSha256": "2a99be44179ef337c53fcad4650b8fb2e9b71e1719ad473c711d13e4f0882226",
+    "directory": "built/csharp/phase7-validation/autoimport-entrypoints-declarations"
+  },
+  "endings": {
+    "cases": 9720,
+    "exact": 9720,
+    "failed": 0,
+    "byOperation": {
+      "entrypoint-ending": 9720
+    },
+    "candidateExecuted": 9720,
+    "candidateReused": 0,
+    "referenceExecuted": 9720,
+    "referenceReused": 0,
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "oracleHash": "f0a5a6db800c9720401ca14c3851c39545751011d0cf4a385df88f9660f7216a",
+    "candidateHash": "a77bd1517652b70057a3ecd51044b2c467c4381cbfa93cf60380eaaa52d54d3b",
+    "inputHash": "045a3ed2bbe2edb09b758bc3967d053a765459a5d6bade67c75270b723e45983",
+    "referenceHash": "d3092497a732df278f075c4061d87e20c1787cc2dd911cb1a580df2db6ace733",
+    "outputHash": "d3092497a732df278f075c4061d87e20c1787cc2dd911cb1a580df2db6ace733",
+    "managed": true,
+    "compilerSha256": "7689dbcdae1bf26c52e9ff1d5f6f7aa15becc2f6c73713ac37cea3c6e1ae953e",
+    "directory": "built/csharp/phase7-validation/autoimport-entrypoint-endings"
+  },
+  "scope": "Direct ordered entry-point comparison covers conditional and array exports, versioned types, wildcards, symlinks, directory search, invalid manifests, casing, custom declaration extensions and compiler settings. Ending comparison covers fixed/extension-changeable/changeable entries, TS/JS/declaration/custom extensions and preferred endings.",
+  "sources": {
+    "csharp/oracle/resolution/main.go": "6add4b77b4dd62c6ac70aa131348e26a3f9843ef06921fe55ff921e2ed5493d6",
+    "csharp/oracle/module-specifiers/main.go": "5016c9a06d9dd57a6de9518e6a50cf91a7c3b6a07269512c64eca1fe7860944d",
+    "csharp/oracle/module-specifiers/bridge.go": "e6675cb0e815217c95e2d325764e11e118de5833e41e4d6eeaab8f80790f69f9",
+    "csharp/tools/autoimport-entrypoints.mjs": "0570ab0effdb0363593de31e24e1f8fab324340ff4a2b53e933a3bbbd81f5aed",
+    "csharp/tools/module-specifier-paths.mjs": "e614764259c9656dac90813b631c5cca0022b0d3686bf52f48cb3477c8edd4f8",
+    "csharp/src/TypeScript.Compiler/Resolution/ModuleResolver.Entrypoints.cs": "ba58d1411fd32720dcddc41f93de823217d6f2a25e97477076353886edae9dab"
+  },
+  "reproduction": {
+    "discovery": "node csharp/tools/autoimport-entrypoints.mjs --managed-directory built/csharp/phase7-completion-build/bin/TypeScript.Compatibility/release --directory built/csharp/phase7-validation/autoimport-entrypoints-declarations",
+    "endings": "Compile csharp/oracle/module-specifiers/main.go and program.go in the isolated pinned oracle, with bridge.go at internal/modulespecifiers/csharp_specifier_probe.go. Run node csharp/tools/module-specifier-paths.mjs --entrypoints --oracle built/csharp/phase7-validation/entrypoint-ending-oracle.exe --managed-directory built/csharp/phase7-completion-build/bin/TypeScript.Compatibility/release --dotnet D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe --directory built/csharp/phase7-validation/autoimport-entrypoint-endings"
+  }
+}

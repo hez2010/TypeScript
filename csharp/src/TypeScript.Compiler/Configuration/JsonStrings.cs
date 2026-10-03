@@ -69,16 +69,12 @@ public static class JsonStrings
         return scanner.Value;
     }
 
-    private static int Unpaired(ReadOnlySpan<byte> value, int start)
+    private static int NonUnicode(ReadOnlySpan<byte> value, int start)
     {
         while (start < value.Length)
         {
-            int offset = value[start..].IndexOf((byte)0xED);
-            if (offset < 0)
-                return -1;
-            start += offset;
             int point = Wtf8.Decode(value[start..], out int width);
-            if (point is >= 0xD800 and <= 0xDFFF)
+            if (point is >= 0xD800 and <= 0xDFFF || point == 0xFFFD && width == 1)
                 return start;
             start += width;
         }
@@ -92,7 +88,7 @@ public static class JsonStrings
         int start = 0;
         Span<byte> escape = stackalloc byte[6];
         "\\u"u8.CopyTo(escape);
-        for (int unpaired = Unpaired(value, start); unpaired >= 0; unpaired = Unpaired(value, start))
+        for (int unpaired = NonUnicode(value, start); unpaired >= 0; unpaired = NonUnicode(value, start))
         {
             stream.Write(JsonEncodedText.Encode(value.Slice(start, unpaired - start)).EncodedUtf8Bytes);
             int point = Wtf8.Decode(value[unpaired..], out int width);
@@ -107,7 +103,7 @@ public static class JsonStrings
 
     internal static void WriteString(Utf8JsonWriter writer, ReadOnlySpan<byte> value)
     {
-        if (Unpaired(value, 0) < 0)
+        if (System.Text.Unicode.Utf8.IsValid(value))
             writer.WriteStringValue(value);
         else
             writer.WriteRawValue(Encode(value), skipInputValidation: true);
@@ -115,7 +111,7 @@ public static class JsonStrings
 
     internal static void WriteName(Utf8JsonWriter writer, Utf8String name)
     {
-        if (Unpaired(name, 0) < 0)
+        if (System.Text.Unicode.Utf8.IsValid(name))
             writer.WritePropertyName(name.Span);
         else
         {

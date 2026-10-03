@@ -19,6 +19,7 @@ public sealed record PrinterOptions
     public bool OnlyPrintJSDocStyle { get; init; }
     public bool NeverAsciiEscape { get; init; }
     public bool PreserveSourceNewlines { get; init; }
+    public bool TerminateUnterminatedLiterals { get; init; }
     public Func<Utf8String, bool>? HasGlobalName { get; init; }
     public Func<SourceFileNode, int, SourceMapPosition?>? MapSourcePosition { get; init; }
 }
@@ -37,6 +38,7 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
     private Scanner? sourceScanner;
     private SourceMapGenerator? sourceMap;
     private int sourceIndex;
+    private PrintPositions? positions;
     private CancellationToken cancellation;
     private bool commentsDisabled, mapsDisabled;
     private int containerPos, containerEnd, declarationListContainerEnd;
@@ -46,7 +48,7 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
         int IndentationChange = 0, bool NewLine = false, bool EndNode = false, bool Raw = false, int? CommentPosition = null,
         bool ListComment = false, bool TrailingComment = false, int NameScopeChange = 0, NodeList? GenerateList = null,
         SyntaxNode? GenerateNode = null, bool TrailingSemicolon = false, SyntaxNode? Helpers = null, int? DetachedPosition = null,
-        SourceFileNode? Directives = null);
+        SourceFileNode? Directives = null, object? PositionTarget = null, bool EndPosition = false);
 
     private sealed class NodeState(SyntaxNode node, EmitFlags flags, int cursor)
     {
@@ -72,7 +74,7 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
         ArgumentNullException.ThrowIfNull(node);
         ArgumentNullException.ThrowIfNull(output);
         this.cancellation = cancellation;
-        writer = new(output, options.OmitTrailingSemicolon);
+        writer = new(output, options.OmitTrailingSemicolon, positions is not null);
         writer.Clear();
         sourceFile = node as SourceFileNode ?? source;
         sourceScanner = sourceFile is null ? null : new(sourceFile.Source);
@@ -100,7 +102,9 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
                     writer.IncreaseIndent();
                 else if (part.IndentationChange < 0)
                     writer.DecreaseIndent();
-                if (part.NameScopeChange != 0)
+                if (part.PositionTarget is { } positionTarget)
+                    positions?.Record(positionTarget, writer.LastNonTriviaPosition, part.EndPosition);
+                else if (part.NameScopeChange != 0)
                 {
                     bool reuse = (states.Peek().Flags & EmitFlags.ReuseTempVariableScope) != 0;
                     if (part.NameScopeChange > 0)
@@ -175,6 +179,7 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
         bool arrowBody = parenthesized && enclosing?.Node is ArrowFunctionNode { Body: { } body } && body == node;
         if (parenthesized && !arrowBody)
             writer.Write("("u8);
+        if (node is not SourceFileNode) positions?.Record(node, writer.LastNonTriviaPosition, false);
         var state = new NodeState(node, flags, node.Pos)
         {
             Parenthesized = parenthesized,
@@ -243,6 +248,7 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
         }
         if ((state.Flags & EmitFlags.Indented) != 0 && state.Node is not ClassDeclarationNode and not ClassExpressionNode)
             writer.DecreaseIndent();
+        if (state.Node is not SourceFileNode) positions?.Record(state.Node, writer.LastNonTriviaPosition, true);
         if (state.Parenthesized)
             writer.Write(")"u8);
         if (states.TryPeek(out var parent) && state.Node.End >= 0 && state.Node.End <= parent.Node.End)
@@ -340,9 +346,9 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
         writer.Write(text.Span[previous..]);
     }
 
-    private void Literal(Utf8String text) => writer.Write(text);
-    private void Literal(ReadOnlySpan<byte> text) => writer.Write(text);
-    private void Literal(byte value) => writer.Write([value]);
+    private void Literal(Utf8String text) => writer.WriteLiteral(text.Span);
+    private void Literal(ReadOnlySpan<byte> text) => writer.WriteLiteral(text);
+    private void Literal(byte value) => writer.WriteLiteral([value]);
     private static bool TokenComments(SyntaxNode node, K token) => token switch
     {
         K.FunctionKeyword when node is FunctionDeclarationNode or FunctionExpressionNode => false,
@@ -380,9 +386,11 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
 
     private Part List(IReadOnlyList<SyntaxNode>? nodes, Utf8String before, Utf8String separator, Utf8String after, bool required = false, bool indent = false)
     {
-        if (nodes is null && !required || nodes is { Count: 0 } && before == Utf8Literals.Space && after.Length == 0)
+        if (nodes is null && !required)
             return default;
-        var parts = new List<Part> { T(before) };
+        if (nodes is { Count: 0 } && before == Utf8Literals.Space && after.Length == 0)
+            return S(ListPosition(nodes as NodeList), ListPosition(nodes as NodeList, true));
+        var parts = new List<Part> { T(before), ListPosition(nodes as NodeList) };
         indent |= separator == Utf8Literals.CommaSpace && nodes?.Any(node => (context.GetFlags(node) & EmitFlags.StartOnNewLine) != 0) == true;
         if (indent)
             parts.Add(new(IndentationChange: 1));
@@ -402,21 +410,52 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
             }
         if (indent)
             parts.Add(new(IndentationChange: -1));
+        bool closingLine = (options.PreserveSourceNewlines || states.Peek().Node is ImportAttributesNode) && nodes is { Count: > 0 }
+            && after.Length != 0 && ClosingLines(states.Peek().Node, nodes[^1], (nodes as NodeList)?.End ?? -1) > 0;
         if (nodes is NodeList { Count: > 0 } list && after.Length > 1 && after[0] == ',')
         {
             parts.Add(T(Utf8Literals.Comma));
             parts.Add(new(CommentPosition: list.End, TrailingComment: true));
-            parts.Add(T(after[1..]));
+            parts.Add(ListPosition(nodes as NodeList, true));
+            if (closingLine) parts.Add(new(NewLine: true));
+            parts.Add(T(closingLine ? after[1..].TrimStart((byte)' ') : after[1..]));
         }
         else
-            parts.Add(T(after));
+        {
+            parts.Add(ListPosition(nodes as NodeList, true));
+            if (closingLine) parts.Add(new(NewLine: true));
+            parts.Add(T(closingLine ? after.TrimStart((byte)' ') : after));
+        }
         return new(Parts: parts);
     }
 
-    private static Part Modifiers(SyntaxNode node)
+    private Part Modifiers(SyntaxNode node)
     {
         if (node is not IModifiedNode { Modifiers.Count: > 0 } modified)
             return default;
+        if (options.PreserveSourceNewlines)
+        {
+            var preserved = new List<Part>();
+            for (int start = 0; start < modified.Modifiers.Count;)
+            {
+                bool decorators = modified.Modifiers[start] is DecoratorNode;
+                int end = start + 1;
+                while (end < modified.Modifiers.Count && (modified.Modifiers[end] is DecoratorNode) == decorators) end++;
+                if (!decorators || node is ClassDeclarationNode or ClassExpressionNode or PropertyDeclarationNode or MethodDeclarationNode
+                    or GetAccessorDeclarationNode or SetAccessorDeclarationNode or ParameterDeclarationNode)
+                {
+                    for (int i = start; i < end; i++)
+                    {
+                        preserved.Add(ListBoundary(node, i == start ? null : modified.Modifiers[i - 1], modified.Modifiers[i], decorators && (i != start || node is not ParameterDeclarationNode), !decorators && i != start));
+                        preserved.Add(N(modified.Modifiers[i]));
+                    }
+                    int listEnd = start == 0 && end == modified.Modifiers.Count || end == modified.Modifiers.Count - 1 ? modified.Modifiers.End : -1;
+                    preserved.Add(ClosingLines(node, modified.Modifiers[end - 1], listEnd, decorators) > 0 ? new(NewLine: true) : T(" "u8));
+                }
+                start = end;
+            }
+            return S(ListPosition(modified.Modifiers), new(Parts: preserved), ListPosition(modified.Modifiers, true));
+        }
         var parts = new List<Part>();
         foreach (var modifier in modified.Modifiers)
         {
@@ -443,7 +482,7 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
     private Part TypeArguments(NodeList? nodes) => List(nodes, Utf8Literals.LessThan, Utf8Literals.CommaSpace, Utf8Literals.GreaterThan);
     private Part Braces(NodeList? nodes, Utf8String separator, bool spaceWhenEmpty = false) => nodes is { Count: > 0 }
         ? List(nodes, Utf8Literals.OpenBraceSpace, separator, Utf8Literals.SpaceCloseBrace)
-        : T(spaceWhenEmpty ? Utf8Literals.SpacedBraces : Utf8Literals.EmptyBraces);
+        : List(nodes, Utf8Literals.OpenBrace, default, spaceWhenEmpty ? Utf8Literals.SpaceCloseBrace : Utf8Literals.CloseBrace, true);
     private static Part Body(SyntaxNode? body) => body is null ? Semicolon() : S(T(Utf8Literals.Space), N(body));
     private Part TypeMembers(TypeLiteralNode node) => Scoped(Generate(node.Members),
         (context.GetFlags(node) & EmitFlags.SingleLine) != 0 || node.Members is not { Count: > 0 }
@@ -456,8 +495,11 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
     {
         bool functionBody = states.Count > 1 && states.ElementAt(1).Node is IFunctionSignature or ClassStaticBlockDeclarationNode;
         bool singleLine = (context.GetFlags(block) & EmitFlags.SingleLine) != 0
-            || functionBody && !block.MultiLine && (SingleLine(block) || block.Pos < 0)
+            || functionBody && !block.MultiLine && (SingleLine(block) || block.Pos < 0 || sourceFile is null)
             || block.Statements is not { Count: > 0 } && !block.MultiLine;
+        if (functionBody && options.PreserveSourceNewlines && (context.GetFlags(block) & EmitFlags.SingleLine) == 0
+            && (LeadingLines(block, block.Statements?.FirstOrDefault()) > 0 || ClosingLines(block, block.Statements?.LastOrDefault(), block.Statements?.End ?? -1) > 0))
+            singleLine = false;
         if ((context.GetFlags(block) & EmitFlags.SingleLine) == 0 && block.Statements?.Any(n => (context.GetFlags(n) & EmitFlags.StartOnNewLine) != 0) == true)
             singleLine = false;
         if (!functionBody)
@@ -468,10 +510,12 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
         singleLine &= offset == 0 && !HelpersFor(block).Any(h => h.Text.Length != 0 || h.TextFactory is not null);
         if (singleLine)
             parts.Add(new(IndentationChange: -1));
+        parts.Add(ListPosition(block.Statements));
         if (block.Statements is { } statements)
             for (int i = offset; i < statements.Count; i++)
             {
-                parts.Add(singleLine ? T(" "u8) : new(NewLine: true));
+                parts.Add(options.PreserveSourceNewlines ? ListBoundary(block, i == offset ? null : statements[i - 1], statements[i], !singleLine, singleLine)
+                    : singleLine ? T(" "u8) : new(NewLine: true));
                 if (singleLine)
                     parts.Add(new(CommentPosition: (context.GetFlags(statements[i]) & EmitFlags.NoLeadingComments) == 0 ? context.GetCommentRange(statements[i]).Pos : -1, ListComment: true));
                 parts.Add(N(statements[i]));
@@ -481,32 +525,39 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
             parts.Add(T(" "u8));
             parts.Add(new(IndentationChange: 1));
         }
+        parts.Add(ListPosition(block.Statements, true));
         parts.Add(new(CommentPosition: block.Statements?.End ?? block.End));
-        parts.Add(new(IndentationChange: -1, NewLine: !singleLine));
+        parts.Add(new(IndentationChange: -1, NewLine: options.PreserveSourceNewlines
+            ? ClosingLines(block, block.Statements?.LastOrDefault(), block.Statements?.End ?? -1, !singleLine) > 0 : !singleLine));
         parts.Add(T("}"u8));
         return new(Parts: parts);
     }
 
-    private static Part BlockMembers(NodeList? nodes, bool comma = false, bool endComments = false,
+    private Part BlockMembers(NodeList? nodes, bool comma = false, bool endComments = false,
         Utf8String open = default, Utf8String close = default, bool trailingComma = true)
     {
-        var parts = new List<Part> { T(open.Length == 0 ? Utf8Literals.OpenBrace : open), new(IndentationChange: 1) };
+        var parts = new List<Part> { T(open.Length == 0 ? Utf8Literals.OpenBrace : open), ListPosition(nodes), new(IndentationChange: 1) };
         if (nodes is not null)
             for (int i = 0; i < nodes.Count; i++)
             {
-                parts.Add(new(NewLine: true));
+                parts.Add(options.PreserveSourceNewlines ? ListBoundary(states.Peek().Node, i == 0 ? null : nodes[i - 1], nodes[i], true,
+                    comma && i != 0 && states.Peek().Node is TupleTypeNode) : new(NewLine: true));
+                if (options.PreserveSourceNewlines) parts.Add(new(CommentPosition: nodes[i].Pos, ListComment: true));
                 parts.Add(N(nodes[i]));
                 if (comma && (i + 1 < nodes.Count || trailingComma && nodes.HasTrailingComma))
                     parts.Add(T(Utf8Literals.Comma));
             }
+        parts.Add(ListPosition(nodes, true));
         if (nodes is not null && endComments)
             parts.Add(new(CommentPosition: nodes.End));
-        parts.Add(new(IndentationChange: -1, NewLine: true));
+        parts.Add(new(IndentationChange: -1, NewLine: !options.PreserveSourceNewlines
+            || ClosingLines(states.Peek().Node, nodes?.LastOrDefault(), nodes?.End ?? -1, true) > 0));
         parts.Add(T(close.Length == 0 ? Utf8Literals.CloseBrace : close));
         return new(Parts: parts);
     }
 
-    private Part Embedded(SyntaxNode? node) => node is BlockNode || (context.GetFlags(states.Peek().Node) & EmitFlags.SingleLine) != 0 ? S(T(Utf8Literals.Space), N(node))
+    private Part Embedded(SyntaxNode? node) => node is BlockNode || (context.GetFlags(states.Peek().Node) & EmitFlags.SingleLine) != 0
+        || options.PreserveSourceNewlines && LeadingLines(states.Peek().Node, node) == 0 ? S(T(Utf8Literals.Space), N(node))
         : S(new(IndentationChange: 1, NewLine: true), N(node), new(IndentationChange: -1));
 
     private bool NewLineBetween(SyntaxNode? left, SyntaxNode? right) => right is not null && (context.GetFlags(right) & EmitFlags.StartOnNewLine) != 0
@@ -518,6 +569,7 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
 
     private Utf8String? OriginalText(SyntaxNode node)
     {
+        if (options.TerminateUnterminatedLiterals && IsUnterminated(node)) return null;
         if (sourceFile is null || node.Parent is null || (node.Flags & (NodeFlags.Synthesized | NodeFlags.Reparsed | NodeFlags.JSDoc)) != 0 || node.Pos < 0 || node.End < node.Pos)
             return null;
         if (node is IdentifierNode or PrivateIdentifierNode && SemanticSyntax.Source(node) != context.MostOriginal(sourceFile))
@@ -531,6 +583,13 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
     private Utf8String NumberText(NumericLiteralNode literal) => (literal.TokenFlags & TokenFlags.IsInvalid) == 0
         && ((literal.TokenFlags & TokenFlags.ContainsSeparator) == 0 || options.TargetYear >= 2021)
         ? OriginalText(literal) ?? literal.Text : literal.Text;
+    private static bool IsUnterminated(SyntaxNode node) => ((node switch
+    {
+        StringLiteralNode literal => literal.TokenFlags, NumericLiteralNode literal => literal.TokenFlags,
+        BigIntLiteralNode literal => literal.TokenFlags, RegularExpressionLiteralNode literal => literal.TokenFlags,
+        NoSubstitutionTemplateLiteralNode literal => literal.TemplateFlags, TemplateHeadNode literal => literal.TemplateFlags,
+        TemplateMiddleNode literal => literal.TemplateFlags, TemplateTailNode literal => literal.TemplateFlags, _ => TokenFlags.None,
+    }) & TokenFlags.Unterminated) != 0;
     private static bool HasTrailingComma(NodeList? nodes) => nodes?.HasTrailingComma == true;
 
     private void EmitSourceFile(SourceFileNode file)
@@ -555,16 +614,20 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
             if (file.IsDeclarationFile)
                 parts.Add(new(Directives: file));
         }
+        parts.Add(ListPosition(file.Statements));
         if (file.Statements is { } statements)
             for (int i = offset; i < statements.Count; i++)
             {
-                parts.Add(new(NewLine: true));
+                parts.Add(options.PreserveSourceNewlines ? ListBoundary(file, i == offset ? null : statements[i - 1], statements[i], true) : new(NewLine: true));
+                if (options.PreserveSourceNewlines) parts.Add(new(CommentPosition: statements[i].Pos, ListComment: true));
                 parts.Add(N(statements[i]));
-                parts.Add(new(NewLine: true));
+                if (!options.PreserveSourceNewlines) parts.Add(new(NewLine: true));
             }
+        parts.Add(ListPosition(file.Statements, true));
         if (detached)
             parts.Add(new(CommentPosition: file.Statements?.End ?? file.End));
-        parts.Add(new(NewLine: true));
+        if (!options.PreserveSourceNewlines || ClosingLines(file, file.Statements?.LastOrDefault(), file.Statements?.End ?? -1, true) > 0)
+            parts.Add(new(NewLine: true));
         parts.Add(new(NameScopeChange: -1));
         pending.Push(new(Parts: parts));
     }

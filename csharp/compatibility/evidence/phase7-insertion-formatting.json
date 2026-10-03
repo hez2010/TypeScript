@@ -1,0 +1,162 @@
+{
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "cases": 216,
+  "queries": 1782,
+  "differences": 0,
+  "referenceCorrections": 18,
+  "compilerSha256": "4160b0dafb03673958a12979d1e92240a06d056aaa144b37a6af1e958e87b8a7",
+  "policy": "preserve-absent-embedded-statements",
+  "referenceCorrection": {
+    "originalSha256": "84f67075cebd5c0a8112b831cf2228f70b102c91a7e6919bd72ee3988e922cac",
+    "correctedSha256": "ac187bb29be480ff57cc3c87d1742c39e87c436b478fe3daa5c3d4f8c5cab0cb",
+    "explanation": "AssignPositionsToNode installs VisitNode, which visitEmbeddedStatement passes through liftToBlock even for a nil ElseStatement. This creates a spurious empty block at (-1,-1), and FormatNodeGivenIndentation then fails its non-synthesized list-position assertion. An explicit VisitEmbeddedStatement hook copies the child as-is and preserves nil. The source checkout is restored after building the control.",
+    "entries": [
+      {
+        "name": "printing-empty-blocks-0",
+        "node": 0,
+        "field": "ranges",
+        "inputSha256": "e3626d3a5e4d8aa1693ce622931fb25a53f7683d07797728194f07df1888a4e5",
+        "originalSha256": "61237aef0d2cf1bd5581fe22fe4c3f76c3e7fa662d2fd6b2fa20067839cf5e98",
+        "correctedSha256": "54b7083a68b0e2e606d003e9ddd5a7a1e3721909e3f3fe7d476420324a366cd9"
+      },
+      {
+        "name": "printing-empty-blocks-0",
+        "node": 3,
+        "field": "ranges",
+        "inputSha256": "e3626d3a5e4d8aa1693ce622931fb25a53f7683d07797728194f07df1888a4e5",
+        "originalSha256": "72a5dd71d89db33fabe70320ce2a62e2ad610cc3127e77d85f9d3aa1747c5da6",
+        "correctedSha256": "b09bc8918f2035c1ee10500d1e18d2b8f005bf685d1d200ff8c57675a8c9b0be"
+      },
+      {
+        "name": "printing-empty-blocks-0",
+        "node": 3,
+        "field": "formatted",
+        "inputSha256": "e3626d3a5e4d8aa1693ce622931fb25a53f7683d07797728194f07df1888a4e5",
+        "originalSha256": "da280746b4707c13bee17c57e1812fae4c10ec435280c602b23a4d2284da5b66",
+        "correctedSha256": "6c2e7cedcd172e6704116a3fb44151eea06db2d4b03eb268730fac6e2e4fdbee"
+      },
+      {
+        "name": "printing-empty-blocks-1",
+        "node": 0,
+        "field": "ranges",
+        "inputSha256": "e8a973298afbd1443775058c39671d7e3d37cbdbe74ef0eb7454a7ce27af2dd8",
+        "originalSha256": "b2685b784d911d9dbac9b95ba85cf2d3322c5effa64f866c3f77aacfb062e410",
+        "correctedSha256": "87d5f550339374f6a4e47b3e3c200a14dd78386f3ecea25b1926629b13104891"
+      },
+      {
+        "name": "printing-empty-blocks-1",
+        "node": 3,
+        "field": "ranges",
+        "inputSha256": "e8a973298afbd1443775058c39671d7e3d37cbdbe74ef0eb7454a7ce27af2dd8",
+        "originalSha256": "9ac999957cf024128564e86b480388d0b67229651ee62ebcb6371eeac018cdff",
+        "correctedSha256": "03d5acc8d856e038427127f7f258962045de59db150298f3be1494b117c306d5"
+      },
+      {
+        "name": "printing-empty-blocks-1",
+        "node": 3,
+        "field": "formatted",
+        "inputSha256": "e8a973298afbd1443775058c39671d7e3d37cbdbe74ef0eb7454a7ce27af2dd8",
+        "originalSha256": "da280746b4707c13bee17c57e1812fae4c10ec435280c602b23a4d2284da5b66",
+        "correctedSha256": "c8f47674c1b7cb1f55bfc8c5fe44cc4be21e84400624971fe779fcde7ca2a2e7"
+      },
+      {
+        "name": "printing-empty-blocks-2",
+        "node": 0,
+        "field": "ranges",
+        "inputSha256": "9289ecba39838c5043a9ceeb1af72ffa3be680208ee2afd9c81ca10f4a424584",
+        "originalSha256": "61237aef0d2cf1bd5581fe22fe4c3f76c3e7fa662d2fd6b2fa20067839cf5e98",
+        "correctedSha256": "54b7083a68b0e2e606d003e9ddd5a7a1e3721909e3f3fe7d476420324a366cd9"
+      },
+      {
+        "name": "printing-empty-blocks-2",
+        "node": 3,
+        "field": "ranges",
+        "inputSha256": "9289ecba39838c5043a9ceeb1af72ffa3be680208ee2afd9c81ca10f4a424584",
+        "originalSha256": "72a5dd71d89db33fabe70320ce2a62e2ad610cc3127e77d85f9d3aa1747c5da6",
+        "correctedSha256": "b09bc8918f2035c1ee10500d1e18d2b8f005bf685d1d200ff8c57675a8c9b0be"
+      },
+      {
+        "name": "printing-empty-blocks-2",
+        "node": 3,
+        "field": "formatted",
+        "inputSha256": "9289ecba39838c5043a9ceeb1af72ffa3be680208ee2afd9c81ca10f4a424584",
+        "originalSha256": "da280746b4707c13bee17c57e1812fae4c10ec435280c602b23a4d2284da5b66",
+        "correctedSha256": "55ca419cbecb23d3dc4538c50781ff53103bd2e653216dcfda34d7c6a1968880"
+      },
+      {
+        "name": "printing-empty-blocks-3",
+        "node": 0,
+        "field": "ranges",
+        "inputSha256": "0268472bb659ed5be9ca71a3517c4d745cb76f578b7775a0098f84458cca906d",
+        "originalSha256": "61237aef0d2cf1bd5581fe22fe4c3f76c3e7fa662d2fd6b2fa20067839cf5e98",
+        "correctedSha256": "54b7083a68b0e2e606d003e9ddd5a7a1e3721909e3f3fe7d476420324a366cd9"
+      },
+      {
+        "name": "printing-empty-blocks-3",
+        "node": 3,
+        "field": "ranges",
+        "inputSha256": "0268472bb659ed5be9ca71a3517c4d745cb76f578b7775a0098f84458cca906d",
+        "originalSha256": "72a5dd71d89db33fabe70320ce2a62e2ad610cc3127e77d85f9d3aa1747c5da6",
+        "correctedSha256": "b09bc8918f2035c1ee10500d1e18d2b8f005bf685d1d200ff8c57675a8c9b0be"
+      },
+      {
+        "name": "printing-empty-blocks-3",
+        "node": 3,
+        "field": "formatted",
+        "inputSha256": "0268472bb659ed5be9ca71a3517c4d745cb76f578b7775a0098f84458cca906d",
+        "originalSha256": "da280746b4707c13bee17c57e1812fae4c10ec435280c602b23a4d2284da5b66",
+        "correctedSha256": "9c3fc8a4181d17cc5010e4469a948717228f0e323c46e2a5b8fe3b17ab0bf768"
+      },
+      {
+        "name": "printing-empty-blocks-4",
+        "node": 0,
+        "field": "ranges",
+        "inputSha256": "2e74902914d43298dbc911dc14ca783126f7601ea53fd3f8a23c200ce2b4527a",
+        "originalSha256": "61237aef0d2cf1bd5581fe22fe4c3f76c3e7fa662d2fd6b2fa20067839cf5e98",
+        "correctedSha256": "54b7083a68b0e2e606d003e9ddd5a7a1e3721909e3f3fe7d476420324a366cd9"
+      },
+      {
+        "name": "printing-empty-blocks-4",
+        "node": 3,
+        "field": "ranges",
+        "inputSha256": "2e74902914d43298dbc911dc14ca783126f7601ea53fd3f8a23c200ce2b4527a",
+        "originalSha256": "72a5dd71d89db33fabe70320ce2a62e2ad610cc3127e77d85f9d3aa1747c5da6",
+        "correctedSha256": "b09bc8918f2035c1ee10500d1e18d2b8f005bf685d1d200ff8c57675a8c9b0be"
+      },
+      {
+        "name": "printing-empty-blocks-4",
+        "node": 3,
+        "field": "formatted",
+        "inputSha256": "2e74902914d43298dbc911dc14ca783126f7601ea53fd3f8a23c200ce2b4527a",
+        "originalSha256": "da280746b4707c13bee17c57e1812fae4c10ec435280c602b23a4d2284da5b66",
+        "correctedSha256": "6c2e7cedcd172e6704116a3fb44151eea06db2d4b03eb268730fac6e2e4fdbee"
+      },
+      {
+        "name": "printing-empty-blocks-5",
+        "node": 0,
+        "field": "ranges",
+        "inputSha256": "a7f8fd6147e0f513028ed8f7dbf216b35201835f76349843dca035be4727fcf9",
+        "originalSha256": "61237aef0d2cf1bd5581fe22fe4c3f76c3e7fa662d2fd6b2fa20067839cf5e98",
+        "correctedSha256": "54b7083a68b0e2e606d003e9ddd5a7a1e3721909e3f3fe7d476420324a366cd9"
+      },
+      {
+        "name": "printing-empty-blocks-5",
+        "node": 3,
+        "field": "ranges",
+        "inputSha256": "a7f8fd6147e0f513028ed8f7dbf216b35201835f76349843dca035be4727fcf9",
+        "originalSha256": "72a5dd71d89db33fabe70320ce2a62e2ad610cc3127e77d85f9d3aa1747c5da6",
+        "correctedSha256": "b09bc8918f2035c1ee10500d1e18d2b8f005bf685d1d200ff8c57675a8c9b0be"
+      },
+      {
+        "name": "printing-empty-blocks-5",
+        "node": 3,
+        "field": "formatted",
+        "inputSha256": "a7f8fd6147e0f513028ed8f7dbf216b35201835f76349843dca035be4727fcf9",
+        "originalSha256": "da280746b4707c13bee17c57e1812fae4c10ec435280c602b23a4d2284da5b66",
+        "correctedSha256": "3bb5ef7d2681d67270a7a2089efd1da71c5dd13039f4475ae2775b873c5c938d"
+      }
+    ]
+  },
+  "reproduce": "node csharp/tools/insertion.mjs",
+  "rawEvidence": "built/csharp/phase7-validation/insertion/"
+}

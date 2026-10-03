@@ -1,0 +1,211 @@
+{
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "configuration": "Release CoreCLR",
+  "date": "2026-10-03",
+  "rename": {
+    "direct": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 217,
+      "originalTestFunctions": 204,
+      "selectedTestsWithoutRequests": [
+        "TestRenameJsSpecialAssignmentRhs2",
+        "TestRenameJsSpecialAssignmentRhs1",
+        "TestTsxRename8",
+        "TestJsObjectDefinePropertyRenameLocations",
+        "TestAllowRenameOfImportPath",
+        "TestDeclarationMapTestCasesForMaps/TestDeclarationMapsFindAllRefsStartingAtDefinition",
+        "TestDeclarationMapTestCasesForMaps/TestDeclarationMapsFindAllRefs",
+        "TestDeclarationMapTestCasesForMaps/TestDeclarationMapsFindAllRefsTargetDoesNotExist"
+      ],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 1,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 1526,
+      "differences": 0,
+      "compilerSha256": "2df61f7b31ecf4edccbde5f8a60a3608acb96eb60d9dfc56afa5ed34ce301003",
+      "inputsSha256": "c599c3f1dc6657929a2927856c90cc9d7e422b1b01f270eecf6cfd86b4532d22"
+    },
+    "lsp": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 213,
+      "requests": 1512,
+      "clients": 608,
+      "differences": 0,
+      "mappedQueriesValidatedSeparately": 14,
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [],
+      "unorderedReferenceResults": [],
+      "compilerSha256": "2df61f7b31ecf4edccbde5f8a60a3608acb96eb60d9dfc56afa5ed34ce301003",
+      "inputsSha256": "c599c3f1dc6657929a2927856c90cc9d7e422b1b01f270eecf6cfd86b4532d22"
+    }
+  },
+  "fileRename": {
+    "direct": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 32,
+      "originalTestFunctions": 32,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [
+        "TestCSharpFileRename",
+        "TestGetEditsForFileRename",
+        "TestGetEditsForFileRenameWithSolutionConfigFile",
+        "TestGetEditsForFileRename_directory",
+        "TestGetEditsForFileRename_directory_down",
+        "TestGetEditsForFileRename_directory_up",
+        "TestGetEditsForFileRename_renameFromIndex",
+        "TestGetEditsForFileRename_renameToIndex"
+      ],
+      "unorderedReferenceResults": [],
+      "authoredTests": 1,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 152,
+      "differences": 0,
+      "compilerSha256": "2df61f7b31ecf4edccbde5f8a60a3608acb96eb60d9dfc56afa5ed34ce301003",
+      "inputsSha256": "a7dfa327bd56a99e6e0564ddde6439b2161d426fa0f2abc2d42b009f3c3d29b4"
+    },
+    "lsp": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 31,
+      "requests": 148,
+      "clients": 128,
+      "differences": 0,
+      "mappedQueriesValidatedSeparately": 4,
+      "unorderedProjectResults": [],
+      "unorderedFileRenameResults": [
+        "TestCSharpFileRename",
+        "TestGetEditsForFileRename",
+        "TestGetEditsForFileRenameWithSolutionConfigFile",
+        "TestGetEditsForFileRename_directory",
+        "TestGetEditsForFileRename_directory_down",
+        "TestGetEditsForFileRename_directory_up",
+        "TestGetEditsForFileRename_renameFromIndex",
+        "TestGetEditsForFileRename_renameToIndex"
+      ],
+      "unorderedReferenceResults": [],
+      "compilerSha256": "2df61f7b31ecf4edccbde5f8a60a3608acb96eb60d9dfc56afa5ed34ce301003",
+      "inputsSha256": "a7dfa327bd56a99e6e0564ddde6439b2161d426fa0f2abc2d42b009f3c3d29b4"
+    }
+  },
+  "ordering": {
+    "evidence": "phase7-file-rename-ordering.json",
+    "recordedRequests": 5760,
+    "queries": 144,
+    "runsPerQuery": 40,
+    "scopedCases": 8,
+    "negativeControls": 96,
+    "policy": "Only contiguous text-document changes with distinct URIs may reorder. Resource-operation positions, per-document edit ordering, ranges, new text, versions, and duplicate counts remain exact."
+  },
+  "harnessBoundaries": [
+    "Rename preferences are captured in their original configuration form, including preferences.useAliasesForRenames, preferences.quoteStyle, and unstable.allowRenameOfImportPath.",
+    "The recorder captures filesystem symlinks and case sensitivity. Replay creates links before files so recorded aliases and physical paths address the same file.",
+    "The initial authored JavaScript fixture lacked allowJs and produced no-project errors. The corrected fixture exercises CommonJS rename; the initial input remains preserved.",
+    "Prepare-rename failures are compared by full JSON-RPC error code and message. The initial LSP checker incorrectly compared an absent result field with the recorder null; all 58 initial differences had matching error responses. The corrected full replay passes.",
+    "Mapped rename and file-rename requests run separately through services using the captured mapper projections. File-rename replay reconstructs captured project configurations and programs. Ordinary requests also pass through real JSON-RPC processes.",
+    "Eight selected original rename test entries emit no requests; the manifest lists them explicitly. This milestone does not count them as replayed requests."
+  ],
+  "initialEvidence": {
+    "rename": "built/csharp/phase7-validation/rename/initial-summary.json",
+    "renameInputs": "built/csharp/phase7-validation/rename/initial-inputs.jsonl",
+    "fileRename": "built/csharp/phase7-validation/file-rename/initial-summary.json",
+    "fileRenameInputs": "built/csharp/phase7-validation/file-rename/initial-inputs.jsonl",
+    "lspRename": "built/csharp/phase7-validation/lsp-rename-complete/summary.json"
+  },
+  "safety": {
+    "serviceAssertions": 79,
+    "newRenameAssertions": 11,
+    "lspAssertions": 109,
+    "moduleSpecifierAssertions": 73,
+    "serviceLog": "built/csharp/phase7-validation/rename-safety.log",
+    "lspLog": "built/csharp/phase7-validation/rename-lsp-safety.log",
+    "moduleLog": "built/csharp/phase7-validation/rename-module-safety.log"
+  },
+  "regressions": {
+    "moduleGeneration": {
+      "cases": 927,
+      "exact": 927,
+      "failed": 0,
+      "byOperation": {
+        "all-paths": 110,
+        "local": 564,
+        "select": 217,
+        "generate": 36
+      },
+      "candidateExecuted": 927,
+      "candidateReused": 0,
+      "referenceExecuted": 927,
+      "referenceReused": 0,
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "oracleHash": "14ba37544cd7420637a80f59377109a6b00d2bcffbb564e4c641e03b0f043620",
+      "candidateHash": "b42f8ab2b38a852f5c09de7b55078983dc2ae87ccb1ab59865bae36905e7dcef",
+      "inputHash": "527baeaaf408849fa31e226bf5fee306465e69e2144ae3b5626bceee89b0b422",
+      "referenceHash": "82b1b433b741f0e8953c3571ae1df47a89bf5827f12a8e87af83daf7ee4c3575",
+      "outputHash": "82b1b433b741f0e8953c3571ae1df47a89bf5827f12a8e87af83daf7ee4c3575",
+      "managed": true
+    },
+    "nodeModuleSpecifiers": {
+      "cases": 1674,
+      "exact": 1674,
+      "failed": 0,
+      "byOperation": {
+        "node-modules": 1674
+      },
+      "candidateExecuted": 1674,
+      "candidateReused": 0,
+      "referenceExecuted": 1674,
+      "referenceReused": 0,
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "oracleHash": "14ba37544cd7420637a80f59377109a6b00d2bcffbb564e4c641e03b0f043620",
+      "candidateHash": "b42f8ab2b38a852f5c09de7b55078983dc2ae87ccb1ab59865bae36905e7dcef",
+      "inputHash": "c2182389ea882369f307125a1c5233437be05a661f806295daa748f0338210c2",
+      "referenceHash": "070b97b5501d078d7fbe75a14e56e83a111616725a82f177af2bb2210cf99e9b",
+      "outputHash": "070b97b5501d078d7fbe75a14e56e83a111616725a82f177af2bb2210cf99e9b",
+      "managed": true
+    },
+    "programModuleSpecifiers": {
+      "cases": 52,
+      "exact": 52,
+      "failed": 0,
+      "byOperation": {
+        "program": 52
+      },
+      "candidateExecuted": 52,
+      "candidateReused": 0,
+      "referenceExecuted": 52,
+      "referenceReused": 0,
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "oracleHash": "14ba37544cd7420637a80f59377109a6b00d2bcffbb564e4c641e03b0f043620",
+      "candidateHash": "b42f8ab2b38a852f5c09de7b55078983dc2ae87ccb1ab59865bae36905e7dcef",
+      "inputHash": "526ce55cf30c0a2b71b1fabd0180df0408cf97f55e8258ffbd3b4b13024eeb5f",
+      "referenceHash": "04bc3537367e2d0d26881d45ad447f8a1445cd1341ef336bb434fef7dea09cd8",
+      "outputHash": "6bbcb49d1fd4c6836f132d2c62ff29dff0aa50eee0fe834285677e26060d7298",
+      "managed": true
+    },
+    "api": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "cases": 139,
+      "requests": 5963,
+      "differences": 0,
+      "compilerSha256": "2df61f7b31ecf4edccbde5f8a60a3608acb96eb60d9dfc56afa5ed34ce301003",
+      "coordinateContract": "UTF-8 / AST v9; isolated oracle adapters listed separately"
+    },
+    "projectScenarios": 22,
+    "projectMismatches": 0
+  },
+  "build": {
+    "solution": "csharp/TypeScript.slnx",
+    "warnings": 0,
+    "errors": 0,
+    "log": "built/csharp/phase7-validation/rename-build12.log",
+    "compilerSha256": "2df61f7b31ecf4edccbde5f8a60a3608acb96eb60d9dfc56afa5ed34ce301003"
+  },
+  "phase7Complete": false
+}

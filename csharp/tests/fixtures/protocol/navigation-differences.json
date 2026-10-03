@@ -1,0 +1,137 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": [
+        {
+            "name": "documentation",
+            "inputHash": "828b1651a28fecc3641e3839d8f751e3990f381beba83d8473711eb8ae85d68e",
+            "rationale": "The established C# parser keeps a JSDoc template parameter list at its source span [14,15); the pinned Go parser stores [0,0). C# consequently resolves T itself and its following token. The other 991 queries on this source agree exactly. A separate Go-only control restores the actual parameter span and reruns unchanged navigation over every byte, requiring the complete result to equal C#.",
+            "differences": [
+                {
+                    "name": "documentation",
+                    "position": 14,
+                    "method": 0,
+                    "expected": [
+                        337,
+                        4,
+                        19,
+                        315,
+                        0,
+                        65,
+                        4,
+                        4,
+                        true
+                    ],
+                    "actual": [
+                        79,
+                        14,
+                        15,
+                        169,
+                        14,
+                        15,
+                        14,
+                        14,
+                        true
+                    ]
+                },
+                {
+                    "name": "documentation",
+                    "position": 14,
+                    "method": 1,
+                    "expected": [
+                        337,
+                        4,
+                        19,
+                        315,
+                        0,
+                        65,
+                        4,
+                        4,
+                        true
+                    ],
+                    "actual": [
+                        79,
+                        14,
+                        15,
+                        169,
+                        14,
+                        15,
+                        14,
+                        14,
+                        true
+                    ]
+                },
+                {
+                    "name": "documentation",
+                    "position": 14,
+                    "method": 2,
+                    "expected": [
+                        337,
+                        4,
+                        19,
+                        315,
+                        0,
+                        65,
+                        4,
+                        4,
+                        true
+                    ],
+                    "actual": [
+                        79,
+                        14,
+                        15,
+                        169,
+                        14,
+                        15,
+                        14,
+                        14,
+                        true
+                    ]
+                },
+                {
+                    "name": "documentation",
+                    "position": 14,
+                    "method": 5,
+                    "expected": [
+                        59,
+                        19,
+                        20,
+                        333,
+                        19,
+                        49,
+                        19,
+                        19,
+                        true
+                    ],
+                    "actual": null
+                },
+                {
+                    "name": "documentation",
+                    "position": 15,
+                    "method": 1,
+                    "expected": [
+                        337,
+                        4,
+                        19,
+                        315,
+                        0,
+                        65,
+                        4,
+                        4,
+                        true
+                    ],
+                    "actual": [
+                        79,
+                        14,
+                        15,
+                        169,
+                        14,
+                        15,
+                        14,
+                        14,
+                        true
+                    ]
+                }
+            ]
+        }
+    ]
+}

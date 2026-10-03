@@ -12,6 +12,7 @@ public sealed record ContentMapper(Utf8String Package, Utf8String[] Extensions, 
 {
     public SourceFileNode? SourceFile { get; init; }
     public SyntaxNode? OptionsSyntax { get; init; }
+    public Utf8String ContributionId { get; init; }
 }
 
 public sealed partial class ConfigParser

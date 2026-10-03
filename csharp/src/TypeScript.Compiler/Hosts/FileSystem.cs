@@ -1,5 +1,18 @@
 namespace TypeScript.Compiler.Hosts;
 
+public readonly record struct CompilerSource(Text.SourceText Text, Syntax.ScriptKind Kind);
+
+/// <summary>Supplies already-decoded, stable editor text and its selected language.</summary>
+public interface ICompilerSourceProvider
+{
+    CompilerSource? ReadSource(Utf8String path);
+}
+
+public interface ICompilerSyntaxProvider : ICompilerSourceProvider
+{
+    ValueTask<Ast.SourceFileNode> ParseSourceAsync(Syntax.ParseOptions options, Text.SourceText source, CancellationToken cancellation);
+}
+
 public readonly record struct FileEntry(Utf8String Name, bool IsDirectory, long Length, DateTime LastWriteTimeUtc, bool IsSymbolicLink = false);
 public readonly record struct DirectoryEntries(Utf8String[] Files, Utf8String[] Directories, IReadOnlySet<Utf8String>? SymbolicLinks = null);
 

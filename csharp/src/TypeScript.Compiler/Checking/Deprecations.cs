@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -7,6 +8,18 @@ namespace TypeScript.Compiler.Checking;
 internal sealed class Deprecations(CheckerSymbols symbols)
 {
     private readonly Dictionary<SyntaxNode, bool> declarations = [];
+
+    internal static Diagnostic Related(Diagnostic diagnostic, IReadOnlyList<SyntaxNode> declarations)
+    {
+        foreach (var declaration in declarations)
+        {
+            var tag = SemanticSyntax.Source(declaration)?.GetDocumentation(declaration)
+                .SelectMany(comment => (IEnumerable<SyntaxNode>?)comment.Tags ?? []).FirstOrDefault(tag => tag.Kind == SyntaxKind.JSDocDeprecatedTag);
+            if (tag is not null) return diagnostic with
+            { RelatedInformation = [CheckerDiagnostic.Create(tag, Messages.The_declaration_was_marked_as_deprecated_here)] };
+        }
+        return diagnostic;
+    }
 
     internal bool Declaration(SyntaxNode declaration)
     {

@@ -132,7 +132,7 @@ internal sealed partial class Checker
         {
             DecoratorExpressionGrammar(decorator);
             var signature = await CallResolution.GetAsync(decorator, cancellation: cancellation);
-            DeprecatedSignature(decorator, signature);
+            await DeprecatedSignatureAsync(decorator, signature, cancellation);
             var result = await Signatures.ReturnAsync(signature, cancellation);
             if ((result.Flags & TypeFlags.Any) != 0)
                 continue;

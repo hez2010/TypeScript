@@ -484,7 +484,7 @@ internal sealed partial class Checker
                 await ExternalHelpersAsync(import, [Utf8Literals.ImportDefault], cancellation);
             var deprecated = await program.Aliases.WithDeprecationAsync(symbol, node, cancellation).ConfigureAwait(false);
             if (program.Deprecations.Symbol(deprecated))
-                program.Suggestion(node, DiagnosticCode.X0IsDeprecated, deprecated.Name);
+                program.DeprecatedSuggestion(node, deprecated.Declarations, deprecated.Name);
         }
     }
 

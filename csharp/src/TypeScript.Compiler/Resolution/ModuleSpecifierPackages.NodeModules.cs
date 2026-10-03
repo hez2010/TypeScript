@@ -9,7 +9,8 @@ internal sealed partial class ModuleSpecifierPackages
 {
     internal Utf8String FromNodeModules(Utf8String target, SourceFileNode source, ReferenceResolutionMode defaultMode,
         ReferenceResolutionMode overrideMode = 0, Utf8String preference = default, bool packageNameOnly = false,
-        bool isRedirect = false, Utf8String globalTypingsCache = default, CancellationToken cancellation = default)
+        bool isRedirect = false, Utf8String globalTypingsCache = default, CancellationToken cancellation = default,
+        Utf8String importingFileName = default, Utf8String oldSpecifier = default)
     {
         cancellation.ThrowIfCancellationRequested();
         if (NodeModuleParts(target) is not { } parts)
@@ -23,6 +24,7 @@ internal sealed partial class ModuleSpecifierPackages
                 source,
                 defaultMode,
                 preference: preference,
+                oldSpecifier: oldSpecifier,
                 cancellation: cancellation);
             var attempt = DirectoryWithPackageJson(target, parts, overrideMode == 0 ? defaultMode : overrideMode, endings, cancellation);
             if (attempt.Blocked)
@@ -38,7 +40,7 @@ internal sealed partial class ModuleSpecifierPackages
         if (isRedirect && !packageRoot)
             return Utf8String.Empty;
         Utf8String topLevel = specifier[..parts.NodeModules];
-        if (!CompilerPath.DirectoryName(source.FileName).StartsWith(topLevel, Comparison)
+        if (!CompilerPath.DirectoryName(importingFileName.IsEmpty ? source.FileName : importingFileName).StartsWith(topLevel, Comparison)
             || globalTypingsCache.Length != 0 && globalTypingsCache.StartsWith(topLevel, Comparison))
             return Utf8String.Empty;
         return PackageNameFromTypes(specifier[(parts.PackageName + 1)..]);

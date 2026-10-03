@@ -1,0 +1,799 @@
+{
+    "phase": 7,
+    "phase7Complete": true,
+    "completedAt": "2026-10-03T11:44:43.690Z",
+    "scope": "Project services, language services, LSP and API under the documented Windows x64 compatibility contracts",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "precedingCommit": "9180d80db615ede4168ed943b4e81e73c423db6e",
+    "configuration": "Release CoreCLR; default GC; Windows x64",
+    "compilerSha256": "ab843826903efa1582c203a9a1295508f6956fbeed4df5274bdf6384bea369ce",
+    "performanceMeasured": false,
+    "nativeAotExecuted": false,
+    "sourceSet": {
+        "path": "csharp/compatibility/evidence/phase7-source-hashes.json",
+        "sha256": "eb3a0405cb29c8c79c4733b6db1988c2215a7832aefc17b4307e032367e0bac1",
+        "files": 841,
+        "combinedSha256": "829d521b67735ac10e20cdc11ae41729d221a145c99d12d16e301c2df1f2db50"
+    },
+    "semantics": [
+        {
+            "path": "csharp/compatibility/evidence/phase7-final-semantics-single.json",
+            "sha256": "36170acf26a3f033e46a3f83622182c550c564bbb8e23c326694d1d09e034ef0",
+            "timestamp": "2026-10-03T11:29:04.026Z",
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "mode": "single",
+            "filter": "",
+            "managed": true,
+            "reuseSyntax": false,
+            "referenceJobs": 2,
+            "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+            "referenceExitCode": 0,
+            "exportedConfigurations": 15208,
+            "readyConfigurations": 13446,
+            "availableConfigurations": 13446,
+            "referenceInventoryFiles": 12730,
+            "plannedConfigurations": 15208,
+            "referenceMissingFiles": [],
+            "referenceMissingConfigurations": [],
+            "referenceSkipped": 1762,
+            "referenceFailed": 0,
+            "candidateFailures": 0,
+            "graphMismatches": 0,
+            "diagnosticMismatches": 0,
+            "graphAndCodeMatches": 13446,
+            "detailedDiagnosticMatches": 13446,
+            "detailedDiagnosticMismatches": 0,
+            "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+            "errorGroups": [],
+            "inputSha256": "df21bccda8a3bc5da534586c352dae0175cf4bf260c93ee15694afe19353d5bd",
+            "referenceInputCorrectionsSha256": "796d2ff79dfe5dfb5d35cd192946d4a1da669b6cea211d31b2b4696d84aa0c0c",
+            "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+            "candidateSha256": "01a0dd755acab1218597f1095bcb1e9371542de0dddb13e382d3fa99d0733ac3",
+            "compilerSha256": "ab843826903efa1582c203a9a1295508f6956fbeed4df5274bdf6384bea369ce",
+            "mapperFixture": {
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+                "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+                "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+            },
+            "candidateOutputSha256": "8390e6e546cf407bd5030dfabecd2983bd7aee283ae8d0a0678963646c6b31a4",
+            "fullSemanticCorpusGateComplete": true
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-final-semantics-default.json",
+            "sha256": "11c4a1f1a691aff10066f4c3e2f82b79f0c618de53170f03b34a8acaac85d06f",
+            "timestamp": "2026-10-03T11:44:13.815Z",
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "mode": "default",
+            "filter": "",
+            "managed": true,
+            "reuseSyntax": false,
+            "referenceJobs": 2,
+            "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+            "referenceExitCode": 0,
+            "exportedConfigurations": 15208,
+            "readyConfigurations": 13446,
+            "availableConfigurations": 13446,
+            "referenceInventoryFiles": 12730,
+            "plannedConfigurations": 15208,
+            "referenceMissingFiles": [],
+            "referenceMissingConfigurations": [],
+            "referenceSkipped": 1762,
+            "referenceFailed": 0,
+            "candidateFailures": 0,
+            "graphMismatches": 0,
+            "diagnosticMismatches": 0,
+            "graphAndCodeMatches": 13446,
+            "detailedDiagnosticMatches": 13446,
+            "detailedDiagnosticMismatches": 0,
+            "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+            "errorGroups": [],
+            "inputSha256": "b51e79a2ebc4428367c89bceb367fd82a86bdd85b43b847bc17f875b51743a77",
+            "referenceInputCorrectionsSha256": "f0e9fd99f75e8ac0c3db7ef4ccef21980f74b7b1adcfe189a01c8a762e4613a6",
+            "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+            "candidateSha256": "01a0dd755acab1218597f1095bcb1e9371542de0dddb13e382d3fa99d0733ac3",
+            "compilerSha256": "ab843826903efa1582c203a9a1295508f6956fbeed4df5274bdf6384bea369ce",
+            "mapperFixture": {
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+                "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+                "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+            },
+            "candidateOutputSha256": "8390e6e546cf407bd5030dfabecd2983bd7aee283ae8d0a0678963646c6b31a4",
+            "fullSemanticCorpusGateComplete": true
+        }
+    ],
+    "declarations": {
+        "path": "built/csharp/program-emit-fixtures-phase7-final/summary.json",
+        "sha256": "7c0a7f832980a993c9cc2ec9d2909e41cb861b50406bbfd03ed117128b810a2b",
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "scope": "compilerOptions.declaration || compilerOptions.composite",
+        "planned": 1760,
+        "referenceSkipped": 0,
+        "mappedCases": 3,
+        "cases": 1760,
+        "strictPass": 1758,
+        "permittedDifferences": 2,
+        "failed": 0,
+        "fixtureHash": "696ea6a4118ef5136d5e17ec43c3a5b91ec19f4d94fff4c41bccac75b6917090",
+        "planHash": "fe5bfac66824d3ca935b01ff84391a008f9a6bae135a4011fd3c5768805578e8",
+        "candidateHash": "01a0dd755acab1218597f1095bcb1e9371542de0dddb13e382d3fa99d0733ac3",
+        "compilerHash": "ab843826903efa1582c203a9a1295508f6956fbeed4df5274bdf6384bea369ce",
+        "bridgeHash": "d474eb41cd61ab4d57a82e508c39f5bd3f26e3a4acb0ca57a81d8517fc73a87c",
+        "oracleHash": "e9779b6b46101f4608f89903a202271c78a9ab2464deff664e0cd8043ad557f0",
+        "resultHash": "65d6e05a2325cd8001ca07fe36d5c028b69f85f550acc441665d72d4e5fe16be",
+        "policy": "The same two reviewed phase-5 emit differences; no new exceptions"
+    },
+    "api": {
+        "path": "built/csharp/phase7-validation/api-session-final/summary.json",
+        "sha256": "6a9b01e73522e12a74d40bdafdf77f3b30e5625834aed0255f93178a466680a8",
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "cases": 193,
+        "requests": 6358,
+        "differences": 0,
+        "compilerSha256": "ab843826903efa1582c203a9a1295508f6956fbeed4df5274bdf6384bea369ce",
+        "coordinateContract": "UTF-8 / AST v9; isolated oracle adapters listed separately"
+    },
+    "transport": {
+        "path": "built/csharp/phase7-validation/api-transport-final-verified/summary.json",
+        "sha256": "d171dbfc73e3b95206e167be8ffa005e1edd07f19c570a04e705447b245913a9",
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "requests": 94,
+        "transportPairs": 4,
+        "differences": 0,
+        "explicitDifferenceControls": [
+            {
+                "name": "jsonrpc-lone-surrogate",
+                "inputSha256": "5fac3e0e0caed7bf89524d8105418853a312edb5dfdf159283db45fdfc5e22a5"
+            },
+            {
+                "name": "jsonrpc-truncated-header",
+                "inputSha256": "99d7be023b0065c5deac2cc4a12400ab806e9d4514cb71e7f70738b0d9b44748"
+            }
+        ],
+        "compilerSha256": "ab843826903efa1582c203a9a1295508f6956fbeed4df5274bdf6384bea369ce",
+        "normalization": [
+            "snapshot identities retain allocation order",
+            "timing durations and timestamps checked before replacement",
+            "Go panic stack removed only for the exact callback test failure; complete messages retained"
+        ],
+        "adapter": "The API/session oracle adapts positions and AST protocol to the C# UTF-8 contract; transport and callback algorithms are original Go."
+    },
+    "originalJavaScriptClients": {
+        "path": "built/csharp/phase7-validation/api-clients-final/summary.json",
+        "sha256": "7e625a4580abf27002d6db131bf8ffb1d5a2ebac4179f35a0b95add95d1191a0",
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "filter": ".",
+        "results": [
+            {
+                "label": "reference",
+                "mode": "async",
+                "exitCode": 0,
+                "tests": 303,
+                "pass": 303,
+                "fail": 0,
+                "cancelled": 0,
+                "skipped": 0
+            },
+            {
+                "label": "candidate",
+                "mode": "async",
+                "exitCode": 0,
+                "tests": 303,
+                "pass": 303,
+                "fail": 0,
+                "cancelled": 0,
+                "skipped": 0
+            },
+            {
+                "label": "reference",
+                "mode": "sync",
+                "exitCode": 0,
+                "tests": 296,
+                "pass": 296,
+                "fail": 0,
+                "cancelled": 0,
+                "skipped": 0
+            },
+            {
+                "label": "candidate",
+                "mode": "sync",
+                "exitCode": 0,
+                "tests": 296,
+                "pass": 296,
+                "fail": 0,
+                "cancelled": 0,
+                "skipped": 0
+            }
+        ],
+        "compilerSha256": "ab843826903efa1582c203a9a1295508f6956fbeed4df5274bdf6384bea369ce",
+        "clientAdaptations": "Executable selection, AST v9, and UTF-8 insertion positions for both backends; original test assertions retained"
+    },
+    "projects": {
+        "evidence": {
+            "path": "csharp/compatibility/evidence/phase7-project-services.json",
+            "sha256": "f2c0e40e1031f90537b4a749536161ba1aca3e314894d6ca6ac9a34a4f26f4d8"
+        },
+        "inventory": {
+            "path": "csharp/compatibility/evidence/phase7-project-test-inventory.json",
+            "sha256": "dc5d37ab84ca1ff0a3fb1165f187a5640b9f15a97506db75fb520fc6bed6b238",
+            "testFunctions": 97,
+            "passed": 383,
+            "skipped": [
+                "TestATA/deduplicate_from_local_@types_packages"
+            ],
+            "dispositions": {
+                "original snapshot replay": 37,
+                "original operation replay": 4,
+                "runtime-specific structure": 4,
+                "managed lease contracts": 37,
+                "managed filesystem contracts": 8,
+                "managed cache ownership": 3,
+                "project identity contracts": 1,
+                "watch contract comparisons": 3
+            }
+        },
+        "snapshots": {
+            "sessions": 202,
+            "originalSessions": 200,
+            "authoredSessions": 2,
+            "transitions": 444,
+            "classifiedOrderDifferences": 2,
+            "compilerSha256": "ab843826903efa1582c203a9a1295508f6956fbeed4df5274bdf6384bea369ce",
+            "harnessSha256": "01a0dd755acab1218597f1095bcb1e9371542de0dddb13e382d3fa99d0733ac3",
+            "inputsSha256": "91510340ab48bb8d56596f25f1f7d0689e34d526ab81995b9ab1e9be0716ddf6",
+            "unclassifiedDifferences": 0
+        },
+        "live": {
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "cases": 66,
+            "requests": 188,
+            "differences": 0,
+            "classifiedDifferences": 2,
+            "compilerSha256": "abe3907dcae0b3bac6038c412d202e9c377fea9e757c9bfca86ea38a10d2a97f",
+            "inputsSha256": "b5a38f31f2498a32316bb280611e4fb3d89a1ad34d01538515f8f7b2a1d24452"
+        },
+        "safety": [
+            {
+                "name": "project",
+                "assertions": 177,
+                "compilerSha256": "ab843826903efa1582c203a9a1295508f6956fbeed4df5274bdf6384bea369ce",
+                "path": "built/csharp/phase7-validation/project-final-safety.log",
+                "sha256": "80275df41d42782fa462206614edeba8653e467967aa905b40f3e3a320cebf37"
+            },
+            {
+                "name": "lsp",
+                "assertions": 283,
+                "compilerSha256": "abe3907dcae0b3bac6038c412d202e9c377fea9e757c9bfca86ea38a10d2a97f",
+                "path": "built/csharp/phase7-validation/project-final-lsp.log",
+                "sha256": "c3b7648739ed5f2b32a7aafa4c13e3fa8f2a35af633cf7c98c51bdb64c998e7d"
+            },
+            {
+                "name": "rpc",
+                "assertions": 181,
+                "compilerSha256": "abe3907dcae0b3bac6038c412d202e9c377fea9e757c9bfca86ea38a10d2a97f",
+                "path": "built/csharp/phase7-validation/project-final-rpc.log",
+                "sha256": "b6adb4fcf6799172d5a290c0eb01ffbde9c19cde932b8e20b3af50f60eecbb50"
+            },
+            {
+                "name": "syntax-services",
+                "assertions": 337,
+                "compilerSha256": "abe3907dcae0b3bac6038c412d202e9c377fea9e757c9bfca86ea38a10d2a97f",
+                "path": "built/csharp/phase7-validation/project-final-syntax-services.log",
+                "sha256": "9c2abacadafdb63687137f63d6521c566b65bfd45bcc09bb2254ccb1e225dad4"
+            },
+            {
+                "name": "request-filesystem",
+                "assertions": 19,
+                "compilerSha256": "abe3907dcae0b3bac6038c412d202e9c377fea9e757c9bfca86ea38a10d2a97f",
+                "path": "built/csharp/phase7-validation/project-final-request-filesystem.log",
+                "sha256": "db53da1479ca5ae54e3ac2b9a885321de969f4edb3d3251fbd3e8f0d8a3bc57c"
+            },
+            {
+                "name": "ast-codec",
+                "assertions": 2119,
+                "compilerSha256": "abe3907dcae0b3bac6038c412d202e9c377fea9e757c9bfca86ea38a10d2a97f",
+                "path": "built/csharp/phase7-validation/project-final-ast-codec.log",
+                "sha256": "4fa8a5f96531795b6af127ad0f05b93ae42b8fcff23f2e7bd2c40d814323c656"
+            },
+            {
+                "name": "typings",
+                "assertions": 21,
+                "compilerSha256": "abe3907dcae0b3bac6038c412d202e9c377fea9e757c9bfca86ea38a10d2a97f",
+                "path": "built/csharp/phase7-validation/project-final-typings.log",
+                "sha256": "fb4980a61f44c6f632f43d82960009fc3dcfeedb3525a3f91fd0524b415e7ef1"
+            },
+            {
+                "name": "npm-process",
+                "assertions": 6,
+                "compilerSha256": "abe3907dcae0b3bac6038c412d202e9c377fea9e757c9bfca86ea38a10d2a97f",
+                "path": "built/csharp/phase7-validation/project-final-npm-process.log",
+                "sha256": "de0b30504bfd627c12f0f7740985fd2687416e7564681222d6d2f04385f79197"
+            },
+            {
+                "name": "telemetry",
+                "assertions": 28,
+                "compilerSha256": "abe3907dcae0b3bac6038c412d202e9c377fea9e757c9bfca86ea38a10d2a97f",
+                "path": "built/csharp/phase7-validation/project-final-telemetry.log",
+                "sha256": "11d21974348f84c55056d95e0306dacf907061ef00da42ffedcdeb9a4b187bfb"
+            },
+            {
+                "name": "content-mappers",
+                "assertions": 44,
+                "compilerSha256": "abe3907dcae0b3bac6038c412d202e9c377fea9e757c9bfca86ea38a10d2a97f",
+                "path": "built/csharp/phase7-validation/project-final-content-mappers.log",
+                "sha256": "fcd706baef4ef39228efd4daa22c7bf8a6681b7a22cf3b77b416980e91be928d"
+            },
+            {
+                "name": "developer",
+                "assertions": 51,
+                "compilerSha256": "abe3907dcae0b3bac6038c412d202e9c377fea9e757c9bfca86ea38a10d2a97f",
+                "path": "built/csharp/phase7-validation/project-final-developer.log",
+                "sha256": "e232876be0ecf2a4c4608f862b930f0543bb5cd9d641f6e2e63d332ec3265a9f"
+            }
+        ],
+        "reusedChecks": "Typings/overlay/live and general safety gates use the preceding compiler, before synthetic-ID canonicalization. Their relevant implementations and fixtures are unchanged. Project safety, snapshot replay and all 6,358 API operations use the current compiler, including the alias/ownership additions.",
+        "originalSourcesRestored": {
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "files": 67,
+            "mismatches": []
+        }
+    },
+    "serviceRegressionCheckpoints": {
+        "completion": {
+            "evidence": "csharp/compatibility/evidence/phase7-api-services.json",
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "requests": 8270,
+            "originalTests": 1056,
+            "originalTestFunctions": 1056,
+            "authoredTests": 52,
+            "encodings": [
+                "utf-8",
+                "utf-16"
+            ],
+            "differences": 0,
+            "compilerSha256": "8d262254f7ae5fa22076443f2ec353f1e0635c9eb52000a2f0f111688309969a",
+            "inputsSha256": "5dcc20422768a7ef176535bdbc1cc9f128f4342a382dbfec85d00c6cfaf30ed8",
+            "directory": "built/csharp/phase7-validation/completion-api-symbols"
+        },
+        "codeActions": {
+            "evidence": "csharp/compatibility/evidence/phase7-code-actions.json",
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "requests": 1268,
+            "originalTests": 518,
+            "originalTestFunctions": 514,
+            "authoredTests": 0,
+            "encodings": [
+                "utf-8",
+                "utf-16"
+            ],
+            "differences": 0,
+            "compilerSha256": "5ef008bf5fa6097a94865900bf326ee56c160a69df038d2c16b68604b32b39ea",
+            "inputsSha256": "e90549a03496b8cf6301b19c7270741960756005c1633bd9746fcb1029efe24b",
+            "directory": "built/csharp/phase7-validation/code-actions-serializer-final"
+        },
+        "mappedCodeActions": {
+            "evidence": "csharp/compatibility/evidence/phase7-code-actions.json",
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "requests": 1152,
+            "originalTests": 0,
+            "originalTestFunctions": 0,
+            "authoredTests": 13,
+            "encodings": [
+                "utf-8",
+                "utf-16"
+            ],
+            "differences": 0,
+            "compilerSha256": "5ef008bf5fa6097a94865900bf326ee56c160a69df038d2c16b68604b32b39ea",
+            "inputsSha256": "144c7ff2dacda5c35084ab0bb57731f93a9bccf0dabaf90d77e324ea6abd820b",
+            "directory": "built/csharp/phase7-validation/code-actions-mapped-final"
+        },
+        "diagnostics": {
+            "evidence": "csharp/compatibility/evidence/phase7-telemetry.json",
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "requests": 1122,
+            "originalTests": 220,
+            "originalTestFunctions": 220,
+            "authoredTests": 19,
+            "encodings": [
+                "utf-8",
+                "utf-16"
+            ],
+            "differences": 0,
+            "compilerSha256": "d1bc47c7a1900a1f7017065a6f741364092f4ff616a6233538db0a91bb693079",
+            "inputsSha256": "b8afa6ac3862c54597fa23bd1ee4b11595b694a70e13f353f4b30985eed2c166"
+        },
+        "protocol": {
+            "evidence": "csharp/compatibility/evidence/phase7-lsp-protocol.json",
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "originalTestsPassed": 145,
+            "recordedInputs": 86,
+            "generatedTypes": 685,
+            "methods": 55,
+            "cases": 17870,
+            "differences": 0,
+            "compilerSha256": "fbc31fb592279038c00f88d11e1ea64cc14533af1ced53c6ab80cfec443a2c94",
+            "oracleSha256": "b56361249b793f75771304310ec0ab217004d9c4ba2f149267828890ff530746",
+            "generatorSourceSha256": "67be1b8afa2e17beaffcd6c90b3698af4c5c45ddeb772909796e689cd5f0e2c6",
+            "comparison": "Strict acceptance and rejection; runtime-specific JSON decoder error wrappers are retained but not compared."
+        },
+        "watchPatterns": {
+            "evidence": "csharp/compatibility/evidence/phase7-lsp-watching.json",
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "cases": 3338,
+            "differences": 0,
+            "classifiedDifferences": 384,
+            "compilerSha256": "4dbeea87ba9c02ac90eb9a78345736d91eba91d8c748ea5486ddfeddaaec06a7",
+            "inputsSha256": "b458ba8b811b4d9b01effaa4c07d3a0f9c4d388c89e56045e7c3ca4dc1ee1b3a"
+        }
+    },
+    "parser": {
+        "evidence": "csharp/compatibility/evidence/phase7-completion-parser.json",
+        "cases": 17448,
+        "passed": 17448,
+        "failed": 0,
+        "strictPassed": 17191,
+        "strictFailed": 257,
+        "permittedDifferences": 257,
+        "compilerSha256": "8748da5f76ffce712e2c230d7f1324540767335b0fb9d09a93c680b275394913",
+        "inputSha256": "945c22d139debaa18757527c6778e77920183772d7a21f2a2711808bddeb5940",
+        "scope": "Most recent expanded parser audit; strict differences retain their existing reviewed policies"
+    },
+    "generators": [
+        {
+            "command": "node csharp/tools/generate-ast.mjs --check",
+            "passed": true,
+            "generator": {
+                "path": "csharp/tools/generate-ast.mjs",
+                "sha256": "321d6dcaa2fcf5b8f2b793d5575688451f7a29121300925f8ae3030b7b9dbb71"
+            },
+            "log": {
+                "path": "built/csharp/phase7-validation/final-generate-ast.log",
+                "sha256": "4bae2dbf6a4472994fdd8f4532487e4d73f2ec48ba2ba62a3024684609dbc91e"
+            }
+        },
+        {
+            "command": "node csharp/tools/generate-ast-codec.mjs --check",
+            "passed": true,
+            "generator": {
+                "path": "csharp/tools/generate-ast-codec.mjs",
+                "sha256": "25838c467d0fd5125cc3cb27dd6bdb3a386b2c59426d409ba77c5cd5d1540b08"
+            },
+            "log": {
+                "path": "built/csharp/phase7-validation/final-generate-ast-codec.log",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+        },
+        {
+            "command": "node csharp/tools/generate-binding.mjs --check",
+            "passed": true,
+            "generator": {
+                "path": "csharp/tools/generate-binding.mjs",
+                "sha256": "6c58e1525328263e97e0c2c4eebb22a54cc06e399c75ed03b14f82f1b7214988"
+            },
+            "log": {
+                "path": "built/csharp/phase7-validation/final-generate-binding.log",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+        },
+        {
+            "command": "node csharp/tools/generate-formatting-rules.mjs --check",
+            "passed": true,
+            "generator": {
+                "path": "csharp/tools/generate-formatting-rules.mjs",
+                "sha256": "628239bea05ad7db672dc6d6c2a35078df0173b637a1823eca8b9c9504a280bd"
+            },
+            "log": {
+                "path": "built/csharp/phase7-validation/final-generate-formatting-rules.log",
+                "sha256": "89fd48ebae12d6ab37af556f3460a12dc3fb2edd264fc9b099579b4157d0b32e"
+            }
+        },
+        {
+            "command": "node csharp/tools/generate-lsp-protocol.mjs --check",
+            "passed": true,
+            "generator": {
+                "path": "csharp/tools/generate-lsp-protocol.mjs",
+                "sha256": "0c348fe5e8607b48a12b7d6eec0546fa2293ae4d5bc26e50440ebc38497643c3"
+            },
+            "log": {
+                "path": "built/csharp/phase7-validation/final-generate-lsp-protocol.log",
+                "sha256": "43d61b8f518817f1002568d96ebecda00c94b16e7207e5f3d7926741a6488556"
+            }
+        },
+        {
+            "command": "node csharp/tools/generate-typings-map.mjs --check",
+            "passed": true,
+            "generator": {
+                "path": "csharp/tools/generate-typings-map.mjs",
+                "sha256": "17793d4a245237ff5b376b9b4b03b99a9ed095cc03cace4acb1a0e3b30b11b6d"
+            },
+            "log": {
+                "path": "built/csharp/phase7-validation/final-generate-typings-map.log",
+                "sha256": "1f9aee77098f67737d88f42fb2679b60e926373c8682c7bfc7856b03ab4b9b8f"
+            }
+        },
+        {
+            "command": "node csharp/tools/generate-normalization.mjs --check",
+            "passed": true,
+            "generator": {
+                "path": "csharp/tools/generate-normalization.mjs",
+                "sha256": "732d4f9f6c30808cd11cc756eb05ec98006abdb066046131b8caf07704df0d7c"
+            },
+            "log": {
+                "path": "built/csharp/phase7-validation/final-generate-normalization.log",
+                "sha256": "e9c5b0ab0c702ec70efcadb3c6df7f8a3603c59d0473219aa02c47bcf2f00ef0"
+            }
+        },
+        {
+            "command": "node csharp/tools/generate-regexp-properties.mjs --check",
+            "passed": true,
+            "generator": {
+                "path": "csharp/tools/generate-regexp-properties.mjs",
+                "sha256": "fadf90680a3adb756055227a76169ce2d592239e9410909bc10bd9419ff0cf5a"
+            },
+            "log": {
+                "path": "built/csharp/phase7-validation/final-generate-regexp-properties.log",
+                "sha256": "33018385305daf62877c329933035bccbfacc8eecb2b3ead9ae75f2fc95b5cdc"
+            }
+        }
+    ],
+    "nativePublishing": {
+        "configuration": "Release; win-x64; default GC; IlcInstructionSet=native; RestoreLockedMode=true; UseSharedCompilation=false",
+        "results": [
+            {
+                "name": "cli",
+                "file": "built/csharp/phase7-native/cli/tsgo-cs.exe",
+                "sha256": "e9845d34f234aaeafcd0f0cd0c3e14e397ed172862b30a4cac261cab505c0371",
+                "bytes": 32089600,
+                "log": "built/csharp/phase7-validation/final-native-cli-publish.log",
+                "logSha256": "4b11825853b47cde65af96b18eedcb0c23a19ec0eea7d7093efa43e68b324b98",
+                "exitCode": 0,
+                "warnings": 0,
+                "errors": 0,
+                "executed": false
+            },
+            {
+                "name": "compatibility",
+                "file": "built/csharp/phase7-native/compatibility/TypeScript.Compatibility.exe",
+                "sha256": "3709fb49fcc09ad00d0892b0418bd6f97653d8b666ef8891a6f519a027542a30",
+                "bytes": 43994624,
+                "log": "built/csharp/phase7-validation/final-native-compatibility-publish.log",
+                "logSha256": "f3edfb4222f5a9fd1732b9babbbe269cb38868e3bf3bb0ca3d029b787fe87916",
+                "exitCode": 0,
+                "warnings": 0,
+                "errors": 0,
+                "executed": false
+            }
+        ]
+    },
+    "evidenceIndex": [
+        {
+            "path": "csharp/compatibility/evidence/phase7-api-service-ordering.json",
+            "sha256": "14c3fa711b1ef3bf22f77da4b07951f36d9c9e16b3b30f438891f90da84c8a90"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-api-services.json",
+            "sha256": "55fab8b6ac0c058662aac9014cf61725d298015f521c06137f2256416726611c"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-api-transport.json",
+            "sha256": "6d828cd910f47992377ae7d2ef32161e147f036dbe4c25c1671e0fa325594c54"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-ast-codec.json",
+            "sha256": "1749cca1f9e209814b2a7d60306b60d3c7ed7a669d0a68acd0c62db371dea1fd"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-auto-insert.json",
+            "sha256": "7236b2326f55c3c983bdcc6316d5e22c2be76c9dfd03e772082cf595858072fb"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-autoimport-entrypoints.json",
+            "sha256": "7a412d313228bff2213521927e839bfdd9f73c5f419c7447a351e68c0e4036e3"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-autoimport-index.json",
+            "sha256": "93d4ae0e697e9a663cdf63e187cffa252a9955b100e6bad89f470bcb32745d2f"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-autoimport-ordering.json",
+            "sha256": "be36019a6a523a041b47e936e38d271db090971789d6830f342e42aa1ea7f567"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-autoimport-registry.json",
+            "sha256": "cf9723ab06064665fb6018a27ff285051332d8b876f276d916b66757a4613d3c"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-call-hierarchy.json",
+            "sha256": "cbcf3751e00d5b59a7473013e284d785936ce9b7760f450e317cf2a74e8522a8"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-code-actions-semantics.json",
+            "sha256": "bda4876b28cda11598418554857a63f213f294319fde216e63e5c33b0fc34358"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-code-actions.json",
+            "sha256": "787c4a4ddb2a5f3560739e2a9e059bcdf865e1d925c0d48f1038555e1b5314fc"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-code-lens-ordering.json",
+            "sha256": "4ab7300a46f2f1f109533d7bca5ec26aafceb6998ef8e16a8cdc9d239a43fdc6"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-code-lens.json",
+            "sha256": "9dda7ad8058a87af5411bba4b61f09db8a7dd77d73393d60b4019eb64fa1180a"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-completion-capabilities.json",
+            "sha256": "aa01d5682f51efb6f2c253a88f602039a71625c6d5c705f4e3cc6f36376212cb"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-completion-core.json",
+            "sha256": "ee6635e9167b8b0b02bb71afee485f76c107c687ad2c0f275d1a9760ee594a26"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-completion-ordering.json",
+            "sha256": "055867424b8b10f1d5ff435c238d4a8912a9b93014dd1c58b2b230da65172aa1"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-completion-parser-differences.json",
+            "sha256": "e94d01ce7d808f5e4746109b1df3f704e57e45e86aee3770ceaebec267129cd6"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-completion-parser-differences.outputs.json.gz",
+            "sha256": "4c59d929ee1eebfbf6a30353d710091bfc5744b732f7061a510323e422d968bc"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-completion-parser.json",
+            "sha256": "2ad2b20ef4187568eb49627c34f6bf4fec684d8d6b9032325963588434f4a75e"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-completion-semantics.json",
+            "sha256": "474385bd7f8864065d92baf8c57a3947c21fc56fe94cd533bbd59ad2c4787650"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-definitions.json",
+            "sha256": "a26d3b71ca4538ed791ac8e3740dced23b2058d5adf4cb447c6441f28678bcfb"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-developer-services.json",
+            "sha256": "398e0964413d936b30d40306ebfbb91e1bd3a8648f6088af2255f44eb04b466c"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-diagnostics-semantics.json",
+            "sha256": "86ecc398d27b36a37054ebbc6cb76288dc32d762bf7c78c71ef7e8bad176149f"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-diagnostics.json",
+            "sha256": "333def395043b5b7f3e57e6cba119a4e611ea23c43b99b642add8f390c40d1e9"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-file-rename-ordering.json",
+            "sha256": "05e52554db5b71e203b743a04a9fe0ddf3effb9fae57a485289b4a915d35c8bf"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-final-semantics-default.json",
+            "sha256": "11c4a1f1a691aff10066f4c3e2f82b79f0c618de53170f03b34a8acaac85d06f"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-final-semantics-single.json",
+            "sha256": "36170acf26a3f033e46a3f83622182c550c564bbb8e23c326694d1d09e034ef0"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-highlights.json",
+            "sha256": "018b528be7f8f975a730a99801148019fa42fb339ba8c703cba3d078a3f30e14"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-hover.json",
+            "sha256": "cff48cedb5e4922dd51b0dea8862e2a4b16cb6ffa85a41c95c1bb10635468ac8"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-import-normalization.json",
+            "sha256": "c202922e72fd591d7ecdd40ba6ece1142a836b7236515e6f795cf5d02fad007d"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-inlay-hints.json",
+            "sha256": "9b8f13cbc4e4b8898de69f33cbeafd73dae18921d68319e09f06c8b2a2949902"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-insertion-formatting.json",
+            "sha256": "6a9f21d8b476ed1793540bf61625a2d8a5a0c402cc2ed02d75b859f5304071e8"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-jsdoc-completion.json",
+            "sha256": "af861ddb21bd9c0b5096f9867f1e2772ff06430951774d86c44f0aae756aaed1"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-jsdoc-tags.json",
+            "sha256": "dee2ab84257eedca91d5f8f48b89eac03c7e637aff4545f91d8abddc6126500f"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-lsp-project-services.json",
+            "sha256": "94c3384772e8d8644db1f099ed1329f8739bc8f1f4d30c969cc1ced608e57371"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-lsp-protocol.json",
+            "sha256": "302738aae34abdef06e8416e4769da207dab98113e602091c065956ff7b2ad4b"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-lsp-watching.json",
+            "sha256": "710adad5a7374c4e0697ea5d672babb5852d8a763eae804bd2c1a8dc325e9e61"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-lsp-watching.outputs.json.gz",
+            "sha256": "71212821bc5abb0e1642e70d5d2da23ff441419c4ab194bb37b1c571b6510722"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-parser-differences.json",
+            "sha256": "bf018d02209e6c8d7694c4664f5b589c4020de65f2fc2d039da14339f7a3bcad"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-parser-differences.outputs.json.gz",
+            "sha256": "916874b823362dd5b40fd63ae275a4829c83a620e8c8c01337078f407f77768a"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-parser.json",
+            "sha256": "9f0699db8b6f10a74aa55ff7af57cefb9d8331b3a4726c4a1ce7d79e46417078"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-project-ordering.json",
+            "sha256": "4b6a65f33c53920d7196ec7a15f4d5d5c992591ba839e4e43bb82c5ea6cc91b4"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-project-services.json",
+            "sha256": "f2c0e40e1031f90537b4a749536161ba1aca3e314894d6ca6ac9a34a4f26f4d8"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-project-test-inventory.json",
+            "sha256": "dc5d37ab84ca1ff0a3fb1165f187a5640b9f15a97506db75fb520fc6bed6b238"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-reference-ordering.json",
+            "sha256": "a7f51c0f3dac2bbbb5e2610f46c28387cb632b9993c4cd3d9bf5dd81a4fc0206"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-references.json",
+            "sha256": "42d31e8836c4ca356d55b9779cdbf76578e86a14c25bb65dcff83cf611f2f97a"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-rename.json",
+            "sha256": "c95c2ee3ceeb9fedd9a30159ad9bc9b9d389f32b23c1a6aeecfbb3c0bb48f6e1"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-signature-help.json",
+            "sha256": "e5e8dd3a59c1530c393e8cdef4497cfc5ba54e864fa89b6767836fd4738238b4"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-signature-recovery.json",
+            "sha256": "3e79f29872792169b439f83bf920f8d580c7161d5682385f03b815778c8f4910"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-source-hashes.json",
+            "sha256": "eb3a0405cb29c8c79c4733b6db1988c2215a7832aefc17b4307e032367e0bac1"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-specifier-regex.json",
+            "sha256": "76bbf77bcc7cf2389edb7446438e8d8a38efdc966350830837f2d9ecba9f620a"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-telemetry-ordering.json",
+            "sha256": "144a2ae34b316fce1dc849f9dffbd233cf11439f13815239500560bfba2bf3ca"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-telemetry.json",
+            "sha256": "9160b9d2630f4f7ae1e3b8075c059ee51b38a4c6635d14a9f8e4e4d2d483bc26"
+        },
+        {
+            "path": "csharp/compatibility/evidence/phase7-vs-references.json",
+            "sha256": "bf963abed8f24fcc413cdca4559278da598ed008b322d9334eb0cbed4a22368d"
+        }
+    ],
+    "boundaries": [
+        "Earlier evidence files retain their as-of phase7Complete flags, remaining-work lists and initial failed attempts. This record identifies the accepted final aggregate; those historical fields are not current blockers.",
+        "Final semantic, declaration, full API/client/transport, snapshot and project-safety gates use the recorded final compiler. Individual service checkpoints retain their own compiler hashes and are not presented as reruns of every provider on the final artifact.",
+        "The original JavaScript client assertions are unchanged; ignored copies adapt executable selection, AST version 9, and the two UTF-8 insertion fixtures for both backends.",
+        "All original exclusions remain visible. The project inventory distinguishes original behavioral replay from managed ownership contracts and Go-runtime-specific private structures.",
+        "Ordering, UTF-8/WTF-8, mapped positions, decoder wording, reference-defect corrections, and runtime telemetry/profiling differences retain the scoped policies and controls in the linked evidence.",
+        "Go remains the product backend. NativeAOT executables were published but not executed. Cross-platform native watcher validation, maintained NativeAOT distribution routes, packaging and replacement-performance gates remain later work."
+    ]
+}

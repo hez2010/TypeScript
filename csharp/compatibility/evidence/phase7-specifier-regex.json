@@ -1,0 +1,109 @@
+{
+  "phase": 7,
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "comparison": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": 113749,
+    "originalCases": 109206,
+    "matchQueries": 12421228,
+    "passed": 113749,
+    "differences": 0,
+    "inputsSha256": "9101b67d924f3b089d5067eadd62ef62e2606dd7e2d51ef94d8d10eb4874b65f",
+    "oracleSha256": "bfa63ff55300abd9b52500e0cf462563e00439a3adaa676f310a94457cafc44b",
+    "compilerSha256": "2c0d997c84966102c47cd8c8cc63b036c25ba3f0cae4ad2b9bd3375ce65dd8eb",
+    "harnessSha256": "ee96818085ff3d77ac6d579b11186173ac66572aaeb37755a100a6bf8c9571a3",
+    "directory": "built/csharp/phase7-validation/specifier-regex-final"
+  },
+  "scope": "Exact pattern validity, direct Boolean matches, and module-specifier exclusion results. Inputs include the pinned Go parser fixtures, RE2 search/exhaustive fixtures, every supported Unicode property at range boundaries, deterministic composed patterns, invalid UTF-8, slash flags, ASCII character classes, repetition/nesting limits and escaped-surrogate prefix behavior.",
+  "initialComparisons": [
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "cases": 5205,
+      "originalCases": 1166,
+      "matchQueries": 447980,
+      "passed": 5198,
+      "differences": 7,
+      "inputsSha256": "22e497a2b305b4590a7926e05756ba21d9183941c52ab308f3e898a309986325",
+      "oracleSha256": "1e865baf81380a392a4b4893bc7af464d5b0cb8cf1d726be933eeef020bba43d",
+      "compilerSha256": "4febee0effbfcf9872d72b44eba832611249048a41eee923738383cbc6aa2066",
+      "harnessSha256": "a1f99d4e4a1e72deac7a768a403d9c89033cbbc3a2b7f7d0ada51d97965fdaed",
+      "directory": "built/csharp/phase7-validation/specifier-regex-first",
+      "result": "Seven differences corrected: rune-count limit, zero-repeat nesting, malformed UTF-8 after slash parsing, and one-pass escaped-surrogate prefix behavior."
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "cases": 113623,
+      "originalCases": 109206,
+      "matchQueries": 12417448,
+      "passed": 113604,
+      "differences": 19,
+      "inputsSha256": "55c96d78fdd9eeea2b10658f44ff1329f5904443302a06f2c39695fda2355b8c",
+      "oracleSha256": "b2559969cf8d5adaeaa89587af3983396dabe8fce029827b231e9e0b9ce209a8",
+      "compilerSha256": "33e534b45e01a6f7786ffdd1ba393ac049c547735387c755fc0cf29678425a9c",
+      "harnessSha256": "38c4c3ee681d73119e803ae702637cf9c6bc3dbb3075ce37eb79aa0fbaed0da0",
+      "directory": "built/csharp/phase7-validation/specifier-regex-exhaustive1",
+      "result": "Nineteen escaped-surrogate cases corrected by factoring shared alternative prefixes before one-pass analysis."
+    },
+    {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "cases": 113749,
+      "originalCases": 109206,
+      "matchQueries": 12421228,
+      "passed": 113749,
+      "differences": 0,
+      "inputsSha256": "9101b67d924f3b089d5067eadd62ef62e2606dd7e2d51ef94d8d10eb4874b65f",
+      "oracleSha256": "b2559969cf8d5adaeaa89587af3983396dabe8fce029827b231e9e0b9ce209a8",
+      "compilerSha256": "a2f3e2c96fdfcd1fcb24bb5e901c163f5c8ec671da2b59156f36e07cf16c9bf1",
+      "harnessSha256": "8f5dd4b55852cd419fe0edadfc9752409ec6de2aa2d68c9af15f524230c391c7",
+      "directory": "built/csharp/phase7-validation/specifier-regex-exhaustive2",
+      "result": "All comparisons passed before adding cancellation checks."
+    }
+  ],
+  "originalCompletionRequests": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "inputDirectory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase7-validation\\completion-sessions",
+    "originalTests": 2,
+    "originalTestFunctions": 2,
+    "selectedTestsWithoutRequests": [],
+    "unorderedProjectResults": [],
+    "unorderedFileRenameResults": [],
+    "unorderedCodeLensResults": [],
+    "unorderedReferenceResults": [],
+    "authoredTests": 0,
+    "encodings": [
+      "utf-8",
+      "utf-16"
+    ],
+    "requests": 20,
+    "differences": 0,
+    "compilerSha256": "2c0d997c84966102c47cd8c8cc63b036c25ba3f0cae4ad2b9bd3375ce65dd8eb",
+    "inputsSha256": "5dcc20422768a7ef176535bdbc1cc9f128f4342a382dbfec85d00c6cfaf30ed8",
+    "directory": "built/csharp/phase7-validation/completion-regex-original"
+  },
+  "safety": {
+    "serviceAssertions": 294,
+    "regexAssertions": 6,
+    "log": "built/csharp/phase7-validation/completion-regex-safety1.log",
+    "scope": "Nested-repetition no-match completion, concurrent queries, pre-canceled parse/exclusion/match and interruption while parsing a large expression.",
+    "compilerSha256": "2c0d997c84966102c47cd8c8cc63b036c25ba3f0cae4ad2b9bd3375ce65dd8eb"
+  },
+  "generator": {
+    "command": "node csharp/tools/generate-regexp-properties.mjs --check",
+    "log": "built/csharp/phase7-validation/regexp-properties-check.log",
+    "result": "passed",
+    "properties": 257,
+    "tables": 225,
+    "unicodeVersion": "17.0.0"
+  },
+  "sources": {
+    "csharp/src/TypeScript.Compiler/Semantics/GoRegex.cs": "3b7f0bbfb6a8fe2c0e776a3ec9bd3638305e75f0d84afa140f63c7ae550dfbd9",
+    "csharp/src/TypeScript.Compiler/Semantics/GoRegex.Properties.generated.cs": "08ee17eefc6b16d04582c9b6641658103e4d3f83bc152339c0e6c8e918a17d6f",
+    "csharp/src/TypeScript.Compiler/LanguageServices/AutoImports/AutoImportView.Specifiers.cs": "10450f7ce9e372b76692b5c7dba38c14ae80ae346ce9db49e58e96153ae28e68",
+    "csharp/tools/generate-regexp-properties.mjs": "fadf90680a3adb756055227a76169ce2d592239e9410909bc10bd9419ff0cf5a",
+    "csharp/tools/specifier-regex.mjs": "0724bcc76dc338948e7be653a3ca029020b096616cf86fe876132ee5367b431e",
+    "csharp/oracle/specifier-regex/main.go": "ddc25c7218a59e1e4a91f967fe334c0558f7e1e6ec2cecda59505248d21ccfa7",
+    "csharp/tests/TypeScript.Compatibility/SpecifierRegexTests.cs": "41780e224e6a1b5f7cb97c2ab1f1a70f81ba3c70f1b17d571f13858e3c2eb6f7"
+  },
+  "reproduction": "node csharp/tools/specifier-regex.mjs --exhaustive --managed-directory built/csharp/phase7-tags-build/bin/TypeScript.Compatibility/release --directory built/csharp/phase7-validation/specifier-regex-final",
+  "execution": "Release CoreCLR with the default GC. No NativeAOT execution or performance measurements."
+}

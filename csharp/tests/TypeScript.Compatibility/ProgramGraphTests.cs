@@ -304,6 +304,7 @@ internal static class ProgramGraphTests
             var program = await CompilerProgram.CreateAsync(fs, directory, parsed,
                 useProjectReferenceSources: input.TryGetProperty("useSources"u8, out var source) && source.GetBoolean(),
                 concurrency: concurrency).ConfigureAwait(false);
+            var diagnosticChecker = program.IncludeDiagnostics.Count == 0 ? null : await program.CreateCheckerAsync().ConfigureAwait(false);
             using var stream = new MemoryStream();
             using (var writer = new Utf8JsonWriter(stream))
             {
@@ -331,6 +332,9 @@ internal static class ProgramGraphTests
                 writer.WriteStartArray();
                 foreach (var error in program.Diagnostics)
                     writer.WriteNumberValue((int)error.Code);
+                foreach (var file in program.SourceFiles)
+                    foreach (var error in DiagnosticCollection.SortAndDeduplicate(diagnosticChecker?.IncludeDiagnosticsForProgramFile(file.Syntax) ?? []))
+                        writer.WriteNumberValue((int)error.Code);
                 writer.WriteEndArray();
                 writer.WriteEndArray();
             }

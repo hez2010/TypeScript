@@ -73,31 +73,27 @@ internal sealed partial class Checker
         if (((declaration.Flags | (program.Symbols.Binding(declaration)?.Get(declaration)?.Flags ?? 0)) & (NodeFlags.Ambient | NodeFlags.ThisNodeOrAnySubNodesHasError)) != 0)
             return;
         var options = program.Symbols.Program.Configuration.Options;
-        if ((parameter ? options.NoUnusedParameters : options.NoUnusedLocals) == true)
+        Utf8String[] arguments = [];
+        if (code is DiagnosticCode.X0IsDeclaredButItsValueIsNeverRead or DiagnosticCode.Property0IsDeclaredButItsValueIsNeverRead
+            or DiagnosticCode.X0IsDeclaredButNeverUsed)
         {
-            Utf8String[] arguments = [];
-            if (code is DiagnosticCode.X0IsDeclaredButItsValueIsNeverRead or DiagnosticCode.Property0IsDeclaredButItsValueIsNeverRead
-                or DiagnosticCode.X0IsDeclaredButNeverUsed)
-            {
-                var name = SemanticSyntax.Name(location) ?? location;
-                arguments = [name is IdentifierNode identifier ? identifier.Text
-                    : program.Symbols.Declaration(declaration) is { } symbol ? TypeDisplay.SymbolName(symbol)
-                    : CheckerDiagnostic.DeclarationName(name)];
-            }
-            if (typeParameters is not null)
-            {
-                var file = SemanticSyntax.Source(declaration)!;
-                int start = typeParameters.Pos - 1;
-                int end = Math.Min(file.Source.Bytes.Length, CheckerDiagnostic.TokenRange(file, typeParameters.End).Start + 1);
-                Error(location, CheckerDiagnostic.Create(location, DiagnosticLocalization.GetMessage(code), arguments)
-                    with
-                { Start = start, Length = end - start });
-            }
-            else
-                Error(location, code, arguments);
+            var name = SemanticSyntax.Name(location) ?? location;
+            arguments = [name is IdentifierNode identifier ? identifier.Text
+                : program.Symbols.Declaration(declaration) is { } symbol ? TypeDisplay.SymbolName(symbol)
+                : CheckerDiagnostic.DeclarationName(name)];
         }
+        var diagnostic = CheckerDiagnostic.Create(location, DiagnosticLocalization.GetMessage(code), arguments);
+        if (typeParameters is not null)
+        {
+            var file = SemanticSyntax.Source(declaration)!;
+            int start = typeParameters.Pos - 1;
+            int end = Math.Min(file.Source.Bytes.Length, CheckerDiagnostic.TokenRange(file, typeParameters.End).Start + 1);
+            diagnostic = diagnostic with { Start = start, Length = end - start };
+        }
+        if ((parameter ? options.NoUnusedParameters : options.NoUnusedLocals) == true)
+            Error(location, diagnostic);
         else
-            ExpressionSuggestion(location, code);
+            ExpressionSuggestion(location, diagnostic);
     }
 
     private void ReportUnusedVariable(SyntaxNode node, SyntaxNode location, DiagnosticCode code)
@@ -205,7 +201,7 @@ internal sealed partial class Checker
         {
             var name = SemanticSyntax.Name(declaration);
             if (name is null
-                || ParameterProperty(declaration)
+                || DeclarationOrder.ParameterProperty(declaration)
                 || declaration is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: var matchedText } } && matchedText.SequenceEqual("this"u8))
                 continue;
             if (name is BindingPatternNode pattern)

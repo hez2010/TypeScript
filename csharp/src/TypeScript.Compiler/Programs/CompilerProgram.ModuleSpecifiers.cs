@@ -12,8 +12,19 @@ public sealed partial class CompilerProgram
     private ProgramModuleSpecifierHost? moduleSpecifierHost;
     private ModuleSpecifierGenerator? moduleSpecifierGenerator;
 
+    internal Utf8String UpdateModuleSpecifier(SourceFileNode source, SyntaxNode import, Utf8String importingFileName, Utf8String target,
+        ModuleSpecifierPreferences preferences, CancellationToken cancellation)
+    {
+        lock (moduleSpecifierGate)
+        {
+            var host = ModuleSpecifierHost(cancellation);
+            return moduleSpecifierGenerator!.Update(source, importingFileName, ModuleSpecifierPaths.ImportText(import), target,
+                preferences, host.ResolutionMode(source, import), cancellation);
+        }
+    }
+
     internal ModuleSpecifierResult GetModuleSpecifiers(SourceFileNode source, Utf8String target, ModuleSpecifierPreferences? preferences = null,
-        ReferenceResolutionMode mode = 0, CancellationToken cancellation = default)
+        ReferenceResolutionMode mode = 0, CancellationToken cancellation = default, bool forAutoImport = false)
     {
         if (!ReferenceEquals(GetFile(source.FileName)?.Syntax, source))
             throw new ArgumentException("Source belongs to another program", nameof(source));
@@ -22,7 +33,7 @@ public sealed partial class CompilerProgram
             var host = ModuleSpecifierHost(cancellation);
             Utf8String original = ProjectReferences.Outputs.TryGetValue(CompilerPath.Resolve(CurrentDirectory, target), out var output)
                 ? output.Source : target;
-            return moduleSpecifierGenerator!.ForFile(source, original, preferences, mode, cancellation: cancellation);
+            return moduleSpecifierGenerator!.ForFile(source, original, preferences, mode, forAutoImport: forAutoImport, cancellation: cancellation);
         }
     }
 

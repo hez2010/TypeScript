@@ -19,13 +19,14 @@ public sealed partial class EmitContext
         internal SyntaxNode? TextSource, AssignedName, ClassThis, Type;
         internal IdentifierNode? ExternalHelpersModuleName;
         internal List<EmitHelper>? Helpers;
+        internal int? SnippetTabStop;
 
         internal NodeData Clone() => new()
         {
             Flags = Flags, CommentRange = CommentRange, SourceMapRange = SourceMapRange,
             TokenRanges = TokenRanges is null ? null : new(TokenRanges),
             ExternalHelpersModuleName = ExternalHelpersModuleName,
-            Helpers = Helpers is null ? null : [.. Helpers]
+            Helpers = Helpers is null ? null : [.. Helpers], SnippetTabStop = SnippetTabStop
         };
     }
 
@@ -165,6 +166,8 @@ public sealed partial class EmitContext
         || GetExternalHelpersModuleName(node) is not null;
     public SyntaxNode? GetTextSource(SyntaxNode node) => TryData(node)?.TextSource;
     public void SetTextSource(SyntaxNode node, SyntaxNode source) => Data(node).TextSource = source;
+    internal int? GetSnippetTabStop(SyntaxNode node) => TryData(node)?.SnippetTabStop;
+    internal void SetSnippetTabStop(EmptyStatementNode node, int order) => Data(node).SnippetTabStop = order;
     public SyntaxNode? GetAssignedName(SyntaxNode node) => TryData(node)?.AssignedName;
     public void SetAssignedName(SyntaxNode node, SyntaxNode name) => Data(node).AssignedName = name;
     public SyntaxNode? GetClassThis(SyntaxNode node) => TryData(node)?.ClassThis;

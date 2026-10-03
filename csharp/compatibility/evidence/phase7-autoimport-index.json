@@ -1,0 +1,50 @@
+{
+  "phase": 7,
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "comparison": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": 7413,
+    "passed": 7413,
+    "differences": 0,
+    "unicodePropertyDigest": {
+      "reference": "8a85e12bcec04a91eb09bcce904732c8e2b3efa5cedfc33674c53f54c3b51458",
+      "candidate": "8a85e12bcec04a91eb09bcce904732c8e2b3efa5cedfc33674c53f54c3b51458"
+    },
+    "inputsSha256": "a3811f22f71e161e2daa39dede23e2d7b112a897da91f89e57a878e0c043e1c1",
+    "oracleSha256": "0fa9f2cdf28958bf0f51ee88d3452ef4046a229b57e36f29bd9e5a1f1daeaddc",
+    "compilerSha256": "29991f87d989c533813577e44456dec3022cd8cda47490e5233c65432efc4fca",
+    "harnessSha256": "12d4f6f1d9998e95da1dc2ade754789e7e0c6b4b200de1870b380f66c901fbf0",
+    "directory": "built/csharp/phase7-validation/autoimport-index-second"
+  },
+  "scope": "Exact word byte offsets, ordered exact and case-insensitive lookup, subsequence word-prefix search including duplicates, filtered/empty/nil clones, original word-index and clone cases, malformed UTF-8 and Unicode names. A digest independently compares upper/lower mapping, simple folding, and upper/lower predicates for all 1,114,112 Unicode code points.",
+  "originalTests": {
+    "log": "built/csharp/phase7-validation/autoimport-index-original-tests2.log",
+    "command": "GOWORK=off GOTOOLCHAIN=local go test ./internal/ls/autoimport -run ^(TestIndexClone|TestWordIndices)$ -count=1",
+    "result": "passed"
+  },
+  "sources": {
+    "csharp/src/TypeScript.Compiler/LanguageServices/AutoImports/AutoImportIndex.cs": "4086666b85c5eac09937f69d6665f52bcf7a1e845d845eea7f1de2ae52576ca6",
+    "csharp/src/TypeScript.Compiler/Semantics/GoUnicode.cs": "b350e2a101f1d1d195b8cf7d4a96d79f001ad9b255906d2d45fe84f070fac4c4",
+    "csharp/src/TypeScript.Compiler/Semantics/GoUnicode.Normalization.cs": "70a2e52ca8081b153bf9c76372c7929d866c435f6951f0d575236c9207155966",
+    "csharp/src/TypeScript.Compiler/Semantics/GoUnicode.Normalization.generated.cs": "7e4bff68c24508ebfd859a1717e842fff6b51ec15bb4f898d8f732cd7695a5d3",
+    "csharp/oracle/autoimport-index/main.go": "47dbc4159521bc52b5e5f1ade634d2a06b9e36e42cb12469c44fcc32c6bdb64a",
+    "csharp/oracle/autoimport-index/bridge.go": "d2ac79e0ff12c2be224bab70d7d83842476eb1660f843e2dcddb930cdc62b6ac",
+    "csharp/tools/autoimport-index.mjs": "87f126be8f09f7d706d03a6f6fa6d1a9414898363a79378afc32e085c91d208a",
+    "csharp/tests/TypeScript.Compatibility/AutoImportIndexTests.cs": "8dc6ccbe9726430cad0b715647e398936e699ab98598cd2746cc91a3f2fd8cae"
+  },
+  "reproduction": "node csharp/tools/autoimport-index.mjs --managed-directory built/csharp/phase7-tags-build/bin/TypeScript.Compatibility/release --directory built/csharp/phase7-validation/autoimport-index-second",
+  "interruptedAttempts": [
+    {
+      "log": "built/csharp/phase7-validation/completion-index-build1.log",
+      "reason": "New harness using directives were initially inserted after the type; corrected and rebuilt without warnings."
+    },
+    {
+      "log": "built/csharp/phase7-validation/autoimport-index-first.log",
+      "reason": "Initial runner used the preceding harness binary after that build failed; no comparison result counted."
+    },
+    {
+      "log": "built/csharp/phase7-validation/autoimport-index-original-tests.log",
+      "reason": "The archived module requires GOWORK=off; the corrected isolated invocation passes."
+    }
+  ]
+}

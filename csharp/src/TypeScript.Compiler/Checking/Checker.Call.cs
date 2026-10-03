@@ -353,12 +353,6 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         return ValueTask.CompletedTask;
     }
 
-    public void DeprecatedSignature(SyntaxNode node, Signature signature)
-    {
-        if (signature.Declaration is { } declaration && program.Deprecations.Declaration(declaration))
-            ExpressionSuggestion(node, DiagnosticCode.TheSignature0Of1IsDeprecated);
-    }
-
     public async ValueTask<Type?> SpecialCallResultAsync(SyntaxNode node, Type result, CancellationToken cancellation)
     {
         if ((node.Flags & NodeFlags.JavaScriptFile) != 0 && CommonJsRequire(node, cancellation))

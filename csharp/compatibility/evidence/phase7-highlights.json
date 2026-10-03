@@ -1,0 +1,126 @@
+{
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "configuration": "Release CoreCLR",
+  "direct": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 153,
+    "originalTestFunctions": 153,
+    "selectedTestsWithoutRequests": [],
+    "unorderedProjectResults": [],
+    "unorderedReferenceResults": [],
+    "authoredTests": 1,
+    "encodings": [
+      "utf-8",
+      "utf-16"
+    ],
+    "requests": 1488,
+    "differences": 0,
+    "compilerSha256": "a3df04702a02b2f3c094525dbae8afd3a5da60873ad1e229a6ca05c50ca2d38b",
+    "inputsSha256": "86675f88e4048cb8586fa703a3483bba0edf21931d7ef46c9a5e315ad95c987d"
+  },
+  "lsp": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 152,
+    "requests": 1482,
+    "clients": 341,
+    "differences": 0,
+    "mappedQueriesValidatedSeparately": 6,
+    "unorderedProjectResults": [],
+    "unorderedReferenceResults": [],
+    "compilerSha256": "a3df04702a02b2f3c094525dbae8afd3a5da60873ad1e229a6ca05c50ca2d38b",
+    "inputsSha256": "86675f88e4048cb8586fa703a3483bba0edf21931d7ef46c9a5e315ad95c987d"
+  },
+  "capabilityReplay": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 0,
+    "requests": 204,
+    "clients": 18,
+    "differences": 0,
+    "mappedQueriesValidatedSeparately": 0,
+    "unorderedProjectResults": [],
+    "unorderedReferenceResults": [],
+    "compilerSha256": "a638ed51b199ccaa5742ac212dd251f504ae5067408ed70c79f18339c02622c8",
+    "inputsSha256": "86675f88e4048cb8586fa703a3483bba0edf21931d7ef46c9a5e315ad95c987d"
+  },
+  "lspCoverage": {
+    "uniqueRequests": 1482,
+    "executedRequests": 1686,
+    "sessions": 359,
+    "mappedRequestsValidatedSeparately": 6,
+    "boundary": "The full replay precedes the addition of the experimental multi-document capability flag. The later 204-request authored matrix checks that flag and reruns both highlight methods; provider logic is unchanged."
+  },
+  "regressions": {
+    "syntaxServiceSafetyAssertions": 68,
+    "signatureHelp": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 181,
+      "originalTestFunctions": 181,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 1,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 2580,
+      "differences": 0,
+      "compilerSha256": "3f24fbdbd0cba52d9e60d9727fd0f152ca3e65219738e971b6981cb9c53d3874",
+      "inputsSha256": "ebf62d5aadf8ddc09b8ede5b3952758638744eb9d3fb4d86e4ae5b4fdad28395"
+    },
+    "definitions": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 345,
+      "originalTestFunctions": 345,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 1,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 1528,
+      "differences": 0,
+      "compilerSha256": "3f24fbdbd0cba52d9e60d9727fd0f152ca3e65219738e971b6981cb9c53d3874",
+      "inputsSha256": "79f3543f772ceb5f02913518db0c3e14682a04f03b70f66f8b6f87852d45a4aa"
+    },
+    "hover": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 465,
+      "originalTestFunctions": 465,
+      "selectedTestsWithoutRequests": [],
+      "unorderedProjectResults": [],
+      "unorderedReferenceResults": [],
+      "authoredTests": 1,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 4604,
+      "differences": 0,
+      "compilerSha256": "3f24fbdbd0cba52d9e60d9727fd0f152ca3e65219738e971b6981cb9c53d3874",
+      "inputsSha256": "3ce81d5c22e5dbdc8c9b573762642f2305c21ac1d315d1bc63fc687047add42c"
+    },
+    "navigation": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "cases": 11,
+      "queries": 69342,
+      "referencePanics": 0,
+      "differences": 0,
+      "unexplainedDifferences": 0,
+      "sourceRangeControlQueries": 0,
+      "originalTestsSha256": "eda1ac719149799497c3ad774e62fb7874835266ad2bdabcd9c2d5c8714cab4a",
+      "originalFixtureSha256": "7c29ddafd2a4a1f41c1d477908abfcd66f1dfe25f6d29f5be324d84218b5c138",
+      "compilerSha256": "a3df04702a02b2f3c094525dbae8afd3a5da60873ad1e229a6ca05c50ca2d38b"
+    }
+  },
+  "navigationCorrection": "The original FindChildOfKind helper retains the scanner token kind and flags after resetting its position. The managed helper now preserves the same zero-width recovery tokens. All ten initial highlight differences were in the malformed try/catch/finally fixture; its initial differences and log are retained.",
+  "build": {
+    "compilerSha256": "a638ed51b199ccaa5742ac212dd251f504ae5067408ed70c79f18339c02622c8",
+    "warnings": 0,
+    "errors": 0,
+    "log": "built/csharp/phase7-validation/highlights-current-build.log"
+  },
+  "phase7Complete": false
+}

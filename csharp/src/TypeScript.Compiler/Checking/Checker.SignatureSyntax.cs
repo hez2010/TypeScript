@@ -2,6 +2,7 @@ using TypeScript.Compiler.Text;
 using System.Globalization;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Emission;
 using TypeScript.Compiler.Syntax;
 using K = TypeScript.Compiler.Syntax.SyntaxKind;
 
@@ -16,18 +17,28 @@ internal sealed partial class Checker
         NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default,
         INodeBuilderSymbolTracker? tracker = null,
         NodeBuilderInternalFlags internalFlags = NodeBuilderInternalFlags.None)
+        => BuildSignatureSyntaxAsync(signature, kind, enclosing, flags, tracker, internalFlags, (node, state) => node is null ? Utf8String.Empty
+            : PrintDiagnosticNode(node, enclosing is SourceFileNode, cancellation,
+                enclosing is null ? null : SemanticSyntax.Source(enclosing), state.NoAsciiEscape, state.SingleLine), cancellation);
+
+    internal ValueTask<SyntaxNode?> SignatureToDeclarationAsync(Signature signature, K kind, SyntaxNode? enclosing,
+        NodeBuilderFlags flags, CancellationToken cancellation = default,
+        NodeBuilderInternalFlags internalFlags = NodeBuilderInternalFlags.None, EmitContext? emitContext = null,
+        Dictionary<SyntaxNode, Symbol>? identifierSymbols = null) => BuildSignatureSyntaxAsync(signature, kind, enclosing, flags,
+            null, internalFlags, (node, state) => TypeSyntaxWithEmitFlags(node, state, emitContext), cancellation, identifierSymbols);
+
+    private ValueTask<T> BuildSignatureSyntaxAsync<T>(Signature signature, K kind, SyntaxNode? enclosing, NodeBuilderFlags flags,
+        INodeBuilderSymbolTracker? tracker, NodeBuilderInternalFlags internalFlags,
+        Func<SyntaxNode?, TypeSyntaxContext, T> finish, CancellationToken cancellation, Dictionary<SyntaxNode, Symbol>? identifierSymbols = null)
     {
         if (signature.Context != context)
             throw new ArgumentException("Signature belongs to another checker", nameof(signature));
         return VisibilityQueryAsync(enclosing, () => ChainOperationAsync(() => ContainerOperationAsync(async () =>
         {
             var state = new TypeSyntaxContext(enclosing, (flags & NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope) != 0,
-                (flags & NodeBuilderFlags.UseOnlyExternalAliasing) != 0, flags, tracker, internalFlags);
+                (flags & NodeBuilderFlags.UseOnlyExternalAliasing) != 0, flags, tracker, internalFlags) { DisplaySymbols = identifierSymbols };
             var node = await SignatureSyntaxAsync(signature, kind, state, cancellation);
-            if (!FinishTypeSyntax(state))
-                return Utf8String.Empty;
-            return PrintDiagnosticNode(node, enclosing is SourceFileNode, cancellation,
-                enclosing is null ? null : SemanticSyntax.Source(enclosing), state.NoAsciiEscape, state.SingleLine);
+            return finish(FinishTypeSyntax(state) ? node : null, state);
         }, cancellation), cancellation), cancellation);
     }
 
@@ -253,6 +264,12 @@ internal sealed partial class Checker
         if (!signature.HasRestParameter || await Values.GetAsync(signature.Parameters[^1], cancellation)
             is not TypeReference { Target: TupleType tuple } restType)
             return signature.Parameters;
+        return await ExpandSyntaxTupleAsync(signature, restType, tuple, allocated, cancellation);
+    }
+
+    private async ValueTask<IReadOnlyList<Symbol>> ExpandSyntaxTupleAsync(Signature signature, TypeReference restType, TupleType tuple,
+        List<Symbol> allocated, CancellationToken cancellation)
+    {
         var rest = signature.Parameters[^1];
         var arguments = await References.TypeArgumentsAsync(restType, cancellation);
         var names = tuple.ElementInfos.Select((e, i) => SignatureParameters.Label(e, rest, i)).ToArray();
@@ -327,6 +344,7 @@ internal sealed partial class Checker
                 state) : f.NewIdentifier(symbol.Name);
         foreach (var child in name.DescendantsAndSelf()) child.Pos = child.End = -1;
         state.NoAsciiEscape.Add(name);
+        if (state.DisplaySymbols is { } display && name is IdentifierNode) display[name] = symbol;
         state.Length.Add(symbol.Name, 3);
         var modifiers = preserveModifiers && (state.Flags & NodeBuilderFlags.OmitParameterModifiers) == 0
             ? declaration?.Modifiers?.Where(m => m.Kind is not K.Decorator).Select(m => f.NewToken(m.Kind)).ToArray() : null;
@@ -384,6 +402,7 @@ internal sealed partial class Checker
         }
         try
         {
+            if (state.ActivelyExpanding) return await TypeSyntaxAsync(value, state, cancellation);
             if (declaration is ParameterDeclarationNode { Type: null, Parent: SetAccessorDeclarationNode setter }
                 && await RecoverAccessorSyntaxAsync(setter, value, state, cancellation) is { } setterType)
                 return setterType;
@@ -394,7 +413,8 @@ internal sealed partial class Checker
                 && annotation is not TypePredicateNode && (value.ObjectFlags & ObjectFlags.RequiresWidening) == 0)
             {
                 var annotated = await Nodes.FromNodeAsync(annotation, cancellation);
-                if ((annotated == context.ErrorType || (annotated.Flags & TypeFlags.Any) != 0 && annotated.Alias is not null)
+                if (value == context.ErrorType || (value.Flags & TypeFlags.Any) != 0 && value.Alias is not null
+                    || (annotated == context.ErrorType || (annotated.Flags & TypeFlags.Any) != 0 && annotated.Alias is not null)
                     && (value.Flags & TypeFlags.Any) != 0) value = annotated;
                 if (annotated != value)
                 {

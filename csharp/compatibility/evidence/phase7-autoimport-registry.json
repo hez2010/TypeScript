@@ -1,0 +1,438 @@
+{
+  "phase": 7,
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "phase7Complete": false,
+  "scope": "Original registry sessions replayed through snapshot construction, package export discovery, project identity, source graphs, default projects and diagnostic publication. Registry cache internals are represented by per-project detached metadata caches; observed exports and lifecycle behavior remain exact.",
+  "referenceTests": [
+    "TestRegistryLifecycle",
+    "TestContentMappedNodeModulesFileUsesProjectBucket",
+    "TestHiddenDirectoriesInNodeModules",
+    "TestAutoImportEntrypointDirectorySearch",
+    "TestUpdateIndexesConcurrentMapSafety"
+  ],
+  "additionalOriginalTests": [
+    "TestGetPackageRealpathFuncs_FollowsNodeModulesSymlinks",
+    "TestGetPackageRealpathFuncs_DuplicateCacheKeys",
+    "TestGetPackageRealpathFuncs_NonSymlinkedPackageWithSymlinkedDeps",
+    "TestAliasResolverGetDiagnosticsDoesNotPanic"
+  ],
+  "referenceTestsLog": "built/csharp/phase7-validation/autoimport-registry-seventh/reference-tests.jsonl",
+  "additionalScope": "All four additional original Go unit tests pass. Four managed session replays exercise their symlink layouts and invalid argument fixture through export discovery; they do not claim to recreate the Go aliasResolver type.",
+  "validation": {
+    "directory": "built/csharp/phase7-validation/autoimport-registry-final",
+    "originalSessions": 22,
+    "authoredSessions": 4,
+    "transitions": 85,
+    "preparedExportQueries": 46,
+    "comparedExports": 123,
+    "differences": 0,
+    "compilerSha256": "17b074b7dc0f9de2d0616490f81be6d7a9f49dda943bd1f75fd0cba72a47efbd",
+    "harnessSha256": "2b7648dcde29e35d93f51318183d778dc23b8ebc2b798edd8f8d0e9b5ca7f406",
+    "inputsSha256": "7082718e78ad33aadfbe4ea5afda65e5ebe84cf5ceec58c47e086488085d0425",
+    "cases": [
+      {
+        "name": "TestAutoImportEntrypointDirectorySearch/autoImportEntrypointDirectorySearch_enables_all_files",
+        "transitions": 2
+      },
+      {
+        "name": "TestAutoImportEntrypointDirectorySearch/changing_preference_triggers_rebuild",
+        "transitions": 3
+      },
+      {
+        "name": "TestAutoImportEntrypointDirectorySearch/deep_import_from_program_update_enables_recursive_search_for_that_package",
+        "transitions": 3
+      },
+      {
+        "name": "TestAutoImportEntrypointDirectorySearch/default_limits_to_main_entrypoint",
+        "transitions": 2
+      },
+      {
+        "name": "TestContentMappedNodeModulesFileUsesProjectBucket",
+        "transitions": 2
+      },
+      {
+        "name": "TestCSharpAutoImportRealpaths/alias-checker-diagnostics",
+        "transitions": 2
+      },
+      {
+        "name": "TestCSharpAutoImportRealpaths/follows-node-modules-symlinks",
+        "transitions": 2
+      },
+      {
+        "name": "TestCSharpAutoImportRealpaths/non-symlinked-package-with-symlinked-dependencies",
+        "transitions": 2
+      },
+      {
+        "name": "TestCSharpAutoImportRealpaths/shared-dependency-realpath",
+        "transitions": 2
+      },
+      {
+        "name": "TestHiddenDirectoriesInNodeModules/deep_import_through_subdirectory_package.json_in_hidden_store",
+        "transitions": 2
+      },
+      {
+        "name": "TestRegistryLifecycle/bucket_does_not_rebuild_on_same-file_change",
+        "transitions": 6
+      },
+      {
+        "name": "TestRegistryLifecycle/bucket_updates_on_same-file_change_when_new_files_added_to_the_program",
+        "transitions": 3
+      },
+      {
+        "name": "TestRegistryLifecycle/builds_project_and_node_modules_buckets",
+        "transitions": 2
+      },
+      {
+        "name": "TestRegistryLifecycle/changed_fileExcludePatterns_triggers_bucket_rebuild",
+        "transitions": 3
+      },
+      {
+        "name": "TestRegistryLifecycle/circular_workspace_symlinks_do_not_exclude_local_project_files",
+        "transitions": 2
+      },
+      {
+        "name": "TestRegistryLifecycle/dedupes_packages_that_resolve_to_same_realpath_across_ancestor_node_modules_buckets",
+        "transitions": 2
+      },
+      {
+        "name": "TestRegistryLifecycle/deleting_a_package_directory_inside_node_modules_invalidates_the_bucket",
+        "transitions": 3
+      },
+      {
+        "name": "TestRegistryLifecycle/deleting_node_modules_alongside_a_package.json_change_removes_the_bucket",
+        "transitions": 3
+      },
+      {
+        "name": "TestRegistryLifecycle/deleting_node_modules_leaves_the_registry_prepared_for_importing",
+        "transitions": 3
+      },
+      {
+        "name": "TestRegistryLifecycle/node_modules_bucket_dependency_selection_changes_with_open_files",
+        "transitions": 6
+      },
+      {
+        "name": "TestRegistryLifecycle/node_modules_bucket_includes_resolved_packages_from_all_projects",
+        "transitions": 4
+      },
+      {
+        "name": "TestRegistryLifecycle/node_modules_buckets_get_deleted_when_no_open_files_can_reference_them",
+        "transitions": 5
+      },
+      {
+        "name": "TestRegistryLifecycle/package.json_dependency_changes_invalidate_node_modules_buckets",
+        "transitions": 4
+      },
+      {
+        "name": "TestRegistryLifecycle/pnpm-style_symlinks_only_grant_granular_updates_to_workspace_packages",
+        "transitions": 9
+      },
+      {
+        "name": "TestRegistryLifecycle/symlinked_monorepo_invalidates_on_source_file_change",
+        "transitions": 6
+      },
+      {
+        "name": "TestUpdateIndexesConcurrentMapSafety",
+        "transitions": 2
+      }
+    ],
+    "instrumented": [
+      {
+        "file": "internal/project/snapshot.go",
+        "originalSha256": "d1993747879fa6d7b8da5a500cbdd66abfccc4ab10905399231f8e4e13d7dda8",
+        "instrumentedSha256": "b766d265e7d6ef98f0dba17207af7ae6fd6bd954412134e6ece784f9b0f6166f"
+      },
+      {
+        "file": "internal/ls/autoimport/registry_test.go",
+        "originalSha256": "97df734ae366272a880e5dc429664257283e7d8f6379be5ba7dfad38e7a5d4db",
+        "instrumentedSha256": "d772bd66c3db64eacaec8e9250887cd4413a0c3f6e934497fa8b5f1ebc2c72db"
+      },
+      {
+        "file": "internal/testutil/autoimporttestutil/fixtures.go",
+        "originalSha256": "b5f51f6686bda7143d77737d4ca7a7d3931a7b4c90c1a90afe5dabc4e8d6e0f0",
+        "instrumentedSha256": "f882f1b43096b0231dbf1f7875aba0d22eaa06a7b6094048ba54785da0edbcec"
+      },
+      {
+        "file": "internal/project/csharp_snapshot_record.go",
+        "instrumentedSha256": "3b4fb31c7dcb1579852af5e229f15841bcd2928961f561ceaaa40c69ef058bb8"
+      },
+      {
+        "file": "internal/testutil/projecttestutil/csharp_snapshot_setup.go",
+        "instrumentedSha256": "7f15b95d8477f680b00d2c9f5dc61ec435ad0940a722bb696e00378e3df14da1"
+      },
+      {
+        "file": "internal/project/csharp_project_diagnostics_test.go",
+        "instrumentedSha256": "96a480b6f169fe6cb74d34fc16d8f539a69946aa74e75cc1b2086f129b1dfd31"
+      },
+      {
+        "file": "internal/ls/autoimport/csharp_autoimport_test.go",
+        "instrumentedSha256": "4ff86fbb22c9ae91d005d3db486bc1175d38a6d8458f1c66d7d89de0f53601c0"
+      },
+      {
+        "file": "internal/project/csharp_diagnostic_changes.go",
+        "instrumentedSha256": "1dd5364d3082eadfc2d4a8352ff091f0107b68ebb2c07e221e41a2cad904c1ae"
+      }
+    ]
+  },
+  "exportFields": [
+    "module",
+    "exportName",
+    "fileName",
+    "syntax",
+    "flags",
+    "name",
+    "targetModule",
+    "targetName",
+    "typeOnly",
+    "path",
+    "packageName",
+    "kind",
+    "deprecated"
+  ],
+  "comparison": "Export arrays are sorted as multisets because registry extraction traverses Go maps. Every listed field and duplicate count is compared. Project/source arrays and the existing narrowly documented project comparison policy remain unchanged.",
+  "capture": "Records filesystem files, real directories, symlinks, notifications, preferences and snapshot branches. Captured component-mapper results run through a real Node process using the original virtual package manifest. Canceled background preparations are queried only after the reference registry reports ready; their snapshot transitions are still replayed.",
+  "fixes": [
+    "Canonical package export filenames and reads through realpath respect edits opened at the target path.",
+    "Hidden node_modules store directories are excluded from fallback package names.",
+    "Auto-import-only source text uses an untracked filesystem view, preserving existing snapshot handles without retaining extra package sources.",
+    "Opening an uncached file triggers configuration discovery, and new inferred files refresh configured projects before default-project selection.",
+    "Pending single-file changes survive deferred project updates and preserve diagnostic publication behavior.",
+    "Package extraction uses project-reference output mappings aggregated across the snapshot.",
+    "Session runExternalCode is supplied before configuration parsing so configured content mappers are discovered."
+  ],
+  "attempts": [
+    {
+      "directory": "built/csharp/phase7-validation/autoimport-registry-first",
+      "log": "built/csharp/phase7-validation/autoimport-registry-first.log",
+      "explanation": "Recorder queried a canceled background preparation with no ready index; no candidate comparison counted."
+    },
+    {
+      "directory": "built/csharp/phase7-validation/autoimport-registry-second",
+      "log": "built/csharp/phase7-validation/autoimport-registry-second.log",
+      "explanation": "Initial metadata and lifecycle differences, including a missing directory-deletion capture.",
+      "transitions": 75,
+      "differences": 17,
+      "compilerSha256": "fef15637a784ba5caef622238c62ffb1ca78e7885dc03f6e6891549b6ee45ffd"
+    },
+    {
+      "directory": "built/csharp/phase7-validation/autoimport-registry-third",
+      "log": "built/csharp/phase7-validation/autoimport-registry-third.log",
+      "explanation": "Directory replay and package metadata corrected; remaining project invalidation differences preserved.",
+      "transitions": 75,
+      "differences": 11,
+      "compilerSha256": "2b84da552eab0e162743f0a24b0fae17a4ac415bebfdefff63e7f443d12e99d2"
+    },
+    {
+      "directory": "built/csharp/phase7-validation/autoimport-registry-fourth",
+      "log": "built/csharp/phase7-validation/autoimport-registry-fourth.log",
+      "explanation": "Untracked package sources and open-file invalidation corrected; deferred updates remained.",
+      "transitions": 75,
+      "differences": 5,
+      "compilerSha256": "867b023097d3856c47720f36b188d0f114d078c2c0719418ad8f0ada90178007"
+    },
+    {
+      "directory": "built/csharp/phase7-validation/autoimport-registry-fifth",
+      "log": "built/csharp/phase7-validation/autoimport-registry-fifth.log",
+      "explanation": "Configured mapper discovery and realpath overlay reads remained.",
+      "transitions": 76,
+      "differences": 3,
+      "compilerSha256": "006efff02dc1f2852704d45a5e84621e2a52c6e8acc15878dc529ba18fa6c535"
+    },
+    {
+      "directory": "built/csharp/phase7-validation/autoimport-registry-sixth",
+      "log": "built/csharp/phase7-validation/autoimport-registry-sixth.log",
+      "explanation": "All 22 original sessions and 76 recorded transitions match.",
+      "transitions": 76,
+      "differences": 0,
+      "compilerSha256": "c6d9bf122fca36e33cc457cf8dcfa266314d1691886f897739466ecdfce156de"
+    },
+    {
+      "directory": "built/csharp/phase7-validation/original-projects-registry",
+      "explanation": "This replay used an older pre-publication recording; it has no expected pushes fields. The current 159-session recording is used for the actual regression gate.",
+      "differences": 307
+    }
+  ],
+  "projectRegression": {
+    "directory": "built/csharp/phase7-validation/diagnostics-projects-registry",
+    "sessions": 159,
+    "transitions": 339,
+    "differences": 0,
+    "compilerSha256": "c6d9bf122fca36e33cc457cf8dcfa266314d1691886f897739466ecdfce156de"
+  },
+  "safety": {
+    "serviceAssertions": 295,
+    "projectAssertions": 89,
+    "lspAssertions": 223,
+    "serviceLog": "built/csharp/phase7-validation/completion-registry-safety2.log",
+    "projectLog": "built/csharp/phase7-validation/autoimport-registry-project-safety.log",
+    "lspLog": "built/csharp/phase7-validation/autoimport-registry-lsp-safety3.log",
+    "clientTeardown": "The first LSP safety attempt failed when the test client tried to send its canceled refresh response after the successful server shutdown. The unchanged transport correctly reports the closed-peer write error. The harness now requires observed callback cancellation and permits only that exact client-side teardown error; the server must still finish successfully."
+  },
+  "sourceHashes": {
+    "csharp/tools/project-original.mjs": "fbd7460d4ca46c6c3b3ea30969e175c9edd3f2c2edc3504a8ebf227fdfa4b8cf",
+    "csharp/oracle/project/snapshot_record.go": "3b4fb31c7dcb1579852af5e229f15841bcd2928961f561ceaaa40c69ef058bb8",
+    "csharp/oracle/project/autoimport_test.go": "4ff86fbb22c9ae91d005d3db486bc1175d38a6d8458f1c66d7d89de0f53601c0",
+    "csharp/src/TypeScript.Compiler/LanguageServices/AutoImports/AutoImportCache.cs": "cffb17cc9d5169657a9f940dbdc04df7807da1becad576b29a2c89a230bf107d",
+    "csharp/src/TypeScript.Compiler/LanguageServices/AutoImports/AutoImportView.cs": "e62fcf5b7bc8556aa5846561d791a6c9e904fdfc06eee88edad54b7a2e9d670e",
+    "csharp/src/TypeScript.Compiler/LanguageServices/AutoImports/AutoImportView.Exports.cs": "a5e97fe4d93af9dbbe8a822a9d8d1a5f5ba9b32b61213ad901af1a952d2528fd",
+    "csharp/src/TypeScript.Compiler/LanguageServices/AutoImports/AutoImportView.Packages.cs": "d47b8a7214c2f079c20653fd1e66879f4779fc134c98dba34a4d2ea242811b21",
+    "csharp/src/TypeScript.Compiler/Projects/ProjectSnapshotHost.cs": "ac372939b6f24ff741317377855a6c036963bf55095dfddc4be1956d4c4f847f",
+    "csharp/src/TypeScript.Compiler/Projects/ProjectSnapshot.cs": "14b3f6b2981289394467811e26d59a3e78f1d3425ed3cb761d02d6b0905ea14d",
+    "csharp/src/TypeScript.Compiler/Projects/SnapshotFileSystem.cs": "1fb3ef9d2cebcbaac9981cbd4855eda71e79982e2edc88846b0d544dd837b866",
+    "csharp/tests/TypeScript.Compatibility/ProjectReplay.cs": "ed7229890de02a066ce96410f760529bc23f0bc58d4dd9b8b10c5fdbd082aaad",
+    "csharp/tests/TypeScript.Compatibility/CompletionTests.AutoImports.cs": "e0acfb25e25697a1a222d62df8d815d4c4b72dcd85b32ef11815af2004eff0d9",
+    "csharp/tests/TypeScript.Compatibility/CodeLensTests.cs": "c30cc75627888789412332a6890254b2f25d67f6ce77e3553b194f614be140a7",
+    "csharp/tests/fixtures/mappers/mapper.mjs": "e420311e145370ceb19fa13f36199f74e8a42cfd8df0347916bd301c3ff734fc"
+  },
+  "codeActionImportRegression": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "instrumented": [
+      {
+        "file": "internal/project/snapshot.go",
+        "originalSha256": "d1993747879fa6d7b8da5a500cbdd66abfccc4ab10905399231f8e4e13d7dda8",
+        "instrumentedSha256": "b766d265e7d6ef98f0dba17207af7ae6fd6bd954412134e6ece784f9b0f6166f"
+      },
+      {
+        "file": "internal/ls/autoimport/registry_test.go",
+        "originalSha256": "97df734ae366272a880e5dc429664257283e7d8f6379be5ba7dfad38e7a5d4db",
+        "instrumentedSha256": "d772bd66c3db64eacaec8e9250887cd4413a0c3f6e934497fa8b5f1ebc2c72db"
+      },
+      {
+        "file": "internal/testutil/autoimporttestutil/fixtures.go",
+        "originalSha256": "b5f51f6686bda7143d77737d4ca7a7d3931a7b4c90c1a90afe5dabc4e8d6e0f0",
+        "instrumentedSha256": "f882f1b43096b0231dbf1f7875aba0d22eaa06a7b6094048ba54785da0edbcec"
+      },
+      {
+        "file": "internal/project/csharp_snapshot_record.go",
+        "instrumentedSha256": "3b4fb31c7dcb1579852af5e229f15841bcd2928961f561ceaaa40c69ef058bb8"
+      },
+      {
+        "file": "internal/testutil/projecttestutil/csharp_snapshot_setup.go",
+        "instrumentedSha256": "7f15b95d8477f680b00d2c9f5dc61ec435ad0940a722bb696e00378e3df14da1"
+      },
+      {
+        "file": "internal/project/csharp_project_diagnostics_test.go",
+        "instrumentedSha256": "96a480b6f169fe6cb74d34fc16d8f539a69946aa74e75cc1b2086f129b1dfd31"
+      },
+      {
+        "file": "internal/ls/autoimport/csharp_autoimport_test.go",
+        "instrumentedSha256": "4ff86fbb22c9ae91d005d3db486bc1175d38a6d8458f1c66d7d89de0f53601c0"
+      },
+      {
+        "file": "internal/project/csharp_diagnostic_changes.go",
+        "instrumentedSha256": "1dd5364d3082eadfc2d4a8352ff091f0107b68ebb2c07e221e41a2cad904c1ae"
+      }
+    ],
+    "compilerSha256": "88e7ce6fa8522577186e88e2a12b1bb63c140614b9dbb9fcff8b4d87a3d63998",
+    "harnessSha256": "20a3b9cf777da8b887ab76ba7a087632884e2740c11f79153e76ba448571f3f9",
+    "inputsSha256": "7082718e78ad33aadfbe4ea5afda65e5ebe84cf5ceec58c47e086488085d0425",
+    "cases": [
+      {
+        "name": "TestAutoImportEntrypointDirectorySearch/autoImportEntrypointDirectorySearch_enables_all_files",
+        "transitions": 2
+      },
+      {
+        "name": "TestAutoImportEntrypointDirectorySearch/changing_preference_triggers_rebuild",
+        "transitions": 3
+      },
+      {
+        "name": "TestAutoImportEntrypointDirectorySearch/deep_import_from_program_update_enables_recursive_search_for_that_package",
+        "transitions": 3
+      },
+      {
+        "name": "TestAutoImportEntrypointDirectorySearch/default_limits_to_main_entrypoint",
+        "transitions": 2
+      },
+      {
+        "name": "TestContentMappedNodeModulesFileUsesProjectBucket",
+        "transitions": 2
+      },
+      {
+        "name": "TestCSharpAutoImportRealpaths/alias-checker-diagnostics",
+        "transitions": 2
+      },
+      {
+        "name": "TestCSharpAutoImportRealpaths/follows-node-modules-symlinks",
+        "transitions": 2
+      },
+      {
+        "name": "TestCSharpAutoImportRealpaths/non-symlinked-package-with-symlinked-dependencies",
+        "transitions": 2
+      },
+      {
+        "name": "TestCSharpAutoImportRealpaths/shared-dependency-realpath",
+        "transitions": 2
+      },
+      {
+        "name": "TestHiddenDirectoriesInNodeModules/deep_import_through_subdirectory_package.json_in_hidden_store",
+        "transitions": 2
+      },
+      {
+        "name": "TestRegistryLifecycle/bucket_does_not_rebuild_on_same-file_change",
+        "transitions": 6
+      },
+      {
+        "name": "TestRegistryLifecycle/bucket_updates_on_same-file_change_when_new_files_added_to_the_program",
+        "transitions": 3
+      },
+      {
+        "name": "TestRegistryLifecycle/builds_project_and_node_modules_buckets",
+        "transitions": 2
+      },
+      {
+        "name": "TestRegistryLifecycle/changed_fileExcludePatterns_triggers_bucket_rebuild",
+        "transitions": 3
+      },
+      {
+        "name": "TestRegistryLifecycle/circular_workspace_symlinks_do_not_exclude_local_project_files",
+        "transitions": 2
+      },
+      {
+        "name": "TestRegistryLifecycle/dedupes_packages_that_resolve_to_same_realpath_across_ancestor_node_modules_buckets",
+        "transitions": 2
+      },
+      {
+        "name": "TestRegistryLifecycle/deleting_a_package_directory_inside_node_modules_invalidates_the_bucket",
+        "transitions": 3
+      },
+      {
+        "name": "TestRegistryLifecycle/deleting_node_modules_alongside_a_package.json_change_removes_the_bucket",
+        "transitions": 3
+      },
+      {
+        "name": "TestRegistryLifecycle/deleting_node_modules_leaves_the_registry_prepared_for_importing",
+        "transitions": 3
+      },
+      {
+        "name": "TestRegistryLifecycle/node_modules_bucket_dependency_selection_changes_with_open_files",
+        "transitions": 6
+      },
+      {
+        "name": "TestRegistryLifecycle/node_modules_bucket_includes_resolved_packages_from_all_projects",
+        "transitions": 4
+      },
+      {
+        "name": "TestRegistryLifecycle/node_modules_buckets_get_deleted_when_no_open_files_can_reference_them",
+        "transitions": 5
+      },
+      {
+        "name": "TestRegistryLifecycle/package.json_dependency_changes_invalidate_node_modules_buckets",
+        "transitions": 4
+      },
+      {
+        "name": "TestRegistryLifecycle/pnpm-style_symlinks_only_grant_granular_updates_to_workspace_packages",
+        "transitions": 9
+      },
+      {
+        "name": "TestRegistryLifecycle/symlinked_monorepo_invalidates_on_source_file_change",
+        "transitions": 6
+      },
+      {
+        "name": "TestUpdateIndexesConcurrentMapSafety",
+        "transitions": 2
+      }
+    ],
+    "transitions": 85,
+    "mismatches": [],
+    "directory": "built/csharp/phase7-validation/autoimport-code-actions"
+  }
+}

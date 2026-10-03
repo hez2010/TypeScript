@@ -1,0 +1,132 @@
+{
+  "phase": 7,
+  "phase7Complete": false,
+  "configuration": "Release CoreCLR",
+  "performanceMeasured": false,
+  "protocol": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTestsPassed": 145,
+    "recordedInputs": 86,
+    "generatedTypes": 685,
+    "methods": 55,
+    "cases": 17870,
+    "differences": 0,
+    "compilerSha256": "fbc31fb592279038c00f88d11e1ea64cc14533af1ced53c6ab80cfec443a2c94",
+    "oracleSha256": "b56361249b793f75771304310ec0ab217004d9c4ba2f149267828890ff530746",
+    "generatorSourceSha256": "67be1b8afa2e17beaffcd6c90b3698af4c5c45ddeb772909796e689cd5f0e2c6",
+    "comparison": "Strict acceptance and rejection; runtime-specific JSON decoder error wrappers are retained but not compared.",
+    "phase7Complete": false
+  },
+  "lsp": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": 52,
+    "requests": 159,
+    "classifiedDifferences": 2,
+    "differences": 0,
+    "compilerSha256": "fbc31fb592279038c00f88d11e1ea64cc14533af1ced53c6ab80cfec443a2c94",
+    "inputsSha256": "f715ad08e49bef98231f7c8abc8a3670049e2622900241a16c45f432532e1fd4",
+    "fixture": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+      "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+      "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+    }
+  },
+  "safety": {
+    "lspAssertions": 283,
+    "rpcAssertions": 181,
+    "logs": [
+      "built/csharp/phase7-validation/lsp-protocol-safety3.log",
+      "built/csharp/phase7-validation/lsp-protocol-rpc-safety3.log"
+    ]
+  },
+  "classifiedDifferences": [
+    {
+      "case": "protocol-full-unsigned-position-range",
+      "method": "textDocument/hover",
+      "params": {
+        "textDocument": {
+          "uri": "file:///home/project/index.ts"
+        },
+        "position": {
+          "line": 4294967295,
+          "character": 0
+        }
+      },
+      "reference": {
+        "code": -32603,
+        "message": "InternalError: panic handling request textDocument/hover: runtime error: index out of range [-1]"
+      },
+      "candidate": null,
+      "reason": "The Go decoder accepts uint32, then its signed line index overflows for line 4294967295. C# clamps this out-of-document coordinate to EOF.",
+      "source": "tsc/internal/ls/lsconv/converters.go:370-382",
+      "frames": [
+        "built/csharp/phase7-validation/lsp-protocol-large-positions/reference-0.frames.json",
+        "built/csharp/phase7-validation/lsp-protocol-large-positions/candidate-0.frames.json"
+      ]
+    },
+    {
+      "case": "protocol-full-unsigned-position-range",
+      "method": "textDocument/hover",
+      "params": {
+        "textDocument": {
+          "uri": "file:///home/project/index.ts"
+        },
+        "position": {
+          "line": 2147483648,
+          "character": 2147483648
+        }
+      },
+      "reference": {
+        "code": -32603,
+        "message": "InternalError: panic handling request textDocument/hover: runtime error: index out of range [-2147483648]"
+      },
+      "candidate": null,
+      "reason": "The Go decoder accepts uint32, then its signed line index overflows for line 2147483648. C# clamps this out-of-document coordinate to EOF.",
+      "source": "tsc/internal/ls/lsconv/converters.go:370-382",
+      "frames": [
+        "built/csharp/phase7-validation/lsp-protocol-large-positions/reference-0.frames.json",
+        "built/csharp/phase7-validation/lsp-protocol-large-positions/candidate-0.frames.json"
+      ]
+    }
+  ],
+  "retainedFailures": [
+    {
+      "directory": "built/csharp/phase7-validation/lsp-project-services-protocol",
+      "reason": "Unclassified unsigned line-index overflow in the Go reference; two exact cases are now independently asserted and classified."
+    },
+    {
+      "directory": "built/csharp/phase7-validation/lsp-project-services-protocol-final",
+      "reason": "Initial classification targeted the large character instead of the large line; raw request/reply frames identified the line-index conversion."
+    },
+    {
+      "log": "built/csharp/phase7-validation/lsp-protocol-build4.log",
+      "reason": "Compatibility C# compiler process access violation 0xC0000005, without a source diagnostic.",
+      "unchangedRetry": "built/csharp/phase7-validation/lsp-protocol-build5-unchanged-retry.log",
+      "retryWarnings": 0,
+      "retryErrors": 0
+    }
+  ],
+  "sources": {
+    "csharp/tools/generate-lsp-protocol.mjs": "3d23b56719217a8684331be98fd7a4171391249ea68cc8a0469901c56098a8db",
+    "csharp/tools/lsp-protocol.mjs": "aa92210020de393da0ecd29b269d9c13b3b6e1b6afba2755d0fc6a5e3a46fd8e",
+    "csharp/tools/lsp-project-services.mjs": "72718f29fb2a77d741ac54f8ca3c16dd9a2f27723d4b2d86ddffa49072b36f80",
+    "tsc/internal/lsp/lsproto/lsp_json_test.go": "3b5d03932b9fa2319df44204b0182f9aca87278b72ee74768d02cc0c5c19e9f4"
+  },
+  "validationDirectories": [
+    "built/csharp/phase7-validation/lsp-protocol-first",
+    "built/csharp/phase7-validation/lsp-project-services-protocol-verified",
+    "built/csharp/phase7-validation/lsp-protocol-large-positions"
+  ],
+  "scope": [
+    "55 incoming method contracts and seven server-to-client response contracts",
+    "685 generated type descriptors, required and nullable fields, primitive widths, literal tags, ordered union discriminators, tuples, arrays, maps, duplicate and escaped property names",
+    "NoParams omission and explicit-value rejection; invalid cancellation leaves the transport live",
+    "Unknown and malformed notifications cannot change document state; nonobject configuration updates are ignored",
+    "A 2000-level initialization preference object validates without recursive object traversal"
+  ],
+  "remaining": [
+    "LSP watcher integration and original session inventory",
+    "Final retention and NativeAOT publish gates"
+  ]
+}

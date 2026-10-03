@@ -412,7 +412,7 @@ public sealed partial class Parser
 
     private void Semicolon()
     {
-        if (!Take(K.SemicolonToken) && Token is not (K.EndOfFile or K.CloseBraceToken) && !LineBreak)
+        if (!TrySemicolon())
             Error(Messages.X_0_expected, Utf8Literals.Semicolon);
     }
 
@@ -564,12 +564,13 @@ public sealed partial class Parser
             {
                 var parser = state.Parser;
                 parser.Next();
+                if (state.Kind == K.DefaultKeyword)
+                    return parser.CanFollowDefaultModifier();
                 if (state.Kind == K.ExportKeyword)
                 {
                     if (parser.Token is K.OpenBraceToken or K.AsteriskToken or K.EqualsToken or K.AsKeyword
                         || parser.Token == K.TypeKeyword && parser.Peek(static p => p.Next() is K.OpenBraceToken or K.AsteriskToken)
-                        || parser.Token == K.DefaultKeyword && parser.Peek(static p => p.Next() is not
-                            (K.ClassKeyword or K.FunctionKeyword or K.InterfaceKeyword or K.AbstractKeyword or K.AsyncKeyword or K.AtToken)))
+                        || parser.Token == K.DefaultKeyword && !parser.Peek(static p => { p.Next(); return p.CanFollowDefaultModifier(); }))
                         return false;
                 }
                 return (!parser.LineBreak || state.Kind is K.ExportKeyword or K.DefaultKeyword or K.StaticKeyword)
@@ -587,4 +588,12 @@ public sealed partial class Parser
 
         return first is null ? null : new(nodes?.ToArray() ?? [first], start, Pos);
     }
+
+    private bool CanFollowDefaultModifier() => Token switch
+    {
+        K.ClassKeyword or K.FunctionKeyword or K.InterfaceKeyword or K.AtToken => true,
+        K.AbstractKeyword => Peek(static p => p.Next() == K.ClassKeyword && !p.LineBreak),
+        K.AsyncKeyword => Peek(static p => p.Next() == K.FunctionKeyword && !p.LineBreak),
+        _ => false,
+    };
 }

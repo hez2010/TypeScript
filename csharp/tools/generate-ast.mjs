@@ -198,6 +198,7 @@ for (const [name, definition] of Object.entries(definitions)) {
     if (nameField) lines.push("    SyntaxNode? INamedNode.Name => Name;", "    internal override SyntaxNode? DeclarationName => Name;");
     if (interfaces.includes("IModifiedNode")) lines.push("    internal override NodeList? ModifierList => Modifiers;");
     if (interfaces.includes("IFunctionSignature")) lines.push("    internal override bool HasFunctionSignature => true;");
+    if (baseNames(definition).has("DeclarationBase")) lines.push("    internal override bool IsDeclarationNode => true;");
     const children = fields.filter(isChild);
     if (children.length) {
         lines.push("    internal override void SetChildParents()", "    {");
@@ -225,6 +226,20 @@ for (const [name, definition] of Object.entries(definitions)) {
         else lines.push(`        if (${m.condition ? m.condition + " && " : ""}${n} is { } ${m.local ?? "child" + n} && index-- == 0) return ${m.local ?? "child" + n};`);
     }
     lines.push("        throw new ArgumentOutOfRangeException(nameof(index));", "    }");
+    if (children.some(m => upper(m.name) === "Comment" && m.list && m.list !== "raw"))
+        lines.push("    internal override NodeList? DocumentationComment => Comment;");
+    if (children.length) {
+        lines.push("    internal override void GetChildGroups(List<SyntaxChild> result)", "    {");
+        // Navigation follows VisitEachChild, whose JSDoc parameter order differs
+        // from the ForEachChild order used by GetChild above.
+        for (const m of children) {
+            const n = upper(m.name);
+            if (m.list === "raw") lines.push(`        foreach (var child in ${n}) result.Add(new(child, null));`);
+            else if (m.list) lines.push(`        if (${n} is not null) result.Add(new(null, ${n}));`);
+            else lines.push(`        if (${m.condition ? m.condition + " && " : ""}${n} is not null) result.Add(new(${n}, null));`);
+        }
+        lines.push("    }");
+    }
     lines.push("    internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)", "    {");
     for (const m of children) {
         const n = upper(m.name);

@@ -147,7 +147,8 @@ internal sealed partial class Checker : IVariableTypeHost
     }
 
     public ValueTask<Type?> ContextualParameterAsync(ParameterDeclarationNode parameter, CancellationToken cancellation)
-        => FunctionContexts.ParameterAsync(parameter, cancellation);
+        => parameter.Name is IdentifierNode { Text: var name } && name == "this"u8
+            ? ContextualThisAsync(parameter.Parent!, cancellation) : FunctionContexts.ParameterAsync(parameter, cancellation);
 
     public ValueTask<Type?> PropertyInitializationAsync(PropertyDeclarationNode property, CancellationToken cancellation) =>
         PropertyInitializers.InferAsync(property, cancellation);
@@ -277,8 +278,8 @@ internal sealed partial class Checker : IVariableTypeHost
         {
             if (NoImplicitAny)
                 Error(declaration, code, arguments);
-            else if (suggestionLocations.Add((declaration, code)))
-                Suggestions.Add(code);
+            else
+                ExpressionSuggestion(declaration, CheckerDiagnostic.Create(declaration, DiagnosticLocalization.GetMessage(code), arguments));
         }
     }
 }

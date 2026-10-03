@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 let incoming = Buffer.alloc(0), initializeCount = 0, openCount = 0, closeCount = 0, transformCount = 0, locale = "";
 const projects = new Map();
+const capturedResults = process.argv[4] ? JSON.parse(fs.readFileSync(process.argv[4], "utf8")) : undefined;
 function send(value) {
     const bytes = Buffer.from(JSON.stringify(value));
     process.stdout.write(`Content-Length: ${bytes.length}\r\n\r\n`);
@@ -34,6 +35,12 @@ async function request(message) {
             const options = project.options ?? {};
             if (p.content === "crash") process.exit(23);
             if (p.content === "wait") await new Promise(resolve => setTimeout(resolve, 100));
+            const results = options.results ?? capturedResults;
+            if (results) {
+                if (!Object.hasOwn(results, p.fileName)) throw Error("Missing captured mapper input: " + p.fileName);
+                if (results[p.fileName].transformFailed) throw Error("Captured mapper transform failure");
+                return results[p.fileName];
+            }
             if (options.result) return options.result;
             const state = { pid: process.pid, initializeCount, openCount, closeCount, transformCount, handle: p.projectHandle, locale, compilerOptions: project.compilerOptions };
             return { text: options.echo ? p.content : `export const state = ${JSON.stringify(state)};\n${options.imports ?? ""}`, extension: ".ts", mappings: options.echo ? [[0, p.content.length, 0, p.content.length, 0]] : [], supplemental: options.supplemental ? [{ text: "export const supplemental = 1;", extension: ".ts", mappings: [] }] : [] };

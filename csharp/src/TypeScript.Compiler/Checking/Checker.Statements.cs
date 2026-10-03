@@ -32,14 +32,13 @@ internal sealed partial class Checker
                 endNode = statements[i];
             }
         }
+        var source = SemanticSyntax.Source(node)!;
+        int start = CheckerDiagnostic.TokenRange(source, node.Pos).Start;
+        var diagnostic = new Diagnostic(Messages.Unreachable_code_detected, start, endNode.End - start, []) { FileName = source.FileName };
         if (program.Symbols.Program.Configuration.Options.AllowUnreachableCode == false)
-        {
-            var source = SemanticSyntax.Source(node)!;
-            int start = CheckerDiagnostic.TokenRange(source, node.Pos).Start;
-            Error(node, new Diagnostic(Messages.Unreachable_code_detected, start, endNode.End - start, []) { FileName = source.FileName });
-        }
+            Error(node, diagnostic);
         else
-            ExpressionSuggestion(node, DiagnosticCode.UnreachableCodeDetected);
+            ExpressionSuggestion(node, diagnostic);
         return true;
     }
 

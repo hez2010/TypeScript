@@ -20,7 +20,7 @@ internal sealed partial class CheckerEnvironment
     public bool IsDeprecated(Symbol symbol) => Deprecations.Symbol(symbol);
 
     public void DeprecatedAlias(SyntaxNode location, Symbol symbol) =>
-        Suggestion(location, DiagnosticCode.X0IsDeprecated, symbol.Name);
+        DeprecatedSuggestion(location, symbol.Declarations, symbol.Name);
 
     public DiagnosticMessage CannotFindName(IdentifierNode name) => ReferenceSymbols.MissingName(name);
 
@@ -165,6 +165,7 @@ internal sealed partial class CheckerEnvironment
                 target,
                 specifier,
                 nameNode!,
+                moduleSpecifier!,
                 dontResolveAlias,
                 cancellation).ConfigureAwait(false);
         var result = Symbols.Merger.GetMergedSymbol(

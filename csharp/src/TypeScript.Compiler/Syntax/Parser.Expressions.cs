@@ -108,7 +108,8 @@ public sealed partial class Parser
                 var question = ParseToken();
                 var whenTrue = await ExpressionCore(2, false).ConfigureAwait(false);
                 var colon = ExpectedToken(K.ColonToken);
-                var whenFalse = await ExpressionCore(2, allowArrowReturnType).ConfigureAwait(false);
+                var whenFalse = colon.Pos < colon.End ? await ExpressionCore(2, allowArrowReturnType).ConfigureAwait(false)
+                    : Finish(factory.NewIdentifier(Utf8String.Empty), Pos, Pos);
                 left = Finish(factory.NewConditionalExpression(left, question, whenTrue, colon, whenFalse), start);
                 assignmentComplete = true;
                 continue;
@@ -481,7 +482,7 @@ public sealed partial class Parser
                         source.Text[construct.Pos..construct.End].Trim());
                 NodeList? args = Token == K.OpenParenToken ? (await ArgumentsCore().ConfigureAwait(false)) : null;
                 return Finish(factory.NewNewExpression(construct, types, args), start);
-            case K.ImportKeyword:
+            case K.ImportKeyword when Peek(() => Next() is K.OpenParenToken or K.LessThanToken or K.DotToken):
                 if (!Peek(() => Next() is K.OpenParenToken or K.DotToken or K.LessThanToken))
                 {
                     Error(Messages.Expression_expected);
@@ -528,6 +529,7 @@ public sealed partial class Parser
     {
         await ParseStack;
         int start = Pos;
+        int openPosition = scanner.TokenStart;
         Expected(K.OpenBraceToken);
         bool objectLines = LineBreak;
         objectLiteralDepth++;
@@ -545,7 +547,11 @@ public sealed partial class Parser
         {
             objectLiteralDepth--;
         }
-        Expected(K.CloseBraceToken);
+        int previousDiagnostics = diagnostics.Count;
+        if (!Expected(K.CloseBraceToken) && diagnostics.Count > previousDiagnostics)
+            diagnostics[^1] = diagnostics[^1] with { RelatedInformation = [new(
+                Messages.The_parser_expected_to_find_a_1_to_match_the_0_token_here, openPosition, 0,
+                [TokenFacts.Text(K.OpenBraceToken)!, TokenFacts.Text(K.CloseBraceToken)!]) { FileName = options.FileName }] };
         return Finish(factory.NewObjectLiteralExpression(properties, objectLines), start);
     }
 
@@ -840,7 +846,7 @@ public sealed partial class Parser
         int start = Pos;
         Utf8String value = scanner.Value;
         Utf8String raw = Utf8String.Copy(scanner.TokenText);
-        int suffix = Token == K.TemplateTail ? 1 : 2;
+        int suffix = (scanner.Flags & TokenFlags.Unterminated) != 0 ? 0 : Token == K.TemplateTail ? 1 : 2;
         raw = raw.Length > suffix ? raw[1..^suffix] : Utf8String.Empty;
         TokenFlags flags = scanner.Flags & TokenFlags.TemplateLiteralLikeFlags;
         SyntaxNode node = Token switch

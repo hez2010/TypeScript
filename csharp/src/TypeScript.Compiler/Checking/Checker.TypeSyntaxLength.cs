@@ -9,7 +9,7 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
-    private sealed class TypeSyntaxLength(bool noTruncation)
+    private sealed class TypeSyntaxLength(bool noTruncation, int maximum = 0)
     {
         internal long Value { get; set; }
         internal bool NoTruncation { get; } = noTruncation;
@@ -20,7 +20,7 @@ internal sealed partial class Checker
         internal void Add(Utf8String text, int extra = 0) => Add(text.Length + extra);
 
         internal bool Truncated() => WasTruncated |= Value > (NoTruncation
-            ? TypeDisplay.NoTruncationMaximumTruncationLength : TypeDisplay.DefaultMaximumTruncationLength);
+            ? TypeDisplay.NoTruncationMaximumTruncationLength : maximum > 0 ? maximum : TypeDisplay.DefaultMaximumTruncationLength);
     }
 
     private static int IntrinsicSyntaxLength(Type type)

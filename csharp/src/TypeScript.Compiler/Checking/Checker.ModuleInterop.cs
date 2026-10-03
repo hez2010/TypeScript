@@ -294,6 +294,7 @@ internal sealed partial class Checker
         Symbol target,
         SyntaxNode specifier,
         SyntaxNode nameNode,
+        SyntaxNode moduleSpecifier,
         bool dontResolveAlias,
         CancellationToken cancellation)
     {
@@ -324,6 +325,10 @@ internal sealed partial class Checker
             specifier,
             dontResolveAlias,
             cancellation).ConfigureAwait(false);
+        if (exported is null && name == Utf8Literals.Default
+            && (DefaultOnlyModule(module, moduleSpecifier) || await SyntheticDefaultAsync(module, moduleSpecifier, dontResolveAlias, cancellation)))
+            exported = await program.AliasTargets.ExternalModuleAsync(module, dontResolveAlias, cancellation)
+                ?? await program.Aliases.SymbolAsync(module, dontResolveAlias, cancellation);
         var result = exported is null ? value : value is null ? exported : CombineModuleSymbols(value, exported);
         if (result is null)
             await program.MissingModuleMemberAsync(module, target, specifier, nameNode, cancellation).ConfigureAwait(false);

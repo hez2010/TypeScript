@@ -1,0 +1,92 @@
+{
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "runtime": "Release CoreCLR, default GC; performance remains on hold",
+  "direct": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 181,
+    "authoredTests": 1,
+    "encodings": [
+      "utf-8",
+      "utf-16"
+    ],
+    "requests": 2580,
+    "differences": 0,
+    "compilerSha256": "d1e1e7e9c3585eee97ccfd5dbc5cc239979f85554cfb823ff15914d11752323a",
+    "inputsSha256": "ebf62d5aadf8ddc09b8ede5b3952758638744eb9d3fb4d86e4ae5b4fdad28395"
+  },
+  "lsp": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "originalTests": 178,
+    "requests": 2568,
+    "clients": 529,
+    "differences": 0,
+    "mappedQueriesValidatedSeparately": 12,
+    "compilerSha256": "2dbfff9153850a1c1803b07ca7168c747f91cca3525d3eb1bb4ad01b045f0609",
+    "inputsSha256": "ebf62d5aadf8ddc09b8ede5b3952758638744eb9d3fb4d86e4ae5b4fdad28395"
+  },
+  "safety": {
+    "syntaxAssertions": 27,
+    "lspAssertions": 109,
+    "compilerSha256": "d1e1e7e9c3585eee97ccfd5dbc5cc239979f85554cfb823ff15914d11752323a"
+  },
+  "regressions": {
+    "api": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "cases": 139,
+      "requests": 5963,
+      "differences": 0,
+      "compilerSha256": "2dbfff9153850a1c1803b07ca7168c747f91cca3525d3eb1bb4ad01b045f0609",
+      "coordinateContract": "UTF-8 / AST v9; isolated oracle adapters listed separately"
+    },
+    "hover": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "originalTests": 465,
+      "authoredTests": 1,
+      "encodings": [
+        "utf-8",
+        "utf-16"
+      ],
+      "requests": 4604,
+      "differences": 0,
+      "compilerSha256": "a9efae1f7c64ef5b746c7a3b0e081301ce6950491a87d6007eef793033195e29",
+      "inputsSha256": "3ce81d5c22e5dbdc8c9b573762642f2305c21ac1d315d1bc63fc687047add42c"
+    },
+    "documentation": {
+      "expandedUnits": 1228,
+      "exact": 901,
+      "permittedDifferences": 327,
+      "failures": 0,
+      "policyNegativeControls": 36,
+      "compilerSha256": "60fb7783860d65ea663d58ec96a6c27d2b483d72a1267a407e6d6915cc31cf3e"
+    },
+    "printer": {
+      "cases": 2296,
+      "strictMatches": 2291,
+      "permittedDifferences": 5,
+      "failed": 0,
+      "compilerHash": "d1e1e7e9c3585eee97ccfd5dbc5cc239979f85554cfb823ff15914d11752323a"
+    },
+    "transforms": {
+      "cases": 7245,
+      "strictMatches": 7005,
+      "permittedDifferences": 240,
+      "failed": 0,
+      "compilerHash": "d1e1e7e9c3585eee97ccfd5dbc5cc239979f85554cfb823ff15914d11752323a"
+    }
+  },
+  "adapters": [
+    "UTF-8 or UTF-16 LSP capabilities and matching reference marker/baseline converters",
+    "Captured mapper spans converted from start/end coordinates to start/length wire format; production mapper host executes the recorded results",
+    "Signature-help responses retain raw JSON before typed decoding, preserving explicit activeParameter null fields"
+  ],
+  "oracleCaptureCorrection": {
+    "typedRoundTripInputsSha256": "165fa104558f7b9d2c3d334ae2aa1a1ec1c45fdddd38b0fa5ae5001da53b7356",
+    "typedRoundTripDifferencesSha256": "2cd652d4d13fb6a132b9a15b11c11dc7ec489b8033cc43b163602516f1378a39",
+    "reason": "Go nullable-union decoding followed by re-encoding omits explicit activeParameter null. Raw response capture retains the wire value; candidate responses are not normalized."
+  },
+  "buildDirectories": [
+    "built/csharp/phase7-signature-build",
+    "built/csharp/phase7-build"
+  ],
+  "phase7Complete": false
+}

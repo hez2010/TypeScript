@@ -1,0 +1,261 @@
+{
+  "phase": 7,
+  "phase7Complete": false,
+  "configuration": "Release CoreCLR; default GC; Windows x64",
+  "performanceMeasured": false,
+  "nativeAotExecuted": false,
+  "patterns": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": 3338,
+    "differences": 0,
+    "classifiedDifferences": 384,
+    "rejectedInputs": 200,
+    "sources": {
+      "internal/project/watch.go": "0eec1c298ac264445c4bee803d4d9e7ff0410638501c157fc6e167dcdcfd7527",
+      "internal/project/session.go": "0a978bb9c6bbddd08ca5e014de9331e735afe5726d724622e694a0af2e7036a6",
+      "internal/lsp/lspwatcher/lspwatcher.go": "c153d92e1f4da9c62dfe4ffef2136ef8273f9197db43ab26260e43e2af8824a9",
+      "internal/tspath/path.go": "7c122e32451c3669a57d40758c9826e1c959129d234cd6c60126128d1b7f0000"
+    },
+    "classifications": {
+      "registryRollback": 2,
+      "commonParentSliceAliasing": 382
+    },
+    "comparison": "Exact decoded outputs; malformed dynamic path failures compare rejection, with both diagnostic streams retained.",
+    "controlMutation": "append(group.head, sr...) -> append(slices.Clone(group.head), sr...)",
+    "oracleSha256": "49c003d94c8abf0b1768ebc072f7419d9d1d97c860b87f4ca1c5a9ee65765546",
+    "controlSha256": "c80750b48cc421638b7d3909bcb171c02369a1d910e36d254254711255340b22",
+    "compilerSha256": "4dbeea87ba9c02ac90eb9a78345736d91eba91d8c748ea5486ddfeddaaec06a7",
+    "inputsSha256": "b458ba8b811b4d9b01effaa4c07d3a0f9c4d388c89e56045e7c3ca4dc1ee1b3a"
+  },
+  "live": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": 58,
+    "requests": 167,
+    "classifiedDifferences": 2,
+    "differences": 0,
+    "compilerSha256": "4dbeea87ba9c02ac90eb9a78345736d91eba91d8c748ea5486ddfeddaaec06a7",
+    "inputsSha256": "93d554758c365c913a1be29ad81aa4112db8661f0f36504ebd610f80a21843db",
+    "fixture": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+      "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+      "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+    }
+  },
+  "originalGoTests": {
+    "topLevel": 18,
+    "includingSubtests": 21,
+    "skipped": 0,
+    "failed": 0,
+    "names": [
+      "TestWatcher_NonRecursiveGlobIsNotRecursive",
+      "TestRootFromGlob",
+      "TestWatcher_MissingDirectoryTracksAncestor",
+      "TestWatcher_CloseWhileWatchFilesReconciles",
+      "TestWatcher_MultiLevelDescend",
+      "TestWatcher_AtomicTreeCreateRace",
+      "TestWatcher_GenuineFailureRollsBackForRetry",
+      "TestWatcher_KindFilter",
+      "TestWatcher_MissingDirectoryPromotesOnCreate",
+      "TestWatcher_SyntheticCreateDepth/recursive",
+      "TestWatcher_BookkeepingAndOverflow",
+      "TestWatcher_TerminatedFallsBackAndRecovers",
+      "TestWatcher_WatchTerminatedDoesNotDropEvents",
+      "TestWatcher_RealBackend_MissingThenCreate",
+      "TestWatcher_SyntheticCreateDepth/non-recursive",
+      "TestWatcher_SyntheticCreateDepth",
+      "TestWatcher_CreateChangeDelete",
+      "TestGetPathComponentsForWatching",
+      "TestNilWatchedFilesClone",
+      "TestUpdateWatchTimeoutAndRollback/watch_retries_on_next_snapshot_update_after_timeout_with_same_watcher_identity",
+      "TestUpdateWatchTimeoutAndRollback"
+    ]
+  },
+  "candidateSafety": {
+    "lifecycleAssertions": 71,
+    "nativeFileSystemAssertions": 4,
+    "lspAssertions": 283,
+    "coverage": [
+      "kind masks",
+      "missing ancestor descent",
+      "atomic creation during registration",
+      "synthetic depth",
+      "symlink boundaries",
+      "overflow",
+      "termination with pending real deletes",
+      "directory recreation",
+      "duplicate and unknown identities",
+      "partial backend rollback",
+      "shutdown during installation",
+      "shared registration references",
+      "pending retry identity",
+      "client timeout",
+      "successful partial-registration cleanup"
+    ]
+  },
+  "referenceDifferences": {
+    "commonParentSliceAliasing": {
+      "index": 1669,
+      "input": {
+        "mode": "parents",
+        "files": [
+          "/a/b/c",
+          "/x/y",
+          "C:/repo/src"
+        ],
+        "caseSensitive": true
+      },
+      "reference": [
+        "/a/b",
+        "/a/b/c",
+        "C:/repo/src"
+      ],
+      "candidate": [
+        "/a/b/c",
+        "/x/y",
+        "C:/repo/src"
+      ],
+      "reason": "Go GetCommonParents reuses slice backing storage in append(group.head, sr...). The isolated control clones that prefix; C# matches the control exactly."
+    },
+    "registryRollback": [
+      {
+        "index": 0,
+        "input": {
+          "mode": "registry",
+          "pattern": "shared"
+        },
+        "reference": {
+          "active": 1,
+          "attempts": 3,
+          "retryErrors": 0,
+          "unregistered": 1
+        },
+        "candidate": {
+          "attempts": 3,
+          "unregistered": 2,
+          "active": 0,
+          "retryErrors": 0
+        },
+        "reason": "Go updateWatch rolls back only new glob acquisitions, leaking an existing shared reference after a failed group and retry. C# releases every acquisition."
+      },
+      {
+        "index": 1,
+        "input": {
+          "mode": "registry",
+          "pattern": "partial"
+        },
+        "reference": {
+          "active": 2,
+          "attempts": 4,
+          "retryErrors": 1,
+          "unregistered": 0
+        },
+        "candidate": {
+          "attempts": 4,
+          "unregistered": 3,
+          "active": 0,
+          "retryErrors": 0
+        },
+        "reason": "Go updateWatch leaves successful partial registrations live. A native-style retry rejects the duplicate ID. C# closes successful partial registrations before retry."
+      }
+    ],
+    "policy": "Every pattern outcome must match the Go control with the single recorded slice-copy change. Original mismatches are retained individually. The two rollback cases pin exact original and candidate counters.",
+    "note": "Map iteration changes which path is overwritten in the original; the classification count is specific to this saved run. The isolated Go source is restored byte-for-byte after compiling the control."
+  },
+  "retainedOutputs": {
+    "path": "csharp/compatibility/evidence/phase7-lsp-watching.outputs.json.gz",
+    "sha256": "71212821bc5abb0e1642e70d5d2da23ff441419c4ab194bb37b1c571b6510722",
+    "entries": 384
+  },
+  "implementation": {
+    "observation": "Program construction captures file reads and existence probes; directory probes do not become program watches. Unchanged file graphs retain the prior observed paths.",
+    "groups": [
+      "config roots and extended configs",
+      "program and failed resolution probes",
+      "mapper manifests and dynamic configs",
+      "typings installer files",
+      "auto-import node_modules directories"
+    ],
+    "lifetime": "Snapshot callbacks queue detached path-and-pattern arrays. A serialized registrar deduplicates globs and uses a fresh one-second deadline per client call. Shutdown cancels and joins workers and disposes native subscriptions.",
+    "native": "Windows/macOS fallback uses the existing native watch backend. Events coalesce for 75 ms. Missing targets track an ancestor and promote with synthetic creates, preserving pending real events."
+  },
+  "retainedFailures": [
+    {
+      "path": "built/csharp/phase7-validation/lsp-watch-build1.log",
+      "outcome": "Roslyn failed with ArgumentOutOfRangeException in SyntaxNode.FindTokenCore; an unchanged retry reached ordinary source diagnostics. No cause is asserted."
+    },
+    {
+      "path": "built/csharp/phase7-validation/lsp-watch-build2.log",
+      "outcome": "Missing logger field diagnosed and then fixed."
+    },
+    {
+      "path": "built/csharp/phase7-validation/lsp-watch-build3.log",
+      "outcome": "Tuple literal UTF-8 conversions in new test inputs diagnosed and then fixed."
+    },
+    {
+      "path": "built/csharp/phase7-validation/lsp-watch-first",
+      "outcome": "Malformed dynamic watch inputs terminate both initial line hosts; later hosts record each rejection and continue."
+    },
+    {
+      "path": "built/csharp/phase7-validation/lsp-watch-comparison",
+      "outcome": "Initial comparison exposed singleton spelling preservation and original Go common-parent slice corruption."
+    },
+    {
+      "path": "built/csharp/phase7-validation/lsp-watch-live",
+      "outcome": "Both backends disproved initial expectations for close-time config retention and resolution probe parent coverage."
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "built/csharp/phase7-validation/lsp-watch-verified/inputs.jsonl",
+      "sha256": "b458ba8b811b4d9b01effaa4c07d3a0f9c4d388c89e56045e7c3ca4dc1ee1b3a"
+    },
+    {
+      "path": "built/csharp/phase7-validation/lsp-watch-verified/reference.jsonl",
+      "sha256": "9b08bc387b80a4f6e204446d717059afd76e9531c196a04b52b1bb1a61ebdeaf"
+    },
+    {
+      "path": "built/csharp/phase7-validation/lsp-watch-verified/alias-control.jsonl",
+      "sha256": "425cf6cd197c0dd8036ff3a6b1ff432360154a054cc837a045d3b91e42a24226"
+    },
+    {
+      "path": "built/csharp/phase7-validation/lsp-watch-verified/candidate.jsonl",
+      "sha256": "e75e50e8fd3ca42310b7981b1443bbb56cfe336295784ff6a9776e60826a7ef7"
+    },
+    {
+      "path": "built/csharp/phase7-validation/lsp-watch-verified/reference.stderr",
+      "sha256": "3bd223b816d58de8bb40832bb9681cc62b60e1133efbf55fd665fc792ef9986b"
+    },
+    {
+      "path": "built/csharp/phase7-validation/lsp-watch-verified/candidate.stderr",
+      "sha256": "e08bba7909e2421568037b495b090e15797a5008ad9976673318aacb2a982b46"
+    },
+    {
+      "path": "built/csharp/phase7-validation/lsp-watch-original.jsonl",
+      "sha256": "5a6ec402c560e6fd8306abe76f3be9dad3544768747c7c3be2a6d3e7c8af8b48"
+    },
+    {
+      "path": "built/csharp/phase7-validation/lsp-watch-safety3.log",
+      "sha256": "6c2428f04b2c50a2f94de2315b33fd8b66f4f9be59bde5e9685b0c734e558d4f"
+    },
+    {
+      "path": "built/csharp/phase7-validation/lsp-native-watch-safety2.log",
+      "sha256": "1a22543dc6422475dd11d5f756abe1732dee3fb912a4874a2fa436b4e233df21"
+    },
+    {
+      "path": "built/csharp/phase7-validation/lsp-watch-lsp-safety2.log",
+      "sha256": "c3b7648739ed5f2b32a7aafa4c13e3fa8f2a35af633cf7c98c51bdb64c998e7d"
+    },
+    {
+      "path": "built/csharp/phase7-validation/lsp-watch-full-live.log",
+      "sha256": "555ff5a5ba204b3813bdcd40829492b2a5ff99cc9553aa9ca7ca242b6c268d4f"
+    }
+  ],
+  "remainingPhase7": [
+    "optional telemetry and developer-option audit",
+    "original project coverage inventory",
+    "final cancellation/disposal/retention gates",
+    "NativeAOT publish without execution",
+    "completion documentation"
+  ]
+}

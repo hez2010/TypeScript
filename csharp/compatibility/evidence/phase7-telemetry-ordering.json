@@ -1,0 +1,184 @@
+{
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "policy": "Parse only projectInfo.properties.compilerOptions as JSON. Keep all fields, values, arrays, and measurement counts exact.",
+  "captures": [
+    {
+      "file": "built/csharp/phase7-validation/lsp-telemetry/results.json",
+      "sha256": "96caf3c219d06c9069103f0da470ef20eabe787d4b563cce70b3936e67c1e907",
+      "cases": [
+        {
+          "name": "telemetry-project-tsconfig",
+          "telemetry": [
+            {
+              "eventName": "languageServer.projectInfo",
+              "telemetryPurpose": "usage",
+              "properties": {
+                "projectType": "configured",
+                "version": "7.1.0-dev",
+                "compilerOptions": "{\"module\":\"ESNext\",\"moduleResolution\":\"Bundler\",\"noImplicitAny\":true,\"checkJs\":false,\"isolatedModules\":true,\"incremental\":false,\"target\":\"ES2020\",\"jsx\":\"preserve\",\"strict\":false,\"allowJs\":true,\"declaration\":true,\"composite\":false,\"skipLibCheck\":true}",
+                "extends": "true",
+                "files": "true",
+                "include": "true",
+                "exclude": "true",
+                "configFileName": "tsconfig.json"
+              },
+              "measurements": {
+                "jsFileCount": 1,
+                "jsFileSize": 19,
+                "jsxFileCount": 1,
+                "jsxFileSize": 26,
+                "tsFileCount": 1,
+                "tsFileSize": 29,
+                "tsxFileCount": 1,
+                "tsxFileSize": 26,
+                "dtsFileCount": 1,
+                "dtsFileSize": 29
+              }
+            }
+          ]
+        },
+        {
+          "name": "telemetry-project-jsconfig",
+          "telemetry": [
+            {
+              "eventName": "languageServer.projectInfo",
+              "telemetryPurpose": "usage",
+              "properties": {
+                "configFileName": "jsconfig.json",
+                "projectType": "configured",
+                "version": "7.1.0-dev",
+                "compilerOptions": "{\"strict\":false,\"noImplicitAny\":true,\"allowJs\":true,\"isolatedModules\":true,\"incremental\":false,\"target\":\"ES2020\",\"moduleResolution\":\"Bundler\",\"jsx\":\"preserve\",\"checkJs\":false,\"noEmit\":true,\"declaration\":true,\"composite\":false,\"skipLibCheck\":true,\"module\":\"ESNext\"}",
+                "extends": "true",
+                "files": "true",
+                "include": "true",
+                "exclude": "true"
+              },
+              "measurements": {
+                "jsFileCount": 1,
+                "jsFileSize": 19,
+                "jsxFileCount": 1,
+                "jsxFileSize": 26,
+                "tsFileCount": 1,
+                "tsFileSize": 29,
+                "tsxFileCount": 1,
+                "tsxFileSize": 26,
+                "dtsFileCount": 1,
+                "dtsFileSize": 29
+              }
+            }
+          ]
+        },
+        {
+          "name": "telemetry-project-inferred",
+          "telemetry": [
+            {
+              "eventName": "languageServer.projectInfo",
+              "telemetryPurpose": "usage",
+              "properties": {
+                "configFileName": "other",
+                "projectType": "inferred",
+                "version": "7.1.0-dev",
+                "compilerOptions": "{\"jsx\":\"react-jsx\",\"strictNullChecks\":true,\"strictFunctionTypes\":true,\"allowJs\":true,\"target\":\"ES2025\",\"module\":\"ESNext\",\"moduleResolution\":\"Bundler\"}"
+              },
+              "measurements": {
+                "tsFileCount": 1,
+                "tsFileSize": 29,
+                "dtsFileCount": 82,
+                "dtsFileSize": 2936928
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "file": "built/csharp/phase7-validation/lsp-telemetry-repeat/results.json",
+      "sha256": "ec13bfc6dad46494d0aa1cce3c33f5f77130e8968b357dfeb75c590e09bf00cf",
+      "cases": [
+        {
+          "name": "telemetry-project-tsconfig",
+          "telemetry": [
+            {
+              "eventName": "languageServer.projectInfo",
+              "telemetryPurpose": "usage",
+              "properties": {
+                "compilerOptions": "{\"declaration\":true,\"isolatedModules\":true,\"skipLibCheck\":true,\"jsx\":\"preserve\",\"composite\":false,\"incremental\":false,\"target\":\"ES2020\",\"module\":\"ESNext\",\"moduleResolution\":\"Bundler\",\"strict\":false,\"noImplicitAny\":true,\"allowJs\":true,\"checkJs\":false}",
+                "extends": "true",
+                "files": "true",
+                "include": "true",
+                "exclude": "true",
+                "configFileName": "tsconfig.json",
+                "projectType": "configured",
+                "version": "7.1.0-dev"
+              },
+              "measurements": {
+                "jsFileCount": 1,
+                "jsFileSize": 19,
+                "jsxFileCount": 1,
+                "jsxFileSize": 26,
+                "tsFileCount": 1,
+                "tsFileSize": 29,
+                "tsxFileCount": 1,
+                "tsxFileSize": 26,
+                "dtsFileCount": 1,
+                "dtsFileSize": 29
+              }
+            }
+          ]
+        },
+        {
+          "name": "telemetry-project-jsconfig",
+          "telemetry": [
+            {
+              "eventName": "languageServer.projectInfo",
+              "telemetryPurpose": "usage",
+              "properties": {
+                "files": "true",
+                "include": "true",
+                "exclude": "true",
+                "configFileName": "jsconfig.json",
+                "projectType": "configured",
+                "version": "7.1.0-dev",
+                "compilerOptions": "{\"strict\":false,\"checkJs\":false,\"noEmit\":true,\"composite\":false,\"isolatedModules\":true,\"skipLibCheck\":true,\"incremental\":false,\"moduleResolution\":\"Bundler\",\"noImplicitAny\":true,\"allowJs\":true,\"declaration\":true,\"target\":\"ES2020\",\"module\":\"ESNext\",\"jsx\":\"preserve\"}",
+                "extends": "true"
+              },
+              "measurements": {
+                "jsFileCount": 1,
+                "jsFileSize": 19,
+                "jsxFileCount": 1,
+                "jsxFileSize": 26,
+                "tsFileCount": 1,
+                "tsFileSize": 29,
+                "tsxFileCount": 1,
+                "tsxFileSize": 26,
+                "dtsFileCount": 1,
+                "dtsFileSize": 29
+              }
+            }
+          ]
+        },
+        {
+          "name": "telemetry-project-inferred",
+          "telemetry": [
+            {
+              "eventName": "languageServer.projectInfo",
+              "telemetryPurpose": "usage",
+              "properties": {
+                "configFileName": "other",
+                "projectType": "inferred",
+                "version": "7.1.0-dev",
+                "compilerOptions": "{\"strictNullChecks\":true,\"strictFunctionTypes\":true,\"allowJs\":true,\"target\":\"ES2025\",\"module\":\"ESNext\",\"moduleResolution\":\"Bundler\",\"jsx\":\"react-jsx\"}"
+              },
+              "measurements": {
+                "tsFileCount": 1,
+                "tsFileSize": 29,
+                "dtsFileCount": 82,
+                "dtsFileSize": 2936928
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

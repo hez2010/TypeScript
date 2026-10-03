@@ -35,19 +35,22 @@ public sealed partial class Parser
             node.Flags |= NodeFlags.PossiblyContainsDeprecatedTag;
         if (speculationDepth == 0
             && (trivia & TokenFlags.PrecedingJSDocComment) != 0
-            && options.ScriptKind is ScriptKind.JS or ScriptKind.JSX)
+            && (options.ScriptKind is ScriptKind.JS or ScriptKind.JSX || (trivia & TokenFlags.PrecedingJSDocWithSeeOrLink) != 0))
         {
             var reader = new DocumentationParser(source, options.ScriptKind, context, cancellation);
             JSDocNode[] comments = await reader.LeadingAsync(node.Pos, node.End, node.Kind).ConfigureAwait(false);
             documentation[node] = comments;
             foreach (JSDocNode comment in comments)
                 comment.Parent = node;
-            documentationDiagnostics.AddRange(reader.Diagnostics);
             sourceFlags |= reader.SourceFlags;
-            foreach (JSDocNode comment in comments)
-                ReparseUnhostedDocumentation(node, comment);
-            if (comments.Length != 0)
-                ReparseDocumentation(node, comments[^1]);
+            if (options.ScriptKind is ScriptKind.JS or ScriptKind.JSX)
+            {
+                documentationDiagnostics.AddRange(reader.Diagnostics);
+                foreach (JSDocNode comment in comments)
+                    ReparseUnhostedDocumentation(node, comment);
+                if (comments.Length != 0)
+                    ReparseDocumentation(node, comments[^1]);
+            }
         }
 
         return node;
@@ -119,7 +122,7 @@ public sealed partial class Parser
                 case K.ThrowKeyword:
                     Next();
                     var thrown = LineBreak ? Finish(factory.NewIdentifier(Utf8String.Empty), Pos, Pos) : (await ExpressionCore().ConfigureAwait(false));
-                    Semicolon();
+                    if (!TrySemicolon()) await MissingSemicolonAfterCore(thrown).ConfigureAwait(false);
                     return Finish(factory.NewThrowStatement(thrown), start);
                 case K.BreakKeyword:
                 case K.ContinueKeyword:
@@ -194,6 +197,7 @@ public sealed partial class Parser
                 if (modifiers is not null || startsDeclaration)
                 {
                     Next();
+                    if (LineBreak) Error(Messages.Line_break_not_permitted_here);
                     var name = Identifier();
                     var parameters = await TypeParametersCore().ConfigureAwait(false);
                     Expected(K.EqualsToken);
@@ -270,7 +274,7 @@ public sealed partial class Parser
         SyntaxNode expression = await ExpressionCore().ConfigureAwait(false);
         if (expression is IdentifierNode id && Take(K.ColonToken))
             return Finish(factory.NewLabeledStatement(id, await ParseStatementCore().ConfigureAwait(false)), start);
-        Semicolon();
+        if (!TrySemicolon()) await MissingSemicolonAfterCore(expression).ConfigureAwait(false);
         return Finish(factory.NewExpressionStatement(expression), start);
     }
 
@@ -477,6 +481,7 @@ public sealed partial class Parser
         while (Token is K.CaseKeyword or K.DefaultKeyword)
         {
             int clauseStart = Pos;
+            var clauseTrivia = scanner.Flags;
             bool isCase = Token == K.CaseKeyword;
             Next();
             SyntaxNode? value = isCase ? (await ExpressionCore().ConfigureAwait(false)) : null;
@@ -491,13 +496,13 @@ public sealed partial class Parser
                     Next();
             }
 
-            clauses.Add(
+            clauses.Add(await WithJSDocCore(
                 Finish(
                     factory.NewCaseOrDefaultClause(
                         isCase ? K.CaseClause : K.DefaultClause,
                         value,
                         new(statements.ToArray(), statementsStart, Pos)),
-                    clauseStart));
+                    clauseStart), clauseTrivia).ConfigureAwait(false));
         }
 
         NodeList clauseList = new(clauses.ToArray(), clausesStart, Pos);
@@ -576,6 +581,20 @@ public sealed partial class Parser
             declarations.Add(await VariableDeclarationCore().ConfigureAwait(false));
         while (true)
         {
+            if (declarations.Count == 0 && !emptyOf && !IsSemicolon()
+                && Token is not (K.CloseParenToken or K.InKeyword or K.OfKeyword or K.EqualsGreaterThanToken or K.CloseBracketToken))
+            {
+                if (IsBindingIdentifier || Token is K.PrivateIdentifier or K.OpenBraceToken or K.OpenBracketToken)
+                {
+                    declarations.Add(await VariableDeclarationCore().ConfigureAwait(false));
+                    continue;
+                }
+                if (Token >= K.FirstKeyword && Token <= K.LastKeyword)
+                    Error(Messages.X_0_is_not_allowed_as_a_variable_declaration_name, TokenFacts.Text(Token));
+                else Error(Messages.Variable_declaration_expected);
+                if (StartsStatement()) break;
+                Next(); continue;
+            }
             if (Take(K.CommaToken))
             {
                 if (!IsBindingIdentifier && Token is not (K.OpenBraceToken or K.OpenBracketToken))
@@ -592,13 +611,15 @@ public sealed partial class Parser
                 continue;
             }
 
-            if (!IsSemicolon()
-                && Token is not (K.InKeyword or K.OfKeyword or K.EqualsGreaterThanToken or K.CloseBracketToken)
-                && !StartsStatement())
+            if (!IsSemicolon() && Token is not (K.InKeyword or K.OfKeyword or K.EqualsGreaterThanToken or K.CloseBracketToken))
             {
-                Error(Messages.Variable_declaration_expected);
-                Next();
-                continue;
+                if (declarations.Count != 0) Error(Messages.X_0_expected, Utf8Literals.Comma);
+                if (!StartsStatement())
+                {
+                    Error(Messages.Variable_declaration_expected);
+                    Next();
+                    continue;
+                }
             }
 
             break;
@@ -778,11 +799,13 @@ public sealed partial class Parser
         var name = Identifier();
         var parameters = await TypeParametersCore().ConfigureAwait(false);
         var heritage = await HeritageCore(true).ConfigureAwait(false);
-        Expected(K.OpenBraceToken);
-        var members = await ListCore(
-            K.CloseBraceToken,
-            async () => (await TypeMemberCore(false).ConfigureAwait(false)), typeMembers: true).ConfigureAwait(false);
-        Expected(K.CloseBraceToken);
+        NodeList members;
+        if (Expected(K.OpenBraceToken))
+        {
+            members = await ListCore(K.CloseBraceToken, async () => await TypeMemberCore(false).ConfigureAwait(false), typeMembers: true).ConfigureAwait(false);
+            Expected(K.CloseBraceToken);
+        }
+        else members = new([], Pos, Pos, true);
         return Finish(factory.NewInterfaceDeclaration(modifiers, name, parameters, heritage, members), start);
     }
 
@@ -893,7 +916,7 @@ public sealed partial class Parser
         {
             var types = await TypeParametersCore().ConfigureAwait(false);
             var parameters = await ParametersCore().ConfigureAwait(false);
-            var type = await ReturnAnnotationCore().ConfigureAwait(false);
+            var type = await ReturnAnnotationCore(true).ConfigureAwait(false);
             MemberSemicolon();
             return Finish(factory.NewCallSignatureDeclaration(types, parameters, type), start);
         }
@@ -903,7 +926,7 @@ public sealed partial class Parser
             Next();
             var types = await TypeParametersCore().ConfigureAwait(false);
             var parameters = await ParametersCore().ConfigureAwait(false);
-            var type = await ReturnAnnotationCore().ConfigureAwait(false);
+            var type = await ReturnAnnotationCore(true).ConfigureAwait(false);
             MemberSemicolon();
             return Finish(factory.NewConstructSignatureDeclaration(types, parameters, type), start);
         }
@@ -939,7 +962,7 @@ public sealed partial class Parser
                 : 0) | (accessor == K.Unknown && modifiers?.Any(m => m.Kind == K.AsyncKeyword) == true ? NodeFlags.AwaitContext : 0);
             var types = await TypeParametersCore().ConfigureAwait(false);
             var parameters = await ParametersCore(signatureFlags).ConfigureAwait(false);
-            var type = await ReturnAnnotationCore().ConfigureAwait(false);
+            var type = await ReturnAnnotationCore(!inClass && accessor == K.Unknown).ConfigureAwait(false);
             BlockNode? body = inClass || accessor != K.Unknown && Token == K.OpenBraceToken
                 ? (await FunctionBodyCore(signatureFlags, inClass).ConfigureAwait(false))
                 : null;
@@ -961,13 +984,8 @@ public sealed partial class Parser
         context &= ~(NodeFlags.AwaitContext | NodeFlags.YieldContext | NodeFlags.DisallowInContext);
         var initializer = await InitializerCore().ConfigureAwait(false);
         context = savedPropertyContext;
-        if (inClass && Token == K.OpenParenToken)
-        {
-            Error(Messages.Cannot_start_a_function_call_in_a_type_annotation);
-            Next();
-        }
-        else
-            MemberSemicolon();
+        if (inClass) await PropertySemicolonCore(memberName, propertyType, initializer).ConfigureAwait(false);
+        else MemberSemicolon();
         return inClass
             ? Finish(factory.NewPropertyDeclaration(modifiers, memberName, postfix, propertyType, initializer), start)
             : Finish(factory.NewPropertySignatureDeclaration(modifiers, memberName, postfix, propertyType, initializer), start);
@@ -1006,22 +1024,18 @@ public sealed partial class Parser
             implicitExport.Flags = NodeFlags.Reparsed;
             body = (await ModuleRestCore(new([implicitExport], nested, nested), nested, keyword, Identifier(true)).ConfigureAwait(false));
         }
-        else if (Token == K.OpenBraceToken)
+        else if (Token == K.OpenBraceToken || keyword != K.GlobalKeyword && name is not StringLiteralNode)
         {
             int blockStart = Pos;
-            Next();
-            statementDepth++;
             NodeList statements;
-            try
+            if (Expected(K.OpenBraceToken))
             {
-                statements = (await ListCore(K.CloseBraceToken, ParseStatementCore, true).ConfigureAwait(false));
+                statementDepth++;
+                try { statements = await ListCore(K.CloseBraceToken, ParseStatementCore, true).ConfigureAwait(false); }
+                finally { statementDepth--; }
+                Expected(K.CloseBraceToken);
             }
-            finally
-            {
-                statementDepth--;
-            }
-
-            Expected(K.CloseBraceToken);
+            else statements = new([], Pos, Pos, true);
             body = Finish(factory.NewModuleBlock(statements), blockStart);
         }
         else
@@ -1036,13 +1050,7 @@ public sealed partial class Parser
     private async ValueTask<SyntaxNode> ImportCore(NodeList? modifiers, int start)
     {
         await ParseStack;
-        int importTokenStart = scanner.TokenStart;
         Expected(K.ImportKeyword);
-        if (!IsBindingIdentifier && Token is not (K.StringLiteral or K.AsteriskToken or K.OpenBraceToken))
-        {
-            ErrorAt(Messages.Declaration_or_statement_expected, importTokenStart, 6);
-            return await ParseStatementWorkerCore().ConfigureAwait(false);
-        }
         bool savedPossibleAwait = possibleTopLevelAwait;
         int clauseStart = Pos;
         IdentifierNode? name = IsBindingIdentifier ? Identifier(binding: true) : null;

@@ -106,7 +106,8 @@ internal sealed partial class Checker
                 ? DiagnosticCode.CannotFindNamespace0DidYouMean1
                 : uncheckedJs ? DiagnosticCode.CouldNotFindName0DidYouMean1 : DiagnosticCode.CannotFindName0DidYouMean1;
             if (uncheckedJs)
-                program.Suggestion(location!, code, suggestion.Name);
+                program.Suggestion(location!, CheckerDiagnostic.Create(location, Messages.Could_not_find_name_0_Did_you_mean_1, name, suggestion.Name) with
+                { RelatedInformation = suggestion.ValueDeclaration is null ? [] : [CheckerDiagnostic.Create(suggestion.ValueDeclaration, Messages.X_0_is_declared_here, suggestion.Name)] });
             else
                 program.Error(location, meaning == S.Namespace ? Messages.Cannot_find_namespace_0_Did_you_mean_1
                 : Messages.Cannot_find_name_0_Did_you_mean_1, name, suggestion.Name);

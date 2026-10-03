@@ -225,6 +225,9 @@ internal sealed partial class Checker
             var declaration = symbol.Declarations[0];
             if (declaration.Parent is VariableDeclarationNode { Name: { } variable })
                 return CheckerDiagnostic.DeclarationName(variable);
+            if (declaration is ClassExpressionNode or FunctionExpressionNode or ArrowFunctionNode
+                && state.Types is { } types && (types.Flags & NodeBuilderFlags.AllowAnonymousIdentifier) == 0)
+                types.EncounteredError = true;
             if (declaration is ClassExpressionNode)
                 return Utf8Literals.AnonymousClass;
             if (declaration is FunctionExpressionNode or ArrowFunctionNode)

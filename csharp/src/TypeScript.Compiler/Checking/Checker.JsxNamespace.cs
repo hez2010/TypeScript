@@ -165,7 +165,7 @@ internal sealed partial class Checker
                 result = await Values.GetAsync(symbol, cancellation);
             else if (await ApplicableIndexAsync(intrinsic, name, cancellation) is { } index)
             {
-                symbol = intrinsic.Symbol;
+                symbol = await ApplicableIndexSymbolAsync(intrinsic, context.GetStringLiteralType(name), cancellation) ?? intrinsic.Symbol;
                 result = index.ValueType;
             }
             else

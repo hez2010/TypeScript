@@ -10,6 +10,7 @@
     <PackageReference Include="System.IO.Hashing" Version="11.0.0-rc.2.26470.103" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="../../NOTICE.txt" Link="NOTICE-Go.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <EmbeddedResource Include="../../../tsc/internal/diagnostics/loc/*.json.gz" LogicalName="TypeScript.Locales.%(Filename)%(Extension)" />
     <EmbeddedResource Condition="'$(EmbedTypeScriptLibraries)' == 'true'" Include="../../../tsc/internal/bundled/libs/*.d.ts" LogicalName="TypeScript.Libraries.%(Filename)%(Extension)" />
     <Content Condition="'$(EmbedTypeScriptLibraries)' != 'true'" Include="../../../tsc/internal/bundled/libs/*.d.ts" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />

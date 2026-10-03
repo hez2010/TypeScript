@@ -1,0 +1,45 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": [
+        {
+            "name": "jsdoc/parsed",
+            "inputHash": "11614e28c5a79fbc7b2cc5d9f55b583bb5480035a2dc8cc49f3b57f307038d57",
+            "referenceHash": "2ccfae2e43ac4f4ebb8cabcafd358b62b908856d1ef0c5ec1839183e400b8d5b",
+            "candidateHash": "ab5848ba3d40a4a61807961f1c2cc5a59a6655e5c6f9c95a829c4919b26c66d9",
+            "policy": "parser-jsdoc-representation",
+            "rationale": "C# keeps the template parameter list at its source range [56,57), while Go stores [0,0). The return-description text and its list exclude one leading trivia byte in C# ([87,96) versus [86,96)). Kinds, concatenated text, child topology, and all remaining node fields match.",
+            "reproduction": "node csharp/tools/ast-codec.mjs",
+            "independentControl": "The pinned Go encoder produces the exact C# packet from the complete candidate syntax and source metadata."
+        },
+        {
+            "name": "jsdoc/bound",
+            "inputHash": "457c1f14f0ad1ecc6ddaac266b5e6b7c8e626a178ea64864244329523ba36bc1",
+            "referenceHash": "2ccfae2e43ac4f4ebb8cabcafd358b62b908856d1ef0c5ec1839183e400b8d5b",
+            "candidateHash": "ab5848ba3d40a4a61807961f1c2cc5a59a6655e5c6f9c95a829c4919b26c66d9",
+            "policy": "parser-jsdoc-representation",
+            "rationale": "C# keeps the template parameter list at its source range [56,57), while Go stores [0,0). The return-description text and its list exclude one leading trivia byte in C# ([87,96) versus [86,96)). Kinds, concatenated text, child topology, and all remaining node fields match.",
+            "reproduction": "node csharp/tools/ast-codec.mjs",
+            "independentControl": "The pinned Go encoder produces the exact C# packet from the complete candidate syntax and source metadata."
+        },
+        {
+            "name": "jsdoc-typedef/parsed",
+            "inputHash": "376733b386ec169000b9b7458dc8645e326e6f5f8597aa6924873e6b54869c22",
+            "referenceHash": "aaf1d8ab2389423d7ba656080478f9915ad32e95c4ed966fef5834af778d6f27",
+            "candidateHash": "36aa1d8944e770f2eecd6060545ce050487d0bc73542068de199ebd8cfe1adb3",
+            "policy": "parser-jsdoc-representation",
+            "rationale": "C# omits three empty documentation-description lists and retains trailing whitespace in typedef/tag and synthesized host ranges (end 90 versus 87). A synthesized numeric annotation retains the C# parser context flags. The changed child-mask and index links follow the empty-list difference; tag/type/name/literal content and nonempty child topology are preserved.",
+            "reproduction": "node csharp/tools/ast-codec.mjs",
+            "independentControl": "The pinned Go encoder produces the exact C# packet from the complete candidate syntax and source metadata."
+        },
+        {
+            "name": "jsdoc-typedef/bound",
+            "inputHash": "2a10ebfac78a6501750a637481f99aef8f40c240fb8eb8452f8ff26a49909471",
+            "referenceHash": "aaf1d8ab2389423d7ba656080478f9915ad32e95c4ed966fef5834af778d6f27",
+            "candidateHash": "36aa1d8944e770f2eecd6060545ce050487d0bc73542068de199ebd8cfe1adb3",
+            "policy": "parser-jsdoc-representation",
+            "rationale": "C# omits three empty documentation-description lists and retains trailing whitespace in typedef/tag and synthesized host ranges (end 90 versus 87). A synthesized numeric annotation retains the C# parser context flags. The changed child-mask and index links follow the empty-list difference; tag/type/name/literal content and nonempty child topology are preserved.",
+            "reproduction": "node csharp/tools/ast-codec.mjs",
+            "independentControl": "The pinned Go encoder produces the exact C# packet from the complete candidate syntax and source metadata."
+        }
+    ]
+}

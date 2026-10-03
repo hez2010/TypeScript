@@ -186,7 +186,7 @@ internal sealed partial class Checker
                 }
             }
             if (suggestion && diagnostic.Code == DiagnosticCode.Property0MayNotExistOnType1DidYouMean2)
-                ExpressionSuggestion(node, diagnostic.Code);
+                ExpressionSuggestion(node, diagnostic);
             else
                 Error(node, diagnostic);
         }

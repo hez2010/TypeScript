@@ -328,9 +328,8 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
             scanner.ResetPosition(node.Pos);
             scanner.Scan();
             if (!scanner.TokenText.Contains((byte)'.') && (number.TokenFlags & TokenFlags.Scientific) == 0
-                && JsNumber.FromString(number.Text) > JsNumber.MaxSafeInteger && suggestionLocations.Add(
-                    (node, DiagnosticCode.NumericLiteralsWithAbsoluteValuesEqualTo253OrGreaterAreTooLargeToBeRepresentedAccuratelyAsIntegers)))
-                Suggestions.Add(
+                && JsNumber.FromString(number.Text) > JsNumber.MaxSafeInteger)
+                ExpressionSuggestion(node,
                     DiagnosticCode.NumericLiteralsWithAbsoluteValuesEqualTo253OrGreaterAreTooLargeToBeRepresentedAccuratelyAsIntegers);
         }
         else if (node is BigIntLiteralNode && node.Parent is not LiteralTypeNode

@@ -118,20 +118,38 @@ internal sealed partial class ModuleSpecifierGenerator(IModuleSpecifierHost host
             : Result(relative, ModuleSpecifierKind.Relative);
     }
 
+    internal Utf8String Update(SourceFileNode source, Utf8String importingFileName, Utf8String oldSpecifier, Utf8String target,
+        ModuleSpecifierPreferences preferences, ReferenceResolutionMode mode, CancellationToken cancellation)
+    {
+        var defaultMode = host.ResolutionMode(source, null);
+        preferences = preferences with { Relative = ModuleResolver.Relative(oldSpecifier) ? Utf8Literals.Relative : Utf8Literals.NonRelative };
+        foreach (var path in AllPaths(importingFileName, target, cancellation))
+        {
+            var named = packages.FromNodeModules(path.FileName, source, defaultMode, mode, preferences.Ending,
+                isRedirect: path.IsRedirect, globalTypingsCache: host.GlobalTypingsCache, cancellation: cancellation,
+                importingFileName: importingFileName, oldSpecifier: oldSpecifier);
+            if (!named.IsEmpty) return named;
+        }
+        return Local(target, source, preferences, mode == 0 ? defaultMode : mode, cancellation: cancellation,
+            importingFileName: importingFileName, oldSpecifier: oldSpecifier);
+    }
+
     internal Utf8String Local(Utf8String target, SourceFileNode source, ModuleSpecifierPreferences preferences,
-        ReferenceResolutionMode mode, bool pathsOnly = false, CancellationToken cancellation = default)
+        ReferenceResolutionMode mode, bool pathsOnly = false, CancellationToken cancellation = default,
+        Utf8String importingFileName = default, Utf8String oldSpecifier = default)
     {
         cancellation.ThrowIfCancellationRequested();
         var paths = options.Paths;
         if (pathsOnly && paths is null)
             return Utf8String.Empty;
-        Utf8String directory = CompilerPath.DirectoryName(source.FileName);
+        Utf8String directory = CompilerPath.DirectoryName(importingFileName.IsEmpty ? source.FileName : importingFileName);
         var endings = ModuleSpecifierPaths.AllowedEndings(
             options,
             source,
             host.ResolutionMode(source, null),
             mode,
             preferences.Ending,
+            oldSpecifier,
             cancellation: cancellation);
         var roots = options.RootDirs;
         Utf8String relative = roots is { Length: > 0 }

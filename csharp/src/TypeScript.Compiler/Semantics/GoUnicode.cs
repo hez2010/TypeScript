@@ -8,6 +8,7 @@ internal static partial class GoUnicode
     internal static int Lower(int value) => Lookup(LowerMap, value);
 
     internal static int Fold(int value) => Lookup(FoldMap, value);
+    internal static ReadOnlySpan<int> SimpleFoldMappings => FoldMap;
 
     private static int Lookup(ReadOnlySpan<int> map, int value)
     {

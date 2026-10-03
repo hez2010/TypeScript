@@ -1,0 +1,90 @@
+{
+  "phase": 7,
+  "phase7Complete": false,
+  "configuration": "Release CoreCLR",
+  "scope": "Project info, mapper contributions, exact dynamic registration payloads and live mapped first-open/removal",
+  "validation": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": 32,
+    "requests": 106,
+    "differences": 0,
+    "compilerSha256": "bfbc1dabf386e977e9fb3a01f1849b44ee7aa680cc7b9d366bd1f6f069a9dfec",
+    "inputsSha256": "c6fe41c9abeff0c0410785383391a9259211f6c9b1e3c17b371cd110f6c705f7",
+    "fixture": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+      "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+      "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+    },
+    "directory": "built/csharp/phase7-validation/lsp-project-services-fourth"
+  },
+  "originalTests": [
+    "TestProjectInfoConfiguredProject",
+    "TestProjectInfoInferredProject",
+    "TestSetContentMapperContributionsBeforeDidOpen"
+  ],
+  "fixtureAdapter": "Both backends execute the pinned external mapper fixtures. The C# fixture launcher substitutes only the process executable and physical working directory; compiler/project/LSP code remains C#.",
+  "remaining": [
+    "Original watcher and protocol-validation contracts",
+    "Logging and profiling endpoint audit",
+    "Final session cancellation and retention gates"
+  ],
+  "performanceMeasured": false,
+  "nativeExecuted": false,
+  "safety": {
+    "lspAssertions": 250,
+    "projectAssertions": 89,
+    "compilerSha256": "01e63fa2aee8e73c89f6d3a1485af9683b4d04d60a776df7389bf53321a2ef01",
+    "logs": [
+      "built/csharp/phase7-validation/lsp-mapper-safety.log",
+      "built/csharp/phase7-validation/lsp-mapper-project-safety.log"
+    ],
+    "originalParserCases": [
+      "TestParseContentMapperContributions",
+      "TestParseContentMapperContributionsRejectsConflictingInlineMappers",
+      "TestParseContentMapperContributionsUsesCaseInsensitiveExtensions",
+      "TestParseContentMapperContributionsDefaultsOptionsToObject"
+    ],
+    "additional": "Cancellation while a mapper capability callback is pending, followed by shutdown without a client reply"
+  },
+  "progressValidation": {
+    "semantics": "Bounded queue, delayed display, reference-counted operations, insertion-order reports, localized messages, nonblocking create acknowledgement, cancellation and disposal.",
+    "originalTests": [
+      "TestProgressNotificationsEndToEnd",
+      "TestProgress"
+    ],
+    "safety": {
+      "newTypingsProgressAssertions": 3,
+      "logs": [
+        "built/csharp/phase7-validation/progress-safety1.log",
+        "built/csharp/phase7-validation/progress-typings-safety.log"
+      ],
+      "typingsAssertions": 21,
+      "lspAssertions": 275,
+      "progressAssertions": 25
+    },
+    "summary": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "cases": 40,
+      "requests": 114,
+      "differences": 0,
+      "compilerSha256": "55a13327f4b9f14ae2c85054c3795f2d7b0e82a909b423af33733886abf42c26",
+      "inputsSha256": "e01f97eb65a9fe789b12665eec5071cac8f54a37ded7bc28f297836644b12f6b",
+      "fixture": {
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+        "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+        "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+      }
+    },
+    "directory": "built/csharp/phase7-validation/lsp-project-services-progress"
+  },
+  "projectRegression": {
+    "originalSessions": 157,
+    "log": "built/csharp/phase7-validation/original-projects-api-mappers.log",
+    "transitions": 339,
+    "compilerSha256": "01e63fa2aee8e73c89f6d3a1485af9683b4d04d60a776df7389bf53321a2ef01",
+    "mismatches": 0,
+    "authoredSessions": 2
+  }
+}

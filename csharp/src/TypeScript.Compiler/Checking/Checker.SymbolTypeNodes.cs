@@ -22,6 +22,7 @@ internal sealed partial class Checker
             else if (expression is null || IdentifierName(name))
             {
                 var identifier = state.Factory.NewIdentifier(name);
+                if (state.DisplaySymbols is { } display) display[identifier] = part;
                 state.NoAsciiEscape.Add(identifier);
                 expression = expression is null ? identifier : state.Factory.NewPropertyAccessExpression(expression, null, identifier, NodeFlags.None);
             }
@@ -226,6 +227,7 @@ internal sealed partial class Checker
                 factory.NewLiteralTypeNode(factory.NewStringLiteral(name, state.StringLiteralFlags)));
         }
         var identifier = factory.NewIdentifier(name);
+        if (state.Types?.DisplaySymbols is { } display) display[identifier] = symbol;
         if (index <= stopper)
             return identifier;
         var lhs = await TypeAccessFromChainAsync(chain, index - 1, stopper, arguments, state, forbidIndexed, factory, cancellation);

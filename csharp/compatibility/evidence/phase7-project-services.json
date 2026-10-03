@@ -1,0 +1,1205 @@
+{
+    "phase": 7,
+    "phase7Complete": false,
+    "configuration": "Release CoreCLR; default GC; Windows x64",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "performanceMeasured": false,
+    "nativeAotExecuted": false,
+    "compilerSha256": "ab843826903efa1582c203a9a1295508f6956fbeed4df5274bdf6384bea369ce",
+    "sourceHashes": {
+        "csharp/src/TypeScript.Compiler/Projects/ProjectSnapshotHost.cs": "fa3cb3896d97bba335ef8cab3a8b63464349ac39dd41f2eeb17cac36928e04bc",
+        "csharp/src/TypeScript.Compiler/Projects/ProjectSnapshot.cs": "8cc90bd7420d19515fff88a13a931406fe5bdc3f7fa87fd719468754b03bc2be",
+        "csharp/src/TypeScript.Compiler/Projects/SnapshotFileSystem.cs": "a6a53f93586964f8c32da3b66f48b7869ff6a2df115782dd44fba2e49fbc9268",
+        "csharp/src/TypeScript.Compiler/Projects/ProjectCheckerPool.cs": "c0d69f12bf7eca336ae9173bd0aa384d9e4556b11efcaa012f7f71e51225a09f",
+        "csharp/src/TypeScript.Compiler/Api/ApiSession.Snapshots.cs": "fa569c40a6fa09d612bda2f9a6f885c9ec85c927a12679c7b5031d1c605aab9f",
+        "csharp/tests/TypeScript.Compatibility/ProjectTests.cs": "69a0f201460549631f1dee81290c6c6673c5f5965280107cb6499a86bc663ead",
+        "csharp/tests/TypeScript.Compatibility/ProjectTests.CheckerPool.cs": "bd5fc67a768e020059a6db654fb45ac10c6d3e2cf2f962f38ef0fa7447d64d4a",
+        "csharp/tests/TypeScript.Compatibility/ProjectTests.FileSystem.cs": "9137fe7ff698b1653cd1619e788a3a084573ffab97e68f9786bdb8e333233854",
+        "csharp/tests/TypeScript.Compatibility/ProjectReplay.cs": "339b868619e8187990d0e11d6b12a3f99f2ec3ca40f4a9b98b2426455b0505d0",
+        "csharp/oracle/project/snapshot_record.go": "edda9a9fdd548062a7a6811ca9e7b24a3e9abe29cb70f83809cab341a0e5e28c",
+        "csharp/oracle/project/snapshot_setup.go": "c7a945cd05566efb19172668595c91995fc87e7b76ad5f745961a73747e71f64",
+        "csharp/tools/project-original.mjs": "1b58f3be6d3a66ea410da500e1f051ea29c5941eec446b038edb9b0556fc213d",
+        "csharp/tools/project-response-comparison.mjs": "8cc6dcd7193fde029fc3d65558737b6326252001cdc5da42fb064bba5bcfc3cd",
+        "csharp/tools/verify-project-order-policy.mjs": "5e0ecd763ede8cab0cc6cfca3e7522bffe396b71613c552bfe5c3447fcfcd66d",
+        "csharp/tools/project-test-inventory.mjs": "9e81d627855492e4694856d618d9320f01ced1c31514c8090be61e010c9c8496",
+        "csharp/tools/typings.mjs": "e67b4d25fa50643b868ae4d419d3c250f50438b04c8dba689396fa75d011364b",
+        "csharp/tools/project-overlays.mjs": "b5a196441942de43ddda30b3ec718632eb522664eeb1c345cb115019114e9a00"
+    },
+    "inventory": {
+        "tests": 97,
+        "passed": 383,
+        "skipped": [
+            "TestATA/deduplicate_from_local_@types_packages"
+        ],
+        "path": "csharp/compatibility/evidence/phase7-project-test-inventory.json",
+        "sha256": "dc5d37ab84ca1ff0a3fb1165f187a5640b9f15a97506db75fb520fc6bed6b238"
+    },
+    "project": {
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "instrumented": [
+            {
+                "file": "internal/project/snapshot.go",
+                "originalSha256": "d1993747879fa6d7b8da5a500cbdd66abfccc4ab10905399231f8e4e13d7dda8",
+                "instrumentedSha256": "b766d265e7d6ef98f0dba17207af7ae6fd6bd954412134e6ece784f9b0f6166f"
+            },
+            {
+                "file": "internal/project/snapshot_test.go",
+                "originalSha256": "7bd2971632b4fae20a7642c568c0a6ae76ab1bce380d4719e3ddff4c4695d243",
+                "instrumentedSha256": "8724be572e95b3750587179e31086e6ded9f2e2402c363e1b9394f9fd00b019b"
+            },
+            {
+                "file": "internal/project/session_test.go",
+                "originalSha256": "75d137b27cab86b9a3941e26113e6f41a49cd74bb258f990680d45554b5da7b0",
+                "instrumentedSha256": "d8856b26ca4b57bc5b312f1357a3ff1f747c8ef9a8ec67a95212b51804f3068f"
+            },
+            {
+                "file": "internal/project/projectcollectionbuilder_test.go",
+                "originalSha256": "28b67579aceee1281be009e453e61be35d7a80a067c225308172227876095fd8",
+                "instrumentedSha256": "b6b93a4b48f9bb193d81e27011f34c54cc3ba7cb4ddfe2739ad8b4878a057f74"
+            },
+            {
+                "file": "internal/project/configfilechanges_test.go",
+                "originalSha256": "21bc37b93d2ed0d91dedc47620979abf43ea10f0d8354920ee6f822bf6b08fd4",
+                "instrumentedSha256": "5c9579714176da39f2224fcf779d31d845f06d08d250b1bf23d8d47efd57d2a2"
+            },
+            {
+                "file": "internal/project/projectlifetime_test.go",
+                "originalSha256": "a3295a0ff414deeec8e3dab6dc8a9bbd8114dd6bc9a23549bdef5963aebc4827",
+                "instrumentedSha256": "4743d4d4a620328ee1f32ea489fdda95e5edfe634ca6c848a87bc96809c927ae"
+            },
+            {
+                "file": "internal/project/projectcollectiondefaultproject_test.go",
+                "originalSha256": "60741cce734a8d74b3bb17ed553ef1d3171c7015045b50a0da0a9460191d94e6",
+                "instrumentedSha256": "25672c4d0f1b51e6df25cb3bbb7c4abcc74e4bd4b8d59b01eaa2acfde48a6115"
+            },
+            {
+                "file": "internal/project/projectreferencesprogram_test.go",
+                "originalSha256": "51ffa831ec9de034df390bd999fa66fc510291dbbe0f928197cae8ad06770104",
+                "instrumentedSha256": "e3352d7a5d074c0c5ad077955a36ec4777437dd020cf70b5a2e1f627a8eb3af3"
+            },
+            {
+                "file": "internal/project/untitled_test.go",
+                "originalSha256": "528c9d8a655c1a286c645d6fbdc143c766b35e16541f10a35081b6a80049e942",
+                "instrumentedSha256": "fa80cf809417b19365caf9e0c04b39615f22527594f0281c0e5896d98a4c0dd0"
+            },
+            {
+                "file": "internal/project/bulkcache_test.go",
+                "originalSha256": "b67d884d3a89b0d94eb843595c098d0cc503a79c619506850d671f5373bbbc8d",
+                "instrumentedSha256": "d15a7b0b713bc2101baa360a575edf2fb76280b8adb82274f8ed91c157b3804e"
+            },
+            {
+                "file": "internal/project/customconfigfilename_test.go",
+                "originalSha256": "f586d7e539678a4af9468256854850e47f34f43b6436483db87926aec2e5276f",
+                "instrumentedSha256": "eb1d45037f73e6715d3b5d3676ce653718e150fab9ba9109a9439a1ef8e9f266"
+            },
+            {
+                "file": "internal/project/project_test.go",
+                "originalSha256": "6c7212fd2b46b3f0ef882e215fb63557274bc0207e013dec705f0fd8cfea0d1a",
+                "instrumentedSha256": "4cba2a166811cbac75d44c0853f5e80e42074c90f6e8b1babb884f627a11a82a"
+            },
+            {
+                "file": "internal/project/contentmapper_test.go",
+                "originalSha256": "233c0b49efea750a94bb439e98b4a1e1511a70d82c4d4fe16c561de3cf856352",
+                "instrumentedSha256": "c5cb4f29ad075f7c47668d00f01c6b47d8511599d5f09f0ffa9c26995b394473"
+            },
+            {
+                "file": "internal/project/refcountcache_test.go",
+                "originalSha256": "cc880f7fc978df72e32d1197693bfde628546a94e77879ae6233d95a14d42590",
+                "instrumentedSha256": "1d615806736c898abaa9fd05ad8664a406169ffc29d2afec354e707b4f803d7e"
+            },
+            {
+                "file": "internal/project/extendedconfigcache_test.go",
+                "originalSha256": "26049256bc9378b0e9a94b6adaa2963779f34e5c5339d0d2b47d8da7bbed5a1d",
+                "instrumentedSha256": "4e4f66f56c4c9d468d0654599d922b504d1912b5c313db082f0b7efa8f05e172"
+            },
+            {
+                "file": "internal/project/ata/ata_test.go",
+                "originalSha256": "d77d9504f95324cfaa01f1628a71e0a72d20a304e881c6505d1f32b7c1d6632c",
+                "instrumentedSha256": "30f711aaa4d025c4a41b3c54b67379134775e4f86cf69b318f033da5c4a7f9e5"
+            },
+            {
+                "file": "internal/project/csharp_snapshot_record.go",
+                "instrumentedSha256": "edda9a9fdd548062a7a6811ca9e7b24a3e9abe29cb70f83809cab341a0e5e28c"
+            },
+            {
+                "file": "internal/testutil/projecttestutil/csharp_snapshot_setup.go",
+                "instrumentedSha256": "c7a945cd05566efb19172668595c91995fc87e7b76ad5f745961a73747e71f64"
+            },
+            {
+                "file": "internal/project/csharp_project_diagnostics_test.go",
+                "instrumentedSha256": "96a480b6f169fe6cb74d34fc16d8f539a69946aa74e75cc1b2086f129b1dfd31"
+            },
+            {
+                "file": "internal/project/csharp_diagnostic_changes.go",
+                "instrumentedSha256": "1dd5364d3082eadfc2d4a8352ff091f0107b68ebb2c07e221e41a2cad904c1ae"
+            }
+        ],
+        "mapperFixture": {
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+            "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+            "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+        },
+        "compilerSha256": "ab843826903efa1582c203a9a1295508f6956fbeed4df5274bdf6384bea369ce",
+        "harnessSha256": "01a0dd755acab1218597f1095bcb1e9371542de0dddb13e382d3fa99d0733ac3",
+        "inputsSha256": "91510340ab48bb8d56596f25f1f7d0689e34d526ab81995b9ab1e9be0716ddf6",
+        "cases": [
+            {
+                "name": "TestATA/ATA_disabled_via_deprecated_setting",
+                "transitions": 1
+            },
+            {
+                "name": "TestATA/ATA_disabled_via_unified_setting",
+                "transitions": 1
+            },
+            {
+                "name": "TestATA/ATA_re-enabled_after_being_disabled_triggers_diagnostics_refresh",
+                "transitions": 1
+            },
+            {
+                "name": "TestATA/ATA_with_WatchEnabled_false_should_not_panic",
+                "transitions": 2
+            },
+            {
+                "name": "TestATA/configured_projects",
+                "transitions": 1
+            },
+            {
+                "name": "TestATA/discover_from_bower_components",
+                "transitions": 2
+            },
+            {
+                "name": "TestATA/discover_from_bower.json",
+                "transitions": 2
+            },
+            {
+                "name": "TestATA/discover_from_node_modules",
+                "transitions": 1
+            },
+            {
+                "name": "TestATA/discover_from_node_modules_empty_types",
+                "transitions": 1
+            },
+            {
+                "name": "TestATA/discover_from_node_modules_empty_types_has_import",
+                "transitions": 1
+            },
+            {
+                "name": "TestATA/discover_from_node_modules_explicit_types",
+                "transitions": 1
+            },
+            {
+                "name": "TestATA/expired_cache_entry_(inferred_project,_should_install_typings)",
+                "transitions": 2
+            },
+            {
+                "name": "TestATA/expired_cache_entry_(inferred_project,_should_install_typings)_lockfile3",
+                "transitions": 2
+            },
+            {
+                "name": "TestATA/inferred_projects",
+                "transitions": 2
+            },
+            {
+                "name": "TestATA/local_module_should_not_be_picked_up",
+                "transitions": 1
+            },
+            {
+                "name": "TestATA/Malformed_package.json_should_be_watched",
+                "transitions": 3
+            },
+            {
+                "name": "TestATA/non-expired_cache_entry_(inferred_project,_should_not_install_typings)",
+                "transitions": 2
+            },
+            {
+                "name": "TestATA/non-expired_cache_entry_(inferred_project,_should_not_install_typings)_lockfile3",
+                "transitions": 2
+            },
+            {
+                "name": "TestATA/should_install_typings_for_unresolved_imports",
+                "transitions": 2
+            },
+            {
+                "name": "TestATA/should_redo_resolution_that_resolved_to_'.js'_file_after_typings_are_installed",
+                "transitions": 2
+            },
+            {
+                "name": "TestATA/type_acquisition_with_disableFilenameBasedTypeAcquisition:true",
+                "transitions": 1
+            },
+            {
+                "name": "TestBulkCacheInvalidation/bulk_invalidation_with_retained_config_whose_command_line_is_nil",
+                "transitions": 2
+            },
+            {
+                "name": "TestBulkCacheInvalidation/config_file_names_cache/excessive_changes_only_in_node_modules_does_not_affect_config_file_names_cache",
+                "transitions": 2
+            },
+            {
+                "name": "TestBulkCacheInvalidation/config_file_names_cache/excessive_changes_outside_node_modules_clears_config_file_names_cache",
+                "transitions": 2
+            },
+            {
+                "name": "TestBulkCacheInvalidation/excessive_changes_in_dist_folder_do_not_invalidate",
+                "transitions": 2
+            },
+            {
+                "name": "TestBulkCacheInvalidation/large_number_of_changes_outside_node_modules_causes_project_reevaluation",
+                "transitions": 2
+            },
+            {
+                "name": "TestBulkCacheInvalidation/large_number_of_changes_outside_node_modules/with_event_matching_include_glob",
+                "transitions": 2
+            },
+            {
+                "name": "TestBulkCacheInvalidation/large_number_of_changes_outside_node_modules/without_event_matching_include_glob",
+                "transitions": 2
+            },
+            {
+                "name": "TestBulkCacheInvalidation/large_number_of_node_modules_changes_invalidates_only_node_modules_cache/with_file_existing_in_cache",
+                "transitions": 2
+            },
+            {
+                "name": "TestBulkCacheInvalidation/large_number_of_node_modules_changes_invalidates_only_node_modules_cache/without_file_existing_in_cache",
+                "transitions": 2
+            },
+            {
+                "name": "TestConfigFileChanges/config_file_creation_then_deletion",
+                "transitions": 4
+            },
+            {
+                "name": "TestConfigFileChanges/should_close_project_on_config_file_deletion",
+                "transitions": 2
+            },
+            {
+                "name": "TestConfigFileChanges/should_update_program_options_on_config_file_change",
+                "transitions": 2
+            },
+            {
+                "name": "TestConfigFileChanges/should_update_project_on_doubly_extended_config_file_change",
+                "transitions": 2
+            },
+            {
+                "name": "TestConfigFileChanges/should_update_project_on_extended_config_file_change",
+                "transitions": 2
+            },
+            {
+                "name": "TestConfigFileChanges/should_update_project_on_referenced_config_file_change",
+                "transitions": 2
+            },
+            {
+                "name": "TestConfigFileChanges/should_update_project_when_missing_extended_config_is_created",
+                "transitions": 2
+            },
+            {
+                "name": "TestContentMapperCreatedFileAdoptedByConfiguredProject",
+                "transitions": 2
+            },
+            {
+                "name": "TestContentMapperInferredProjectSurvivesTypingsInstall",
+                "transitions": 4
+            },
+            {
+                "name": "TestContentMapperInferredProjectUsesExtensionContributions",
+                "transitions": 4
+            },
+            {
+                "name": "TestContentMapperInProject",
+                "transitions": 1
+            },
+            {
+                "name": "TestContentMapperInProject",
+                "transitions": 2
+            },
+            {
+                "name": "TestContentMapperInProject",
+                "transitions": 2
+            },
+            {
+                "name": "TestContentMapperInProject",
+                "transitions": 4
+            },
+            {
+                "name": "TestContentMapperInProject",
+                "transitions": 1
+            },
+            {
+                "name": "TestContentMapperLocaleChange",
+                "transitions": 2
+            },
+            {
+                "name": "TestContentMapperModuleExtensionClonedOnUnrelatedEdit",
+                "transitions": 3
+            },
+            {
+                "name": "TestContentMapperOpenFileExcludedByConfigChange",
+                "transitions": 5
+            },
+            {
+                "name": "TestContentMapperPackageManifestChangeReloadsConfig",
+                "transitions": 2
+            },
+            {
+                "name": "TestContentMapperParallelFileLoading",
+                "transitions": 1
+            },
+            {
+                "name": "TestContentMapperProcessSharedAcrossProjects",
+                "transitions": 4
+            },
+            {
+                "name": "TestContentMapperProjectWithoutMappedFiles/hasMapper=false",
+                "transitions": 1
+            },
+            {
+                "name": "TestContentMapperProjectWithoutMappedFiles/hasMapper=true",
+                "transitions": 1
+            },
+            {
+                "name": "TestContentMapperRemovalWithOpenFile",
+                "transitions": 9
+            },
+            {
+                "name": "TestContentMappersInParallelProjectReferences",
+                "transitions": 1
+            },
+            {
+                "name": "TestContentMapperSupplementalFileClonedOnEdit",
+                "transitions": 3
+            },
+            {
+                "name": "TestCSharpProjectDiagnostics/utf-16",
+                "transitions": 7
+            },
+            {
+                "name": "TestCSharpProjectDiagnostics/utf-8",
+                "transitions": 7
+            },
+            {
+                "name": "TestCustomConfigFileName/cleans_up_inferred_project_when_custom_config_covers_file",
+                "transitions": 2
+            },
+            {
+                "name": "TestCustomConfigFileName/falls_back_to_tsconfig.json_when_custom_config_missing",
+                "transitions": 2
+            },
+            {
+                "name": "TestCustomConfigFileName/picks_up_custom_config_and_switches_on_preference_change",
+                "transitions": 2
+            },
+            {
+                "name": "TestCustomConfigFileName/reverts_to_tsconfig.json_when_custom_config_preference_is_cleared",
+                "transitions": 3
+            },
+            {
+                "name": "TestCustomConfigFileName/schedules_diagnostics_refresh_when_custom_config_preference_changes",
+                "transitions": 2
+            },
+            {
+                "name": "TestCustomConfigFileName/uses_tsconfig.json_when_customConfigFileName_is_empty",
+                "transitions": 2
+            },
+            {
+                "name": "TestDisplayName/configured_project_preserves_config_path_casing",
+                "transitions": 1
+            },
+            {
+                "name": "TestDisplayName/configured_project_returns_relative_config_path",
+                "transitions": 1
+            },
+            {
+                "name": "TestDisplayName/configured_project_with_nested_config",
+                "transitions": 1
+            },
+            {
+                "name": "TestDisplayName/inferred_project_returns_directory_base_name",
+                "transitions": 1
+            },
+            {
+                "name": "TestDynamicContentMapperInProject",
+                "transitions": 2
+            },
+            {
+                "name": "TestDynamicContentMapperRefreshesForMixedWatchBatches/changed_files_make_project_fully_dirty_before_mapper_creation",
+                "transitions": 2
+            },
+            {
+                "name": "TestDynamicContentMapperRefreshesForMixedWatchBatches/changed_files_make_project_fully_dirty_before_mapper_deletion",
+                "transitions": 2
+            },
+            {
+                "name": "TestDynamicContentMapperRefreshesForMixedWatchBatches/excessive_events",
+                "transitions": 2
+            },
+            {
+                "name": "TestExtendedConfigCacheOwnership/multi-extends_shared_ancestor_counted_once",
+                "transitions": 2
+            },
+            {
+                "name": "TestExtendedConfigCacheOwnership/project_system_dedupes_case-only_extends_via_cache",
+                "transitions": 1
+            },
+            {
+                "name": "TestExtendedConfigCacheOwnership/transitive_extended_config_ownership_with_new_project",
+                "transitions": 5
+            },
+            {
+                "name": "TestImportsInUntitled",
+                "transitions": 1
+            },
+            {
+                "name": "TestProgressNotifications/each_start_has_a_matching_finish",
+                "transitions": 1
+            },
+            {
+                "name": "TestProgressNotifications/emits_progress_for_configured_project_loading",
+                "transitions": 1
+            },
+            {
+                "name": "TestProgressNotifications/emits_progress_for_inferred_project_loading",
+                "transitions": 1
+            },
+            {
+                "name": "TestProject/commandLineWithTypingsFiles_is_reset_on_CommandLine_change",
+                "transitions": 3
+            },
+            {
+                "name": "TestProject/inferred_project_rebuilt_twice_in_one_snapshot_after_typings_install_does_not_crash",
+                "transitions": 5
+            },
+            {
+                "name": "TestProjectCollectionBuilder/#1630",
+                "transitions": 3
+            },
+            {
+                "name": "TestProjectCollectionBuilder/file_moves_to_inferred_project_after_import_is_deleted",
+                "transitions": 4
+            },
+            {
+                "name": "TestProjectCollectionBuilder/inferred_project_root_files_are_in_stable_order",
+                "transitions": 3
+            },
+            {
+                "name": "TestProjectCollectionBuilder/project_lookup_terminates",
+                "transitions": 1
+            },
+            {
+                "name": "TestProjectCollectionBuilder/should_update_project_on_package.json_change",
+                "transitions": 2
+            },
+            {
+                "name": "TestProjectCollectionBuilder/when_dts_file_is_next_to_ts_file_and_included_as_root_in_referenced_project",
+                "transitions": 2
+            },
+            {
+                "name": "TestProjectCollectionBuilder/when_file_is_not_part_of_first_config_tree_found,_looks_into_ancestor_folder_and_its_references_to_find_default_project",
+                "transitions": 2
+            },
+            {
+                "name": "TestProjectCollectionBuilder/when_project_found_is_project_with_own_files_referencing_the_file_from_referenced_project",
+                "transitions": 2
+            },
+            {
+                "name": "TestProjectCollectionBuilder/when_project_found_is_solution_referencing_default_project_directly",
+                "transitions": 2
+            },
+            {
+                "name": "TestProjectCollectionBuilder/when_project_found_is_solution_referencing_default_project_indirectly",
+                "transitions": 2
+            },
+            {
+                "name": "TestProjectCollectionBuilder/when_project_found_is_solution_referencing_default_project_indirectly_through_disableReferencedProjectLoad",
+                "transitions": 2
+            },
+            {
+                "name": "TestProjectCollectionBuilder/when_project_found_is_solution_referencing_default_project_indirectly_through_disableReferencedProjectLoad_in_one_but_without_it_in_another",
+                "transitions": 2
+            },
+            {
+                "name": "TestProjectCollectionBuilder/when_project_found_is_solution_with_disableReferencedProjectLoad_referencing_default_project_directly",
+                "transitions": 2
+            },
+            {
+                "name": "TestProjectCollectionDefaultProject",
+                "transitions": 4
+            },
+            {
+                "name": "TestProjectLifetime/configured_project",
+                "transitions": 4
+            },
+            {
+                "name": "TestProjectLifetime/deleted_open_file_remains_in_project_until_closed",
+                "transitions": 4
+            },
+            {
+                "name": "TestProjectLifetime/file_move_from_inferred_to_configured_via_didOpen/didClose_sequence",
+                "transitions": 3
+            },
+            {
+                "name": "TestProjectLifetime/file_moves_from_inferred_to_configured_project",
+                "transitions": 3
+            },
+            {
+                "name": "TestProjectLifetime/newly_created_file_joins_configured_project_with_./-prefixed_includes_(create_event_before_didOpen)",
+                "transitions": 2
+            },
+            {
+                "name": "TestProjectLifetime/newly_created_file_joins_configured_project_with_./-prefixed_includes_(didOpen_before_create_event)",
+                "transitions": 2
+            },
+            {
+                "name": "TestProjectLifetime/tsconfig_move_from_subdirectory_to_parent_via_didChangeWatchedFiles",
+                "transitions": 3
+            },
+            {
+                "name": "TestProjectLifetime/unrooted_inferred_projects",
+                "transitions": 4
+            },
+            {
+                "name": "TestProjectProgramUpdateKind/Cloned_on_single-file_change",
+                "transitions": 3
+            },
+            {
+                "name": "TestProjectProgramUpdateKind/compiler_options_update_inferred_project",
+                "transitions": 3
+            },
+            {
+                "name": "TestProjectProgramUpdateKind/NewFiles_on_initial_build",
+                "transitions": 1
+            },
+            {
+                "name": "TestProjectProgramUpdateKind/NewFiles_on_root_addition",
+                "transitions": 2
+            },
+            {
+                "name": "TestProjectProgramUpdateKind/NewFiles_when_import_resolution_mode_changes",
+                "transitions": 3
+            },
+            {
+                "name": "TestProjectProgramUpdateKind/SameFileNames_on_config_change_without_root_changes",
+                "transitions": 2
+            },
+            {
+                "name": "TestProjectProgramUpdateKind/SameFileNames_when_adding_an_unresolvable_import_with_multi-file_change",
+                "transitions": 3
+            },
+            {
+                "name": "TestProjectReferencesProgram/dropped_project_reference_does_not_crash_on_later_change_to_the_dropped_config",
+                "transitions": 4
+            },
+            {
+                "name": "TestProjectReferencesProgram/program_for_referenced_project",
+                "transitions": 1
+            },
+            {
+                "name": "TestProjectReferencesProgram/program_with_disableSourceOfProjectReferenceRedirect",
+                "transitions": 1
+            },
+            {
+                "name": "TestProjectReferencesProgram/references_through_symlink_referencing_from_subFolder",
+                "transitions": 1
+            },
+            {
+                "name": "TestProjectReferencesProgram/references_through_symlink_referencing_from_subFolder_scoped_package",
+                "transitions": 1
+            },
+            {
+                "name": "TestProjectReferencesProgram/references_through_symlink_referencing_from_subFolder_with_preserveSymlinks",
+                "transitions": 1
+            },
+            {
+                "name": "TestProjectReferencesProgram/references_through_symlink_referencing_from_subFolder_with_scoped_package_preserveSymlinks",
+                "transitions": 1
+            },
+            {
+                "name": "TestProjectReferencesProgram/references_through_symlink_with_directory_index_subpath_(issue_4373)",
+                "transitions": 1
+            },
+            {
+                "name": "TestProjectReferencesProgram/references_through_symlink_with_directory_index_subpath_scoped_package",
+                "transitions": 1
+            },
+            {
+                "name": "TestProjectReferencesProgram/references_through_symlink_with_index_and_typings",
+                "transitions": 1
+            },
+            {
+                "name": "TestProjectReferencesProgram/references_through_symlink_with_index_and_typings_scoped_package",
+                "transitions": 1
+            },
+            {
+                "name": "TestProjectReferencesProgram/references_through_symlink_with_index_and_typings_with_preserveSymlinks",
+                "transitions": 1
+            },
+            {
+                "name": "TestProjectReferencesProgram/references_through_symlink_with_index_and_typings_with_scoped_package_preserveSymlinks",
+                "transitions": 1
+            },
+            {
+                "name": "TestProjectReferencesProgram/when_new_file_is_added_to_referenced_project",
+                "transitions": 2
+            },
+            {
+                "name": "TestPushDiagnostics/cleans_tsconfig_diagnostics_after_TS_files_close_and_restores_them_after_TS_file_is_reopened",
+                "transitions": 3
+            },
+            {
+                "name": "TestPushDiagnostics/clears_diagnostics_when_project_is_removed",
+                "transitions": 2
+            },
+            {
+                "name": "TestPushDiagnostics/clears_diagnostics_when_validation_is_disabled",
+                "transitions": 2
+            },
+            {
+                "name": "TestPushDiagnostics/does_not_publish_for_inferred_projects",
+                "transitions": 1
+            },
+            {
+                "name": "TestPushDiagnostics/does_not_publish_when_validation_is_disabled",
+                "transitions": 2
+            },
+            {
+                "name": "TestPushDiagnostics/publishes_config_parsing_diagnostics_on_initial_program_creation",
+                "transitions": 1
+            },
+            {
+                "name": "TestPushDiagnostics/publishes_global_diagnostics_after_checking",
+                "transitions": 1
+            },
+            {
+                "name": "TestPushDiagnostics/publishes_program_diagnostics_on_initial_program_creation",
+                "transitions": 1
+            },
+            {
+                "name": "TestPushDiagnostics/updates_diagnostics_when_a_config_file_changes_on_disk_with_no_follow-up_request",
+                "transitions": 2
+            },
+            {
+                "name": "TestPushDiagnostics/updates_diagnostics_when_program_changes",
+                "transitions": 2
+            },
+            {
+                "name": "TestRefCountingCaches/extendedConfigCache/createProgram_retains_and_reloads_extended_configs_from_referenced_projects",
+                "transitions": 3
+            },
+            {
+                "name": "TestRefCountingCaches/extendedConfigCache/release_cache_entries_for_unretained_clone",
+                "transitions": 1
+            },
+            {
+                "name": "TestRefCountingCaches/extendedConfigCache/release_extended_configs_with_project_close",
+                "transitions": 2
+            },
+            {
+                "name": "TestRefCountingCaches/parseCache/case-only_duplicate_imported_from_multiple_files_is_refcounted_once",
+                "transitions": 5
+            },
+            {
+                "name": "TestRefCountingCaches/parseCache/case-only_duplicate_loads_are_released_on_dispose",
+                "transitions": 2
+            },
+            {
+                "name": "TestRefCountingCaches/parseCache/fallback_rebuild_does_not_double-ref_changed_file",
+                "transitions": 4
+            },
+            {
+                "name": "TestRefCountingCaches/parseCache/release_file_on_close",
+                "transitions": 3
+            },
+            {
+                "name": "TestRefCountingCaches/parseCache/reuse_unchanged_file",
+                "transitions": 4
+            },
+            {
+                "name": "TestRefCountingCaches/parseCache/unchanged_program_does_not_over-ref",
+                "transitions": 5
+            },
+            {
+                "name": "TestSession/config_parsing",
+                "transitions": 1
+            },
+            {
+                "name": "TestSession/DidChangeFile/change_can_pull_in_new_files",
+                "transitions": 3
+            },
+            {
+                "name": "TestSession/DidChangeFile/single-file_change_followed_by_config_change_reloads_program",
+                "transitions": 2
+            },
+            {
+                "name": "TestSession/DidChangeFile/unchanged_source_files_are_reused",
+                "transitions": 3
+            },
+            {
+                "name": "TestSession/DidChangeFile/update_file_and_program",
+                "transitions": 3
+            },
+            {
+                "name": "TestSession/DidChangeFile/update_untitled_file",
+                "transitions": 3
+            },
+            {
+                "name": "TestSession/DidChangeWatchedFiles/change_closed_program_file",
+                "transitions": 2
+            },
+            {
+                "name": "TestSession/DidChangeWatchedFiles/change_config_file",
+                "transitions": 2
+            },
+            {
+                "name": "TestSession/DidChangeWatchedFiles/change_open_file",
+                "transitions": 2
+            },
+            {
+                "name": "TestSession/DidChangeWatchedFiles/change_program_file_not_in_tsconfig_root_files/workspaceDir=_",
+                "transitions": 2
+            },
+            {
+                "name": "TestSession/DidChangeWatchedFiles/change_program_file_not_in_tsconfig_root_files/workspaceDir=_home_projects_TS_p1",
+                "transitions": 2
+            },
+            {
+                "name": "TestSession/DidChangeWatchedFiles/change_program_file_not_in_tsconfig_root_files/workspaceDir=_somewhere_else_entirely",
+                "transitions": 2
+            },
+            {
+                "name": "TestSession/DidChangeWatchedFiles/create_explicitly_included_file",
+                "transitions": 2
+            },
+            {
+                "name": "TestSession/DidChangeWatchedFiles/create_failed_lookup_location",
+                "transitions": 2
+            },
+            {
+                "name": "TestSession/DidChangeWatchedFiles/create_file_in_non-existent_directory",
+                "transitions": 2
+            },
+            {
+                "name": "TestSession/DidChangeWatchedFiles/create_symlink_directory_matching_include_pattern",
+                "transitions": 2
+            },
+            {
+                "name": "TestSession/DidChangeWatchedFiles/create_wildcard_included_file",
+                "transitions": 2
+            },
+            {
+                "name": "TestSession/DidChangeWatchedFiles/delete_directory_with_program-only_files",
+                "transitions": 2
+            },
+            {
+                "name": "TestSession/DidChangeWatchedFiles/delete_directory_with_wildcard_included_files",
+                "transitions": 2
+            },
+            {
+                "name": "TestSession/DidChangeWatchedFiles/delete_explicitly_included_file",
+                "transitions": 3
+            },
+            {
+                "name": "TestSession/DidChangeWatchedFiles/delete_sibling_folder_schedules_diagnostics_refresh",
+                "transitions": 3
+            },
+            {
+                "name": "TestSession/DidChangeWatchedFiles/delete_sibling_folder_schedules_diagnostics_refresh_after_opening_third_file",
+                "transitions": 3
+            },
+            {
+                "name": "TestSession/DidChangeWatchedFiles/delete_wildcard_included_file",
+                "transitions": 3
+            },
+            {
+                "name": "TestSession/DidChangeWatchedFiles/irrelevant_extension_changes_are_filtered_out",
+                "transitions": 2
+            },
+            {
+                "name": "TestSession/DidChangeWatchedFiles/pnpm_install_links_local_package",
+                "transitions": 2
+            },
+            {
+                "name": "TestSession/DidChangeWatchedFiles/skips_irrelevant_extensions",
+                "transitions": 2
+            },
+            {
+                "name": "TestSession/DidChangeWatchedFiles/symlinked_node_modules_package.json_change_invalidates_resolution",
+                "transitions": 2
+            },
+            {
+                "name": "TestSession/DidCloseFile/Configured_projects/delete_a_file,_close_it,_recreate_it",
+                "transitions": 4
+            },
+            {
+                "name": "TestSession/DidCloseFile/Inferred_projects/close_untitled_file",
+                "transitions": 2
+            },
+            {
+                "name": "TestSession/DidCloseFile/Inferred_projects/delete_a_file,_close_it,_recreate_it",
+                "transitions": 4
+            },
+            {
+                "name": "TestSession/DidOpenFile/create_configured_project",
+                "transitions": 1
+            },
+            {
+                "name": "TestSession/DidOpenFile/create_inferred_project",
+                "transitions": 1
+            },
+            {
+                "name": "TestSession/DidOpenFile/inferred_project_extensionless_file",
+                "transitions": 1
+            },
+            {
+                "name": "TestSession/DidOpenFile/inferred_project_for_in-memory_files",
+                "transitions": 3
+            },
+            {
+                "name": "TestSession/DidOpenFile/inferred_project_JS_file",
+                "transitions": 1
+            },
+            {
+                "name": "TestSession/DidSaveFile/save_event_first",
+                "transitions": 2
+            },
+            {
+                "name": "TestSession/DidSaveFile/watch_event_first",
+                "transitions": 2
+            },
+            {
+                "name": "TestSession/jsconfig.json_used_for_JS_files_when_tsconfig.json_exists_in_same_directory",
+                "transitions": 2
+            },
+            {
+                "name": "TestSession/language_service_for_closed_files/closed_file_in_configured_project_not_yet_opened",
+                "transitions": 1
+            },
+            {
+                "name": "TestSession/language_service_for_closed_files/closed_file_with_no_configured_project_creates_inferred_project",
+                "transitions": 1
+            },
+            {
+                "name": "TestSession/locale_change_invalidates_programs",
+                "transitions": 3
+            },
+            {
+                "name": "TestSession/refreshes_code_lenses_and_inlay_hints_when_relevant_user_preferences_change",
+                "transitions": 1
+            },
+            {
+                "name": "TestSession/schedules_diagnostics_refresh_when_reportStyleChecksAsWarnings_changes",
+                "transitions": 1
+            },
+            {
+                "name": "TestSession/Source_file_sharing/projects_with_different_options_do_not_share_source_files",
+                "transitions": 2
+            },
+            {
+                "name": "TestSession/Source_file_sharing/projects_with_similar_options_share_source_files",
+                "transitions": 2
+            },
+            {
+                "name": "TestSession/watchChange_and_didOpen_in_same_batch_rebuilds_program",
+                "transitions": 2
+            },
+            {
+                "name": "TestSnapshot/auto-import_snapshot_is_adopted_when_session_snapshot_is_unchanged",
+                "transitions": 2
+            },
+            {
+                "name": "TestSnapshot/cached_disk_files_are_cleaned_up",
+                "transitions": 3
+            },
+            {
+                "name": "TestSnapshot/compilerHost_gets_frozen_with_snapshot's_FS_only_once",
+                "transitions": 4
+            },
+            {
+                "name": "TestSnapshot/creates_and_removes_synthetic_programs",
+                "transitions": 3
+            },
+            {
+                "name": "TestSnapshot/failed_API_update_is_not_adopted",
+                "transitions": 1
+            },
+            {
+                "name": "TestSnapshot/failed_API_update_preserves_flushed_host_changes",
+                "transitions": 2
+            },
+            {
+                "name": "TestSnapshot/fallback_rebuild_with_recomputed_parse_options_is_safe_for_later_clone",
+                "transitions": 5
+            },
+            {
+                "name": "TestSnapshot/GetFile_returns_nil_for_non-existent_files",
+                "transitions": 1
+            },
+            {
+                "name": "TestSnapshot/no-op_watch_change_does_not_rebuild_program",
+                "transitions": 3
+            },
+            {
+                "name": "TestSnapshot/program_change_loads_node_modules_dependency_and_auto-imports_includes_it",
+                "transitions": 2
+            },
+            {
+                "name": "TestUntitledFileInInferredProject",
+                "transitions": 2
+            },
+            {
+                "name": "TestUntitledReferences",
+                "transitions": 1
+            },
+            {
+                "name": "TestUnusedDynamicContentMapperIsNotOpened",
+                "transitions": 1
+            }
+        ],
+        "transitions": 444,
+        "classifiedOrderDifferences": 2,
+        "mismatches": []
+    },
+    "typings": {
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "sources": [
+            {
+                "file": "internal/project/ata/discovertypings_test.go",
+                "originalSha256": "57675f953c438d795d58fa804a55235b78a7d0dff4281adb5c91d5c099bb1a60",
+                "instrumentedSha256": "958696b81a16ec705882f456634890784273d0cd70db10b1a690fdb58ca84ae9"
+            },
+            {
+                "file": "internal/project/ata/validatepackagename_test.go",
+                "originalSha256": "0214c553e5d3765daaf0ae7c8714275ef358b394755286274065f8d2e5af3295",
+                "instrumentedSha256": "e433478ec1ecc02211e8c93305860a87494ce4922e2c174fecf56e1fb43bcda4"
+            },
+            {
+                "file": "internal/project/ata/installnpmpackages_test.go",
+                "originalSha256": "308bf67c0afd18cc1b173e8cc88ba3ed4722974371839142953ba1f45cb701b4",
+                "instrumentedSha256": "2ff5e1c1cfec3947754663c421cd5b5c58fc0d5b21ed924fb0e6bce64f8decaa"
+            },
+            {
+                "file": "internal/project/ata/csharp_typings_record_test.go",
+                "instrumentedSha256": "a035087b739905b9eff4576f0bb3f57d9eb475c2b493e598821a631f441ab226"
+            },
+            {
+                "file": "internal/project/ata/csharp_typings_batches_test.go",
+                "instrumentedSha256": "faf074050a184c87454ef1ce888124abc0ec5a1b2e7f73dd8b9bb9f65a940051"
+            }
+        ],
+        "compilerSha256": "abe3907dcae0b3bac6038c412d202e9c377fea9e757c9bfca86ea38a10d2a97f",
+        "harnessSha256": "83b5dab830f8b825336e0de9b6d345fa14900891986405891bf1f75951c2506c",
+        "cases": [
+            "TestDiscoverTypings/prerelease_typings_are_properly_handled",
+            "TestDiscoverTypings/should_gracefully_handle_packages_that_have_been_removed_from_the_types-registry",
+            "TestDiscoverTypings/should_install_expired_typings",
+            "TestDiscoverTypings/should_install_expired_typings_with_prerelease_version_of_tsserver",
+            "TestDiscoverTypings/should_return_node_for_core_modules",
+            "TestDiscoverTypings/should_search_only_2_levels_deep",
+            "TestDiscoverTypings/should_support_scoped_packages",
+            "TestDiscoverTypings/should_use_cached_locations",
+            "TestDiscoverTypings/should_use_mappings_from_safe_list",
+            "TestInstallNpmPackages/installs_remaining_packages_when_one_of_the_partial_command_fails",
+            "TestInstallNpmPackages/works_when_the_command_is_too_long_to_install_all_packages_at_once",
+            "TestValidatePackageName/name_cannot_be_too_long",
+            "TestValidatePackageName/package_name_cannot_start_with_dot",
+            "TestValidatePackageName/package_name_cannot_start_with_underscore",
+            "TestValidatePackageName/package_name_in_scoped_package_name_cannot_start_with_dot",
+            "TestValidatePackageName/package_name_in_scoped_package_name_cannot_start_with_underscore",
+            "TestValidatePackageName/package_name_in_scoped_package_name_with_non_URI_safe_characters_are_not_supported",
+            "TestValidatePackageName/package_non_URI_safe_characters_are_not_supported",
+            "TestValidatePackageName/scope_name_in_scoped_package_name_with_non_URI_safe_characters_are_not_supported",
+            "TestValidatePackageName/scoped_name_in_scoped_package_name_cannot_start_with_dot",
+            "TestValidatePackageName/scoped_name_in_scoped_package_name_cannot_start_with_dot#01",
+            "TestValidatePackageName/scoped_package_name_is_supported"
+        ],
+        "operations": 29,
+        "mismatches": []
+    },
+    "overlays": {
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "sourceSha256": "2f37ceacecc6bb66c97b51e983eaaee75cbdb85c005a9dd144c58c1777779f3a",
+        "instrumentationSha256": "568eba9544f73e09798ab1dd90819c45ac0c349b0e3a6931e2a513d9995f2d70",
+        "recorderSha256": "ff0c38e9d324405ed92e10e7782bf1202b04fa1ed5749add797fc46f62967e21",
+        "compilerSha256": "abe3907dcae0b3bac6038c412d202e9c377fea9e757c9bfca86ea38a10d2a97f",
+        "harnessSha256": "83b5dab830f8b825336e0de9b6d345fa14900891986405891bf1f75951c2506c",
+        "inputsSha256": "2a43bb3cbd114eb5a145c81b22e15058db262f0247947b5c551ad5eebbee1cd2",
+        "cases": [
+            "TestProcessChanges/close_and_change_without_overlay_should_not_panic",
+            "TestProcessChanges/close_then_open_in_same_batch_marks_as_changed",
+            "TestProcessChanges/extensionless_disk_file_preserves_unknown_script_kind",
+            "TestProcessChanges/multiple_opens_should_panic",
+            "TestProcessChanges/multiple_watch_changes_deduplicated",
+            "TestProcessChanges/open_extensionless_file_preserves_unknown_script_kind",
+            "TestProcessChanges/open_falls_back_to_file_extension_for_unknown_language_kind",
+            "TestProcessChanges/save_marks_overlay_as_matching_disk",
+            "TestProcessChanges/save_without_overlay_should_not_panic",
+            "TestProcessChanges/watch_change_on_overlay_marks_as_not_matching_disk",
+            "TestProcessChanges/watch_create_then_delete_becomes_nothing",
+            "TestProcessChanges/watch_delete_then_create_becomes_change"
+        ],
+        "operations": 30,
+        "mismatches": []
+    },
+    "ids": {
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "cases": 3,
+        "requests": 23,
+        "differences": 0,
+        "compilerSha256": "ab843826903efa1582c203a9a1295508f6956fbeed4df5274bdf6384bea369ce",
+        "coordinateContract": "UTF-8 / AST v9; isolated oracle adapters listed separately"
+    },
+    "api": {
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "cases": 193,
+        "requests": 6358,
+        "differences": 0,
+        "compilerSha256": "ab843826903efa1582c203a9a1295508f6956fbeed4df5274bdf6384bea369ce",
+        "coordinateContract": "UTF-8 / AST v9; isolated oracle adapters listed separately"
+    },
+    "live": {
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "cases": 66,
+        "requests": 188,
+        "classifiedDifferences": 2,
+        "differences": 0,
+        "compilerSha256": "abe3907dcae0b3bac6038c412d202e9c377fea9e757c9bfca86ea38a10d2a97f",
+        "inputsSha256": "b5a38f31f2498a32316bb280611e4fb3d89a1ad34d01538515f8f7b2a1d24452",
+        "fixture": {
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+            "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+            "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+        }
+    },
+    "safety": [
+        {
+            "name": "project",
+            "assertions": 177,
+            "compilerSha256": "ab843826903efa1582c203a9a1295508f6956fbeed4df5274bdf6384bea369ce",
+            "path": "built/csharp/phase7-validation/project-final-safety.log",
+            "sha256": "80275df41d42782fa462206614edeba8653e467967aa905b40f3e3a320cebf37"
+        },
+        {
+            "name": "lsp",
+            "assertions": 283,
+            "compilerSha256": "abe3907dcae0b3bac6038c412d202e9c377fea9e757c9bfca86ea38a10d2a97f",
+            "path": "built/csharp/phase7-validation/project-final-lsp.log",
+            "sha256": "c3b7648739ed5f2b32a7aafa4c13e3fa8f2a35af633cf7c98c51bdb64c998e7d"
+        },
+        {
+            "name": "rpc",
+            "assertions": 181,
+            "compilerSha256": "abe3907dcae0b3bac6038c412d202e9c377fea9e757c9bfca86ea38a10d2a97f",
+            "path": "built/csharp/phase7-validation/project-final-rpc.log",
+            "sha256": "b6adb4fcf6799172d5a290c0eb01ffbde9c19cde932b8e20b3af50f60eecbb50"
+        },
+        {
+            "name": "syntax-services",
+            "assertions": 337,
+            "compilerSha256": "abe3907dcae0b3bac6038c412d202e9c377fea9e757c9bfca86ea38a10d2a97f",
+            "path": "built/csharp/phase7-validation/project-final-syntax-services.log",
+            "sha256": "9c2abacadafdb63687137f63d6521c566b65bfd45bcc09bb2254ccb1e225dad4"
+        },
+        {
+            "name": "request-filesystem",
+            "assertions": 19,
+            "compilerSha256": "abe3907dcae0b3bac6038c412d202e9c377fea9e757c9bfca86ea38a10d2a97f",
+            "path": "built/csharp/phase7-validation/project-final-request-filesystem.log",
+            "sha256": "db53da1479ca5ae54e3ac2b9a885321de969f4edb3d3251fbd3e8f0d8a3bc57c"
+        },
+        {
+            "name": "ast-codec",
+            "assertions": 2119,
+            "compilerSha256": "abe3907dcae0b3bac6038c412d202e9c377fea9e757c9bfca86ea38a10d2a97f",
+            "path": "built/csharp/phase7-validation/project-final-ast-codec.log",
+            "sha256": "4fa8a5f96531795b6af127ad0f05b93ae42b8fcff23f2e7bd2c40d814323c656"
+        },
+        {
+            "name": "typings",
+            "assertions": 21,
+            "compilerSha256": "abe3907dcae0b3bac6038c412d202e9c377fea9e757c9bfca86ea38a10d2a97f",
+            "path": "built/csharp/phase7-validation/project-final-typings.log",
+            "sha256": "fb4980a61f44c6f632f43d82960009fc3dcfeedb3525a3f91fd0524b415e7ef1"
+        },
+        {
+            "name": "npm-process",
+            "assertions": 6,
+            "compilerSha256": "abe3907dcae0b3bac6038c412d202e9c377fea9e757c9bfca86ea38a10d2a97f",
+            "path": "built/csharp/phase7-validation/project-final-npm-process.log",
+            "sha256": "de0b30504bfd627c12f0f7740985fd2687416e7564681222d6d2f04385f79197"
+        },
+        {
+            "name": "telemetry",
+            "assertions": 28,
+            "compilerSha256": "abe3907dcae0b3bac6038c412d202e9c377fea9e757c9bfca86ea38a10d2a97f",
+            "path": "built/csharp/phase7-validation/project-final-telemetry.log",
+            "sha256": "11d21974348f84c55056d95e0306dacf907061ef00da42ffedcdeb9a4b187bfb"
+        },
+        {
+            "name": "content-mappers",
+            "assertions": 44,
+            "compilerSha256": "abe3907dcae0b3bac6038c412d202e9c377fea9e757c9bfca86ea38a10d2a97f",
+            "path": "built/csharp/phase7-validation/project-final-content-mappers.log",
+            "sha256": "fcd706baef4ef39228efd4daa22c7bf8a6681b7a22cf3b77b416980e91be928d"
+        },
+        {
+            "name": "developer",
+            "assertions": 51,
+            "compilerSha256": "abe3907dcae0b3bac6038c412d202e9c377fea9e757c9bfca86ea38a10d2a97f",
+            "path": "built/csharp/phase7-validation/project-final-developer.log",
+            "sha256": "e232876be0ecf2a4c4608f862b930f0543bb5cd9d641f6e2e63d332ec3265a9f"
+        }
+    ],
+    "restoration": {
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "files": 67,
+        "mismatches": []
+    },
+    "failures": [
+        {
+            "path": "built/csharp/phase7-validation/project-mappers1.log",
+            "sha256": "88a69e57e6ffd0d4e2949a3510ddbacb32121bc0d1fa42c537a0b06434cf262b",
+            "explanation": "Eight transition differences exposed unchanged mapped-file identity, inferred contributions, mapper refresh and breadth-first sibling loading; all 61 mapped transitions subsequently pass."
+        },
+        {
+            "path": "built/csharp/phase7-validation/project-expanded1.log",
+            "sha256": "9ba3889ce8a4f9b81184e94fd1b643eca73d0eca304d092774fce4443ac53580",
+            "explanation": "Reference-only failure caused by stale overlay/ATA recording instrumentation with unset output paths. The tools now restore source and helpers in finally blocks; all 67 original project files were verified restored."
+        },
+        {
+            "path": "built/csharp/phase7-validation/project-pool-before-fix.log",
+            "sha256": "eeced3613198cb8ee2a6fc17f5c5aedce6e5f0d9fb34fd6e8f851df47a11910f",
+            "explanation": "Changing checker category left stale request affinity and blocked nested acquisition. Reproduced before the pool fix."
+        },
+        {
+            "path": "built/csharp/phase7-validation/project-alias-before-fix.log",
+            "sha256": "0407eac1908917bc807c4888ee8fd61fea2067f6b62a5876c591078d085ff7cc",
+            "explanation": "A real-path watch notification failed to invalidate implicitly read package aliases. Reproduced before recording real paths during package-file reads."
+        },
+        {
+            "path": "built/csharp/phase7-validation/project-expanded-final.log",
+            "sha256": "def01eb4d42d4bb01ac131af7b6efed49ed435cdffe22ea524239d13d9598e26",
+            "explanation": "One root/source-order difference, reproduced in five of twenty unchanged Go runs. The exact case now has a recorded ordering policy with corruption controls."
+        },
+        {
+            "path": "built/csharp/phase7-validation/project-api-ids-before2.log",
+            "sha256": "feb7e548d45e94df5ce1fdbc020b95cdbd0bbe9f19c0afaa299eb197712f0626",
+            "explanation": "Five of seven API operations rejected valid signed/zero-padded synthetic handles before shared canonicalization."
+        }
+    ],
+    "ordering": {
+        "path": "csharp/compatibility/evidence/phase7-project-ordering.json",
+        "sha256": "4b6a65f33c53920d7196ec7a15f4d5d5c992591ba839e4e43bb82c5ea6cc91b4"
+    },
+    "boundaries": [
+        "This is an exhaustive disposition inventory, not a claim that Go's private cache/refcount/queue representations were translated assertion for assertion.",
+        "Every original test function ran with bundled libraries enabled; the existing TestATA/deduplicate_from_local_@types_packages subtest remains skipped.",
+        "Snapshot replay retains the Go single-file-clone/update-counter architecture distinction and two independently verified root-order cases. It preserves program identities, complete source text/kinds, project ownership and diagnostic publications.",
+        "Validation uses Release CoreCLR and the default GC. No performance measurement or NativeAOT execution is part of this audit."
+    ],
+    "reusedChecks": "Typings/overlay/live and general safety gates use the preceding compiler, before synthetic-ID canonicalization. Their relevant implementations and fixtures are unchanged. Project safety, snapshot replay and all 6,358 API operations use the current compiler, including the alias/ownership additions.",
+    "remainingPhase7": [
+        "final full semantic regression",
+        "final transport and JavaScript clients",
+        "NativeAOT publish without execution",
+        "completion documentation"
+    ]
+}

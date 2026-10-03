@@ -16,13 +16,23 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
     internal ReferenceSymbols ReferenceSymbols { get; private set; } = null!;
     internal ValueUseChecks ValueUses { get; private set; } = null!;
     internal List<DiagnosticCode> ValueSuggestions { get; } = [];
+    internal List<Diagnostic> SuggestionDiagnostics { get; } = [];
     private readonly HashSet<(SyntaxNode Node, DiagnosticCode Code, Utf8String Name)> reportedSuggestions = [];
 
     internal void Suggestion(SyntaxNode node, DiagnosticCode code, Utf8String name)
+        => Suggestion(node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), name));
+
+    internal void Suggestion(SyntaxNode node, Diagnostic diagnostic)
     {
-        if (reportedSuggestions.Add((node, code, name)))
-            ValueSuggestions.Add(code);
+        if (reportedSuggestions.Add((node, diagnostic.Code, DiagnosticEqualityComparer.Identity(diagnostic))))
+        {
+            ValueSuggestions.Add(diagnostic.Code);
+            SuggestionDiagnostics.Add(diagnostic with { Message = diagnostic.Message with { Category = DiagnosticCategory.Suggestion } });
+        }
     }
+
+    internal void DeprecatedSuggestion(SyntaxNode node, IReadOnlyList<SyntaxNode> declarations, Utf8String name)
+        => Suggestion(node, Deprecations.Related(CheckerDiagnostic.Create(node, Messages.X_0_is_deprecated, name), declarations));
 
     internal CheckerSymbols Symbols { get; private set; } = null!;
     internal TypeParameterScopes Scopes { get; private set; } = null!;

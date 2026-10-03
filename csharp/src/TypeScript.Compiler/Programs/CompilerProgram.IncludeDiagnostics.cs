@@ -19,7 +19,7 @@ public sealed partial class CompilerProgram
         if (preferred is null || !HasLocation(preferred)) preferred = reasons.FirstOrDefault(HasLocation);
         var chain = new List<Diagnostic>();
         if (reasons.Count != 0 && (preferred is null || reasons.Count != 1))
-            chain.Add(new(Messages.The_file_is_in_the_program_because_Colon, 0, 0, [])
+            chain.Add(new(Messages.The_file_is_in_the_program_because_Colon, -1, 0, [])
             { MessageChain = reasons.Select(reason => IncludeReasonDiagnostic(reason, path.IsEmpty ? reason.FileName : path)).ToArray() });
         var related = reasons.Where(reason => reason != preferred).Select(RelatedIncludeDiagnostic).OfType<Diagnostic>().ToArray();
         if (preferred is not null)
@@ -27,6 +27,8 @@ public sealed partial class CompilerProgram
             var span = ReferenceSpan(preferred);
             diagnostic = diagnostic with { FileName = preferred.ContainingFile, Start = span.Start, Length = span.Length };
         }
+        else if (diagnostic.FileName is null)
+            diagnostic = diagnostic with { Start = -1, Length = 0 };
         return diagnostic with { MessageChain = chain, RelatedInformation = related };
     }
 
@@ -44,7 +46,7 @@ public sealed partial class CompilerProgram
     internal Diagnostic IncludeReasonDiagnostic(FileIncludeReason reason, Utf8String path, bool relative = false)
     {
         Utf8String FileName(Utf8String value) => relative ? CompilerPath.Relative(CurrentDirectory, value, UseCaseSensitiveFileNames) : value;
-        Diagnostic Message(DiagnosticMessage message, params Utf8String[] args) => new(message, 0, 0, args);
+        Diagnostic Message(DiagnosticMessage message, params Utf8String[] args) => new(message, -1, 0, args);
         var config = Configuration;
         var containing = GetFile(reason.ContainingFile);
         var import = containing?.Resolutions.FirstOrDefault(item => item.Resolution.FileName == path && (item.Node is null || item.Node.Pos == reason.Position));
