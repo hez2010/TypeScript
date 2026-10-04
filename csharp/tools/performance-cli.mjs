@@ -27,10 +27,12 @@ import {
 const option = (key, fallback) => process.argv.includes(key) ? process.argv[process.argv.indexOf(key) + 1] : fallback;
 const directory = path.resolve(option("--directory", path.join(output, "phase8-performance/cli")));
 const packageManifest = JSON.parse(await readFile(option("--manifest", path.join(output, "phase8-final-managed/manifest.json"))));
-assert.equal(packageManifest.runtime, "coreclr-validation");
+assert.ok(["coreclr-validation", "nativeaot"].includes(packageManifest.runtime));
+const nativeAot = packageManifest.runtime === "nativeaot";
+const serverGC = process.argv.includes("--server-gc");
 const baseline = option("--baseline-manifest") ? JSON.parse(await readFile(option("--baseline-manifest"))) : null;
 if (baseline) {
-    assert.equal(baseline.runtime, "coreclr-validation");
+    assert.equal(baseline.runtime, packageManifest.runtime);
     assert.equal(baseline.version, packageManifest.version);
 }
 const backends = baseline ? ["before", "after"] : ["go", "csharp"];
@@ -41,7 +43,7 @@ const executables = {
 };
 const filter = new RegExp(option("--filter", ".*"));
 const samples = Number(option("--samples", "21"));
-const env = { DOTNET_ROOT: option("--dotnet-root", process.env.DOTNET_ROOT ?? "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64"), DOTNET_TieredCompilation: "1", COMPlus_TieredCompilation: "1", DOTNET_gcServer: "0", COMPlus_gcServer: "0" };
+const env = { ...!nativeAot ? { DOTNET_ROOT: option("--dotnet-root", process.env.DOTNET_ROOT ?? "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64"), DOTNET_TieredCompilation: "1", COMPlus_TieredCompilation: "1" } : {}, DOTNET_gcServer: serverGC ? "1" : "0", COMPlus_gcServer: serverGC ? "1" : "0" };
 await mkdir(directory, { recursive: true });
 const inputs = {}, fixtures = {};
 async function fixture(name, files, options = {}) {
@@ -77,7 +79,7 @@ const projects = {
 };
 await fixture("build", projects);
 await json(path.join(directory, "inputs.json"), inputs);
-const binaries = await fileHashes({ ...executables, compiler: path.join(path.dirname(executables[backends[1]]), "TypeScript.Compiler.dll"), ...baseline ? { beforeCompiler: path.join(path.dirname(executables[backends[0]]), "TypeScript.Compiler.dll") } : {}, driver: path.join(root, "csharp/tools/performance-cli.mjs"), metrics: path.join(root, "csharp/tools/performance-metrics.ps1"), common: path.join(root, "csharp/tools/performance-common.mjs") });
+const binaries = await fileHashes({ ...executables, ...!nativeAot ? { compiler: path.join(path.dirname(executables[backends[1]]), "TypeScript.Compiler.dll"), ...baseline ? { beforeCompiler: path.join(path.dirname(executables[backends[0]]), "TypeScript.Compiler.dll") } : {} } : {}, driver: path.join(root, "csharp/tools/performance-cli.mjs"), metrics: path.join(root, "csharp/tools/performance-metrics.ps1"), common: path.join(root, "csharp/tools/performance-common.mjs") });
 const metrics = await Metrics.start(), activity = await metrics.call({ kind: "activity" }), own = [process.pid, metrics.child.pid];
 const groups = [], controls = [];
 async function artifacts(folder) {
@@ -139,7 +141,7 @@ async function compare(name, action, count = samples, warmups = 3) {
     const margin = Math.max(0.05, controls[0].p95RelativePairDifference);
     summary.referenceNoiseMargin = margin;
     const confidence = summary.elapsedMs.pairedBootstrap95;
-    summary.coreclrMedianGate = confidence[1] <= 1 + margin ? "within margin" : confidence[0] > 1 + margin ? "regression" : "inconclusive";
+    summary[nativeAot ? "nativeAotMedianGate" : "coreclrMedianGate"] = confidence[1] <= 1 + margin ? "within margin" : confidence[0] > 1 + margin ? "regression" : "inconclusive";
     if (pairs.every(pair => backends.every(backend => pair[backend].firstOutputMs !== null))) summary.firstOutputMs = summarize(result => result.firstOutputMs);
     groups.push(summary);
     console.log(`${name}: ${backends[0]} ${summary.elapsedMs[backends[0]].median.toFixed(2)} ms, ${backends[1]} ${summary.elapsedMs[backends[1]].median.toFixed(2)} ms`);
@@ -179,8 +181,9 @@ try {
     const machineActivity = await activityReport(metrics, activity, own);
     await saveSummary(path.join(directory, "summary.json"), {
         referenceRevision,
-        runtime: "Release CoreCLR",
-        nativeExecuted: false,
+        runtime: nativeAot ? "Release NativeAOT" : "Release CoreCLR",
+        nativeExecuted: nativeAot,
+        serverGC,
         binaries,
         packageManifest: packageManifest.sourceSha256,
         baselineManifest: baseline?.sourceSha256,

@@ -31,7 +31,7 @@ const serverGC = process.argv.includes("--server-gc");
 const customInputs = option("--inputs") ? JSON.parse(await readFile(option("--inputs"), "utf8")) : null;
 const dll = path.resolve(option("--candidate-directory", executable ? path.dirname(path.resolve(executable)) : "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0"), "TypeScript.Compatibility.dll");
 const compilerDll = path.join(path.dirname(dll), "TypeScript.Compiler.dll");
-const oracle = path.join(root, "built/csharp/checker-workload-oracle.exe");
+const oracle = path.resolve(option("--go-executable", path.join(root, "built/csharp/checker-workload-oracle.exe")));
 const sha256 = value => createHash("sha256").update(value).digest("hex");
 const env = { ...process.env,
     DOTNET_TieredCompilation: tieredCompilation ? "1" : "0", COMPlus_TieredCompilation: tieredCompilation ? "1" : "0",
