@@ -79,13 +79,15 @@ The regression policies and previously classified parser, JSDoc, declaration, or
 
 The phase-8 benchmark tools compare the optimized pinned Go executable with Release CoreCLR on the same Windows x64 host. The 55 workload/concurrency groups cover fresh CLI processes, checking and declaration emission, project-reference builds, no-op and edited builds, native watch cycles, LSP operations, both API transports, callbacks, AST materialization, external content mappers and Windows junctions. Cancellation and retained memory have separate controls. Raw samples include executable/input hashes and retain rejected or failed runs. NativeAOT performance is not inferred from these results.
 
-The completed CLI batch shows a substantial CoreCLR gap: help/version take about 189–194 ms versus 35–37 ms for Go; the medium clean compilation takes about 951 ms versus 70 ms. Across the 20 fresh-process scenarios, the measured median ratios range from 4.63 to 15.23. These are current Go/CoreCLR comparisons, not before/after optimization speedups. The batch uses 21 accepted paired samples per scenario, three warmups and an initial identical-Go noise control. One measured pair affected by input activity is retained and excluded. The raw evidence retains OS process snapshots alongside input-activity checks.
+The recorded CLI batch shows a substantial CoreCLR gap: help/version take about 189–194 ms versus 35–37 ms for Go; the medium compilation takes about 951 ms versus 70 ms. Across the 20 fresh-process scenarios, the measured median ratios range from 4.63 to 15.23. These are recorded Go/CoreCLR comparisons, not before/after optimization speedups. The batch uses 21 accepted paired samples per scenario, three warmups and an initial identical-Go noise control. One measured pair affected by input activity is retained and excluded. The raw evidence retains OS process snapshots alongside input-activity checks.
+
+Subsequent validation found that the CLI compilation fixtures omitted an explicit `rootDir` and reported TS5011 on both backends. Those timings include emission after a configuration diagnostic and do not establish successful clean-compilation performance. The [incremental optimization study](csharp-incremental-performance.md) corrects the fixtures, requires successful compilation and records a separate C# before/after comparison. The original raw measurements remain available.
 
 The accepted service batch has 101 paired samples for warm requests, 21 for startup and 31 for snapshot creation/check/release, after 50 warmups. The five watch workloads each have 21 paired samples after three warmups. The original checker workloads have 31 samples after 50 warmups in each concurrency mode. All compare the intended language effects as well as timings. Service and watch pairs with input activity are rejected; the checker gate requires an entire batch without input activity. These accepted batches had no such contamination.
 
 | Workload | Go median | C# CoreCLR median | C# / Go |
 | --- | ---: | ---: | ---: |
-| Fresh process, medium compilation | 69.64 ms | 950.65 ms | 13.65 |
+| Fresh process, medium compilation with TS5011 | 69.64 ms | 950.65 ms | 13.65 |
 | Fresh process, project-reference no-op build | 37.47 ms | 270.15 ms | 7.21 |
 | LSP launch through first diagnostics | 43.33 ms | 616.13 ms | 14.22 |
 | Warm LSP hover | 0.181 ms | 0.288 ms | 1.59 |

@@ -56,12 +56,20 @@ public sealed partial class CompilerProgram
         return new(skipped, diagnostics.ToArray(), emitted.ToArray(), maps.ToArray());
     }
 
-    public async ValueTask<IReadOnlyList<Diagnostic>> GetDeclarationDiagnosticsAsync(SourceFileNode? source = null,
+    public ValueTask<IReadOnlyList<Diagnostic>> GetDeclarationDiagnosticsAsync(SourceFileNode? source = null,
         CancellationToken cancellation = default)
+        => GetDeclarationDiagnosticsCoreAsync(source, null, cancellation);
+
+    internal ValueTask<IReadOnlyList<Diagnostic>> GetDeclarationDiagnosticsWithCheckerAsync(SourceFileNode source,
+        Checker checker, CancellationToken cancellation)
+        => GetDeclarationDiagnosticsCoreAsync(source, checker, cancellation);
+
+    private async ValueTask<IReadOnlyList<Diagnostic>> GetDeclarationDiagnosticsCoreAsync(SourceFileNode? source,
+        Checker? externalChecker, CancellationToken cancellation)
     {
         if (source is not null && !ReferenceEquals(GetFile(source.FileName)?.Syntax, source))
             throw new ArgumentException("Source file belongs to another program", nameof(source));
-        var checker = await CreateCheckerAsync(cancellation);
+        var checker = externalChecker ?? await CreateCheckerAsync(cancellation);
         List<Diagnostic> diagnostics = [];
         foreach (var file in source is null ? SourceFiles.Select(file => file.Syntax) : [source])
         {

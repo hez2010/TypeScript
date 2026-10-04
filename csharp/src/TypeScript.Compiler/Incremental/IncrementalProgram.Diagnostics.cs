@@ -1,4 +1,5 @@
 using TypeScript.Compiler.Ast;
+using TypeScript.Compiler.Checking;
 using TypeScript.Compiler.Diagnostics;
 
 namespace TypeScript.Compiler.Incremental;
@@ -77,13 +78,15 @@ public sealed partial class IncrementalProgram
     {
         if (CanUseState) await CollectAffectedFilesAsync(cancellation).ConfigureAwait(false);
         var result = new List<Diagnostic>();
+        Checker? declarationChecker = null;
         foreach (var file in Program.SourceFiles)
         {
             var path = file.Syntax.FileName;
             if (!Program.SourceFileMayBeEmitted(file.Syntax)) continue;
             if (!CanUseState || (snapshot.PendingEmit.GetValueOrDefault(path) & FileEmitKind.DeclarationErrors) != 0)
             {
-                var current = await Program.GetDeclarationDiagnosticsAsync(file.Syntax, cancellation).ConfigureAwait(false);
+                declarationChecker ??= await Program.CreateCheckerAsync(cancellation).ConfigureAwait(false);
+                var current = await Program.GetDeclarationDiagnosticsWithCheckerAsync(file.Syntax, declarationChecker, cancellation).ConfigureAwait(false);
                 if (current.Count != 0) snapshot.EmitDiagnostics[path] = current;
                 else snapshot.EmitDiagnostics.Remove(path);
                 if (CanUseState)

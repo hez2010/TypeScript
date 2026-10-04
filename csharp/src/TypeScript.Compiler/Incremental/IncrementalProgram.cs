@@ -91,6 +91,8 @@ public sealed partial class IncrementalProgram
         }
         else snapshot.BuildInfoPending = IncrementalOptions.IsIncremental(Options);
         var checker = await Program.CreateCheckerAsync(cancellation).ConfigureAwait(false);
+        var ambientModules = checker.Symbols.Globals.Where(entry => entry.Key.StartsWith((byte)'"')).Select(entry => entry.Value)
+            .Concat(checker.Symbols.PatternModules.Select(module => module.Symbol)).ToArray();
         bool reuseDiagnostics = previous is not null && !IncrementalOptions.HaveChanges(previous.Options, Options, OptionEffects.SemanticDiagnostics);
         bool reuseSignatures = Options.Composite == true && previous is not null
             && !IncrementalOptions.HaveChanges(previous.Options, Options, OptionEffects.DeclarationPath);
@@ -101,7 +103,7 @@ public sealed partial class IncrementalProgram
             var version = BuildInfo.ComputeHash(file.Mapping is { } mapping
                 ? mapping.Original.Text + "\0"u8 + mapping.TransformIdentity : file.Syntax.Source.Text, hashWithText);
             bool global = AffectsGlobalScope(file);
-            var references = await ReferencesAsync(file, checker, cancellation).ConfigureAwait(false);
+            var references = await ReferencesAsync(file, checker, ambientModules, cancellation).ConfigureAwait(false);
             if (references.Count != 0) snapshot.References[path] = references;
             Utf8String? signature = version;
             if (previous is not null)
@@ -150,7 +152,8 @@ public sealed partial class IncrementalProgram
         || !file.Binding.IsModule && file.Syntax.ScriptKind != ScriptKind.JSON
             && file.Syntax.Statements?.Any(node => node is not ModuleDeclarationNode { Name: StringLiteralNode }) == true;
 
-    private async ValueTask<HashSet<Utf8String>> ReferencesAsync(ProgramFile file, Checker checker, CancellationToken cancellation)
+    private async ValueTask<HashSet<Utf8String>> ReferencesAsync(ProgramFile file, Checker checker,
+        IReadOnlyList<Symbol> ambientModules, CancellationToken cancellation)
     {
         var references = new HashSet<Utf8String>(comparer);
         void AddSymbol(Symbol? symbol)
@@ -169,8 +172,7 @@ public sealed partial class IncrementalProgram
         }
         foreach (var reference in file.Resolutions.Where(reference => reference.TypeReference && reference.Resolution.IsResolved))
             references.Add(Program.GetFile(reference.Resolution.FileName)?.Syntax.FileName ?? reference.Resolution.FileName);
-        foreach (var symbol in checker.Symbols.Globals.Where(entry => entry.Key.StartsWith((byte)'"')).Select(entry => entry.Value)
-            .Concat(checker.Symbols.PatternModules.Select(module => module.Symbol))) AddSymbol(symbol);
+        foreach (var symbol in ambientModules) AddSymbol(symbol);
         return references;
     }
 

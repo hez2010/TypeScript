@@ -1,0 +1,1393 @@
+{
+    "schemaVersion": 1,
+    "recordedAt": "2026-10-03T23:49:09.588Z",
+    "baselineCommit": "5030ee3acd47948c4f3d00c8afbfb7c583b30901",
+    "status": "Validated incremental checker reuse on Windows x64",
+    "nativeExecuted": false,
+    "sources": {
+        "csharp/src/TypeScript.Compiler/Incremental/IncrementalProgram.AffectedFiles.cs": "7e4dd59ce5ac59df1df102b82b42a7427d7bef577e37a7e682b177200cb91d85",
+        "csharp/src/TypeScript.Compiler/Incremental/IncrementalProgram.Diagnostics.cs": "5a3a713a5f27df97d0f2e05602d5a6a49f134fa2714bcd9fc3821cce5035e4b4",
+        "csharp/src/TypeScript.Compiler/Incremental/IncrementalProgram.Emit.cs": "26e38b8c2e3825662ae28048e646aa964a304d0ef109d0052b3105edf25c447a",
+        "csharp/src/TypeScript.Compiler/Incremental/IncrementalProgram.cs": "2b0128157b6c7ae8c940959f50f95310562ac9ad4c2dee49b95c24cc391add58",
+        "csharp/src/TypeScript.Compiler/Programs/CompilerProgram.Emit.cs": "2d422e4cdb3c293034315ecac617bdfa97edb9d78f1200b7e8db32e84e5b7436",
+        "csharp/tools/performance-cli.mjs": "ab285946805e69ceddd0601a1822a45c5e4d40bc7774c4ca4ee777c4e710eb1f",
+        "csharp/tools/performance-common.mjs": "5ca5307936e506d7a7a5a8c44e55e9a6b40ddd1e514b10a01e1c6e792ac77955"
+    },
+    "changes": [
+        "Share one lazy checker per incremental emit pass",
+        "Share one lazy checker per affected-file signature pass",
+        "Share one lazy checker per incremental declaration-diagnostic pass",
+        "Select ambient module symbols once per build initialization"
+    ],
+    "validation": {
+        "build": {
+            "file": "built/csharp/optimization-final-build.log",
+            "sha256": "1c3420212d208bce2f0d66935d55824dc977c30e174afaf7bc1fcc1a54db0a15"
+        },
+        "buildWarnings": 0,
+        "buildErrors": 0,
+        "scripted": {
+            "file": "built/csharp/scripted-builds/optimization-final/summary.json",
+            "sha256": "54446c76b989b0d8f42e1c5e5700f1de3fa6b000c3bb837881cd81f0611acd87",
+            "cases": 516,
+            "cycles": 1771,
+            "strictMatches": 511,
+            "phase8ContractMatches": 516,
+            "phase8Failures": 0,
+            "profilingControls": [
+                {
+                    "name": "TestTscModuleResolution/tsc/package_json_scope",
+                    "controlMatches": true
+                },
+                {
+                    "name": "TestGenerateTrace/tsc/generateTrace_with_multiple_files_and_complex_types",
+                    "controlMatches": true
+                },
+                {
+                    "name": "TestTscExtends/tsbuild/resolves_the_symlink_path",
+                    "controlMatches": true
+                },
+                {
+                    "name": "TestGenerateTrace/tsc/generateTrace_generates_types_file",
+                    "controlMatches": true
+                },
+                {
+                    "name": "TestTscExtends/tsc/resolves_the_symlink_path",
+                    "controlMatches": true
+                }
+            ],
+            "hashes": {
+                "reference": "70b252558f94690ad1bde6dd6e12878e9b9ccb8d81cdfcbd73fa7f1589db766c",
+                "candidate": "fbe216c4620d1b2ae836e7127fc6a1bab592567cff532c3712a1565df0cbfcb6",
+                "compiler": "a10a38c058842837643cd7b100ec95b7cab111f93cab41f94536fafa4de7d5bf",
+                "mapperFixture": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+            }
+        },
+        "emission": {
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "cases": 240,
+            "strictPass": 240,
+            "failed": 0,
+            "fixtureHash": "e5e5b6804d0749fab0400745fb34e70d0218f6b65cc49aea1e64916464338566",
+            "bridgeHash": "d474eb41cd61ab4d57a82e508c39f5bd3f26e3a4acb0ca57a81d8517fc73a87c",
+            "candidateHash": "fbe216c4620d1b2ae836e7127fc6a1bab592567cff532c3712a1565df0cbfcb6",
+            "compilerHash": "a10a38c058842837643cd7b100ec95b7cab111f93cab41f94536fafa4de7d5bf",
+            "oracleHash": "e9779b6b46101f4608f89903a202271c78a9ab2464deff664e0cd8043ad557f0",
+            "resultHash": "3e0936675be55e0a901f9335b8d6ed73dafaf1bdf9bdf2b654fad96363d35617"
+        },
+        "declaration": {
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "cases": 428,
+            "strictPass": 422,
+            "permittedDifferences": 6,
+            "failed": 0,
+            "fixtureHash": "f898071ec59077f8756f400b7975bf13410400197782051652597d2b42fc7342",
+            "bridgeHash": "b0c0d18da34ea8b006295fb7afbe90d12f7f8801df71db630605c06cebe0087f",
+            "candidateHash": "fbe216c4620d1b2ae836e7127fc6a1bab592567cff532c3712a1565df0cbfcb6",
+            "compilerHash": "a10a38c058842837643cd7b100ec95b7cab111f93cab41f94536fafa4de7d5bf",
+            "oracleHash": "6e5d7658c40cb8eb261523c3b06cf83be58f0358ea2b39017a998f7daa97ee55",
+            "resultHash": "014f1275bd09d7ea0e8de595feada47c4fd01eb88611b2b527e69492fba5839e"
+        },
+        "safety": {
+            "incremental": 20,
+            "programEmission": 18,
+            "declaration": 16,
+            "watch": 61,
+            "declarationDepth": 20000,
+            "invalidInvocation": "A subsequent --build-safety invocation was rejected as unsupported; it is not counted as a test."
+        },
+        "profiling": {
+            "file": "built/csharp/optimization-final-profiling/summary.json",
+            "sha256": "9a0e87bd0e5d7ed3a201c8812c042d38ee19930807362babcb231b19f262f27b",
+            "cases": 16,
+            "differences": 0,
+            "consumerVersion": "0.11.1"
+        },
+        "defaultGoComparison": {
+            "file": "built/csharp/optimization-go-smoke/summary.json",
+            "sha256": "925efab25bf24ff3f648bd670210a8c8eab6851a4fd507829b7e98708544418d",
+            "groups": 3,
+            "pairs": 12,
+            "allExitCodesZero": true,
+            "ordinaryOutputsEqual": true,
+            "functionalOnly": true,
+            "performanceClaim": false
+        }
+    },
+    "workRemoved": {
+        "file": "built/csharp/optimization-work-probe2/summary.json",
+        "sha256": "65563c770c9c5223c6271e130f2a9487160a34c327fec0da51584cd866fa5f8b",
+        "nativeExecuted": false,
+        "sourceFiles": 32,
+        "results": [
+            {
+                "mode": "emit",
+                "backend": "before",
+                "sourceFiles": 32,
+                "checkers": 37,
+                "legendSha256": "373995c1a93075b3b2c066c1f6661393f7383cc93fc36dcc59a430e55a50e2d2",
+                "compilerSha256": "68238a619c480acd9ef63dd5d9c3ba9908ffc8b006c938c23722d9816bf7405e"
+            },
+            {
+                "mode": "emit",
+                "backend": "after",
+                "sourceFiles": 32,
+                "checkers": 6,
+                "legendSha256": "1ad86e3eb9fc655928eac69217bcae6c0f4abd4a69970cbd342b6f871c58ca1c",
+                "compilerSha256": "99d4c02dfb53f74275b4158084839dc852420eca24e9dfb0d86c7e35bcc925ce"
+            },
+            {
+                "mode": "noemit",
+                "backend": "before",
+                "sourceFiles": 32,
+                "checkers": 37,
+                "legendSha256": "05241f23ab706a087520e0ca8eaa8bd6b15982d7a6498a88a88d024c7cda6af1",
+                "compilerSha256": "68238a619c480acd9ef63dd5d9c3ba9908ffc8b006c938c23722d9816bf7405e"
+            },
+            {
+                "mode": "noemit",
+                "backend": "after",
+                "sourceFiles": 32,
+                "checkers": 6,
+                "legendSha256": "02bd239ddfcef760bf5f570d62c65cfb208caf0d5b4a23db50e7611558938b2f",
+                "compilerSha256": "99d4c02dfb53f74275b4158084839dc852420eca24e9dfb0d86c7e35bcc925ce"
+            },
+            {
+                "mode": "noemit-on-error",
+                "backend": "before",
+                "sourceFiles": 32,
+                "checkers": 69,
+                "legendSha256": "2e9ef7e12f9db05ca71a2a0d3973bee6d2d59296567b29577ae28cdaba486abe",
+                "compilerSha256": "68238a619c480acd9ef63dd5d9c3ba9908ffc8b006c938c23722d9816bf7405e"
+            },
+            {
+                "mode": "noemit-on-error",
+                "backend": "after",
+                "sourceFiles": 32,
+                "checkers": 7,
+                "legendSha256": "40daddc9ea08ef22d08be45dfe1955410b79719a0f0ee7975bd89f31fe86f75f",
+                "compilerSha256": "99d4c02dfb53f74275b4158084839dc852420eca24e9dfb0d86c7e35bcc925ce"
+            },
+            {
+                "mode": "incremental-edit",
+                "backend": "before",
+                "sourceFiles": 32,
+                "checkers": 69,
+                "legendSha256": "28e10e7895cef887ac3dafd8d1d7c24a267c0a9d088e96d07b45c69a01c6e990",
+                "compilerSha256": "68238a619c480acd9ef63dd5d9c3ba9908ffc8b006c938c23722d9816bf7405e"
+            },
+            {
+                "mode": "incremental-edit",
+                "backend": "after",
+                "sourceFiles": 32,
+                "checkers": 7,
+                "legendSha256": "6adc78488bf0efa2e97e92e3ffb2e90d8d774c4b510645f30599c91097daa508",
+                "compilerSha256": "99d4c02dfb53f74275b4158084839dc852420eca24e9dfb0d86c7e35bcc925ce"
+            }
+        ],
+        "driver": {
+            "file": "built/csharp/optimization-work-probe.mjs",
+            "sha256": "c9540873cabbd5947f963bc51ef4cf66454cf9060d6620632caa682abd170675"
+        },
+        "outputsEqual": true,
+        "boundary": "Trace counts are separate from performance measurements; each row uses four diagnostic workers and 32 source files."
+    },
+    "packages": {
+        "managed": {
+            "file": "built/csharp/optimization-final-package/manifest.json",
+            "sha256": "0acae13c6452d77aaf28c4e260dc6ce599a8939be1c109de312c1d1ecaedf619",
+            "sourceSha256": "f86b2c296121424db2302c21bb808d39902ac7f3484001b20e8931e61de556f5",
+            "compilerSha256": "99d4c02dfb53f74275b4158084839dc852420eca24e9dfb0d86c7e35bcc925ce"
+        },
+        "native": {
+            "file": "built/csharp/optimization-final-native/manifest.json",
+            "sha256": "c66a332f3e9558b5fe1816d8738252db2e874425e5f8bde062f542838016ad6e",
+            "sourceSha256": "f86b2c296121424db2302c21bb808d39902ac7f3484001b20e8931e61de556f5",
+            "executableSha256": "dfdcada05d044740a3d50d130d110cd9ca0f023e546e106493a19c3fca7c13af",
+            "publish": {
+                "command": [
+                    "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+                    "publish",
+                    "csharp/src/TypeScript.CommandLine/TypeScript.CommandLine.csproj",
+                    "-c",
+                    "Release",
+                    "--artifacts-path",
+                    "D:\\source\\repos\\TypeScript\\built\\csharp\\optimization-final-native\\stage-LpIi73\\artifacts",
+                    "-o",
+                    "D:\\source\\repos\\TypeScript\\built\\csharp\\optimization-final-native\\stage-LpIi73\\publish",
+                    "-p:UseSharedCompilation=false",
+                    "-p:RestoreLockedMode=true",
+                    "-p:EmbedTypeScriptLibraries=false",
+                    "-p:TypeScriptExecutableName=tsgo",
+                    "-p:TypeScriptVersion=7.1.0-dev.csharp",
+                    "-p:Version=7.1.0-dev.csharp",
+                    "-r",
+                    "win-x64",
+                    "-p:PublishAot=true",
+                    "-p:IlcInstructionSet=native"
+                ],
+                "log": "D:\\source\\repos\\TypeScript\\built\\csharp\\optimization-final-native\\stage-LpIi73\\publish.log",
+                "sha256": "3d30af7ca8f333151c34e8266bd4075aae03b8f0005dec57aa143431e35546c2"
+            },
+            "nativeExecuted": false
+        }
+    },
+    "performance": {
+        "file": "built/csharp/optimization-final-measured/summary.json",
+        "sha256": "b219f73b35ea5f4bb9711e8ff2b3b54e8b5b54a9c3176a5f89b72da822e9a33a",
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "runtime": "Release CoreCLR",
+        "nativeExecuted": false,
+        "binaries": {
+            "before": {
+                "file": "built/csharp/phase8-final-managed3/stage-x5eoDk/npm/csharp-preview-win32-x64/lib/tsgo.exe",
+                "sha256": "0b80336a4a310c96975be1741a91c174e1c4475c817387c213102e0b1f1ea920"
+            },
+            "after": {
+                "file": "built/csharp/optimization-final-package/stage-wVFOED/npm/csharp-preview-win32-x64/lib/tsgo.exe",
+                "sha256": "4259dd3dcd99491a53aad218f12ae5147685d72a1760bc2bee0f64b1db016967"
+            },
+            "compiler": {
+                "file": "built/csharp/optimization-final-package/stage-wVFOED/npm/csharp-preview-win32-x64/lib/TypeScript.Compiler.dll",
+                "sha256": "99d4c02dfb53f74275b4158084839dc852420eca24e9dfb0d86c7e35bcc925ce"
+            },
+            "beforeCompiler": {
+                "file": "built/csharp/phase8-final-managed3/stage-x5eoDk/npm/csharp-preview-win32-x64/lib/TypeScript.Compiler.dll",
+                "sha256": "68238a619c480acd9ef63dd5d9c3ba9908ffc8b006c938c23722d9816bf7405e"
+            },
+            "driver": {
+                "file": "csharp/tools/performance-cli.mjs",
+                "sha256": "ab285946805e69ceddd0601a1822a45c5e4d40bc7774c4ca4ee777c4e710eb1f"
+            },
+            "metrics": {
+                "file": "csharp/tools/performance-metrics.ps1",
+                "sha256": "26969f96fc0c6de04dde4dc8e2bfdb24504a7f6fd3df7012d9d60db90bb28a15"
+            },
+            "common": {
+                "file": "csharp/tools/performance-common.mjs",
+                "sha256": "5ca5307936e506d7a7a5a8c44e55e9a6b40ddd1e514b10a01e1c6e792ac77955"
+            }
+        },
+        "packageManifest": "f86b2c296121424db2302c21bb808d39902ac7f3484001b20e8931e61de556f5",
+        "baselineManifest": "9c44238d46552c782d000fc7f8a8fe5c646431264cdbfa11571c62b505ed298a",
+        "comparison": [
+            "before",
+            "after"
+        ],
+        "samples": 21,
+        "inputsSha256": "b1fd524ccfb8aa10567240837be2f91b253b897e6f8663039eb01157f6521095",
+        "controls": [
+            {
+                "name": "same reference executable and arguments",
+                "elapsedMs": {
+                    "before": {
+                        "samples": 21,
+                        "median": 184.9281,
+                        "p95": 191.5877,
+                        "p99": 195.4886,
+                        "min": 179.4619,
+                        "max": 195.4886
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 184.7919,
+                        "p95": 188.3005,
+                        "p99": 191.4747,
+                        "min": 181.2737,
+                        "max": 191.4747
+                    },
+                    "medianRatio": 0.9992634975430992,
+                    "pairedBootstrap95": [
+                        0.9865671753489038,
+                        1.0095608885533873
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "p95RelativePairDifference": 0.03780514093545683
+            }
+        ],
+        "groups": [
+            {
+                "name": "version",
+                "elapsedMs": {
+                    "before": {
+                        "samples": 21,
+                        "median": 189.8428,
+                        "p95": 195.9365,
+                        "p99": 196.5233,
+                        "min": 182.3285,
+                        "max": 196.5233
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 188.6185,
+                        "p95": 193.9384,
+                        "p99": 194.2909,
+                        "min": 182.9576,
+                        "max": 194.2909
+                    },
+                    "medianRatio": 0.9935509800740402,
+                    "pairedBootstrap95": [
+                        0.9823980045951193,
+                        1.0038096306701203
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "cpuMs": {
+                    "before": {
+                        "samples": 21,
+                        "median": 156.25,
+                        "p95": 187.5,
+                        "p99": 203.125,
+                        "min": 140.625,
+                        "max": 203.125
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 156.25,
+                        "p95": 171.875,
+                        "p99": 187.5,
+                        "min": 140.625,
+                        "max": 187.5
+                    },
+                    "medianRatio": 1,
+                    "pairedBootstrap95": [
+                        0.9090909090909091,
+                        1.1
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "peakRssBytes": {
+                    "before": {
+                        "samples": 21,
+                        "median": 99508224,
+                        "p95": 99557376,
+                        "p99": 99586048,
+                        "min": 99213312,
+                        "max": 99586048
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 99319808,
+                        "p95": 99381248,
+                        "p99": 99401728,
+                        "min": 99045376,
+                        "max": 99401728
+                    },
+                    "medianRatio": 0.9981065283609122,
+                    "pairedBootstrap95": [
+                        0.997941963366948,
+                        0.9983534351459268
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "rawSha256": "b2130f8d96739874862095248503be0a767e8700c50baf702de2d303ab46a7bd",
+                "rawFile": "built/csharp/optimization-final-measured/version.jsonl",
+                "referenceNoiseMargin": 0.05,
+                "coreclrMedianGate": "within margin",
+                "firstOutputMs": {
+                    "before": {
+                        "samples": 21,
+                        "median": 182.758,
+                        "p95": 188.7966,
+                        "p99": 189.5839,
+                        "min": 175.28,
+                        "max": 189.5839
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 181.7125,
+                        "p95": 187.1891,
+                        "p99": 187.5253,
+                        "min": 175.7198,
+                        "max": 187.5253
+                    },
+                    "medianRatio": 0.9942793201939176,
+                    "pairedBootstrap95": [
+                        0.9818402673985706,
+                        1.0047344319975164
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                }
+            },
+            {
+                "name": "medium",
+                "elapsedMs": {
+                    "before": {
+                        "samples": 21,
+                        "median": 1145.4149,
+                        "p95": 1174.5477,
+                        "p99": 1177.7363,
+                        "min": 1092.93,
+                        "max": 1177.7363
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 1140.8684,
+                        "p95": 1164.9434,
+                        "p99": 1174.8279,
+                        "min": 1072.1038,
+                        "max": 1174.8279
+                    },
+                    "medianRatio": 0.9960306959513099,
+                    "pairedBootstrap95": [
+                        0.9769262129829426,
+                        1.0115219527340176
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "cpuMs": {
+                    "before": {
+                        "samples": 21,
+                        "median": 1343.75,
+                        "p95": 1484.375,
+                        "p99": 1484.375,
+                        "min": 1187.5,
+                        "max": 1484.375
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 1312.5,
+                        "p95": 1406.25,
+                        "p99": 1406.25,
+                        "min": 1218.75,
+                        "max": 1406.25
+                    },
+                    "medianRatio": 0.9767441860465116,
+                    "pairedBootstrap95": [
+                        0.9333333333333333,
+                        1.0120481927710843
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "peakRssBytes": {
+                    "before": {
+                        "samples": 21,
+                        "median": 107479040,
+                        "p95": 107962368,
+                        "p99": 107999232,
+                        "min": 106991616,
+                        "max": 107999232
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 108179456,
+                        "p95": 108658688,
+                        "p99": 108830720,
+                        "min": 107618304,
+                        "max": 108830720
+                    },
+                    "medianRatio": 1.006516768292683,
+                    "pairedBootstrap95": [
+                        1.0033423221542785,
+                        1.008155487804878
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "rawSha256": "ce43a6e650a25da878e2fba3f5be887bed2f469407b4b63878c623f2e8667b2b",
+                "rawFile": "built/csharp/optimization-final-measured/medium.jsonl",
+                "referenceNoiseMargin": 0.05,
+                "coreclrMedianGate": "within margin"
+            },
+            {
+                "name": "declarations",
+                "elapsedMs": {
+                    "before": {
+                        "samples": 21,
+                        "median": 936.7285,
+                        "p95": 950.0184,
+                        "p99": 956.1567,
+                        "min": 919.5059,
+                        "max": 956.1567
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 932.4199,
+                        "p95": 941.4873,
+                        "p99": 947.0207,
+                        "min": 915.7095,
+                        "max": 947.0207
+                    },
+                    "medianRatio": 0.9954003748151145,
+                    "pairedBootstrap95": [
+                        0.9847695985530243,
+                        1.0006223414682536
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "cpuMs": {
+                    "before": {
+                        "samples": 21,
+                        "median": 1156.25,
+                        "p95": 1187.5,
+                        "p99": 1250,
+                        "min": 937.5,
+                        "max": 1250
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 1109.375,
+                        "p95": 1218.75,
+                        "p99": 1234.375,
+                        "min": 1046.875,
+                        "max": 1234.375
+                    },
+                    "medianRatio": 0.9594594594594594,
+                    "pairedBootstrap95": [
+                        0.9333333333333333,
+                        1.028169014084507
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "peakRssBytes": {
+                    "before": {
+                        "samples": 21,
+                        "median": 107126784,
+                        "p95": 107888640,
+                        "p99": 108302336,
+                        "min": 106840064,
+                        "max": 108302336
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 107372544,
+                        "p95": 107720704,
+                        "p99": 107786240,
+                        "min": 106926080,
+                        "max": 107786240
+                    },
+                    "medianRatio": 1.0022941041523286,
+                    "pairedBootstrap95": [
+                        0.9988949434134817,
+                        1.0044741873804972
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "rawSha256": "421e62633f899e5d63c6647e0b0a5409fe6bd7b204f0990084a4e919036ba0a1",
+                "rawFile": "built/csharp/optimization-final-measured/declarations.jsonl",
+                "referenceNoiseMargin": 0.05,
+                "coreclrMedianGate": "within margin"
+            },
+            {
+                "name": "tiny-files",
+                "elapsedMs": {
+                    "before": {
+                        "samples": 21,
+                        "median": 1210.724,
+                        "p95": 1223.0346,
+                        "p99": 1273.1782,
+                        "min": 1151.4436,
+                        "max": 1273.1782
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 965.1257,
+                        "p95": 995.1298,
+                        "p99": 1019.5733,
+                        "min": 935.1492,
+                        "max": 1019.5733
+                    },
+                    "medianRatio": 0.7971475745091368,
+                    "pairedBootstrap95": [
+                        0.7914080234001806,
+                        0.8115607688713875
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "cpuMs": {
+                    "before": {
+                        "samples": 21,
+                        "median": 1203.125,
+                        "p95": 1265.625,
+                        "p99": 1343.75,
+                        "min": 1015.625,
+                        "max": 1343.75
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 1015.625,
+                        "p95": 1156.25,
+                        "p99": 1187.5,
+                        "min": 921.875,
+                        "max": 1187.5
+                    },
+                    "medianRatio": 0.8441558441558441,
+                    "pairedBootstrap95": [
+                        0.810126582278481,
+                        0.88
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "peakRssBytes": {
+                    "before": {
+                        "samples": 21,
+                        "median": 99500032,
+                        "p95": 99532800,
+                        "p99": 99688448,
+                        "min": 99246080,
+                        "max": 99688448
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 99323904,
+                        "p95": 99364864,
+                        "p99": 99557376,
+                        "min": 99053568,
+                        "max": 99557376
+                    },
+                    "medianRatio": 0.9982298699160217,
+                    "pairedBootstrap95": [
+                        0.997901148195399,
+                        0.9984356345971759
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "rawSha256": "b4d0170164dc8373dacc0138f33dca35e7c9986597fc86c8608795706fc8e84a",
+                "rawFile": "built/csharp/optimization-final-measured/tiny-files.jsonl",
+                "referenceNoiseMargin": 0.05,
+                "coreclrMedianGate": "within margin"
+            },
+            {
+                "name": "huge-file",
+                "elapsedMs": {
+                    "before": {
+                        "samples": 21,
+                        "median": 3293.2472,
+                        "p95": 3365.4832,
+                        "p99": 3393.6802,
+                        "min": 3199.5899,
+                        "max": 3393.6802
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 3293.4817,
+                        "p95": 3389.7819,
+                        "p99": 3392.3805,
+                        "min": 3183.4796,
+                        "max": 3392.3805
+                    },
+                    "medianRatio": 1.0000712063157604,
+                    "pairedBootstrap95": [
+                        0.9801668888554996,
+                        1.017571620139198
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "cpuMs": {
+                    "before": {
+                        "samples": 21,
+                        "median": 3812.5,
+                        "p95": 3937.5,
+                        "p99": 3968.75,
+                        "min": 3546.875,
+                        "max": 3968.75
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 3796.875,
+                        "p95": 3984.375,
+                        "p99": 4000,
+                        "min": 3406.25,
+                        "max": 4000
+                    },
+                    "medianRatio": 0.9959016393442623,
+                    "pairedBootstrap95": [
+                        0.9795081967213115,
+                        1.0122950819672132
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "peakRssBytes": {
+                    "before": {
+                        "samples": 21,
+                        "median": 301830144,
+                        "p95": 302628864,
+                        "p99": 302702592,
+                        "min": 299851776,
+                        "max": 302702592
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 300224512,
+                        "p95": 300433408,
+                        "p99": 300531712,
+                        "min": 299704320,
+                        "max": 300531712
+                    },
+                    "medianRatio": 0.9946803457775245,
+                    "pairedBootstrap95": [
+                        0.9936415401301518,
+                        1.0001637085442219
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "rawSha256": "3aba4bb8a625d494cc5ba1f5f77d65e4402372db1844031dc00668c7376d1e6e",
+                "rawFile": "built/csharp/optimization-final-measured/huge-file.jsonl",
+                "referenceNoiseMargin": 0.05,
+                "coreclrMedianGate": "within margin"
+            },
+            {
+                "name": "tiny-files-noemit",
+                "elapsedMs": {
+                    "before": {
+                        "samples": 21,
+                        "median": 810.7835,
+                        "p95": 820.5517,
+                        "p99": 831.5717,
+                        "min": 797.785,
+                        "max": 831.5717
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 600.8731,
+                        "p95": 608.001,
+                        "p99": 609.1192,
+                        "min": 589.6107,
+                        "max": 609.1192
+                    },
+                    "medianRatio": 0.7411017861118289,
+                    "pairedBootstrap95": [
+                        0.7350315700214688,
+                        0.7456533711540455
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "cpuMs": {
+                    "before": {
+                        "samples": 21,
+                        "median": 843.75,
+                        "p95": 921.875,
+                        "p99": 937.5,
+                        "min": 671.875,
+                        "max": 937.5
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 609.375,
+                        "p95": 703.125,
+                        "p99": 750,
+                        "min": 515.625,
+                        "max": 750
+                    },
+                    "medianRatio": 0.7222222222222222,
+                    "pairedBootstrap95": [
+                        0.6785714285714286,
+                        0.7884615384615384
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "peakRssBytes": {
+                    "before": {
+                        "samples": 21,
+                        "median": 99483648,
+                        "p95": 99549184,
+                        "p99": 99553280,
+                        "min": 99168256,
+                        "max": 99553280
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 99311616,
+                        "p95": 99368960,
+                        "p99": 99368960,
+                        "min": 99045376,
+                        "max": 99368960
+                    },
+                    "medianRatio": 0.9982707509881423,
+                    "pairedBootstrap95": [
+                        0.9960889254837382,
+                        1.0006189140122133
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "rawSha256": "c1987fa989eb6d3ee534daf25a51ba29400996e564300fdeb876bd5075eb1991",
+                "rawFile": "built/csharp/optimization-final-measured/tiny-files-noemit.jsonl",
+                "referenceNoiseMargin": 0.05,
+                "coreclrMedianGate": "within margin"
+            },
+            {
+                "name": "tiny-files-noemit-on-error",
+                "elapsedMs": {
+                    "before": {
+                        "samples": 21,
+                        "median": 1452.405,
+                        "p95": 1515.9548,
+                        "p99": 1517.7732,
+                        "min": 1406.1264,
+                        "max": 1517.7732
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 1025.065,
+                        "p95": 1041.3339,
+                        "p99": 1042.6172,
+                        "min": 1002.7242,
+                        "max": 1042.6172
+                    },
+                    "medianRatio": 0.7057707733035896,
+                    "pairedBootstrap95": [
+                        0.6958557659126848,
+                        0.7176031419355252
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "cpuMs": {
+                    "before": {
+                        "samples": 21,
+                        "median": 1484.375,
+                        "p95": 1609.375,
+                        "p99": 1640.625,
+                        "min": 1406.25,
+                        "max": 1640.625
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 1046.875,
+                        "p95": 1140.625,
+                        "p99": 1203.125,
+                        "min": 984.375,
+                        "max": 1203.125
+                    },
+                    "medianRatio": 0.7052631578947368,
+                    "pairedBootstrap95": [
+                        0.6804123711340206,
+                        0.7446808510638298
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "peakRssBytes": {
+                    "before": {
+                        "samples": 21,
+                        "median": 99516416,
+                        "p95": 99581952,
+                        "p99": 99639296,
+                        "min": 99221504,
+                        "max": 99639296
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 99323904,
+                        "p95": 99364864,
+                        "p99": 99368960,
+                        "min": 99037184,
+                        "max": 99368960
+                    },
+                    "medianRatio": 0.9980655251893316,
+                    "pairedBootstrap95": [
+                        0.9977362528811327,
+                        0.9984356345971759
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "rawSha256": "9fbe31487389637212c67bbd24aabbb6aeb578a4d88f5c18494f318b49b23456",
+                "rawFile": "built/csharp/optimization-final-measured/tiny-files-noemit-on-error.jsonl",
+                "referenceNoiseMargin": 0.05,
+                "coreclrMedianGate": "within margin"
+            },
+            {
+                "name": "tiny-files-incremental-edit",
+                "elapsedMs": {
+                    "before": {
+                        "samples": 21,
+                        "median": 1823.6775,
+                        "p95": 1856.5991,
+                        "p99": 1857.9681,
+                        "min": 1730.8951,
+                        "max": 1857.9681
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 1293.3204,
+                        "p95": 1336.2198,
+                        "p99": 1371.9751,
+                        "min": 1251.9322,
+                        "max": 1371.9751
+                    },
+                    "medianRatio": 0.7091826268624798,
+                    "pairedBootstrap95": [
+                        0.7018751220292031,
+                        0.7231072309707112
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "cpuMs": {
+                    "before": {
+                        "samples": 21,
+                        "median": 1750,
+                        "p95": 1875,
+                        "p99": 1921.875,
+                        "min": 1609.375,
+                        "max": 1921.875
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 1171.875,
+                        "p95": 1250,
+                        "p99": 1281.25,
+                        "min": 1046.875,
+                        "max": 1281.25
+                    },
+                    "medianRatio": 0.6696428571428571,
+                    "pairedBootstrap95": [
+                        0.625,
+                        0.7053571428571429
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "peakRssBytes": {
+                    "before": {
+                        "samples": 21,
+                        "median": 99516416,
+                        "p95": 99651584,
+                        "p99": 99659776,
+                        "min": 99221504,
+                        "max": 99659776
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 99332096,
+                        "p95": 99405824,
+                        "p99": 99475456,
+                        "min": 99057664,
+                        "max": 99475456
+                    },
+                    "medianRatio": 0.9981478432663813,
+                    "pairedBootstrap95": [
+                        0.9979421327735934,
+                        0.9985589591567853
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "rawSha256": "68c5a64f01e38c2b3b02dfe10d3b6c4d17e3c9390d8839ee45aa68a1c05c9a0e",
+                "rawFile": "built/csharp/optimization-final-measured/tiny-files-incremental-edit.jsonl",
+                "referenceNoiseMargin": 0.05,
+                "coreclrMedianGate": "within margin"
+            },
+            {
+                "name": "project-references-clean",
+                "elapsedMs": {
+                    "before": {
+                        "samples": 21,
+                        "median": 653.4326,
+                        "p95": 659.8157,
+                        "p99": 670.3775,
+                        "min": 645.0684,
+                        "max": 670.3775
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 656.3619,
+                        "p95": 670.5093,
+                        "p99": 674.4601,
+                        "min": 646.7748,
+                        "max": 674.4601
+                    },
+                    "medianRatio": 1.0044829413163654,
+                    "pairedBootstrap95": [
+                        0.9954748302717471,
+                        1.0072473411688458
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "cpuMs": {
+                    "before": {
+                        "samples": 21,
+                        "median": 640.625,
+                        "p95": 687.5,
+                        "p99": 687.5,
+                        "min": 578.125,
+                        "max": 687.5
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 640.625,
+                        "p95": 671.875,
+                        "p99": 687.5,
+                        "min": 593.75,
+                        "max": 687.5
+                    },
+                    "medianRatio": 1,
+                    "pairedBootstrap95": [
+                        0.9523809523809523,
+                        1.05
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "peakRssBytes": {
+                    "before": {
+                        "samples": 21,
+                        "median": 99500032,
+                        "p95": 99536896,
+                        "p99": 99655680,
+                        "min": 99233792,
+                        "max": 99655680
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 99332096,
+                        "p95": 99393536,
+                        "p99": 99471360,
+                        "min": 99074048,
+                        "max": 99471360
+                    },
+                    "medianRatio": 0.9983122015478347,
+                    "pairedBootstrap95": [
+                        0.9981477670302531,
+                        0.9985590778097982
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "rawSha256": "a93111aad1aa59653cc21e60cdcb896d2ae0ca148b7f9ecc6b9bcac48e7e9c55",
+                "rawFile": "built/csharp/optimization-final-measured/project-references-clean.jsonl",
+                "referenceNoiseMargin": 0.05,
+                "coreclrMedianGate": "within margin"
+            },
+            {
+                "name": "project-references-noop",
+                "elapsedMs": {
+                    "before": {
+                        "samples": 21,
+                        "median": 270.6113,
+                        "p95": 276.3121,
+                        "p99": 277.1586,
+                        "min": 262.8074,
+                        "max": 277.1586
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 268.5904,
+                        "p95": 273.8739,
+                        "p99": 275.9205,
+                        "min": 263.5618,
+                        "max": 275.9205
+                    },
+                    "medianRatio": 0.9925320930796311,
+                    "pairedBootstrap95": [
+                        0.9817732410392425,
+                        0.9994494545811174
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "cpuMs": {
+                    "before": {
+                        "samples": 21,
+                        "median": 234.375,
+                        "p95": 250,
+                        "p99": 250,
+                        "min": 187.5,
+                        "max": 250
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 234.375,
+                        "p95": 265.625,
+                        "p99": 281.25,
+                        "min": 171.875,
+                        "max": 281.25
+                    },
+                    "medianRatio": 1,
+                    "pairedBootstrap95": [
+                        0.9333333333333333,
+                        1.0714285714285714
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "peakRssBytes": {
+                    "before": {
+                        "samples": 21,
+                        "median": 99495936,
+                        "p95": 99545088,
+                        "p99": 99618816,
+                        "min": 99188736,
+                        "max": 99618816
+                    },
+                    "after": {
+                        "samples": 21,
+                        "median": 99319808,
+                        "p95": 99381248,
+                        "p99": 99401728,
+                        "min": 99053568,
+                        "max": 99401728
+                    },
+                    "medianRatio": 0.9982297970441727,
+                    "pairedBootstrap95": [
+                        0.9981065283609122,
+                        0.9986000741137234
+                    ],
+                    "zeroReferenceSamples": 0,
+                    "discardedPairs": 0
+                },
+                "rawSha256": "eaeeb937483cf6674ad496eef126bc8978e1411e16dfd552f18ba2fc1d10a796",
+                "rawFile": "built/csharp/optimization-final-measured/project-references-noop.jsonl",
+                "referenceNoiseMargin": 0.05,
+                "coreclrMedianGate": "within margin"
+            }
+        ],
+        "machineActivity": {
+            "inputBefore": 351150671,
+            "inputAfter": 351150671,
+            "externalCpu": [
+                {
+                    "name": "ChatGPT",
+                    "pid": 39116,
+                    "cpuSeconds": 65.453125
+                },
+                {
+                    "name": "ChatGPT",
+                    "pid": 45192,
+                    "cpuSeconds": 47.796875
+                },
+                {
+                    "name": "ChatGPT",
+                    "pid": 32852,
+                    "cpuSeconds": 41.5
+                },
+                {
+                    "name": "kpm",
+                    "pid": 23260,
+                    "cpuSeconds": 27.84375
+                },
+                {
+                    "name": "logioptionsplus_agent",
+                    "pid": 24744,
+                    "cpuSeconds": 26.921875
+                },
+                {
+                    "name": "CrossDeviceService",
+                    "pid": 34800,
+                    "cpuSeconds": 22.71875
+                },
+                {
+                    "name": "Discord",
+                    "pid": 21288,
+                    "cpuSeconds": 14.953125
+                },
+                {
+                    "name": "LogiPluginService",
+                    "pid": 8216,
+                    "cpuSeconds": 12.46875
+                },
+                {
+                    "name": "ThPanel",
+                    "pid": 13740,
+                    "cpuSeconds": 10.546875
+                },
+                {
+                    "name": "QQ",
+                    "pid": 33096,
+                    "cpuSeconds": 6.5
+                },
+                {
+                    "name": "explorer",
+                    "pid": 17452,
+                    "cpuSeconds": 3.5625
+                },
+                {
+                    "name": "Discord",
+                    "pid": 10172,
+                    "cpuSeconds": 3.328125
+                },
+                {
+                    "name": "mep",
+                    "pid": 13300,
+                    "cpuSeconds": 2.34375
+                },
+                {
+                    "name": "SpotifyLauncher",
+                    "pid": 13812,
+                    "cpuSeconds": 2.296875
+                },
+                {
+                    "name": "lghub_agent",
+                    "pid": 20368,
+                    "cpuSeconds": 2.1875
+                },
+                {
+                    "name": "codex",
+                    "pid": 13476,
+                    "cpuSeconds": 2.015625
+                },
+                {
+                    "name": "MicrosoftSecurityApp",
+                    "pid": 20312,
+                    "cpuSeconds": 1.859375
+                },
+                {
+                    "name": "PhoneExperienceHost",
+                    "pid": 26528,
+                    "cpuSeconds": 1.75
+                },
+                {
+                    "name": "nvsphelper64",
+                    "pid": 17344,
+                    "cpuSeconds": 1.734375
+                },
+                {
+                    "name": "AdobeCollabSync",
+                    "pid": 30952,
+                    "cpuSeconds": 1.359375
+                },
+                {
+                    "name": "IntelGraphicsSoftware.Overlay",
+                    "pid": 28280,
+                    "cpuSeconds": 1.1875
+                },
+                {
+                    "name": "lghub_system_tray",
+                    "pid": 3144,
+                    "cpuSeconds": 1.1875
+                },
+                {
+                    "name": "IntelGraphicsSoftware",
+                    "pid": 38856,
+                    "cpuSeconds": 1.140625
+                },
+                {
+                    "name": "gfx_win_101.7092",
+                    "pid": 40608,
+                    "cpuSeconds": 1.09375
+                },
+                {
+                    "name": "node",
+                    "pid": 33156,
+                    "cpuSeconds": 1.078125
+                },
+                {
+                    "name": "NVIDIA Overlay",
+                    "pid": 18500,
+                    "cpuSeconds": 1.046875
+                },
+                {
+                    "name": "SnippingTool",
+                    "pid": 45304,
+                    "cpuSeconds": 1.046875
+                },
+                {
+                    "name": "nvcontainer",
+                    "pid": 13324,
+                    "cpuSeconds": 0.953125
+                },
+                {
+                    "name": "ChatGPT",
+                    "pid": 51712,
+                    "cpuSeconds": 0.84375
+                },
+                {
+                    "name": "Adobe Desktop Service",
+                    "pid": 32972,
+                    "cpuSeconds": 0.671875
+                },
+                {
+                    "name": "copilotapp",
+                    "pid": 46580,
+                    "cpuSeconds": 0.65625
+                },
+                {
+                    "name": "NVIDIA Overlay",
+                    "pid": 17360,
+                    "cpuSeconds": 0.65625
+                },
+                {
+                    "name": "CoreSync",
+                    "pid": 14940,
+                    "cpuSeconds": 0.59375
+                },
+                {
+                    "name": "XboxPcTray",
+                    "pid": 39424,
+                    "cpuSeconds": 0.53125
+                },
+                {
+                    "name": "powershell",
+                    "pid": 33636,
+                    "cpuSeconds": 0.515625
+                }
+            ]
+        },
+        "machine": {
+            "os": "Windows 11 Pro for Workstations",
+            "cpu": "13th Gen Intel(R) Core(TM) i7-13700K",
+            "logicalProcessors": 24,
+            "totalMemory": 68399497216
+        },
+        "environment": {
+            "DOTNET_ROOT": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64",
+            "DOTNET_TieredCompilation": "1",
+            "COMPlus_TieredCompilation": "1",
+            "DOTNET_gcServer": "0",
+            "COMPlus_gcServer": "0"
+        },
+        "boundaries": [
+            "Warm filesystem, fresh compiler processes; process creation included",
+            "Win32 peak RSS and process CPU, measured using the same collector for both backends",
+            "Files, diagnostics and emitted bytes compare exactly; package version header is mapped explicitly; runtime-specific tsbuildinfo version is excluded from emitted-language-artifact hashes",
+            "Keyboard/mouse-contaminated pairs are preserved and replaced",
+            "The 256 MiB settings use the CLR GC heap hard limit for both builds",
+            "Synthetic stress fixtures complement the original checker corpus; they are not a benchmark of VS Code or another complete application"
+        ]
+    },
+    "preliminary": [
+        {
+            "directory": "built/csharp/optimization-emit-measured",
+            "reason": "Emit-only candidate; fixture omitted rootDir and reported TS5011. Preserved as an emission-with-diagnostic experiment; superseded by successful-compilation measurements."
+        },
+        {
+            "directory": "built/csharp/optimization-final-smoke",
+            "reason": "Two samples; rootDir omitted. noEmitOnError exercised an error bailout. Excluded."
+        },
+        {
+            "directory": "built/csharp/optimization-corrected-smoke",
+            "reason": "Corrected successful fixtures, two samples; functional smoke only."
+        },
+        {
+            "file": "built/csharp/optimization-work-probe.log",
+            "reason": "Initial trace probe stopped on TS5011; corrected by explicitly setting rootDir before rerunning."
+        }
+    ],
+    "boundaries": [
+        "Fresh Release CoreCLR processes with a warm filesystem; no NativeAOT execution or performance claim.",
+        "Before/after use the same package version, libraries, runtime, workstation GC, tiering and dynamic PGO defaults.",
+        "Each measured compilation must exit successfully and match ordinary output and emitted language artifacts.",
+        "tsbuildinfo bytes are excluded from benchmark artifact hashes; scripted build/watch regression checks retain their established build-info contract.",
+        "Three warmup pairs, 21 accepted alternating-order pairs per workload and an identical-baseline startup control. Input-contaminated pairs are preserved and replaced.",
+        "No builds, tests or profiling run concurrently with accepted timing measurements; normal desktop background processes are recorded.",
+        "The historical phase-8 CLI clean-compilation fixture timings also included TS5011 and must not be read as successful clean-compilation measurements.",
+        "This change targets incremental build orchestration. The earlier two-hour API/LSP retention and warm checker studies were not repeated."
+    ],
+    "baselineSourceVerification": {
+        "commit": "5030ee3acd47948c4f3d00c8afbfb7c583b30901",
+        "files": 1036,
+        "result": "Every source-provenance file matches the committed blob"
+    }
+}

@@ -36,30 +36,30 @@ export class Metrics {
 export const percentile = (values, fraction) => values.toSorted((a, b) => a - b)[Math.max(0, Math.ceil(values.length * fraction) - 1)];
 export const median = values => percentile(values, 0.5);
 export function statistics(values) { return { samples: values.length, median: median(values), p95: percentile(values, 0.95), p99: percentile(values, 0.99), min: Math.min(...values), max: Math.max(...values) }; }
-export function summarizePairs(pairs, metric = value => value.elapsedMs) {
+export function summarizePairs(pairs, metric = value => value.elapsedMs, backends = ["go", "csharp"]) {
     const accepted = pairs.filter(pair => !pair.contaminated);
     assert.ok(accepted.length > 0, "There are no uncontaminated samples");
-    const go = accepted.map(pair => metric(pair.go)), csharp = accepted.map(pair => metric(pair.csharp));
+    const first = accepted.map(pair => metric(pair[backends[0]])), second = accepted.map(pair => metric(pair[backends[1]]));
     let random = 817263;
     const next = () => { random ^= random << 13; random ^= random >>> 17; random ^= random << 5; return random >>> 0; };
     const ratios = [];
     for (let draw = 0; draw < 4000; draw++) {
         const indices = Array.from({ length: accepted.length }, () => next() % accepted.length);
-        ratios.push(median(indices.map(index => csharp[index])) / median(indices.map(index => go[index])));
+        ratios.push(median(indices.map(index => second[index])) / median(indices.map(index => first[index])));
     }
-    return { go: statistics(go), csharp: statistics(csharp), medianRatio: median(go) > 0 ? median(csharp) / median(go) : null,
+    return { [backends[0]]: statistics(first), [backends[1]]: statistics(second), medianRatio: median(first) > 0 ? median(second) / median(first) : null,
         pairedBootstrap95: ratios.every(Number.isFinite) ? [percentile(ratios, 0.025), percentile(ratios, 0.975)] : null,
-        zeroReferenceSamples: go.filter(value => value === 0).length, discardedPairs: pairs.length - accepted.length };
+        zeroReferenceSamples: first.filter(value => value === 0).length, discardedPairs: pairs.length - accepted.length };
 }
-export async function paired(metrics, samples, action, file, warmups = 3) {
+export async function paired(metrics, samples, action, file, warmups = 3, backends = ["go", "csharp"]) {
     const pairs = [];
     for (let iteration = -warmups; pairs.filter(pair => !pair.contaminated).length < samples; iteration++) {
         if (iteration > samples * 4 + 50) throw new Error("Input activity prevented a clean benchmark batch; rejected samples are preserved");
         const before = await metrics.call({ kind: "idle" });
         const pair = { iteration };
-        for (const backend of iteration % 2 === 0 ? ["go", "csharp"] : ["csharp", "go"]) pair[backend] = await action(backend, iteration);
+        for (const backend of iteration % 2 === 0 ? backends : backends.toReversed()) pair[backend] = await action(backend, iteration);
         const after = await metrics.call({ kind: "idle" });
-        pair.contaminated = before.lastInputTick !== after.lastInputTick || [pair.go, pair.csharp].some(value => value.inputBefore !== value.inputAfter);
+        pair.contaminated = before.lastInputTick !== after.lastInputTick || backends.some(backend => pair[backend].inputBefore !== pair[backend].inputAfter);
         await appendFile(file, JSON.stringify(pair) + "\n");
         if (iteration >= 0) pairs.push(pair);
         if (pair.contaminated) console.log(`Discarded input-contaminated pair ${iteration}`);

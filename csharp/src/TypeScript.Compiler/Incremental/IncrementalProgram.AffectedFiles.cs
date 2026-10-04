@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Checking;
 using TypeScript.Compiler.Configuration;
 using TypeScript.Compiler.Emission;
 using TypeScript.Compiler.Programs;
@@ -24,6 +25,7 @@ public sealed partial class IncrementalProgram
         var invalidate = new HashSet<Utf8String>(comparer);
         var pending = new Dictionary<Utf8String, FileEmitKind>(comparer);
         bool allFiles = false;
+        Checker? signatureChecker = null;
 
         async ValueTask<bool> UpdateSignature(ProgramFile file, bool useVersion = false)
         {
@@ -32,7 +34,9 @@ public sealed partial class IncrementalProgram
             var info = snapshot.Files[path];
             Utf8String signature = default;
             if (!useVersion && !file.Syntax.IsDeclarationFile && file.Syntax.ScriptKind != ScriptKind.JSON)
-                await Program.EmitAsync(new()
+            {
+                signatureChecker ??= await Program.CreateCheckerAsync(cancellation).ConfigureAwait(false);
+                await Program.EmitWithCheckerAsync(new()
                 {
                     SourceFiles = [file.Syntax], Only = EmitOnly.BuilderSignature,
                     WriteFile = (_, text, data, _) =>
@@ -40,7 +44,8 @@ public sealed partial class IncrementalProgram
                         signature = BuildInfoDiagnostics.Signature(path, text, data.SourceMapUrlPosition, data.Diagnostics, hashWithText);
                         return ValueTask.CompletedTask;
                     }
-                }, cancellation).ConfigureAwait(false);
+                }, signatureChecker, cancellation).ConfigureAwait(false);
+            }
             if (signature.Length == 0) signature = info.Version;
             signatures[path] = signature;
             return signature != info.Signature;

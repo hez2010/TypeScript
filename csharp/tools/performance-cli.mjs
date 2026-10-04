@@ -9,8 +9,13 @@ const option = (key, fallback) => process.argv.includes(key) ? process.argv[proc
 const directory = path.resolve(option("--directory", path.join(output, "phase8-performance/cli")));
 const packageManifest = JSON.parse(await readFile(option("--manifest", path.join(output, "phase8-final-managed/manifest.json"))));
 assert.equal(packageManifest.runtime, "coreclr-validation");
-const executables = { go: path.resolve(option("--go-executable", path.join(output, "phase8-validation/cli-host-verified/oracle.exe"))),
-    csharp: path.join(packageManifest.platformDirectory, "lib/tsgo.exe") };
+const baseline = option("--baseline-manifest") ? JSON.parse(await readFile(option("--baseline-manifest"))) : null;
+if (baseline) { assert.equal(baseline.runtime, "coreclr-validation"); assert.equal(baseline.version, packageManifest.version); }
+const backends = baseline ? ["before", "after"] : ["go", "csharp"];
+const executables = { [backends[0]]: baseline ? path.join(baseline.platformDirectory, "lib/tsgo.exe")
+    : path.resolve(option("--go-executable", path.join(output, "phase8-validation/cli-host-verified/oracle.exe"))),
+    [backends[1]]: path.join(packageManifest.platformDirectory, "lib/tsgo.exe") };
+const filter = new RegExp(option("--filter", ".*"));
 const samples = Number(option("--samples", "21"));
 const env = { DOTNET_ROOT: option("--dotnet-root", process.env.DOTNET_ROOT ?? "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64"),
     DOTNET_TieredCompilation: "1", COMPlus_TieredCompilation: "1", DOTNET_gcServer: "0", COMPlus_gcServer: "0" };
@@ -19,10 +24,10 @@ const inputs = {}, fixtures = {};
 async function fixture(name, files, options = {}) {
     const tree = { "package.json": '{"private":true,"type":"module"}',
         "tsconfig.json": JSON.stringify({ compilerOptions: { target: "es2022", module: "esnext", moduleResolution: "bundler", lib: ["es5"],
-            strict: true, skipLibCheck: true, declaration: true, outDir: "out", ...options }, include: ["src/**/*.ts"] }), ...files };
+            strict: true, skipLibCheck: true, declaration: true, rootDir: "src", outDir: "out", ...options }, include: ["src/**/*.ts"] }), ...files };
     inputs[name] = tree;
     fixtures[name] = {};
-    for (const backend of ["go", "csharp"]) {
+    for (const backend of backends) {
         const folder = path.join(directory, name, backend); fixtures[name][backend] = folder;
         for (const [file, text] of Object.entries(tree)) { await mkdir(path.dirname(path.join(folder, file)), { recursive: true }); await writeFile(path.join(folder, file), text); }
     }
@@ -33,7 +38,9 @@ const medium = Object.fromEntries(Array.from({ length: 64 }, (_, file) => [`src/
     Array.from({ length: 24 }, (_, item) => `export interface Item${item} { name: string; count: number; values: readonly number[] }\nexport const value${item}: Item${item} = { name: '日本語😀', count: ${item}, values: [1, 2, 3] };\n`).join("")]));
 await fixture("medium", medium);
 await fixture("declarations", { ...medium, "src/generic.ts": 'export type Flatten<T> = T extends readonly (infer U)[] ? Flatten<U> : T;\nexport type Values<T> = { [K in keyof T]: { key: K; value: Flatten<T[K]> } }[keyof T];\nexport type Model = Values<{ a: number[]; b: string[][]; c: { x: boolean } }>;\n' }, { emitDeclarationOnly: true });
-await fixture("tiny-files", Object.fromEntries(Array.from({ length: 512 }, (_, index) => [`src/f${index}.ts`, `export const v${index}: number = ${index};\n`])));
+const tiny = Object.fromEntries(Array.from({ length: 512 }, (_, index) => [`src/f${index}.ts`, `export const v${index}: number = ${index};\n`]));
+await fixture("tiny-files", tiny);
+await fixture("tiny-incremental", tiny, { incremental: true });
 await fixture("huge-file", { "src/index.ts": Array.from({ length: 16384 }, (_, index) => `export const value${index}: { count: number; text: string } = { count: ${index}, text: '日本語😀' };\n`).join("") });
 const deep = "src/" + "deep-path/".repeat(10);
 await fixture("host-paths", { [`${deep}日本語.ts`]: "export const 値 = 42;\n", "src/index.ts": `import { 値 } from './${"deep-path/".repeat(10)}日本語';\nexport const answer = 値;\nimport './missing';\n` });
@@ -46,7 +53,8 @@ const projects = {
 };
 await fixture("build", projects);
 await json(path.join(directory, "inputs.json"), inputs);
-const binaries = await fileHashes({ ...executables, compiler: path.join(path.dirname(executables.csharp), "TypeScript.Compiler.dll"),
+const binaries = await fileHashes({ ...executables, compiler: path.join(path.dirname(executables[backends[1]]), "TypeScript.Compiler.dll"),
+    ...baseline ? { beforeCompiler: path.join(path.dirname(executables[backends[0]]), "TypeScript.Compiler.dll") } : {},
     driver: path.join(root, "csharp/tools/performance-cli.mjs"), metrics: path.join(root, "csharp/tools/performance-metrics.ps1"), common: path.join(root, "csharp/tools/performance-common.mjs") });
 const metrics = await Metrics.start(), activity = await metrics.call({ kind: "activity" }), own = [process.pid, metrics.child.pid];
 const groups = [], controls = [];
@@ -66,12 +74,15 @@ async function execute(backend, name, args, extraEnv = {}, command = executables
     const folder = fixtures[name][backend];
     const result = await metrics.call({ kind: "run", executable: command, arguments: args, directory: folder, environment: { ...env, ...extraEnv } });
     own.push(result.metrics.pid);
+    if (["medium", "declarations", "tiny-files", "tiny-incremental", "huge-file", "build"].includes(name))
+        assert.equal(result.exitCode, 0, `${name}: ${result.stdout}${result.stderr}`);
     let stdout = result.stdout.replaceAll(folder.replaceAll("\\", "/"), "<workspace>").replaceAll(folder, "<workspace>").replaceAll("\r\n", "\n");
     stdout = stdout.replace(`Version ${packageManifest.version}`, "Version 7.1.0-dev");
     const ordinary = { exitCode: result.exitCode, stdout, stderr: result.stderr.replaceAll("\r\n", "\n"), files: await artifacts(folder) };
     return { ...result, ordinary, stdout: undefined, stderr: undefined };
 }
 async function compare(name, action, count = samples, warmups = 3) {
+    if (!filter.test(name)) return;
     const raw = path.join(directory, name + ".jsonl"); await writeFile(raw, "");
     const byIteration = new Map();
     const pairs = await paired(metrics, count, async (backend, iteration) => {
@@ -81,28 +92,36 @@ async function compare(name, action, count = samples, warmups = 3) {
         else byIteration.set(iteration, result.ordinary);
         result.outputSha256 = sha256(JSON.stringify(result.ordinary)); delete result.ordinary;
         return result;
-    }, raw, warmups);
-    const summary = { name, elapsedMs: summarizePairs(pairs), cpuMs: summarizePairs(pairs, result => result.metrics.cpuMs),
-        peakRssBytes: summarizePairs(pairs, result => result.metrics.peakRssBytes), rawSha256: sha256(await readFile(raw)), rawFile: raw };
+    }, raw, warmups, backends);
+    const summarize = metric => summarizePairs(pairs, metric, backends);
+    const summary = { name, elapsedMs: summarize(), cpuMs: summarize(result => result.metrics.cpuMs),
+        peakRssBytes: summarize(result => result.metrics.peakRssBytes), rawSha256: sha256(await readFile(raw)), rawFile: raw };
     const margin = Math.max(0.05, controls[0].p95RelativePairDifference);
     summary.referenceNoiseMargin = margin;
     const confidence = summary.elapsedMs.pairedBootstrap95;
     summary.coreclrMedianGate = confidence[1] <= 1 + margin ? "within margin" : confidence[0] > 1 + margin ? "regression" : "inconclusive";
-    if (pairs.every(pair => pair.go.firstOutputMs !== null && pair.csharp.firstOutputMs !== null)) summary.firstOutputMs = summarizePairs(pairs, result => result.firstOutputMs);
-    groups.push(summary); console.log(`${name}: Go ${summary.elapsedMs.go.median.toFixed(2)} ms, C# ${summary.elapsedMs.csharp.median.toFixed(2)} ms`);
+    if (pairs.every(pair => backends.every(backend => pair[backend].firstOutputMs !== null))) summary.firstOutputMs = summarize(result => result.firstOutputMs);
+    groups.push(summary); console.log(`${name}: ${backends[0]} ${summary.elapsedMs[backends[0]].median.toFixed(2)} ms, ${backends[1]} ${summary.elapsedMs[backends[1]].median.toFixed(2)} ms`);
 }
 try {
-    // Identical Go controls establish the startup/measurement noise before comparing runtimes.
+    // Identical reference controls establish startup/measurement noise before the candidate comparison.
     const raw = path.join(directory, "reference-noise.jsonl"); await writeFile(raw, "");
-    const noise = await paired(metrics, samples, backend => execute(backend, "empty", ["--version"], {}, executables.go), raw);
-    controls.push({ name: "same Go executable and arguments", elapsedMs: summarizePairs(noise),
-        p95RelativePairDifference: percentile(noise.filter(pair => !pair.contaminated).map(pair => Math.abs(pair.go.elapsedMs - pair.csharp.elapsedMs) / pair.go.elapsedMs), 0.95) });
+    const noise = await paired(metrics, samples, backend => execute(backend, "empty", ["--version"], {}, executables[backends[0]]), raw, 3, backends);
+    controls.push({ name: "same reference executable and arguments", elapsedMs: summarizePairs(noise, undefined, backends),
+        p95RelativePairDifference: percentile(noise.filter(pair => !pair.contaminated).map(pair => Math.abs(pair[backends[0]].elapsedMs - pair[backends[1]].elapsedMs) / pair[backends[0]].elapsedMs), 0.95) });
     await compare("help", backend => execute(backend, "empty", ["--help"]));
     await compare("version", backend => execute(backend, "empty", ["--version"]));
     await compare("empty-project", backend => execute(backend, "empty", ["--project", ".", "--pretty", "false"]));
     await compare("small-first-diagnostic", backend => execute(backend, "small", ["--project", ".", "--pretty", "false"]));
     for (const name of ["medium", "declarations", "tiny-files", "huge-file", "host-paths"])
         await compare(name, backend => execute(backend, name, ["--project", ".", "--pretty", "false"]));
+    await compare("tiny-files-noemit", backend => execute(backend, "tiny-files", ["--project", ".", "--pretty", "false", "--noEmit"]));
+    await compare("tiny-files-noemit-on-error", backend => execute(backend, "tiny-files", ["--project", ".", "--pretty", "false", "--noEmitOnError"]));
+    await compare("tiny-files-incremental-edit", async (backend, iteration) => {
+        for (let index = 0; index < 512; index++)
+            await writeFile(path.join(fixtures["tiny-incremental"][backend], `src/f${index}.ts`), `export const v${index}: number = ${index + (iteration % 2 === 0 ? 1 : 0)};\n`);
+        return execute(backend, "tiny-incremental", ["--project", ".", "--pretty", "false"]);
+    });
     for (const checkers of [1, 2, 4, 8])
         await compare(`medium-checkers-${checkers}`, backend => execute(backend, "medium", ["--project", ".", "--pretty", "false", "--checkers", String(checkers)]));
     await compare("medium-256m-heap-setting", backend => execute(backend, "medium", ["--project", ".", "--pretty", "false"],
@@ -122,10 +141,10 @@ try {
     assert.deepEqual(await fileHashes(Object.fromEntries(Object.entries(binaries).map(([name, item]) => [name, item.file]))), binaries);
     const machineActivity = await activityReport(metrics, activity, own);
     await saveSummary(path.join(directory, "summary.json"), { referenceRevision, runtime: "Release CoreCLR", nativeExecuted: false,
-        binaries, packageManifest: packageManifest.sourceSha256, samples, inputsSha256: sha256(JSON.stringify(inputs)), controls, groups, machineActivity,
+        binaries, packageManifest: packageManifest.sourceSha256, baselineManifest: baseline?.sourceSha256, comparison: backends, samples, inputsSha256: sha256(JSON.stringify(inputs)), controls, groups, machineActivity,
         machine: { os: os.version(), cpu: os.cpus()[0].model, logicalProcessors: os.availableParallelism(), totalMemory: os.totalmem() }, environment: env,
         boundaries: ["Warm filesystem, fresh compiler processes; process creation included", "Win32 peak RSS and process CPU, measured using the same collector for both backends",
             "Files, diagnostics and emitted bytes compare exactly; package version header is mapped explicitly; runtime-specific tsbuildinfo version is excluded from emitted-language-artifact hashes",
-            "Keyboard/mouse-contaminated pairs are preserved and replaced", "The 256 MiB settings have distinct runtime semantics: Go soft memory limit and CLR GC heap hard limit",
+            "Keyboard/mouse-contaminated pairs are preserved and replaced", baseline ? "The 256 MiB settings use the CLR GC heap hard limit for both builds" : "The 256 MiB settings have distinct runtime semantics: Go soft memory limit and CLR GC heap hard limit",
             "Synthetic stress fixtures complement the original checker corpus; they are not a benchmark of VS Code or another complete application"] });
 } finally { await metrics.close(); }

@@ -1,4 +1,5 @@
 using TypeScript.Compiler.Ast;
+using TypeScript.Compiler.Checking;
 using TypeScript.Compiler.Configuration;
 using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Emission;
@@ -43,6 +44,7 @@ public sealed partial class IncrementalProgram
                 return result;
             }
             if (CanUseState) await CollectAffectedFilesAsync(cancellation).ConfigureAwait(false);
+            Checker? emitChecker = null;
             foreach (var file in Program.SourceFiles)
             {
                 var path = file.Syntax.FileName;
@@ -64,11 +66,12 @@ public sealed partial class IncrementalProgram
                 }
                 bool javascript = (pending & FileEmitKind.AllJavaScript) != 0;
                 bool declarations = (pending & FileEmitKind.AllDeclarations) != 0;
-                var result = await Program.EmitAsync(new()
+                emitChecker ??= await Program.CreateCheckerAsync(cancellation).ConfigureAwait(false);
+                var result = await Program.EmitWithCheckerAsync(new()
                 {
                     SourceFiles = [file.Syntax], WriteFile = Write,
                     Only = javascript && declarations ? EmitOnly.All : javascript ? EmitOnly.JavaScript : EmitOnly.Declarations
-                }, cancellation).ConfigureAwait(false);
+                }, emitChecker, cancellation).ConfigureAwait(false);
                 skipped |= result.EmitSkipped;
                 errors.AddRange(result.Diagnostics); emitted.AddRange(result.EmittedFiles); maps.AddRange(result.SourceMaps);
                 if (result.Diagnostics.Count == 0) snapshot.EmitDiagnostics.Remove(path);
