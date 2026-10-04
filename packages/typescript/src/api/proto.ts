@@ -10,10 +10,10 @@ import type {
     SourceFileResponse,
     SymbolResponse,
     TypeResponse,
-} from "./proto.generated.ts";
-export type { ConfigFileResponse as ParsedCommandLine, DiagnosticResponse as Diagnostic } from "./proto.generated.ts";
+} from "./protocol.types.ts";
+export type { ConfigFileResponse as ParsedCommandLine, DiagnosticResponse as Diagnostic } from "./protocol.types.ts";
 
-export * from "./proto.generated.ts";
+export * from "./protocol.types.ts";
 
 export type APIMethodsReturning<T> = { [K in keyof APIMethodInfo]: [T] extends [NonNullable<APIMethodInfo[K]["result"]>] ? [NonNullable<APIMethodInfo[K]["result"]>] extends [T] ? K : never : never; }[keyof APIMethodInfo];
 

@@ -5,30 +5,6 @@
         "editor.defaultFormatter": "dprint.dprint",
         "editor.formatOnSave": true
     },
-    "[go][go.mod][go.sum][go.work]": {
-        "files.eol": "\n",
-        "files.insertFinalNewline": true,
-        "editor.defaultFormatter": "golang.go",
-        "editor.formatOnSave": true,
-        "editor.insertSpaces": false
-    },
-    "[go]": {
-        "editor.codeActionsOnSave": {
-            "source.organizeImports": "explicit",
-            "source.fixAll": "explicit"
-        }
-    },
-    "gopls": {
-        "formatting.gofumpt": true,
-        "ui.diagnostic.analyses": {
-            "unusedparams": false
-        }
-    },
-    "go.lintTool": "golangci-lint",
-    "go.alternateTools": {
-        "golangci-lint": "${workspaceFolder}/tools/custom-gcl${env:GOEXE}"
-    },
-    "go.lintOnSave": "off",
     "gitlens.advanced.blame.customArguments": [
         "--ignore-revs-file",
         ".git-blame-ignore-revs"

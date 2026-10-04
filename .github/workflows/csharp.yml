@@ -1,0 +1,67 @@
+name: C# product
+
+on:
+  workflow_dispatch:
+    inputs:
+      sdk-version:
+        description: .NET 11 SDK version or channel to validate
+        default: '11.0.x'
+        type: string
+  workflow_call:
+    inputs:
+      sdk-version:
+        default: '11.0.x'
+        type: string
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  product:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+      - uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
+        with:
+          dotnet-version: ${{ inputs.sdk-version || '11.0.x' }}
+          dotnet-quality: daily
+      - run: npm ci --no-audit --no-fund
+      - name: Check every retained platform statically
+        run: node csharp/tools/without-go.mjs csharp/tools/check-platforms.mjs
+      - name: Build, generate, test, package and integrate without Go
+        run: node csharp/tools/without-go.mjs node_modules/hereby/bin/hereby.js validate
+      - name: Verify generated sources did not drift
+        run: git diff --exit-code
+      - name: Publish NativeAOT packages without executing them
+        run: node csharp/tools/without-go.mjs csharp/tools/package.mjs
+      - name: Verify NativeAOT package contents without executing them
+        run: node csharp/tools/without-go.mjs csharp/tools/verify-package.mjs
+      - name: Pack the native VS Code extension without execution
+        run: node csharp/tools/without-go.mjs csharp/tools/package-vsix.mjs
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: typescript-csharp-${{ matrix.runner }}
+          path: |
+            built/csharp/distribution/*/*/manifest.json
+            built/csharp/distribution/*/*/npm/*.tgz
+            built/csharp/distribution/*/*/*.zip
+            built/csharp/distribution/*/*/stage-*/publish.log
+            built/csharp/distribution/*/*/stage-*/source-provenance.json
+            built/csharp/phase8-validation/**/summary.json
+            built/csharp/phase8-validation/**/*.log
+            built/csharp/platform-validation.json
+            built/csharp/distribution/*/*/vsix/*.vsix
+            built/csharp/product-tests.json
+            built/csharp/generator-validation/summary.json

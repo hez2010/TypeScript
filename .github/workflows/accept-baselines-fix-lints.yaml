@@ -1,4 +1,4 @@
-name: Accept Baselines, Fix Lints, and Format
+name: Regenerate, Test, and Format
 
 on:
   workflow_dispatch:
@@ -13,7 +13,7 @@ defaults:
 
 jobs:
   update:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     environment:
       name: azure
       deployment: false
@@ -24,18 +24,20 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24
-      - uses: ./.github/actions/setup-go
+      - uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
+        with:
+          dotnet-version: '11.0.x'
+          dotnet-quality: daily
       - name: Update generated files and baselines
         run: |
           git config user.email "290192711+typescript-automation[bot]@users.noreply.github.com"
           git config user.name "typescript-automation[bot]"
           npm ci
           npx hereby generate
-          npx hereby test || true
-          npx hereby baseline-accept
-          npx hereby lint --fix
+          npx hereby test
+          npx hereby lint
           npx hereby format
-          git add tsc packages tools
+          git add csharp packages tools
           git diff --cached
           git commit -m "Update generated files, baselines, lints, and formatting"
       - uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3.1.0

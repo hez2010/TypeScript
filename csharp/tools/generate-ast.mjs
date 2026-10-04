@@ -33,15 +33,12 @@ function bindingFields(definition, kind, options, name) {
     const bases = baseNames(definition), kinds = new Set(options ?? [kind]), fields = [];
     const hasKind = (...values) => values.some(value => kinds.has(value));
     if (bases.has("DeclarationBase")) fields.push(["Symbol", "Symbol?"], ["LocalSymbol", "Symbol?"]);
-    if (bases.has("FlowNodeBase") || bases.has("ExpressionBase") || bases.has("DeclarationBase"))
-        fields.push(["Flow", "FlowNode?"]);
-    if (bases.has("LocalsContainerBase") || bases.has("FunctionLikeBase")
-        || hasKind("ClassDeclaration", "ClassExpression", "EnumDeclaration", "ObjectLiteralExpression", "TypeLiteral",
-            "JsxAttributes", "InterfaceDeclaration", "ModuleDeclaration", "TypeAliasDeclaration", "JSTypeAliasDeclaration",
-            "MappedType", "ConditionalType", "ClassStaticBlockDeclaration", "IndexSignature"))
-        fields.push(["Locals", "SymbolTable?"]);
-    if (bases.has("FunctionLikeWithBodyBase") || hasKind("ClassStaticBlockDeclaration") || name === "CaseOrDefaultClause")
-        fields.push(["EndFlow", "FlowNode?"]);
+    if (bases.has("FlowNodeBase") || bases.has("ExpressionBase") || bases.has("DeclarationBase")) fields.push(["Flow", "FlowNode?"]);
+    if (
+        bases.has("LocalsContainerBase") || bases.has("FunctionLikeBase")
+        || hasKind("ClassDeclaration", "ClassExpression", "EnumDeclaration", "ObjectLiteralExpression", "TypeLiteral", "JsxAttributes", "InterfaceDeclaration", "ModuleDeclaration", "TypeAliasDeclaration", "JSTypeAliasDeclaration", "MappedType", "ConditionalType", "ClassStaticBlockDeclaration", "IndexSignature")
+    ) fields.push(["Locals", "SymbolTable?"]);
+    if (bases.has("FunctionLikeWithBodyBase") || hasKind("ClassStaticBlockDeclaration") || name === "CaseOrDefaultClause") fields.push(["EndFlow", "FlowNode?"]);
     if (bases.has("FunctionLikeWithBodyBase") || hasKind("ClassStaticBlockDeclaration")) fields.push(["ReturnFlow", "FlowNode?"]);
     return fields;
 }
@@ -188,8 +185,7 @@ for (const [name, definition] of Object.entries(definitions)) {
         lines.push(`    public ${t} ${upper(m.name)} { get; set; }${t.endsWith("[]") ? " = [];" : ""}`);
     }
     const binding = bindingFields(definition, kind, options, name);
-    for (const [property, fieldType] of binding)
-        lines.push(`    internal override ${fieldType} Binding${property} { get; set; }`);
+    for (const [property, fieldType] of binding) lines.push(`    internal override ${fieldType} Binding${property} { get; set; }`);
     if (binding.length) {
         lines.push("    internal override void ClearBindingState()", "    {", "        base.ClearBindingState();");
         for (const [property] of binding) lines.push(`        Binding${property} = null;`);
@@ -226,8 +222,7 @@ for (const [name, definition] of Object.entries(definitions)) {
         else lines.push(`        if (${m.condition ? m.condition + " && " : ""}${n} is { } ${m.local ?? "child" + n} && index-- == 0) return ${m.local ?? "child" + n};`);
     }
     lines.push("        throw new ArgumentOutOfRangeException(nameof(index));", "    }");
-    if (children.some(m => upper(m.name) === "Comment" && m.list && m.list !== "raw"))
-        lines.push("    internal override NodeList? DocumentationComment => Comment;");
+    if (children.some(m => upper(m.name) === "Comment" && m.list && m.list !== "raw")) lines.push("    internal override NodeList? DocumentationComment => Comment;");
     if (children.length) {
         lines.push("    internal override void GetChildGroups(List<SyntaxChild> result)", "    {");
         // Navigation follows VisitEachChild, whose JSDoc parameter order differs
@@ -275,6 +270,7 @@ for (
         ["csharp/oracle/syntax/scalars.generated.go", goScalars.join("\n") + "\n"],
     ]
 ) {
+    if (file.endsWith(".go") && !process.argv.includes("--oracle")) continue;
     const destination = path.join(root, file);
     if (process.argv.includes("--check")) {
         if ((await readFile(destination, "utf8")).replaceAll("\r\n", "\n") !== content) throw new Error(`Stale AST scalar serializer: ${file}`);

@@ -1478,6 +1478,7 @@ function emitNodeGeneratedImports(w: CodeWriter) {
     w.write(`    getFirstToken,`);
     w.write(`    getLastToken,`);
     w.write(`    getTokenPosOfNode,`);
+    w.write(`    sliceSourceText,`);
     w.write(`    ModifierFlags,`);
     w.write(`    type Node,`);
     w.write(`    type NodeArray,`);
@@ -1788,12 +1789,12 @@ function emitRemoteNodeClassOpen(w: CodeWriter) {
     w.write(`    }`);
     w.write(``);
     w.write(`    getFullText(sourceFile?: SourceFile): string {`);
-    w.write(`        return (sourceFile ?? this.getSourceFile()).text.substring(this.pos, this.end);`);
+    w.write(`        return sliceSourceText(sourceFile ?? this.getSourceFile(), this.pos, this.end);`);
     w.write(`    }`);
     w.write(``);
     w.write(`    getText(sourceFile?: SourceFile): string {`);
     w.write(`        sourceFile ??= this.getSourceFile();`);
-    w.write(`        return sourceFile.text.substring(this.getStart(sourceFile), this.end);`);
+    w.write(`        return sliceSourceText(sourceFile, this.getStart(sourceFile), this.end);`);
     w.write(`    }`);
     w.write(``);
     w.write(`    getChildCount(sourceFile?: SourceFile): number {`);
@@ -2061,19 +2062,21 @@ function writeAndFormat(filePath: string, content: string, formatter: string) {
 export default function main() {
     console.log("Generating encoder/decoder code...");
 
-    const goEncoder = generateGoEncoder();
-    writeAndFormat(
-        path.join(ROOT, "tsc/internal/api/encoder/encoder_generated.go"),
-        goEncoder + "\n",
-        "dprint fmt",
-    );
+    if (process.argv.includes("--oracle")) {
+        const goEncoder = generateGoEncoder();
+        writeAndFormat(
+            path.join(ROOT, "tsc/internal/api/encoder/encoder_generated.go"),
+            goEncoder + "\n",
+            "dprint fmt",
+        );
 
-    const goDecoder = generateGoDecoder();
-    writeAndFormat(
-        path.join(ROOT, "tsc/internal/api/encoder/decoder_generated.go"),
-        goDecoder + "\n",
-        "dprint fmt",
-    );
+        const goDecoder = generateGoDecoder();
+        writeAndFormat(
+            path.join(ROOT, "tsc/internal/api/encoder/decoder_generated.go"),
+            goDecoder + "\n",
+            "dprint fmt",
+        );
+    }
 
     const tsProtocol = generateTSProtocol();
     writeAndFormat(

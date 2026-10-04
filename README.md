@@ -11,6 +11,12 @@
 
 Find others who are using TypeScript at [our community page](https://www.typescriptlang.org/community/).
 
+## C# backend in this branch
+
+This branch builds the compiler, watch/build host, language server and API from C# by default. Use Node 24 and a .NET 11 SDK, then run `npm ci`, `npm run build` and `npx hereby validate`. No Go toolchain is required. C# is the default on all retained .NET NativeAOT platforms. Windows x64 has runtime validation; other targets are accepted after static review. Tests use Release CoreCLR, and NativeAOT artifacts are published without execution. See [contributing](CONTRIBUTING.md) and the [phase-9 report](docs/csharp-phase-9-progress.md).
+
+Local packages use the `typescript` package and `tsc` executable names. These branch artifacts have not been published to the public npm registry. The registry commands below refer to the upstream releases.
+
 ## Installing
 
 For the latest stable version:

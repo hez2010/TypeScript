@@ -1,17 +1,19 @@
 import {
-    computeLineStarts,
     type FileReference,
+    getSourcePositions,
     type LineAndCharacter,
     type MappedDiagnosticDirective,
     type Node,
     NodeFlags,
     type Path,
+    type SourceFile,
     SpanMap,
     SpanMapFeature,
     SpanMapKind,
     SyntaxKind,
     TokenFlags,
 } from "../../ast/index.ts";
+import { computeLineStarts as computeUtf16LineStarts } from "../../ast/scanner.utf16.ts";
 import type { TimingCollector } from "../timing.ts";
 import { MsgpackReader } from "./msgpack.ts";
 import {
@@ -29,10 +31,12 @@ import {
     HEADER_OFFSET_STRING_TABLE,
     HEADER_OFFSET_STRING_TABLE_OFFSETS,
     HEADER_OFFSET_STRUCTURED_DATA,
+    HEADER_SIZE,
     KIND_NODE_LIST,
     NODE_LEN,
     NODE_OFFSET_KIND,
     NODE_OFFSET_PARENT,
+    PROTOCOL_VERSION,
 } from "./protocol.ts";
 import { Wtf8Decoder } from "./wtf8.ts";
 
@@ -98,6 +102,7 @@ export class RemoteSourceFile extends RemoteNode implements SourceFileInfo {
     private _diagnosticDirectivesRead = false;
 
     constructor(data: Uint8Array, decoder: TextDecoder, timing?: TimingCollector) {
+        if (data.byteLength < HEADER_SIZE || data[3] !== PROTOCOL_VERSION) throw new Error("The C# client requires AST protocol version 9 with UTF-8 byte positions.");
         const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
         const offsetNodes = view.getUint32(HEADER_OFFSET_NODES, true);
         super(view, 1, undefined!, undefined!, offsetNodes);
@@ -356,6 +361,14 @@ export class RemoteSourceFile extends RemoteNode implements SourceFileInfo {
         return (this.flags & NodeFlags.Ambient) !== 0;
     }
 
+    /** @internal */
+    getSourceBytes(): Uint8Array {
+        const index = this.view.getUint32(this.extendedDataOffset + sourceFileExtendedDataOffsets.Text, true);
+        const start = this.view.getUint32(this._offsetStringTableOffsets + index * 4, true);
+        const end = this.view.getUint32(this._offsetStringTableOffsets + (index + 1) * 4, true);
+        return new Uint8Array(this.view.buffer, this.view.byteOffset + this._offsetStringTable + start, end - start);
+    }
+
     get text(): string {
         if (this._cachedText !== undefined) return this._cachedText;
         const text = super.text!;
@@ -366,7 +379,7 @@ export class RemoteSourceFile extends RemoteNode implements SourceFileInfo {
     // ═══ Line/character position mapping ═══
 
     getLineStarts(): readonly number[] {
-        return this._lineStarts ??= computeLineStarts(this.text ?? "");
+        return this._lineStarts ??= computeUtf16LineStarts(this.text).map(position => getSourcePositions(this as unknown as SourceFile).toUtf8(position));
     }
 
     getLineAndCharacterOfPosition(position: number): LineAndCharacter {

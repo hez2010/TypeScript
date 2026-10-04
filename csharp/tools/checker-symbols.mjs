@@ -23,7 +23,7 @@ await mkdir(path.join(source, "cmd/checker-symbols-probe"), { recursive: true })
 await copyFile(path.join(root, "csharp/oracle/checker-symbols/main.go"), path.join(source, "cmd/checker-symbols-probe/main.go"));
 await copyFile(path.join(root, "csharp/oracle/checker-symbols/bridge.go"), path.join(source, "internal/checker/csharp_symbols_probe.go"));
 await run(go, ["-C", source, "build", "-mod=readonly", "-buildvcs=false", "-o", oracle, "./cmd/checker-symbols-probe"], { env: { ...process.env, GOWORK: "off", GOTOOLCHAIN: "local" } });
-if (!process.argv.includes("--no-build")) await run(dotnet, managed ? ["build", "tests/TypeScript.Compatibility", "-c", "Release", "--no-restore"] : ["publish", "tests/TypeScript.Compatibility", "-p:PublishAot=true", "-c", "Release", "-r", "win-x64", "-p:IlcInstructionSet=native", "-p:RestoreLockedMode=true", "-o", native], { cwd: path.join(root, "csharp"), env: { ...process.env, DOTNET_ROOT: path.dirname(dotnet), PATH: path.dirname(dotnet) + path.delimiter + process.env.PATH } });
+if (!process.argv.includes("--no-build")) await run(dotnet, managed ? ["build", "tests/TypeScript.Compatibility", "-c", "Release", "--no-restore"] : ["publish", "tests/TypeScript.Compatibility", "-p:PublishAot=true", "-c", "Release", "-r", "win-x64", "-p:IlcInstructionSet=native", "-o", native], { cwd: path.join(root, "csharp"), env: { ...process.env, DOTNET_ROOT: path.dirname(dotnet), PATH: path.dirname(dotnet) + path.delimiter + process.env.PATH } });
 const cases = [];
 let state = 631243;
 const random = n => (state = (Math.imul(state, 1664525) + 1013904223) >>> 0) % n;

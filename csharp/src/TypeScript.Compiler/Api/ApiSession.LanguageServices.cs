@@ -20,7 +20,7 @@ public sealed partial class ApiSession
         if (method == "getCompletionsAtPosition"u8 || method == "getImportAdderEdits"u8)
         {
             var document = ApiJson.Get(parameters, "file"u8);
-            var file = program.GetFile(Document(document));
+            var file = program.GetFile(Document(document, program));
             if (file is null)
             {
                 if (method == "getCompletionsAtPosition"u8) return RpcResponse.Null;

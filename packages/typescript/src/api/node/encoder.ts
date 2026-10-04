@@ -7,6 +7,7 @@ import type {
     TemplateLiteralLikeNode,
 } from "../../ast/index.ts";
 import { SyntaxKind } from "../../ast/index.ts";
+import { getSourceBytes } from "../../ast/positions.ts";
 import {
     getNodeCommonData,
     getNodeDataType,
@@ -46,9 +47,9 @@ class StringTable {
         this.offsets = [];
     }
 
-    add(text: string): number {
+    add(text: string, bytes?: Uint8Array): number {
         const index = this.offsets.length;
-        const encoded = encodeWtf8(text);
+        const encoded = bytes ?? encodeWtf8(text);
         const offset = this.byteLen;
         this.parts.push(encoded);
         this.byteLen += encoded.length;
@@ -130,7 +131,7 @@ function recordExtendedData(node: Node, strs: StringTable, extendedData: number[
     const offset = extendedData.length * 4;
     if (node.kind === SyntaxKind.SourceFile) {
         const sf = node as SourceFile;
-        const textIndex = strs.add(sf.text);
+        const textIndex = strs.add(sf.text, getSourceBytes(sf));
         const fileNameIndex = strs.add(sf.fileName);
         const pathIndex = strs.add(sf.path);
         const referencedFilesOffset = encodeFileReferences(sf.referencedFiles, structuredWriter);

@@ -146,14 +146,17 @@ for (const [name, definition] of Object.entries(schema.nodes.definitions)) {
 cs.push('                default: throw new InvalidDataException("Unknown syntax node");', "            }", "            writer.WriteEndObject();", "        }", "        writer.WriteEndArray();", "        writer.WriteEndObject();", "    }", "    private static void List(Utf8JsonWriter writer, NodeList? list, Dictionary<SyntaxNode, int> ids)", "    {", "        if (list is null) { writer.WriteNullValue(); return; }", '        writer.WriteStartObject(); writer.WriteNumber("pos", list.Pos); writer.WriteNumber("end", list.End); writer.WriteStartArray("nodes");', "        foreach (var node in list) writer.WriteNumberValue(ids[node]); writer.WriteEndArray(); writer.WriteEndObject();", "    }", "}");
 go.push("    } }", "    root.ExternalModuleIndicator=nodes[tree.External]", "    return nodes", "}");
 for (const [relative, lines] of [["csharp/tests/TypeScript.Compatibility/BindingSyntax.generated.cs", cs], ["csharp/oracle/binding/syntax.generated.go", go]]) {
+    if (relative.endsWith(".go") && !process.argv.includes("--oracle")) continue;
     const file = path.join(root, relative);
     let text = lines.join("\n") + "\n";
-    if (relative.endsWith(".cs")) text = text.replaceAll(/("[^"\r\n]*")(?=,|\))/g, (literal, offset) => {
-        const line = text.slice(text.lastIndexOf("\n", offset) + 1, offset);
-        return line.includes("writer.Write") ? literal + "u8" : literal;
-    });
+    if (relative.endsWith(".cs")) {
+        text = text.replaceAll(/("[^"\r\n]*")(?=,|\))/g, (literal, offset) => {
+            const line = text.slice(text.lastIndexOf("\n", offset) + 1, offset);
+            return line.includes("writer.Write") ? literal + "u8" : literal;
+        });
+    }
     if (relative.endsWith(".go")) {
-        const formatted = spawnSync(process.env.GOFMT ?? "D:/go1.27.1-20260904.9.windows-amd64/go/bin/gofmt.exe", [], { input: text, encoding: "utf8", windowsHide: true });
+        const formatted = spawnSync(process.env.GOFMT ?? "gofmt", [], { input: text, encoding: "utf8", windowsHide: true });
         if (formatted.status !== 0) throw Error(formatted.stderr || "Cannot format the development-only Go oracle");
         text = formatted.stdout;
     }

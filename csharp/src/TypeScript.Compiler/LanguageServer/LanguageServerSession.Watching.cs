@@ -17,7 +17,7 @@ internal sealed partial class LanguageServerSession
     private Task watchRegistrar = Task.CompletedTask, nativeChangeReader = Task.CompletedTask;
 
     private bool SupportsFileWatching => Boolean(Get(Get(capabilities, "workspace"u8), "didChangeWatchedFiles"u8), "dynamicRegistration"u8)
-        || options.WatchBackend is not null || OperatingSystem.IsWindows() || OperatingSystem.IsMacOS();
+        || options.WatchBackend is not null || !OperatingSystem.IsBrowser();
 
     private void StartFileWatching()
     {

@@ -19,16 +19,7 @@ if (expectedMajorMinor && expectedMajorMinor !== majorMinor) {
     throw new Error(`Version ${version} has major.minor ${majorMinor}, not ${expectedMajorMinor}`);
 }
 
-updateFile(
-    "tsc/internal/core/version.go",
-    /var version = "[^"]+"/g,
-    `var version = "${version}"`,
-);
-updateFile(
-    "Herebyfile.mjs",
-    /const nativePreviewReleaseVersion = \/\*\* @type \{string \| undefined\} \*\/ \([^)]*\);/g,
-    `const nativePreviewReleaseVersion = /** @type {string | undefined} */ ("${version}");`,
-);
+fs.writeFileSync("csharp/version.txt", version + "\n");
 
 /**
  * @param {string} value
@@ -48,13 +39,4 @@ function isReleaseVersion(value) {
         default:
             return patch >= 2n;
     }
-}
-
-function updateFile(path, pattern, replacement) {
-    const source = fs.readFileSync(path, "utf8");
-    const matches = source.match(pattern);
-    if (matches?.length !== 1) {
-        throw new Error(`Expected exactly one release version declaration in ${path}, found ${matches?.length ?? 0}`);
-    }
-    fs.writeFileSync(path, source.replace(pattern, replacement));
 }

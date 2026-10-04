@@ -1,0 +1,3173 @@
+// @ts-check
+
+import AdmZip from "adm-zip";
+import chokidar from "chokidar";
+import { task } from "hereby";
+import assert from "node:assert";
+import crypto from "node:crypto";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import url from "node:url";
+import {
+    parseArgs,
+    styleText,
+} from "node:util";
+import * as tar from "tar";
+import {
+    x,
+    xSync,
+} from "tinyexec";
+
+if (process.platform === "win32") {
+    process.chdir(fs.realpathSync.native(process.cwd()));
+}
+
+const __filename = url.fileURLToPath(new URL(import.meta.url));
+const __dirname = path.dirname(__filename);
+
+const isCI = !!process.env.CI || !!process.env.TF_BUILD;
+const stableThreeComponentVersionPatternSource = String.raw`^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$`;
+const stableThreeComponentVersionPattern = new RegExp(stableThreeComponentVersionPatternSource);
+
+/**
+ * @typedef {{
+ *   captureOutput?: boolean;
+ *   cwd?: string;
+ *   env?: NodeJS.ProcessEnv;
+ *   signal?: AbortSignal;
+ * }} RunOptions
+ */
+
+/**
+ * @param {string} arg
+ */
+function formatCommandArg(arg) {
+    return arg && /^[\w@%+=:,./-]+$/.test(arg) ? arg : JSON.stringify(arg);
+}
+
+/**
+ * @param {string} command
+ * @param {readonly string[]} [args]
+ * @param {RunOptions} [options]
+ */
+function run(command, args = [], options = {}) {
+    console.log("$ " + [command, ...args].map(formatCommandArg).join(" "));
+    return x(command, args, {
+        throwOnError: true,
+        ...(options.signal ? { signal: options.signal } : {}),
+        nodeOptions: {
+            cwd: options.cwd,
+            env: options.env ? { ...process.env, ...options.env } : undefined,
+            stdio: options.captureOutput ? "pipe" : "inherit",
+        },
+    });
+}
+
+/**
+ * @param {string} command
+ * @param {readonly string[]} [args]
+ * @param {Omit<RunOptions, "captureOutput">} [options]
+ */
+function runOutput(command, args, options) {
+    return run(command, args, { ...options, captureOutput: true });
+}
+
+/**
+ * @param {string} name
+ * @param {boolean} defaultValue
+ * @returns {boolean}
+ */
+function parseEnvBoolean(name, defaultValue = false) {
+    name = "TSGO_HEREBY_" + name.toUpperCase();
+
+    const value = process.env[name];
+    if (!value) {
+        return defaultValue;
+    }
+    switch (value.toUpperCase()) {
+        case "1":
+        case "TRUE":
+        case "YES":
+        case "ON":
+            return true;
+        case "0":
+        case "FALSE":
+        case "NO":
+        case "OFF":
+            return false;
+    }
+    throw new Error(`Invalid value for ${name}: ${value}`);
+}
+
+const { values: rawOptions } = parseArgs({
+    args: process.argv.slice(2),
+    options: {
+        tests: { type: "string", short: "t" },
+        fix: { type: "boolean" },
+        api: { type: "boolean" },
+        all: { type: "boolean" },
+        debug: { type: "boolean" },
+        dirty: { type: "boolean" },
+        release: { type: "boolean" },
+
+        setPrerelease: { type: "string" },
+        forRelease: { type: "boolean" },
+        respectGoEnv: { type: "boolean" },
+        vscodeTypescriptRelease: { type: "boolean" },
+
+        race: { type: "boolean", default: parseEnvBoolean("RACE") },
+        noembed: { type: "boolean", default: parseEnvBoolean("NOEMBED") },
+        concurrentTestPrograms: { type: "boolean", default: parseEnvBoolean("CONCURRENT_TEST_PROGRAMS") },
+        coverage: { type: "boolean", default: parseEnvBoolean("COVERAGE") },
+    },
+    strict: false,
+    allowPositionals: true,
+    allowNegative: true,
+});
+
+// We can't use parseArgs' strict mode as it errors on hereby's --tasks flag.
+/**
+ * @typedef {{ [K in keyof typeof rawOptions as {} extends Record<K, 1> ? never : K]: typeof rawOptions[K] }} Options
+ */
+const options = /** @type {Options} */ (rawOptions);
+
+// Native release branches can edit these constants to publish a fixed stable version.
+// Main publishes prerelease builds of the TypeScript package.
+const nativePreviewReleaseProfile = /** @type {"native-preview" | "typescript"} */ ("typescript");
+const nativePreviewReleaseVersion = /** @type {string | undefined} */ (undefined);
+const releaseVscodeTypescript = !!options.vscodeTypescriptRelease;
+const produceNativePreviewVsix = releaseVscodeTypescript;
+const produceTypeScriptNightlyVsix = !nativePreviewReleaseVersion && !releaseVscodeTypescript;
+const usePublishedPlatformPackagesForVsix = releaseVscodeTypescript;
+const produceAnyVsix = produceNativePreviewVsix || produceTypeScriptNightlyVsix;
+const publishAsTypescript = nativePreviewReleaseProfile === "typescript";
+
+if (releaseVscodeTypescript && options.setPrerelease) {
+    throw new Error("vscode-typescript releases use the extension's package.json version and do not accept setPrerelease");
+}
+if (!releaseVscodeTypescript && options.forRelease && !options.setPrerelease && (!nativePreviewReleaseVersion || produceAnyVsix)) {
+    throw new Error("forRelease requires setPrerelease unless nativePreviewReleaseVersion is hardcoded and VSIX production is disabled");
+}
+if (options.respectGoEnv && options.forRelease) {
+    throw new Error("respectGoEnv cannot be combined with forRelease");
+}
+if (options.respectGoEnv && options.setPrerelease) {
+    throw new Error("respectGoEnv requires the version declared in the source");
+}
+if (releaseVscodeTypescript && !publishAsTypescript) {
+    throw new Error("vscode-typescript releases require nativePreviewReleaseProfile to be 'typescript'");
+}
+
+const defaultGoBuildTags = [
+    ...(options.noembed ? ["noembed"] : []),
+];
+
+/**
+ * @param  {...string} extra
+ * @returns {string[]}
+ */
+function goBuildTags(...extra) {
+    const tags = new Set(defaultGoBuildTags.concat(extra));
+    return tags.size ? [`-tags=${[...tags].join(",")}`] : [];
+}
+
+const goBuildFlags = [
+    ...(options.race ? ["-race"] : []),
+    // https://github.com/go-delve/delve/blob/62cd2d423c6a85991e49d6a70cc5cb3e97d6ceef/Documentation/usage/dlv_exec.md?plain=1#L12
+    ...(options.debug ? ["-gcflags=all=-N -l"] : []),
+];
+
+const goBuildEnv = {
+    ...(options.race ? {} : { CGO_ENABLED: "0" }),
+};
+
+/**
+ * @template T
+ * @param {() => T} fn
+ * @returns {() => T}
+ */
+function memoize(fn) {
+    /** @type {T} */
+    let value;
+    return () => {
+        if (fn !== undefined) {
+            value = fn();
+            fn = /** @type {any} */ (undefined);
+        }
+        return value;
+    };
+}
+
+/**
+ * @param {string} pattern
+ * @param {string[]} [exclude]
+ */
+async function globFiles(pattern, exclude) {
+    const files = [];
+    const absolute = path.isAbsolute(pattern);
+    for await (const entry of fs.promises.glob(pattern, { exclude, withFileTypes: true })) {
+        if (entry.isFile()) {
+            const file = path.join(entry.parentPath, entry.name);
+            files.push(absolute ? file : path.relative(process.cwd(), file));
+        }
+    }
+    return files;
+}
+
+/**
+ * @param {(() => Promise<void>)[]} tasks
+ * @param {number} concurrency
+ */
+async function runWithConcurrencyLimit(tasks, concurrency) {
+    const queue = tasks.values();
+    /** @type {unknown[]} */
+    const errors = [];
+    const workers = Array.from({ length: Math.min(concurrency, tasks.length) }, async () => {
+        for (const task of queue) {
+            try {
+                await task();
+            }
+            catch (error) {
+                errors.push(error);
+            }
+        }
+    });
+    await Promise.all(workers);
+    if (errors.length === 1) {
+        throw errors[0];
+    }
+    if (errors.length > 1) {
+        throw new AggregateError(errors, `${errors.length} concurrent tasks failed`);
+    }
+}
+
+const builtLocal = "./built/local";
+
+const libsDir = "./tsc/internal/bundled/libs";
+const libsRegexp = /(?:^|[\\/])internal[\\/]bundled[\\/]libs[\\/]/;
+
+/**
+ * @param {string} out
+ */
+async function generateLibs(out) {
+    await fs.promises.mkdir(out, { recursive: true });
+
+    const libs = await fs.promises.readdir(libsDir);
+
+    await Promise.all(libs.map(async lib => {
+        fs.promises.copyFile(path.join(libsDir, lib), path.join(out, lib));
+    }));
+}
+
+export const lib = task({
+    name: "lib",
+    description: "Copies the libs to built/local.",
+    run: () => generateLibs(builtLocal),
+});
+
+/**
+ * Gets the release build flags for stripping debug info.
+ * @param {string} [versionOverride] Optional version to embed in the binary.
+ * @returns {string[]}
+ */
+function getReleaseBuildFlags(versionOverride) {
+    let ldflags = "-ldflags=-s -w";
+    if (versionOverride) {
+        ldflags += ` -X github.com/microsoft/TypeScript/tsc/internal/core.version=${versionOverride}`;
+    }
+    return ["-trimpath", ldflags];
+}
+
+/**
+ * @param {object} [opts]
+ * @param {string} [opts.out]
+ * @param {AbortSignal} [opts.abortSignal]
+ * @param {Record<string, string | undefined>} [opts.env]
+ * @param {string[]} [opts.extraFlags]
+ */
+function buildTsc(opts) {
+    opts ||= {};
+    const out = opts.out ?? path.resolve("./built/local/tsc" + (process.platform === "win32" ? ".exe" : ""));
+    const env = { ...(options.respectGoEnv ? {} : goBuildEnv), ...opts.env };
+    return run("go", ["build", ...goBuildFlags, ...(opts.extraFlags ?? []), ...goBuildTags("noembed"), "-o", out, "./cmd/tsc"], {
+        signal: opts.abortSignal,
+        env,
+        cwd: "./tsc",
+    });
+}
+
+export const tscBuild = task({
+    name: "tsc:build",
+    description: "Builds the tsc binary.",
+    run: async () => {
+        await buildTsc({ extraFlags: options.release ? getReleaseBuildFlags() : [] });
+    },
+});
+
+export const tsgo = task({
+    name: "tsgo",
+    dependencies: [lib, tscBuild],
+});
+
+export const local = task({
+    name: "local",
+    dependencies: [tsgo],
+});
+
+export const build = task({
+    name: "build",
+    dependencies: [local],
+});
+
+export const buildWatch = task({
+    name: "build:watch",
+    description: "Builds the tsc binary and watches for changes.",
+    run: async () => {
+        await watchDebounced("build:watch", async (paths, abortSignal) => {
+            let libsChanged = false;
+            let goChanged = false;
+
+            if (paths) {
+                for (const p of paths) {
+                    if (libsRegexp.test(p)) {
+                        libsChanged = true;
+                    }
+                    else if (p.endsWith(".go")) {
+                        goChanged = true;
+                    }
+                    if (libsChanged && goChanged) {
+                        break;
+                    }
+                }
+            }
+            else {
+                libsChanged = true;
+                goChanged = true;
+            }
+
+            if (libsChanged) {
+                console.log("Generating libs...");
+                await generateLibs(builtLocal);
+            }
+
+            if (goChanged) {
+                console.log("Building tsgo...");
+                await buildTsc({ abortSignal });
+            }
+        }, {
+            paths: ["tsc/cmd", "tsc/internal"],
+            ignored: path => /[\\/]testdata[\\/]/.test(path),
+        });
+    },
+});
+
+export const cleanBuilt = task({
+    name: "clean:built",
+    hiddenFromTaskList: true,
+    run: () => rimraf("built"),
+});
+
+async function runGenerate() {
+    return await run("go", ["generate", "-v", "./..."], { cwd: "./tsc" });
+}
+
+export const generate = task({
+    name: "generate",
+    description: "Runs go generate on the project.",
+    run: runGenerate,
+});
+
+async function runGenerateExtension() {
+    return await run("npm", ["run", "-w", "native-preview", "generateLocBundle"]);
+}
+
+export const generateExtension = task({
+    name: "generate:extension",
+    description: "Generates files in the extension",
+    run: runGenerateExtension,
+});
+
+// ── Enum generation from Go source ──────────────────────────────
+
+/**
+ * @typedef {{
+ *   name: string;
+ *   goPrefix: string;
+ *   goFile: string;
+ *   outDir: string;
+ *   stringEnum?: boolean;
+ *   excludeMembers?: readonly string[];
+ *   valueReplacements?: Record<string, string>;
+ * }} EnumDef
+ */
+
+/** @type {EnumDef[]} */
+const enumDefs = [
+    { name: "SymbolFlags", goPrefix: "SymbolFlags", goFile: "tsc/internal/ast/symbolflags.go", outDir: "packages/typescript/src/enums" },
+    { name: "CheckFlags", goPrefix: "CheckFlags", goFile: "tsc/internal/ast/checkflags.go", outDir: "packages/typescript/src/enums" },
+    { name: "TypeFlags", goPrefix: "TypeFlags", goFile: "tsc/internal/checker/types.go", outDir: "packages/typescript/src/enums" },
+    { name: "ObjectFlags", goPrefix: "ObjectFlags", goFile: "tsc/internal/checker/types.go", outDir: "packages/typescript/src/enums" },
+    { name: "SignatureFlags", goPrefix: "SignatureFlags", goFile: "tsc/internal/checker/types.go", outDir: "packages/typescript/src/enums" },
+    { name: "SignatureKind", goPrefix: "SignatureKind", goFile: "tsc/internal/checker/types.go", outDir: "packages/typescript/src/enums" },
+    { name: "IndexKind", goPrefix: "IndexKind", goFile: "tsc/internal/checker/types.go", outDir: "packages/typescript/src/enums" },
+    { name: "ElementFlags", goPrefix: "ElementFlags", goFile: "tsc/internal/checker/types.go", outDir: "packages/typescript/src/enums" },
+    { name: "TypePredicateKind", goPrefix: "TypePredicateKind", goFile: "tsc/internal/checker/types.go", outDir: "packages/typescript/src/enums" },
+    { name: "TypeFormatFlags", goPrefix: "TypeFormatFlags", goFile: "tsc/internal/checker/types.go", outDir: "packages/typescript/src/enums" },
+    { name: "DiagnosticCategory", goPrefix: "Category", goFile: "tsc/internal/diagnostics/diagnostics.go", outDir: "packages/typescript/src/enums" },
+    { name: "SyntaxKind", goPrefix: "Kind", goFile: "tsc/internal/ast/kind_generated.go", outDir: "packages/typescript/src/enums" },
+    { name: "NodeFlags", goPrefix: "NodeFlags", goFile: "tsc/internal/ast/nodeflags.go", outDir: "packages/typescript/src/enums" },
+    { name: "OuterExpressionKinds", goPrefix: "OEK", goFile: "tsc/internal/ast/utilities.go", outDir: "packages/typescript/src/enums" },
+    { name: "ModifierFlags", goPrefix: "ModifierFlags", goFile: "tsc/internal/ast/modifierflags.go", outDir: "packages/typescript/src/enums" },
+    { name: "ModuleKind", goPrefix: "ModuleKind", goFile: "tsc/internal/core/compileroptions.go", outDir: "packages/typescript/src/enums" },
+    { name: "ModuleResolutionKind", goPrefix: "ModuleResolutionKind", goFile: "tsc/internal/core/compileroptions.go", outDir: "packages/typescript/src/enums" },
+    { name: "ModuleDetectionKind", goPrefix: "ModuleDetectionKind", goFile: "tsc/internal/core/compileroptions.go", outDir: "packages/typescript/src/enums" },
+    { name: "NewLineKind", goPrefix: "NewLineKind", goFile: "tsc/internal/core/compileroptions.go", outDir: "packages/typescript/src/enums" },
+    { name: "JsxEmit", goPrefix: "JsxEmit", goFile: "tsc/internal/core/compileroptions.go", outDir: "packages/typescript/src/enums" },
+    { name: "ScriptKind", goPrefix: "ScriptKind", goFile: "tsc/internal/core/scriptkind.go", outDir: "packages/typescript/src/enums" },
+    { name: "TokenFlags", goPrefix: "TokenFlags", goFile: "tsc/internal/ast/tokenflags.go", outDir: "packages/typescript/src/enums" },
+    { name: "DiagnosticDirectivePolicy", goPrefix: "MappedDiagnosticDirectivePolicy", goFile: "tsc/internal/ast/ast.go", outDir: "packages/typescript/src/enums" },
+    { name: "SpanMapKind", goPrefix: "Kind", goFile: "tsc/internal/spanmap/spanmap.go", outDir: "packages/typescript/src/enums" },
+    { name: "SpanMapFidelity", goPrefix: "Fidelity", goFile: "tsc/internal/spanmap/spanmap.go", outDir: "packages/typescript/src/enums" },
+    { name: "SpanMapFeature", goPrefix: "Feature", goFile: "tsc/internal/spanmap/spanmap.go", outDir: "packages/typescript/src/enums" },
+    { name: "NodeBuilderFlags", goPrefix: "Flags", goFile: "tsc/internal/nodebuilder/types.go", outDir: "packages/typescript/src/enums" },
+    { name: "CompletionItemKind", goPrefix: "CompletionItemKind", goFile: "tsc/internal/lsp/lsproto/lsp_generated.go", outDir: "packages/typescript/src/enums" },
+    { name: "EmitOnly", goPrefix: "Emit", goFile: "tsc/internal/compiler/emitter.go", outDir: "packages/typescript/src/enums", excludeMembers: ["OnlyBuilderSignature"] },
+    // String enum: Go stores internal names with a "\xFE" sentinel prefix, but the escaped
+    // form sent over the wire uses "__" (see EscapeSymbolName), so map the sentinel accordingly.
+    { name: "InternalSymbolName", goPrefix: "InternalSymbolName", goFile: "tsc/internal/ast/symbol.go", outDir: "packages/typescript/src/enums", stringEnum: true, valueReplacements: { InternalSymbolNamePrefix: "__" } },
+];
+
+/**
+ * @param {string} block
+ * @param {EnumDef} def
+ * @returns {EnumMember[]}
+ */
+function parseGoConstBlock(block, def) {
+    const prefix = def.goPrefix;
+    const members = [];
+    let iotaCounter = 0;
+    let iotaExpression;
+
+    const lines = block.split("\n");
+    let i = 0;
+
+    while (i < lines.length) {
+        const rawLine = lines[i];
+        const line = rawLine.replace(/\/\/.*$/, "").trim();
+
+        if (!line) {
+            i++;
+            continue;
+        }
+
+        // Match: PrefixName Type = value  or  PrefixName = value
+        const fullMatch = line.match(new RegExp(`^(${prefix}\\w+)\\s+(?:\\S+\\s*)?=\\s*(.+)$`));
+        // Match bare iota continuation: just PrefixName
+        const bareMatch = !fullMatch && iotaExpression !== undefined
+            ? line.match(new RegExp(`^(${prefix}\\w+)$`))
+            : null;
+
+        if (!fullMatch && !bareMatch) {
+            i++;
+            continue;
+        }
+
+        const goName = fullMatch ? fullMatch[1] : /** @type {RegExpMatchArray} */ (bareMatch)[1];
+        let goValue = fullMatch ? fullMatch[2].trim() : "";
+        const memberName = goName.slice(prefix.length);
+
+        // Accumulate continuation lines ending with |
+        i++;
+        while (i < lines.length && goValue.endsWith("|")) {
+            const nextRaw = lines[i];
+            const nextLine = nextRaw.replace(/\/\/.*$/, "").trim();
+            if (!nextLine) {
+                i++;
+                continue;
+            }
+            goValue += " " + nextLine;
+            i++;
+        }
+
+        let tsValue;
+        if (def.stringEnum) {
+            tsValue = parseGoStringValue(goValue, def.valueReplacements ?? {});
+        }
+        else {
+            let numericValue = goValue;
+            if (goValue.includes("iota")) {
+                iotaExpression = goValue;
+                numericValue = goValue.replace(/\biota\b/g, String(iotaCounter));
+            }
+            else if (iotaExpression !== undefined && goValue === "") {
+                numericValue = iotaExpression.replace(/\biota\b/g, String(iotaCounter));
+            }
+            tsValue = translateGoNumericExpression(numericValue, prefix);
+        }
+
+        members.push({ name: memberName, value: tsValue });
+        iotaCounter++;
+    }
+
+    return members;
+}
+
+const goBinaryPrecedence = new Map([
+    ["||", 1],
+    ["&&", 2],
+    ["==", 3],
+    ["!=", 3],
+    ["<", 3],
+    ["<=", 3],
+    [">", 3],
+    [">=", 3],
+    ["+", 4],
+    ["-", 4],
+    ["|", 4],
+    ["^", 4],
+    ["*", 5],
+    ["/", 5],
+    ["%", 5],
+    ["<<", 5],
+    [">>", 5],
+    ["&", 5],
+    ["&^", 5],
+]);
+
+const tsBinaryPrecedence = new Map([
+    ["||", 4],
+    ["&&", 5],
+    ["|", 6],
+    ["^", 7],
+    ["&", 8],
+    ["==", 9],
+    ["!=", 9],
+    ["<", 10],
+    ["<=", 10],
+    [">", 10],
+    [">=", 10],
+    ["<<", 11],
+    [">>", 11],
+    ["+", 12],
+    ["-", 12],
+    ["*", 13],
+    ["/", 13],
+    ["%", 13],
+]);
+
+/**
+ * @typedef {{ kind: "token"; text: string }
+ *   | { kind: "unary"; operator: string; operand: GoExpression }
+ *   | { kind: "binary"; operator: string; left: GoExpression; right: GoExpression }
+ *   | { kind: "parenthesized"; expression: GoExpression }} GoExpression
+ */
+
+/**
+ * Parse with Go's precedence and print with TypeScript's precedence, adding parentheses where
+ * copying the expression verbatim would change its meaning.
+ * @param {string} expression
+ * @param {string} prefix
+ */
+function translateGoNumericExpression(expression, prefix) {
+    const tokens = expression.match(/<<|>>|&\^|\|\||&&|==|!=|<=|>=|[()+\-*/%&|^<>]|(?:0[xX][\dA-Fa-f_]+|0[bB][01_]+|0[oO][0-7_]+|\d[\d_]*)|[A-Za-z_]\w*/g) ?? [];
+    const withoutWhitespace = expression.replace(/\s/g, "");
+    if (tokens.join("") !== withoutWhitespace) {
+        throw new Error(`Cannot parse numeric enum value: ${expression}`);
+    }
+
+    let tokenIndex = 0;
+
+    /** @returns {GoExpression} */
+    function parseUnary() {
+        const token = tokens[tokenIndex];
+        if (token === "+" || token === "-" || token === "^") {
+            tokenIndex++;
+            return { kind: "unary", operator: token === "^" ? "~" : token, operand: parseUnary() };
+        }
+        if (token === "(") {
+            tokenIndex++;
+            const inner = parseBinary(1);
+            if (tokens[tokenIndex] !== ")") {
+                throw new Error(`Unmatched parenthesis in numeric enum value: ${expression}`);
+            }
+            tokenIndex++;
+            return { kind: "parenthesized", expression: inner };
+        }
+        if (token === undefined || goBinaryPrecedence.has(token) || token === ")") {
+            throw new Error(`Expected operand in numeric enum value: ${expression}`);
+        }
+        tokenIndex++;
+        return { kind: "token", text: token.replace(new RegExp(`^${prefix}`), "") };
+    }
+
+    /**
+     * @param {number} minimumPrecedence
+     * @returns {GoExpression}
+     */
+    function parseBinary(minimumPrecedence) {
+        let left = parseUnary();
+        while (true) {
+            const operator = tokens[tokenIndex];
+            const precedence = goBinaryPrecedence.get(operator);
+            if (precedence === undefined || precedence < minimumPrecedence) break;
+            tokenIndex++;
+            const right = parseBinary(precedence + 1);
+            left = { kind: "binary", operator, left, right };
+        }
+        return left;
+    }
+
+    const parsed = parseBinary(1);
+    if (tokenIndex !== tokens.length) {
+        throw new Error(`Unexpected token '${tokens[tokenIndex]}' in numeric enum value: ${expression}`);
+    }
+
+    /**
+     * @param {GoExpression} node
+     * @param {number} minimumPrecedence
+     * @returns {string}
+     */
+    function print(node, minimumPrecedence) {
+        if (node.kind === "token") return node.text;
+        if (node.kind === "parenthesized") return `(${print(node.expression, 0)})`;
+        if (node.kind === "unary") {
+            const text = `${node.operator}${print(node.operand, 14)}`;
+            return 14 < minimumPrecedence ? `(${text})` : text;
+        }
+
+        const operator = node.operator === "&^" ? "&" : node.operator;
+        const precedence = tsBinaryPrecedence.get(operator);
+        assert(precedence !== undefined);
+        const right = node.operator === "&^"
+            ? `~${print(node.right, 14)}`
+            : print(node.right, precedence + 1);
+        const text = `${print(node.left, precedence)} ${operator} ${right}`;
+        return precedence < minimumPrecedence ? `(${text})` : text;
+    }
+
+    return print(parsed, 0);
+}
+
+/**
+ * Resolve a Go string-constant expression (e.g. `Prefix + "call"` or `"export="`)
+ * into a quoted, JS-escaped TypeScript string literal. `replacements` maps bare
+ * Go identifiers (such as a sentinel-prefix constant) to their literal value.
+ * @param {string} goValue
+ * @param {Record<string, string>} replacements
+ * @returns {string}
+ */
+function parseGoStringValue(goValue, replacements) {
+    let result = "";
+    for (const part of goValue.split("+").map(p => p.trim())) {
+        if (Object.prototype.hasOwnProperty.call(replacements, part)) {
+            result += replacements[part];
+            continue;
+        }
+        const stringMatch = part.match(/^"((?:[^"\\]|\\.)*)"$/);
+        if (stringMatch === null) {
+            throw new Error(`Cannot parse string enum value: ${goValue}`);
+        }
+        // Interpret Go escape sequences via JSON, then re-stringify below.
+        result += JSON.parse(`"${stringMatch[1]}"`);
+    }
+    return JSON.stringify(result);
+}
+
+/**
+ * @typedef {{
+ *   name: string;
+ *   value: string;
+ * }} EnumMember
+ */
+
+/**
+ * @param {EnumDef} def
+ * @returns {EnumMember[]}
+ */
+function parseGoEnum(def) {
+    const source = fs.readFileSync(def.goFile, "utf-8");
+    const constBlockRegex = /const\s*\(([\s\S]*?)\n\)/g;
+
+    for (const match of source.matchAll(constBlockRegex)) {
+        const members = parseGoConstBlock(match[1], def).filter(member => !def.excludeMembers?.includes(member.name));
+        if (members.length > 0) return topoSortMembers(members);
+    }
+
+    throw new Error(`No members found for enum ${def.name} in ${def.goFile}`);
+}
+
+/**
+ * Topologically sort enum members so composite members appear after
+ * all members they reference (Go allows forward references, TS does not).
+ * @param {EnumMember[]} members
+ * @returns {EnumMember[]}
+ */
+function topoSortMembers(members) {
+    const nameSet = new Set(members.map(m => m.name));
+    /** @type {Map<string, Set<string>>} */
+    const deps = new Map();
+    for (const m of members) {
+        /** @type {Set<string>} */
+        const refs = new Set();
+        // Find all identifier references in the value that are other member names
+        for (const [ref] of m.value.matchAll(/\b([A-Za-z_]\w*)\b/g)) {
+            if (ref !== m.name && nameSet.has(ref)) refs.add(ref);
+        }
+        deps.set(m.name, refs);
+    }
+
+    const sorted = /** @type {EnumMember[]} */ ([]);
+    const visited = new Set();
+    const visiting = new Set();
+
+    /** @param {string} name */
+    function visit(name) {
+        if (visited.has(name)) return;
+        if (visiting.has(name)) return; // cycle — keep original order
+        visiting.add(name);
+        for (const dep of deps.get(name) ?? []) {
+            visit(dep);
+        }
+        visiting.delete(name);
+        visited.add(name);
+        sorted.push(/** @type {EnumMember} */ (members.find(m => m.name === name)));
+    }
+
+    for (const m of members) {
+        visit(m.name);
+    }
+    return sorted;
+}
+
+/**
+ * @param {EnumDef} def
+ * @param {EnumMember[]} members
+ * @returns {string}
+ */
+function renderEnumTS(def, members) {
+    const header = `// Code generated by Herebyfile.mjs generate:enums from ${def.goFile}. DO NOT EDIT.\n\n`;
+
+    const lines = members.map(m => `    ${m.name} = ${m.value},`);
+    return `${header}export enum ${def.name} {\n${lines.join("\n")}\n}\n`;
+}
+
+const enumValuesGeneratedGoPath = "tsc/internal/api/enum_values_generated.go";
+
+/**
+ * @typedef {{
+ *   def: EnumDef
+ *   code: string,
+ *   fileNames: string[]
+ *   members: EnumMember[]
+ * }} GeneratedEnum
+ */
+
+/**
+ * Ask the Go compiler what it actually thinks each numeric member's value is, so that
+ * generated TS values can be checked against Go's own arithmetic rather than trusting that
+ * copying operator-by-operator text from Go into JS preserves precedence/semantics.
+ *
+ * Writes tsc/internal/api/enum_values_generated.go, a standalone program that imports every
+ * package referenced by enumDefs and references each member by its original Go identifier
+ * (not by re-deriving it from the parsed TS text), so Go itself — not this script — computes
+ * the ground-truth value, then prints them as JSON. `internal/api` is used as the host package
+ * because it already imports (nearly) every package enums are sourced from.
+ *
+ * @param {GeneratedEnum[]} generatedEnums
+ * @returns {Promise<Record<string, Record<string, number>>>} enum def name -> (memberName -> Go value)
+ */
+async function computeGoGroundTruth(generatedEnums) {
+    /** @type {Map<string, {importPath: string, pkgName: string}>} */
+    const packagesByDir = new Map();
+    /**
+     * @param {EnumDef} def
+     * @returns {string}
+     */
+    function getPackageName(def) {
+        const dir = path.dirname(def.goFile);
+        const importPath = `github.com/microsoft/TypeScript/tsc/${dir.replace(/^tsc[\\/]/, "")}`.replace(/\\/g, "/");
+        let info = packagesByDir.get(dir);
+        if (info === undefined) {
+            info = { importPath, pkgName: path.basename(dir) };
+            packagesByDir.set(dir, info);
+        }
+        return info.pkgName;
+    }
+
+    /** @type {string[]} */
+    const entries = [];
+    for (const { def, members } of generatedEnums) {
+        if (def.stringEnum) continue;
+        const pkgName = getPackageName(def);
+
+        /** @type {string[]} */
+        const memberEntries = members.map(m => {
+            return `\t\t\t${JSON.stringify(m.name)}: toInt32(${pkgName}.${def.goPrefix}${m.name}),`;
+        });
+        entries.push(
+            `\t\t${JSON.stringify(def.name)}: {\n${memberEntries.join("\n")}\n\t\t},`,
+        );
+    }
+
+    const importLines = [...packagesByDir.values()]
+        .sort((a, b) => a.importPath.localeCompare(b.importPath))
+        .map(({ pkgName, importPath }) => `\t${pkgName} "${importPath}"`);
+
+    const goSource = `//go:build ignore
+
+// Code generated by Herebyfile.mjs generate:enums. DO NOT EDIT.
+// Running this program prints the real Go-evaluated value of every generated enum member as
+// JSON, so generate:enums can validate that the TypeScript it emits agrees with Go's own
+// arithmetic (catching, e.g., operator-precedence mistakes introduced by copying Go expression
+// text into TypeScript verbatim).
+
+package main
+
+import (
+\t"encoding/json"
+\t"os"
+
+${importLines.join("\n")}
+)
+
+func main() {
+\tvalues := map[string]map[string]int32{
+${entries.join("\n")}
+\t}
+\tif err := json.NewEncoder(os.Stdout).Encode(values); err != nil {
+\t\tpanic(err)
+\t}
+}
+
+// A generic function call (unlike a constant conversion) forces Go to evaluate the conversion at
+// runtime, truncating uint32-backed flags with a leading bitwise-not the same way JS's 32-bit
+// bitwise operators would, instead of rejecting "constant overflows int32" at compile time.
+func toInt32[T ~int8 | ~int16 | ~int32 | ~int | ~uint8 | ~uint16 | ~uint32](v T) int32 {
+\treturn int32(v)
+}
+
+`;
+
+    fs.writeFileSync(enumValuesGeneratedGoPath, goSource);
+    await run("dprint", ["fmt", enumValuesGeneratedGoPath]);
+
+    const { stdout } = await runOutput("go", ["run", enumValuesGeneratedGoPath]);
+    /** @type {Record<string, Record<string, number>>} */
+    const parsed = JSON.parse(stdout);
+    return parsed;
+}
+
+/**
+ * Evaluate the generated IIFE in a sandbox and return each member's actual runtime value, so
+ * validation checks what TS really computes rather than re-deriving it from the source text.
+ * @param {string} enumSource
+ * @param {string} enumName
+ * @returns {Promise<Record<string, number | string>>}
+ */
+async function evaluateEnumMembers(enumSource, enumName) {
+    const enumModule = await import(`data:text/javascript;charset=utf-8,${encodeURIComponent(enumSource)}`);
+    /** @type {Record<string, number | string>} */
+    const enumObj = enumModule[enumName];
+    return enumObj;
+}
+
+async function runGenerateEnums() {
+    const ts = /** @type {typeof import("typescript")} */ (await import("typescript"));
+
+    /**
+     * @param {string} enumSource
+     * @param {string} enumName
+     * @returns {string}
+     */
+    function transpile(enumSource, enumName) {
+        return ts.transpileModule(enumSource, {
+            compilerOptions: {
+                module: ts.ModuleKind.ESNext,
+                target: ts.ScriptTarget.ESNext,
+            },
+        }).outputText;
+    }
+    /**
+     * @param {string} enumSource
+     * @param {string} enumName
+     * @returns {string}
+     */
+    function convertEnumToTs(enumSource, enumName) {
+        return enumSource.replace(
+            `export var ${enumName};`,
+            `export var ${enumName}: any;`,
+        );
+    }
+
+    console.log("Generating enums from Go source...");
+    /** @type {Array<GeneratedEnum>} */
+    const generatedEnums = [];
+    for (const def of enumDefs) {
+        const members = parseGoEnum(def);
+        const camelName = def.name.charAt(0).toLowerCase() + def.name.slice(1);
+
+        fs.mkdirSync(def.outDir, { recursive: true });
+
+        // Generate .enum.ts (TypeScript enum — used for types)
+        const enumTS = renderEnumTS(def, members);
+        const enumPath = path.join(def.outDir, `${camelName}.enum.ts`);
+        fs.writeFileSync(enumPath, enumTS);
+
+        // Generate .ts (IIFE — used at runtime)
+        const enumJsCode = transpile(enumTS, def.name);
+        const iifeSource = convertEnumToTs(enumJsCode, def.name);
+        const iifePath = path.join(def.outDir, `${camelName}.ts`);
+        fs.writeFileSync(iifePath, iifeSource);
+        generatedEnums.push({
+            code: enumJsCode,
+            def,
+            members,
+            fileNames: [enumPath, iifePath],
+        });
+
+        console.log(`  ${def.name}: ${members.length} members → ${camelName}.enum.ts, ${camelName}.ts`);
+    }
+
+    console.log("Getting values from go");
+    const goValuesByEnum = await computeGoGroundTruth(generatedEnums);
+    /** @type {string[]} */
+    const mismatches = [];
+    for (const { def, members, code } of generatedEnums) {
+        if (def.stringEnum) continue;
+        const goValues = goValuesByEnum[def.name];
+        assert(goValues, `Enum ${def.name} was not outputted from GO`);
+        const tsValues = await evaluateEnumMembers(code, def.name);
+        for (const m of members) {
+            const goValue = goValues[m.name];
+            const tsValue = tsValues[m.name];
+            if (tsValue !== goValue) {
+                mismatches.push(
+                    `${def.name}.${m.name}: Go says ${goValue}, but generated TS (\`${m.value}\`) evaluates to ${tsValue}`,
+                );
+            }
+        }
+    }
+
+    if (mismatches.length > 0) {
+        throw new Error(
+            `Generated enum values disagree with Go (likely an operator precedence or transcription bug in generate:enums):\n` +
+                mismatches.map(m => `  - ${m}`).join("\n"),
+        );
+    }
+    console.log("All generated values match Go.");
+
+    await run("dprint", ["fmt", ...generatedEnums.flatMap(e => e.fileNames)]);
+    console.log("Done.");
+}
+
+export const generateEnums = task({
+    name: "generate:enums",
+    description: "Generates TypeScript enum files from Go source.",
+    run: runGenerateEnums,
+});
+
+export const generateAST = task({
+    name: "generate:ast",
+    description: "Generates AST and encoder files from ast.json.",
+    run: () => run("node", ["./tools/scripts/tsc/generate.ts"]),
+});
+
+async function runGenerateAPI() {
+    await run("go", ["-C", "./tools", "run", "./gen-proto", "../tsc/internal/api/proto.go", "../packages/typescript/src/api/proto.generated.ts"]);
+    await run("npx", ["dprint", "fmt", "packages/typescript/src/api/proto.generated.ts"]);
+}
+
+export const generateAPI = task({
+    name: "generate:api",
+    description: "Generates API files from internal/api/proto.go and internal/api/session.go.",
+    run: runGenerateAPI,
+});
+
+// ── Vendored npm dependencies ───────────────────────────────────
+
+const vendorJsonrpcDir = "packages/typescript/vendor/vscode-jsonrpc";
+const vendorJsonrpcSrc = "node_modules/vscode-jsonrpc";
+// Files copied verbatim from the installed vscode-jsonrpc package into the
+// vendored copy. Only the runtime files needed by the `#vscode-jsonrpc/node`
+// import (lib + typings + package.json) plus license/readme are vendored.
+const vendorJsonrpcFiles = ["package.json", "README.md", "License.txt", "lib", "typings"];
+
+async function runGenerateVendor() {
+    const src = path.join(__dirname, vendorJsonrpcSrc);
+    const dest = path.join(__dirname, vendorJsonrpcDir);
+    if (!fs.existsSync(src)) {
+        throw new Error(`${vendorJsonrpcSrc} is not installed; run \`npm ci\` first.`);
+    }
+    await rimraf(dest);
+    await fs.promises.mkdir(dest, { recursive: true });
+    for (const file of vendorJsonrpcFiles) {
+        await cpRecursive(path.join(src, file), path.join(dest, file));
+    }
+}
+
+export const generateVendor = task({
+    name: "generate:vendor",
+    description: "Updates the vendored copy of vscode-jsonrpc from node_modules.",
+    run: runGenerateVendor,
+});
+
+const coverageDir = path.join(__dirname, "coverage");
+
+const ensureCoverageDirExists = memoize(() => {
+    if (options.coverage) {
+        fs.mkdirSync(coverageDir, { recursive: true });
+    }
+});
+
+/**
+ * @param {string} taskName
+ */
+function goTestFlags(taskName) {
+    ensureCoverageDirExists();
+    return [
+        ...goBuildFlags,
+        ...goBuildTags(),
+        ...(options.tests ? [`-run=${options.tests}`] : []),
+        ...(options.coverage ? [`-coverprofile=${path.join(coverageDir, "coverage." + taskName + ".out")}`, "-coverpkg=./..."] : []),
+    ];
+}
+
+function getGODEBUG() {
+    const key = "tracebackancestors";
+    const setting = `${key}=10`;
+    const existing = process.env.GODEBUG ?? "";
+    if (!existing) return setting;
+    if (existing.includes(`${key}=`)) return existing;
+    return `${existing},${setting}`;
+}
+
+const goTestEnv = {
+    GODEBUG: getGODEBUG(),
+    ...(options.concurrentTestPrograms ? { TS_TEST_PROGRAM_SINGLE_THREADED: "false" } : {}),
+    // Go test caching takes a long time on Windows.
+    // https://github.com/golang/go/issues/72992
+    ...(process.platform === "win32" ? { GOFLAGS: "-count=1" } : {}),
+};
+
+const baselineTrackingEnabled = false && ![
+    options.tests,
+    options.noembed,
+    options.concurrentTestPrograms,
+    options.race,
+    options.dirty,
+].some(Boolean);
+
+const goTestSumFlags = [
+    "--format-hide-empty-pkg",
+    "--hide-summary",
+    "skipped",
+];
+
+/**
+ * Collects all baseline files that were used during the test run.
+ * @param {string} trackingDir
+ * @returns {Promise<Set<string>>}
+ */
+async function collectUsedBaselines(trackingDir) {
+    /** @type {Set<string>} */
+    const usedBaselines = new Set();
+    if (!fs.existsSync(trackingDir)) {
+        return usedBaselines;
+    }
+
+    const trackingFiles = await fs.promises.readdir(trackingDir);
+    for (const file of trackingFiles) {
+        const content = await fs.promises.readFile(path.join(trackingDir, file), "utf-8");
+        for (const line of content.split("\n")) {
+            const trimmed = line.trim();
+            if (trimmed) {
+                usedBaselines.add(trimmed);
+            }
+        }
+    }
+    return usedBaselines;
+}
+
+/**
+ * Checks for unused baseline files and reports them.
+ * @param {string} trackingDir
+ * @returns {Promise<string[]>} List of unused baseline file paths.
+ */
+async function checkUnusedBaselines(trackingDir) {
+    const usedBaselines = await collectUsedBaselines(trackingDir);
+    if (usedBaselines.size === 0) {
+        // No baselines recorded - either no tests ran or tracking wasn't set up properly
+        return [];
+    }
+
+    const allBaselines = await globFiles(`${refBaseline}/**`);
+    const unusedBaselines = allBaselines
+        .map(p => path.relative(refBaseline, p))
+        .filter(p => !usedBaselines.has(p));
+
+    return unusedBaselines;
+}
+
+/**
+ * @param {string} taskName
+ */
+function gotestsumArgs(taskName) {
+    return [
+        ...goTestSumFlags,
+        "--",
+        ...goTestFlags(taskName),
+    ];
+}
+
+/**
+ * @param {string} taskName
+ */
+function goTest(taskName) {
+    return ["go", "test"].concat(goTestFlags(taskName));
+}
+
+async function runTests() {
+    if (!options.dirty) {
+        await rimraf(localBaseline);
+        await fs.promises.mkdir(localBaseline, { recursive: true });
+    }
+
+    // Create a tmp directory for baseline tracking if enabled
+    /** @type {string | undefined} */
+    let trackingDir;
+    /** @type {(() => Promise<void>) | undefined} */
+    let cleanupTracking;
+
+    if (baselineTrackingEnabled) {
+        const tempTrackingDir = fs.mkdtempSync(path.join(os.tmpdir(), "tsgo-baseline-tracking-"));
+        trackingDir = tempTrackingDir;
+        cleanupTracking = () => rimraf(tempTrackingDir);
+    }
+
+    try {
+        const testEnv = {
+            ...goTestEnv,
+            ...(trackingDir ? { TSGO_BASELINE_TRACKING_DIR: trackingDir } : {}),
+        };
+        await gotestsumTool.run([...gotestsumArgs("tests"), "./...", ...(isCI ? ["--timeout=45m"] : [])], {
+            env: testEnv,
+            cwd: "./tsc",
+        });
+
+        // Check for unused baselines after tests complete
+        if (trackingDir) {
+            const unusedBaselines = await checkUnusedBaselines(trackingDir);
+            if (unusedBaselines.length > 0) {
+                console.error(styleText("red", `\nFound ${unusedBaselines.length} unused baseline file(s):`));
+                for (const baseline of unusedBaselines.slice(0, 20)) {
+                    console.error(styleText("red", `  ${baseline}`));
+                }
+                if (unusedBaselines.length > 20) {
+                    console.error(styleText("red", `  ... and ${unusedBaselines.length - 20} more`));
+                }
+
+                // Create .delete files for each unused baseline so baseline-accept can remove them
+                for (const baseline of unusedBaselines) {
+                    const deleteFilePath = path.join(localBaseline, baseline + ".delete");
+                    await fs.promises.mkdir(path.dirname(deleteFilePath), { recursive: true });
+                    await fs.promises.writeFile(deleteFilePath, "");
+                }
+                console.error(styleText("red", `\nRun 'hereby baseline-accept' to delete them.`));
+
+                throw new Error(`Found ${unusedBaselines.length} unused baseline file(s). Run 'hereby baseline-accept' to delete them.`);
+            }
+        }
+    }
+    finally {
+        if (cleanupTracking) {
+            await cleanupTracking();
+        }
+    }
+}
+
+async function runTestExtension() {
+    await run("npm", ["test", "-w", "native-preview"]);
+}
+
+export const testTsc = task({
+    name: "test:tsc",
+    description: "Runs all tests in the tsc module.",
+    run: runTests,
+});
+
+export const testExtension = task({
+    name: "test:extension",
+    description: "Runs the VS Code extension tests.",
+    run: runTestExtension,
+});
+
+export const test = task({
+    name: "test",
+    description: "Alias for test:tsc.",
+    dependencies: [testTsc],
+});
+
+async function runTestBenchmarks() {
+    // Run the benchmarks once to ensure they compile and run without errors.
+    const command = goTest("benchmarks");
+    await run(command[0], [...command.slice(1), "-run=-", "-bench=.", "-benchtime=1x", "./..."], { env: goTestEnv, cwd: "./tsc" });
+}
+
+export const testBenchmarks = task({
+    name: "test:benchmarks",
+    description: "Runs all benchmarks.",
+    run: runTestBenchmarks,
+});
+
+async function runTestTools() {
+    await gotestsumTool.run([...gotestsumArgs("tools"), "./..."], { env: goTestEnv, cwd: path.join(__dirname, "tools") });
+}
+
+async function runTestAPI() {
+    // Running the package script doesn't work on Windows; some path escaping isn't done correctly and the test runner runs no tests.
+    await run("node", ["--conditions", "@typescript/source", "--test", "./test/**/*.test.ts"], { cwd: "./packages/typescript" });
+}
+
+export const testTools = task({
+    name: "test:tools",
+    description: "Runs all tests in the tools module.",
+    run: runTestTools,
+});
+
+export const buildAPI = task({
+    name: "build:api",
+    description: "Builds @typescript/typescript JS API.",
+    run: async () => {
+        await run("npm", ["run", "-w", "@typescript/typescript", "build"]);
+    },
+});
+
+export const buildCSharp = task({
+    name: "csharp:build",
+    description: "Builds the C# backend in Release mode.",
+    run: () => run(process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, process.platform === "win32" ? "dotnet.exe" : "dotnet") : "dotnet", [
+        "build", "csharp/TypeScript.slnx", "-c", "Release", "--artifacts-path", "built/csharp/build", "-p:UseSharedCompilation=false", "-p:RestoreLockedMode=true",
+    ]),
+});
+
+export const packageCSharp = task({
+    name: "csharp:package",
+    description: "Publishes and packs the opt-in Windows x64 NativeAOT C# preview without executing it.",
+    run: () => run(process.execPath, ["csharp/tools/package.mjs"]),
+});
+
+export const testCSharpPackage = task({
+    name: "csharp:test-package",
+    description: "Builds and tests the C# preview package using Release CoreCLR.",
+    run: async () => {
+        await run(process.execPath, ["csharp/tools/package.mjs", "--managed"]);
+        await run(process.execPath, ["csharp/tools/package-tests.mjs"]);
+    },
+});
+
+async function runBuildAPITests() {
+    await run("npm", ["run", "-w", "@typescript/typescript", "generate:sync"]);
+    await run("npm", ["run", "-w", "@typescript/typescript", "build:test"]);
+}
+
+export const buildAPITests = task({
+    name: "build:api:test",
+    description: "Builds the @typescript/typescript JS API tests.",
+    dependencies: [generateEnums, generateAPI],
+    run: runBuildAPITests,
+});
+
+export const testAPI = task({
+    name: "test:api",
+    description: "Runs the @typescript/typescript JS API tests.",
+    dependencies: [tsgo, buildAPITests],
+    run: runTestAPI,
+});
+
+export const testAll = task({
+    name: "test:all",
+    description: "Runs ALL tests in the repo, including benchmarks, tools, and the API tests.",
+    dependencies: [tsgo, buildAPITests],
+    run: async () => {
+        // Prevent interleaving by running these directly instead of in parallel.
+        await runTests();
+        await runTestExtension();
+        await runTestBenchmarks();
+        await runTestTools();
+        await runTestAPI();
+    },
+});
+
+/**
+ * @param {{
+ *   toolPath: string;
+ *   globs: string[];
+ *   build: (toolPath: string) => Promise<void>;
+ *   exclude?: string[];
+ * }} spec
+ */
+function createCachedTool({ toolPath, globs, build, exclude }) {
+    toolPath = path.resolve(toolPath);
+    const hashPath = toolPath + ".hash";
+    const files = fs.globSync(globs, { exclude }).filter(file => fs.statSync(file).isFile()).map(file => path.resolve(file));
+    files.sort();
+
+    const ensure = memoize(async () => {
+        const hash = crypto.createHash("sha256");
+        for (const file of files) {
+            hash.update(file);
+            hash.update(fs.readFileSync(file));
+        }
+        const digest = hash.digest("hex") + "\n";
+        if (
+            fs.existsSync(toolPath)
+            && fs.existsSync(hashPath)
+            && fs.readFileSync(hashPath, "utf8") === digest
+        ) {
+            return;
+        }
+
+        await build(toolPath);
+        fs.writeFileSync(hashPath, digest);
+    });
+
+    return {
+        ensure,
+        /** @param {string[]} args @param {RunOptions} [options] */
+        run: async (args, options) => {
+            await ensure();
+            return run(toolPath, args, options);
+        },
+    };
+}
+
+const gotestsumTool = createCachedTool({
+    toolPath: `./tools/gotestsum${process.platform === "win32" ? ".exe" : ""}`,
+    globs: ["./tools/go.mod", "./tools/go.sum"],
+    build: async () => {
+        await run("go", ["install", "gotest.tools/gotestsum"], {
+            cwd: "./tools",
+            env: { GOBIN: path.resolve("./tools") },
+        });
+    },
+});
+
+const golangciLintPackage = memoize(() => {
+    const golangciLintYml = fs.readFileSync(".custom-gcl.yml", "utf8");
+    const pattern = /^version:\s*(v\d+\.\d+\.\d+).*$/m;
+    const match = pattern.exec(golangciLintYml);
+    if (!match) {
+        throw new Error("Expected version in .custom-gcl.yml");
+    }
+    const version = match[1];
+    const major = version.split(".")[0];
+    const versionSuffix = ["v0", "v1"].includes(major) ? "" : "/" + major;
+
+    return `github.com/golangci/golangci-lint${versionSuffix}/cmd/golangci-lint@${version}`;
+});
+
+const customLinterTool = createCachedTool({
+    toolPath: `./tools/custom-gcl${process.platform === "win32" ? ".exe" : ""}`,
+    globs: [
+        "./tools/go.mod",
+        "./tools/customlint/**/*",
+        "./.custom-gcl.yml",
+    ],
+    exclude: ["**/testdata/**"],
+    build: async toolPath => {
+        await run("go", ["run", golangciLintPackage(), "custom"]);
+        await run(toolPath, ["cache", "clean"]);
+    },
+});
+
+export const lint = task({
+    name: "lint",
+    description: "Runs golangci-lint.",
+    run: runLint,
+});
+
+async function runLint() {
+    const lintArgs = ["run"];
+    if (defaultGoBuildTags.length) {
+        lintArgs.push("--build-tags", defaultGoBuildTags.join(","));
+    }
+    if (options.fix) {
+        lintArgs.push("--fix");
+    }
+
+    await customLinterTool.run([...lintArgs, "--config", "../.golangci.yml"], { cwd: "./tsc" });
+    console.log("Linting tools");
+    await customLinterTool.run([...lintArgs, "--config", "../.golangci.yml"], { cwd: "./tools" });
+}
+
+export const installTools = task({
+    name: "install-tools",
+    description: "Installs optional tools for developing within the repo.",
+    run: async () => {
+        await Promise.all([
+            gotestsumTool.ensure(),
+            customLinterTool.ensure(),
+        ]);
+    },
+});
+
+export const format = task({
+    name: "format",
+    description: "Formats the repo.",
+    run: runFormat,
+});
+
+async function runFormat() {
+    await run("dprint", ["fmt"]);
+}
+
+export const validate = task({
+    name: "validate",
+    description: "Builds, tests, lints, and formats the repo. Pass --api to include API tests, or --all to include all ancilliary repository tests.",
+    dependencies: [build],
+    run: async () => {
+        /** @type {{ name: string; error: unknown }[]} */
+        const failures = [];
+        /** @param {string} name @param {() => Promise<void>} action */
+        const runValidation = async (name, action) => {
+            try {
+                await action();
+            }
+            catch (error) {
+                failures.push({ name, error });
+                console.error(styleText("red", `${name} failed; continuing validation.`));
+            }
+        };
+
+        await runGenerate();
+        await runValidation("test:tsc", runTests);
+        await runValidation("test:extension", runTestExtension);
+        if (options.api || options.all) {
+            await runGenerateEnums(); // prereqs for test:api not included in `validate` deps
+            await runGenerateAPI();
+            await runBuildAPITests();
+            await runValidation("test:api", runTestAPI);
+        }
+        if (options.all) {
+            await runGenerateExtension();
+            await runGenerateVendor();
+            await runValidation("test:benchmarks", runTestBenchmarks);
+            await runValidation("test:tools", runTestTools);
+            await runValidation("test:smoke", runSmokeTest); // in CI this is run with `--race`
+        }
+        await runValidation("lint", runLint);
+        await runValidation("format", runFormat);
+
+        if (failures.length) {
+            throw new AggregateError(
+                failures.map(failure => failure.error),
+                `Validation failed: ${failures.map(failure => failure.name).join(", ")}`,
+            );
+        }
+    },
+});
+
+async function runSmokeTest() {
+    await run("./built/local/tsc", ["-p", "./tsc/testdata/fixtures/compiler", "--noEmit", "--singleThreaded"]);
+    await run("./built/local/tsc", ["-p", "./tsc/testdata/fixtures/compiler", "--noEmit"]);
+}
+
+export const smokeTest = task({
+    name: "test:smoke",
+    description: "Runs the smoke tests.",
+    dependencies: [build],
+    run: runSmokeTest,
+});
+
+export const checkFormat = task({
+    name: "check:format",
+    description: "Checks that the repo is formatted.",
+    run: async () => {
+        await run("dprint", ["check"]);
+    },
+});
+
+export const checkHerebyfile = task({
+    name: "check:herebyfile",
+    description: "Type-checks Herebyfile.mjs.",
+    run: () =>
+        run("node", [
+            "./node_modules/typescript/bin/tsc",
+            "--noEmit",
+            "--allowJs",
+            "--checkJs",
+            "--target",
+            "es2022",
+            "--lib",
+            "es2024,esnext.array,esnext.collection,esnext.iterator",
+            "--module",
+            "nodenext",
+            "--moduleResolution",
+            "nodenext",
+            "--types",
+            "node",
+            "--strict",
+            "--esModuleInterop",
+            "--skipLibCheck",
+            "Herebyfile.mjs",
+        ]),
+});
+
+export const checkVsceVersion = task({
+    name: "check:vsce-version",
+    description: "Checks that Azure release jobs use the repository's pinned vsce version.",
+    run: () => {
+        for (const validVersion of ["0.0.0", "1.2.3", "10.20.30"]) {
+            assert(stableThreeComponentVersionPattern.test(validVersion), `${validVersion} should be a valid stable version.`);
+        }
+        for (const invalidVersion of ["01.0.0", "1.02.0", "1.2.03", "1.2", "1.2.3-beta"]) {
+            assert(!stableThreeComponentVersionPattern.test(invalidVersion), `${invalidVersion} should not be a valid stable version.`);
+        }
+
+        const packageJson = JSON.parse(fs.readFileSync("./packages/vscode-typescript/package.json", "utf8"));
+        const packageLock = JSON.parse(fs.readFileSync("./package-lock.json", "utf8"));
+        const version = packageJson.devDependencies?.["@vscode/vsce"];
+        if (typeof version !== "string" || !stableThreeComponentVersionPattern.test(version)) {
+            throw new Error(`packages/vscode-typescript must pin @vscode/vsce to an exact version, got ${JSON.stringify(version)}.`);
+        }
+
+        const workspaceVersion = packageLock.packages?.["packages/vscode-typescript"]?.devDependencies?.["@vscode/vsce"];
+        const installedVersion = packageLock.packages?.["node_modules/@vscode/vsce"]?.version;
+        if (workspaceVersion !== version || installedVersion !== version) {
+            throw new Error(
+                `@vscode/vsce version mismatch: package.json=${version}, package-lock workspace=${workspaceVersion}, package-lock package=${installedVersion}.`,
+            );
+        }
+
+        const setupVsce = fs.readFileSync("./tools/pipelines/steps/setup-vsce.yml", "utf8");
+        const activeSetupLines = setupVsce.split(/\r?\n/).filter(line => !line.trimStart().startsWith("#"));
+        const installCommand = `- bash: npm install --no-save @vscode/vsce@${version}`;
+        if (activeSetupLines.filter(line => line.trim() === installCommand).length !== 1) {
+            throw new Error(`tools/pipelines/steps/setup-vsce.yml must install exactly @vscode/vsce@${version}.`);
+        }
+    },
+});
+
+const scriptTsconfigs = [
+    "./tools/scripts/tsc/tsconfig.json",
+    "./tsc/internal/lsp/lsproto/_generate/tsconfig.json",
+];
+
+export const checkScripts = task({
+    name: "check:scripts",
+    description: "Type-checks TypeScript scripts.",
+    run: async () => {
+        for (const tsconfig of scriptTsconfigs) {
+            console.log(`Type-checking ${tsconfig}`);
+            await run("tsc", ["-p", tsconfig]);
+        }
+    },
+});
+
+/**
+ * @param {string} localBaseline Path to the local copy of the baselines
+ * @param {string} refBaseline Path to the reference copy of the baselines
+ */
+function baselineAcceptTask(localBaseline, refBaseline) {
+    /**
+     * @param {string} p
+     */
+    function localPathToRefPath(p) {
+        const relative = path.relative(localBaseline, p);
+        return path.join(refBaseline, relative);
+    }
+
+    return async () => {
+        const toCopy = await globFiles(`${localBaseline}/**`, [`${localBaseline}/**/*.delete`]);
+        for (const p of toCopy) {
+            const out = localPathToRefPath(p);
+            await fs.promises.mkdir(path.dirname(out), { recursive: true });
+            await fs.promises.copyFile(p, out);
+        }
+        const toDelete = await globFiles(`${localBaseline}/**/*.delete`);
+        for (const p of toDelete) {
+            const out = localPathToRefPath(p).replace(/\.delete$/, "");
+            await rimraf(out);
+            await rimraf(p); // also delete the .delete file so that it no longer shows up in a diff tool.
+        }
+    };
+}
+
+const localBaseline = "tsc/testdata/baselines/local/";
+const refBaseline = "tsc/testdata/baselines/reference/";
+
+export const baselineAccept = task({
+    name: "baseline-accept",
+    description: "Makes the most recent test results the new baseline, overwriting the old baseline.",
+    run: baselineAcceptTask(localBaseline, refBaseline),
+});
+
+function getDiffTool() {
+    const program = process.env.DIFF;
+    if (!program) {
+        console.warn("Add the 'DIFF' environment variable to the path of the program you want to use.");
+        process.exit(1);
+    }
+    return program;
+}
+
+export const diff = task({
+    name: "diff",
+    description: "Diffs baselines using the diff tool specified by the 'DIFF' environment variable",
+    run: () => run(getDiffTool(), [refBaseline, localBaseline]),
+});
+
+/**
+ * @param {fs.PathLike} p
+ */
+function rimraf(p) {
+    // The rimraf package uses maxRetries=10 on Windows, but Node's fs.rm does not have that special case.
+    return fs.promises.rm(p, { recursive: true, force: true, maxRetries: process.platform === "win32" ? 10 : 0 });
+}
+
+/** @typedef {{
+ * name: string;
+ * paths: string | string[];
+ * ignored?: (path: string) => boolean;
+ * run: (paths: Set<string>, abortSignal: AbortSignal) => void | Promise<unknown>;
+ * }} WatchTask */
+void 0;
+
+/**
+ * @param {string} name
+ * @param {(paths: Set<string> | undefined, abortSignal: AbortSignal) => void | Promise<unknown>} run
+ * @param {object} options
+ * @param {string | string[]} options.paths
+ * @param {(path: string) => boolean} [options.ignored]
+ * @param {string} [options.name]
+ */
+async function watchDebounced(name, run, options) {
+    let watching = true;
+    let running = true;
+    let lastChangeTimeMs = Date.now();
+    let changedDeferred = /** @type {Deferred<void>} */ (new Deferred());
+    let abortController = new AbortController();
+
+    const debouncer = new Debouncer(1_000, endRun);
+    const watcher = chokidar.watch(options.paths, {
+        ignored: options.ignored,
+        ignorePermissionErrors: true,
+        alwaysStat: true,
+    });
+    // The paths that have changed since the last run.
+    /** @type {Set<string> | undefined} */
+    let paths;
+
+    process.on("SIGINT", endWatchMode);
+    process.on("beforeExit", endWatchMode);
+    watcher.on("all", onChange);
+
+    while (watching) {
+        const promise = changedDeferred.promise;
+        const token = abortController.signal;
+        if (!token.aborted) {
+            running = true;
+            try {
+                const thePaths = paths;
+                paths = new Set();
+                await run(thePaths, token);
+            }
+            catch {
+                // ignore
+            }
+            running = false;
+        }
+        if (watching) {
+            console.log(styleText("yellowBright", `[${name}] run complete, waiting for changes...`));
+            await promise;
+        }
+    }
+
+    console.log("end");
+
+    /**
+     * @param {'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir' | 'all' | 'ready' | 'raw' | 'error'} eventName
+     * @param {string} path
+     * @param {fs.Stats | undefined} stats
+     */
+    function onChange(eventName, path, stats) {
+        switch (eventName) {
+            case "change":
+            case "unlink":
+            case "unlinkDir":
+                break;
+            case "add":
+            case "addDir":
+                // skip files that are detected as 'add' but haven't actually changed since the last time we ran.
+                if (stats && stats.mtimeMs <= lastChangeTimeMs) {
+                    return;
+                }
+                break;
+        }
+        beginRun(path);
+    }
+
+    /**
+     * @param {string} path
+     */
+    function beginRun(path) {
+        if (debouncer.empty) {
+            console.log(styleText("yellowBright", `[${name}] changed due to '${path}', restarting...`));
+            if (running) {
+                console.log(styleText("yellowBright", `[${name}] aborting in-progress run...`));
+            }
+            abortController.abort();
+            abortController = new AbortController();
+        }
+
+        debouncer.enqueue();
+        paths ??= new Set();
+        paths.add(path);
+    }
+
+    function endRun() {
+        lastChangeTimeMs = Date.now();
+        changedDeferred.resolve();
+        changedDeferred = /** @type {Deferred<void>} */ (new Deferred());
+    }
+
+    function endWatchMode() {
+        if (watching) {
+            watching = false;
+            console.log(styleText("yellowBright", `[${name}] exiting watch mode...`));
+            abortController.abort();
+            watcher.close();
+        }
+    }
+}
+
+/**
+ * @template T
+ */
+export class Deferred {
+    constructor() {
+        /** @type {Promise<T>} */
+        this.promise = new Promise((resolve, reject) => {
+            this.resolve = resolve;
+            this.reject = reject;
+        });
+    }
+}
+
+export class Debouncer {
+    /**
+     * @param {number} timeout
+     * @param {() => Promise<any> | void} action
+     */
+    constructor(timeout, action) {
+        this._timeout = timeout;
+        this._action = action;
+        /** @type {ReturnType<typeof setTimeout> | undefined} */
+        this._timer = undefined;
+        /** @type {Deferred<any> | undefined} */
+        this._deferred = undefined;
+    }
+
+    get empty() {
+        return !this._deferred;
+    }
+
+    enqueue() {
+        if (this._timer) {
+            clearTimeout(this._timer);
+            this._timer = undefined;
+        }
+
+        if (!this._deferred) {
+            this._deferred = new Deferred();
+        }
+
+        this._timer = setTimeout(() => this.run(), 100);
+        return this._deferred.promise;
+    }
+
+    run() {
+        if (this._timer) {
+            clearTimeout(this._timer);
+            this._timer = undefined;
+        }
+
+        const deferred = this._deferred;
+        assert(deferred);
+        this._deferred = undefined;
+        try {
+            deferred.resolve(this._action());
+        }
+        catch (e) {
+            deferred.reject(e);
+        }
+    }
+}
+
+const getVersion = memoize(() => {
+    if (nativePreviewReleaseVersion) {
+        return nativePreviewReleaseVersion;
+    }
+
+    const f = fs.readFileSync("./tsc/internal/core/version.go", "utf8");
+
+    const match = f.match(/var version\s*=\s*"(\d+\.\d+\.\d+)(-[^"]+)?"/);
+    if (!match) {
+        throw new Error("Failed to extract version from version.go");
+    }
+
+    let version = match[1];
+    if (options.setPrerelease) {
+        version += `-${options.setPrerelease}`;
+    }
+    else if (match[2]) {
+        version += match[2];
+    }
+
+    return version;
+});
+
+function getPublishTag() {
+    if (publishAsTypescript) {
+        const version = getVersion();
+        if (!version) {
+            throw new Error("Publishing as 'typescript' requires a version before selecting an npm tag.");
+        }
+        const match = version.match(/-(dev|beta|rc)(?:[.-]|$)/);
+        if (match?.[1]) return match[1] === "dev" ? "next" : match[1];
+        if (version === nativePreviewReleaseVersion && stableThreeComponentVersionPattern.test(version)) return "latest";
+        throw new Error(`Refusing to publish 'typescript' with the latest tag from non-release version ${version}.`);
+    }
+    return "latest";
+}
+
+const extensionDir = path.resolve("./packages/vscode-typescript");
+const nightlyExtensionDir = path.resolve("./packages/vscode-typescript-nightly");
+const builtNpm = path.resolve("./built/npm");
+const builtVsix = path.resolve("./built/vsix");
+const typeScriptReleaseInfoPath = path.resolve("./built/typescript-release-info.json");
+const builtPublishedPlatformPackages = path.resolve("./built/published-platform-packages");
+const builtSignTmp = path.resolve("./built/sign-tmp");
+const publishedTypeScriptAliasPackageName = "@typescript/bundled-typescript";
+const releasePackageEnv = { COREPACK_ENABLE_STRICT: "0" };
+const getReleasePackageRegistry = memoize(async () => {
+    const { stdout } = await runOutput("npm", ["config", "get", "registry"], { env: releasePackageEnv });
+    return stdout.trim();
+});
+
+const getVscodeTypeScriptExtensionPackageJson = memoize(() => JSON.parse(fs.readFileSync(path.join(extensionDir, "package.json"), "utf8")));
+
+function getVscodeTypeScriptExtensionVersion() {
+    const version = getVscodeTypeScriptExtensionPackageJson().version;
+    if (typeof version !== "string" || !stableThreeComponentVersionPattern.test(version)) {
+        throw new Error(`packages/vscode-typescript/package.json must contain a stable three-component version, got ${JSON.stringify(version)}.`);
+    }
+    return version;
+}
+
+const getSignTempDir = memoize(async () => {
+    const dir = path.resolve(builtSignTmp);
+    await rimraf(dir);
+    await fs.promises.mkdir(dir, { recursive: true });
+    return dir;
+});
+
+const cleanSignTempDirectory = task({
+    name: "clean:sign-tmp",
+    hiddenFromTaskList: true,
+    run: runCleanSignTempDirectory,
+});
+
+function runCleanSignTempDirectory() {
+    return rimraf(builtSignTmp);
+}
+
+let signCount = 0;
+
+/**
+ * @typedef {{
+ *   SignFileRecordList: {
+ *     SignFileList: { SrcPath: string; DstPath: string | null }[];
+ *     Certs: Cert;
+ *     MacAppName: string | undefined
+ *   }[]
+ * }} DDSignFileList
+ *
+ * @param {DDSignFileList} filelist
+ */
+async function sign(filelist, unchangedOutputOkay = false) {
+    let data = JSON.stringify(filelist, undefined, 4);
+    console.log("filelist:", data);
+
+    if (!process.env.MBSIGN_APPFOLDER) {
+        console.log(styleText("yellow", "Faking signing because MBSIGN_APPFOLDER is not set."));
+
+        // Fake signing for testing.
+
+        for (const record of filelist.SignFileRecordList) {
+            for (const file of record.SignFileList) {
+                const src = file.SrcPath;
+                const dst = file.DstPath ?? src;
+
+                if (!fs.existsSync(src)) {
+                    throw new Error(`Source file does not exist: ${src}`);
+                }
+
+                const dstDir = path.dirname(dst);
+                if (!fs.existsSync(dstDir)) {
+                    throw new Error(`Destination directory does not exist: ${dstDir}`);
+                }
+
+                if (dst.endsWith(".sig")) {
+                    console.log(`Faking signature for ${src} -> ${dst}`);
+                    // No great way to fake a signature.
+                    await fs.promises.writeFile(dst, "fake signature");
+                }
+                else {
+                    if (src === dst) {
+                        console.log(`Faking signing ${src}`);
+                    }
+                    else {
+                        console.log(`Faking signing ${src} -> ${dst}`);
+                    }
+                    const contents = await fs.promises.readFile(src);
+                    await fs.promises.writeFile(dst, contents);
+                }
+            }
+        }
+
+        return;
+    }
+
+    const signingWorkaround = true;
+
+    /** @type {{ source: string; target: string }[]} */
+    const signingWorkaroundFiles = [];
+
+    if (signingWorkaround) {
+        // DstPath is currently broken in the signing tool.
+        // Copy all of the files to a new tempdir and then leave DstPath unset
+        // so that it's overwritten, then move the file to the destination.
+        console.log("Working around DstPath bug");
+
+        /** @type {DDSignFileList} */
+        const newFileList = {
+            SignFileRecordList: filelist.SignFileRecordList.map(list => {
+                return {
+                    Certs: list.Certs,
+                    SignFileList: list.SignFileList.map(file => {
+                        const dstPath = file.DstPath;
+                        if (dstPath === null) {
+                            return file;
+                        }
+
+                        const src = file.SrcPath;
+                        // File extensions must be preserved; use a prefix.
+                        const dstPathTemp = `${path.dirname(src)}/signing-temp-${path.basename(src)}`;
+
+                        console.log(`Copying: ${src} -> ${dstPathTemp}`);
+                        fs.cpSync(src, dstPathTemp);
+
+                        signingWorkaroundFiles.push({ source: dstPathTemp, target: dstPath });
+
+                        return {
+                            SrcPath: dstPathTemp,
+                            DstPath: null,
+                        };
+                    }),
+                    MacAppName: list.MacAppName,
+                };
+            }),
+        };
+
+        data = JSON.stringify(newFileList, undefined, 4);
+        console.log("new filelist:", data);
+    }
+
+    /** @type {Map<string, string>} */
+    const srcHashes = new Map();
+
+    for (const record of filelist.SignFileRecordList) {
+        for (const file of record.SignFileList) {
+            const src = file.SrcPath;
+            const dst = file.DstPath ?? src;
+
+            if (!fs.existsSync(src)) {
+                throw new Error(`Source file does not exist: ${src}`);
+            }
+
+            const hash = crypto.createHash("sha256").update(fs.readFileSync(src)).digest("hex");
+            srcHashes.set(src, hash);
+
+            console.log(`Will sign ${src} -> ${dst}`);
+            console.log(`  sha256: ${hash}`);
+        }
+    }
+
+    const tmp = await getSignTempDir();
+    const filelistPath = path.resolve(tmp, `signing-filelist-${signCount++}.json`);
+    await fs.promises.writeFile(filelistPath, data);
+
+    try {
+        const dll = path.join(process.env.MBSIGN_APPFOLDER, "DDSignFiles.dll");
+        const filelistFlag = `/filelist:${filelistPath}`;
+        await run("dotnet", [dll, "--", filelistFlag]);
+    }
+    finally {
+        await fs.promises.unlink(filelistPath);
+    }
+
+    if (signingWorkaround) {
+        // Now, copy the files back.
+        for (const { source, target } of signingWorkaroundFiles) {
+            console.log(`Moving signed file: ${source} -> ${target}`);
+            await fs.promises.rename(source, target);
+        }
+    }
+
+    /** @type {string[]} */
+    let failures = [];
+
+    for (const record of filelist.SignFileRecordList) {
+        for (const file of record.SignFileList) {
+            const src = file.SrcPath;
+            const dst = file.DstPath ?? src;
+
+            if (!fs.existsSync(dst)) {
+                failures.push(`Signed file does not exist: ${dst}`);
+                const newSrcHash = crypto.createHash("sha256").update(fs.readFileSync(src)).digest("hex");
+                const oldSrcHash = srcHashes.get(src);
+                assert(oldSrcHash);
+                if (oldSrcHash !== newSrcHash) {
+                    failures.push(`  Source file changed during signing: ${src}\n    before: ${oldSrcHash}\n    after:  ${newSrcHash}`);
+                }
+                continue;
+            }
+
+            const srcHash = srcHashes.get(src);
+            assert(srcHash);
+            const dstHash = crypto.createHash("sha256").update(fs.readFileSync(dst)).digest("hex");
+            if (srcHash === dstHash) {
+                const message = `Signed file is identical to source file (not signed?): ${src} -> ${dst}\n  sha256: ${dstHash}`;
+                if (unchangedOutputOkay) {
+                    console.log(message);
+                }
+                else {
+                    failures.push(message);
+                    continue;
+                }
+            }
+
+            if (src === dst) {
+                console.log(`Signed ${src}`);
+            }
+            else {
+                console.log(`Signed ${src} -> ${dst}`);
+            }
+            console.log(`  sha256: ${dstHash}`);
+        }
+    }
+
+    if (failures.length) {
+        throw new Error("Some files failed to sign:\n" + failures.map(f => " - " + f).join("\n"));
+    }
+}
+
+/**
+ * @param {string} src
+ * @param {string} dest
+ * @param {(p: string) => boolean} [filter]
+ */
+function cpRecursive(src, dest, filter) {
+    return fs.promises.cp(src, dest, {
+        recursive: true,
+        filter: filter ? src => filter(src.replace(/\\/g, "/")) : undefined,
+    });
+}
+
+/**
+ * @param {string} src
+ * @param {string} dest
+ */
+function cpWithoutNodeModulesOrTsconfig(src, dest) {
+    return cpRecursive(src, dest, p => !p.endsWith("/node_modules") && !p.endsWith("/tsconfig.json"));
+}
+
+const mainNativePreviewPackage = {
+    npmPackageName: publishAsTypescript ? "typescript" : "@typescript/typescript",
+    npmDir: path.join(builtNpm, publishAsTypescript ? "typescript" : "native-preview"),
+    npmTarball: path.join(builtNpm, publishAsTypescript ? "typescript.tgz" : "native-preview.tgz"),
+};
+
+const typescriptMacEntitlements = [
+    "com.apple.security.cs.allow-dyld-environment-variables",
+    "com.apple.security.cs.disable-library-validation",
+];
+
+function createTypeScriptMacEntitlementsPlist() {
+    const entries = typescriptMacEntitlements.map(entitlement => `    <key>${entitlement}</key>\n    <true/>`).join("\n");
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+${entries}
+</dict>
+</plist>
+`;
+}
+
+/**
+ * @typedef {"win32" | "linux" | "darwin" | "aix" | "android" | "freebsd" | "netbsd" | "openbsd" | "sunos"} OS
+ * @typedef {"x64" | "arm" | "arm64" | "ia32" | "ppc64" | "loong64" | "mips64el" | "riscv64" | "s390x"} Arch
+ * @typedef {"Microsoft400" | "LinuxSign" | "MacDeveloperHarden" | "8020" | "VSCodePublisher"} Cert
+ * @typedef {`${OS | "alpine"}-${Exclude<Arch, "arm"> | "armhf"}`} VSCodeTarget
+ * @typedef {{ name: string; sourceDir: string }} VsixExtensionPackage
+ * @typedef {{ nodeOs: string; vscodeTarget: string; sourceDir: string; extensionDir: string; vsixPath: string; vsixManifestPath: string; vsixSignaturePath: string }} VsixExtension
+ * @typedef {{ GOOS: string; GOARCH: string }} GoDistTarget
+ * @typedef {{ os: OS; arch: Arch; cert?: Cert; vsix?: boolean; alpine?: boolean }} Platform
+ */
+void 0;
+
+/** @type {VsixExtensionPackage[]} */
+const vsixExtensionPackages = [
+    ...(produceNativePreviewVsix ? [{ name: "native-preview", sourceDir: extensionDir }] : []),
+    ...(produceTypeScriptNightlyVsix ? [{ name: "vscode-typescript-nightly", sourceDir: nightlyExtensionDir }] : []),
+];
+
+/**
+ * npm package platforms supported by the native release.
+ * The native-preview package publishes only the entries with vsix: true;
+ * the typescript package publishes the full list.
+ * BSD targets that are not in Node's supported-platforms table are best-effort
+ * and limited to mainstream 64-bit x64/arm64 architectures.
+ * alpine is set only for the subset that also produces Alpine VSIXes.
+ * cert defaults to LinuxSign.
+ * @type {Platform[]}
+ */
+const platforms = [
+    { os: "win32", arch: "x64", vsix: true, cert: "Microsoft400" },
+    { os: "win32", arch: "arm64", vsix: true, cert: "Microsoft400" },
+    { os: "linux", arch: "x64", vsix: true, alpine: true },
+    { os: "linux", arch: "arm", vsix: true },
+    { os: "linux", arch: "arm64", vsix: true, alpine: true },
+    { os: "darwin", arch: "x64", vsix: true, cert: "MacDeveloperHarden" },
+    { os: "darwin", arch: "arm64", vsix: true, cert: "MacDeveloperHarden" },
+    { os: "aix", arch: "ppc64" },
+    { os: "android", arch: "arm64" },
+    { os: "freebsd", arch: "arm64" },
+    { os: "freebsd", arch: "x64" },
+    { os: "linux", arch: "loong64" },
+    { os: "linux", arch: "mips64el" },
+    { os: "linux", arch: "ppc64" },
+    { os: "linux", arch: "riscv64" },
+    { os: "linux", arch: "s390x" },
+    { os: "netbsd", arch: "arm64" },
+    { os: "netbsd", arch: "x64" },
+    { os: "openbsd", arch: "arm64" },
+    { os: "openbsd", arch: "x64" },
+    { os: "sunos", arch: "x64" },
+    // Wasm?
+];
+
+const ignoredGoTargets = new Map([
+    ["android/386", "Android is not a Node runtime target TypeScript supports"],
+    ["android/amd64", "Android is not a Node runtime target TypeScript supports"],
+    ["android/arm", "Android is not a Node runtime target TypeScript supports"],
+    ["freebsd/386", "FreeBSD is experimental in Node and limited here to mainstream 64-bit x64/arm64"],
+    ["freebsd/arm", "FreeBSD is experimental in Node and limited here to mainstream 64-bit x64/arm64"],
+    ["linux/386", "ia32 means 32-bit x86, which TypeScript does not support for native packages"],
+    ["linux/ppc64", "Node supports Linux ppc64le; npm's ppc64 CPU name cannot select big-endian ppc64 separately"],
+    ["netbsd/386", "NetBSD is not in Node's supported-platforms table and is limited here to mainstream 64-bit x64/arm64"],
+    ["netbsd/arm", "NetBSD is not in Node's supported-platforms table and is limited here to mainstream 64-bit x64/arm64"],
+    ["openbsd/386", "OpenBSD is not in Node's supported-platforms table and is limited here to mainstream 64-bit x64/arm64"],
+    ["openbsd/arm", "OpenBSD is not in Node's supported-platforms table and is limited here to mainstream 64-bit x64/arm64"],
+    ["openbsd/ppc64", "OpenBSD is not in Node's supported-platforms table and is limited here to mainstream 64-bit x64/arm64"],
+    ["openbsd/riscv64", "OpenBSD is not in Node's supported-platforms table and is limited here to mainstream 64-bit x64/arm64"],
+    ["solaris/amd64", "Node documents SmartOS/sunos rather than Oracle Solaris; sunos-x64 publishes illumos/amd64 for that runtime family"],
+    ["windows/386", "ia32 means 32-bit x86, which TypeScript does not support for native packages"],
+]);
+
+/**
+ * @param {string} os
+ * @returns {"windows" | "illumos" | "darwin" | "linux" | "aix" | "android" | "freebsd" | "netbsd" | "openbsd"}
+ */
+function nodeToGOOS(os) {
+    switch (os) {
+        case "win32":
+            return "windows";
+        case "sunos":
+            return "illumos";
+        case "darwin":
+        case "linux":
+        case "aix":
+        case "android":
+        case "freebsd":
+        case "netbsd":
+        case "openbsd":
+            return os;
+        default:
+            throw new Error(`Unsupported OS: ${os}`);
+    }
+}
+
+/**
+ * @param {string} arch
+ * @param {string} os
+ * @returns {"amd64" | "386" | "mips64le" | "ppc64" | "ppc64le" | "arm" | "arm64" | "loong64" | "riscv64" | "s390x"}
+ */
+function nodeToGOARCH(arch, os) {
+    switch (arch) {
+        case "x64":
+            return "amd64";
+        case "ia32":
+            return "386";
+        case "mips64el":
+            return "mips64le";
+        case "ppc64":
+            return os === "aix" ? "ppc64" : "ppc64le";
+        case "arm":
+        case "arm64":
+        case "loong64":
+        case "riscv64":
+        case "s390x":
+            return arch;
+        default:
+            throw new Error(`Unsupported ARCH: ${arch}`);
+    }
+}
+
+const getPlatforms = memoize(() => {
+    const publishTag = releaseVscodeTypescript ? undefined : getPublishTag();
+    let supportedPlatforms = !releaseVscodeTypescript && publishAsTypescript && publishTag !== "next"
+        ? platforms
+        : platforms.filter(({ vsix }) => vsix);
+
+    if (!options.forRelease) {
+        supportedPlatforms = supportedPlatforms.filter(({ os, arch }) => os === process.platform && arch === process.arch);
+        assert.equal(supportedPlatforms.length, 1, "No supported platforms found");
+    }
+
+    return supportedPlatforms.map(({ os, arch, cert = "LinuxSign", vsix, alpine }) => {
+        const packageBaseName = publishAsTypescript ? "typescript" : "native-preview";
+        const npmDirName = `${packageBaseName}-${os}-${arch}`;
+        const npmDir = path.join(builtNpm, npmDirName);
+        const npmTarball = `${npmDir}.tgz`;
+        const npmPackageName = `@typescript/${npmDirName}`;
+
+        /** @type {VsixExtension[]} */
+        let extensions = [];
+        if (produceAnyVsix && vsix) {
+            /** @type {string[]} */
+            const vscodeTargets = [`${os}-${arch === "arm" ? "armhf" : arch}`];
+            if (alpine) {
+                vscodeTargets.push(`alpine-${arch === "arm" ? "armhf" : arch}`);
+            }
+
+            extensions = vscodeTargets.flatMap(vscodeTarget =>
+                vsixExtensionPackages.map(({ name: packageName, sourceDir }) => {
+                    const extensionDir = path.join(builtVsix, `${packageName}-${vscodeTarget}`);
+                    const vsixPath = extensionDir + ".vsix";
+                    const vsixManifestPath = extensionDir + ".manifest";
+                    const vsixSignaturePath = extensionDir + ".signature.p7s";
+                    return {
+                        nodeOs: os,
+                        vscodeTarget,
+                        sourceDir,
+                        extensionDir,
+                        vsixPath,
+                        vsixManifestPath,
+                        vsixSignaturePath,
+                    };
+                })
+            );
+        }
+
+        return {
+            nodeOs: os,
+            nodeArch: arch,
+            goos: nodeToGOOS(os),
+            goarch: nodeToGOARCH(arch, os),
+            npmPackageName,
+            npmDirName,
+            npmDir,
+            npmTarball,
+            extensions,
+            cert,
+        };
+    });
+});
+
+export const checkPlatforms = task({
+    name: "typescript:check-platforms",
+    hiddenFromTaskList: true,
+    run: runCheckPlatforms,
+});
+
+/**
+ * @param {GoDistTarget} target
+ */
+function goDistTargetToPlatform(target) {
+    const goTarget = `${target.GOOS}/${target.GOARCH}`;
+    if (ignoredGoTargets.has(goTarget)) {
+        return undefined;
+    }
+
+    /** @type {OS | undefined} */
+    let nodeOs;
+    switch (target.GOOS) {
+        case "windows":
+            nodeOs = "win32";
+            break;
+        case "illumos":
+            nodeOs = "sunos";
+            break;
+        case "aix":
+        case "android":
+        case "darwin":
+        case "freebsd":
+        case "linux":
+        case "netbsd":
+        case "openbsd":
+            nodeOs = target.GOOS;
+            break;
+        default:
+            return undefined;
+    }
+
+    /** @type {Arch | undefined} */
+    let nodeArch;
+    switch (target.GOARCH) {
+        case "386":
+            nodeArch = "ia32";
+            break;
+        case "amd64":
+            nodeArch = "x64";
+            break;
+        case "mips64le":
+            nodeArch = "mips64el";
+            break;
+        case "ppc64":
+            nodeArch = "ppc64";
+            break;
+        case "ppc64le":
+            nodeArch = "ppc64";
+            break;
+        case "arm":
+        case "arm64":
+        case "loong64":
+        case "riscv64":
+        case "s390x":
+            nodeArch = target.GOARCH;
+            break;
+        default:
+            return undefined;
+    }
+
+    return `${nodeOs}-${nodeArch}`;
+}
+
+async function runCheckPlatforms() {
+    const { stdout } = await runOutput("go", ["tool", "dist", "list", "-json"]);
+    /** @type {GoDistTarget[]} */
+    const goTargets = JSON.parse(stdout);
+    const goTargetSet = new Set(goTargets.map(({ GOOS, GOARCH }) => `${GOOS}/${GOARCH}`));
+
+    /** @type {[os: OS, arch: Arch][]} */
+    const packagePlatforms = platforms.map(({ os, arch }) => /** @type {[OS, Arch]} */ ([os, arch]));
+    const actual = new Set(packagePlatforms.map(([os, arch]) => `${os}-${arch}`));
+    const expected = new Set(goTargets.map(goDistTargetToPlatform).filter(platform => platform !== undefined));
+
+    const errors = [];
+    for (const [os, arch] of packagePlatforms) {
+        const goTarget = `${nodeToGOOS(os)}/${nodeToGOARCH(arch, os)}`;
+        if (!goTargetSet.has(goTarget)) {
+            errors.push(`Configured package platform ${os}-${arch} maps to unsupported Go target ${goTarget}.`);
+        }
+    }
+
+    const missing = [...expected].filter(platform => !actual.has(platform));
+    if (missing.length) {
+        errors.push(`Missing package platform(s) for the current Go toolchain: ${missing.join(", ")}.`);
+    }
+
+    const extra = [...actual].filter(platform => !expected.has(platform));
+    if (extra.length) {
+        errors.push(`Unexpected package platform(s), or missing exclusion policy: ${extra.join(", ")}.`);
+    }
+
+    if (errors.length) {
+        throw new Error(`native-preview platform list is out of sync with 'go tool dist list':\n${errors.map(e => `  - ${e}`).join("\n")}`);
+    }
+}
+
+/**
+ * Recursively strips `@typescript/source` export conditions from a package.json object.
+ * Processes `exports` and `imports` fields, skipping past subpath keys (starting with "."
+ * or "#") and recursing into condition objects. After removal, simplifies objects that have
+ * only a single `default` key down to their bare value.
+ * @param {Record<string, any>} packageJson
+ */
+function stripSourceConditions(packageJson) {
+    for (const field of ["exports", "imports"]) {
+        if (packageJson[field] != null && typeof packageJson[field] === "object") {
+            packageJson[field] = stripConditionsFromValue(packageJson[field]);
+        }
+    }
+}
+
+/**
+ * @param {any} value
+ * @returns {any}
+ */
+function stripConditionsFromValue(value) {
+    if (value == null || typeof value !== "object") {
+        return value;
+    }
+    delete value["@typescript/source"];
+    for (const key of Object.keys(value)) {
+        value[key] = stripConditionsFromValue(value[key]);
+    }
+    // Simplify: if only "default" remains, collapse to its value.
+    const keys = Object.keys(value);
+    if (keys.length === 1 && keys[0] === "default") {
+        return value["default"];
+    }
+    return value;
+}
+
+export const buildNativePreviewPackages = task({
+    name: "typescript:build",
+    description: "Builds TypeScript npm packages for the current platform. Pass --respectGoEnv to preserve caller-provided Go build settings.",
+    run: runBuildNativePreviewPackages,
+});
+
+export const writeTypeScriptReleaseInfo = task({
+    name: "typescript:release-info",
+    hiddenFromTaskList: true,
+    run: async () => {
+        await fs.promises.mkdir(path.dirname(typeScriptReleaseInfoPath), { recursive: true });
+        await fs.promises.writeFile(
+            typeScriptReleaseInfoPath,
+            JSON.stringify({ version: getVersion(), npmTag: getPublishTag() }, undefined, 4) + "\n",
+        );
+    },
+});
+
+async function runBuildNativePreviewPackages() {
+    if (usePublishedPlatformPackagesForVsix) {
+        checkPublishedPlatformPackagesForVsix();
+        await rimraf(builtNpm);
+        console.log("Skipping npm package builds; VSIX packaging will use published platform packages.");
+        return;
+    }
+
+    await rimraf(builtNpm);
+
+    const platforms = getPlatforms();
+
+    const inputDir = "./packages/typescript";
+
+    const inputPackageJson = JSON.parse(fs.readFileSync(path.join(inputDir, "package.json"), "utf8"));
+    inputPackageJson.version = getVersion();
+    delete inputPackageJson.private;
+    inputPackageJson.files = [...new Set([...(inputPackageJson.files ?? []), "NOTICE.txt"])];
+    if (publishAsTypescript) {
+        inputPackageJson.bin = {
+            tsc: "./bin/tsc",
+        };
+        inputPackageJson.description = "TypeScript is a language for application scale JavaScript development";
+        inputPackageJson.homepage = "https://www.typescriptlang.org/";
+        inputPackageJson.keywords = [
+            "TypeScript",
+            "Microsoft",
+            "compiler",
+            "language",
+            "javascript",
+        ];
+        inputPackageJson.bugs = {
+            url: "https://github.com/microsoft/TypeScript/issues",
+        };
+        inputPackageJson.repository = {
+            type: "git",
+            url: "https://github.com/microsoft/TypeScript.git",
+        };
+        delete inputPackageJson.scripts;
+        delete inputPackageJson.devDependencies;
+    }
+    stripSourceConditions(inputPackageJson);
+
+    if (fs.existsSync(".git")) {
+        const { stdout: gitHead } = await runOutput("git", ["rev-parse", "HEAD"]);
+        inputPackageJson.gitHead = gitHead.trim();
+    }
+    inputPackageJson.publishConfig = {
+        access: "public",
+        tag: getPublishTag(),
+    };
+
+    const mainPackage = {
+        ...inputPackageJson,
+        name: mainNativePreviewPackage.npmPackageName,
+        optionalDependencies: Object.fromEntries(platforms.map(p => [p.npmPackageName, getVersion()])),
+    };
+
+    const mainPackageDir = mainNativePreviewPackage.npmDir;
+
+    await fs.promises.mkdir(mainPackageDir, { recursive: true });
+
+    // Copy package contents excluding node_modules and dist (dist is copied separately after build).
+    // The package.json "files" field controls what npm pack actually includes.
+    await cpRecursive(inputDir, mainPackageDir, p => !p.endsWith("/node_modules") && !p.includes("/dist"));
+    if (publishAsTypescript) {
+        await fs.promises.writeFile(path.join(mainPackageDir, "bin", "tsc"), '#!/usr/bin/env node\nimport "../lib/tsc.js";\n');
+        await fs.promises.chmod(path.join(mainPackageDir, "bin", "tsc"), 0o755);
+        await fs.promises.copyFile(path.join(inputDir, "typescript-package-readme.md"), path.join(mainPackageDir, "README.md"));
+    }
+
+    await fs.promises.writeFile(path.join(mainPackageDir, "package.json"), JSON.stringify(mainPackage, undefined, 4));
+    await fs.promises.copyFile("LICENSE.txt", path.join(mainPackageDir, "LICENSE"));
+    await fs.promises.copyFile("NOTICE.txt", path.join(mainPackageDir, "NOTICE.txt"));
+
+    // Build JS API and copy dist into the package.
+    await run("npm", ["run", "-w", "@typescript/typescript", "build"]);
+    await cpRecursive(path.join(inputDir, "dist"), path.join(mainPackageDir, "dist"));
+
+    // Validate that .d.ts files contain no external imports (all imports must start with "." or "#").
+    const dtsFiles = await globFiles(`${mainPackageDir}/dist/**/*.d.ts`);
+    const importErrors = [];
+    for (const dtsFile of dtsFiles) {
+        const content = await fs.promises.readFile(dtsFile, "utf-8");
+        const relPath = path.relative(mainPackageDir, dtsFile);
+        for (const [i, line] of content.split("\n").entries()) {
+            // Match: import ... from "specifier" / export ... from "specifier"
+            const fromMatch = line.match(/(?:import|export)\s.*?\sfrom\s+["']([^"']+)["']/);
+            if (fromMatch && !fromMatch[1].startsWith(".") && !fromMatch[1].startsWith("#")) {
+                importErrors.push(`${relPath}:${i + 1}: external import declaration "${fromMatch[1]}"`);
+            }
+            // Match: import("specifier")
+            for (const m of line.matchAll(/import\(["']([^"']+)["']\)/g)) {
+                if (!m[1].startsWith(".") && !m[1].startsWith("#")) {
+                    importErrors.push(`${relPath}:${i + 1}: external dynamic import "${m[1]}"`);
+                }
+            }
+        }
+    }
+    if (importErrors.length) {
+        throw new Error(`Found external imports in .d.ts files:\n${importErrors.map(e => "  " + e).join("\n")}`);
+    }
+
+    const extraFlags = options.respectGoEnv
+        ? []
+        : getReleaseBuildFlags(options.setPrerelease || nativePreviewReleaseVersion ? getVersion() : undefined);
+
+    const platformBuilders = platforms.map(({ npmDir, npmPackageName, nodeOs, nodeArch, goos, goarch }) => async () => {
+        const packageJson = {
+            ...inputPackageJson,
+            bin: undefined,
+            files: ["lib", "NOTICE.txt"],
+            imports: undefined,
+            dependencies: undefined,
+            name: npmPackageName,
+            os: [nodeOs],
+            cpu: [nodeArch],
+            exports: {
+                "./package.json": "./package.json",
+            },
+        };
+
+        const out = path.join(npmDir, "lib");
+        await fs.promises.mkdir(out, { recursive: true });
+        await fs.promises.writeFile(path.join(npmDir, "package.json"), JSON.stringify(packageJson, undefined, 4));
+        await fs.promises.copyFile("LICENSE.txt", path.join(npmDir, "LICENSE"));
+        await fs.promises.copyFile("NOTICE.txt", path.join(npmDir, "NOTICE.txt"));
+
+        const readme = [
+            `# \`${npmPackageName}\``,
+            "",
+            `This package provides ${nodeOs}-${nodeArch} support for [${mainNativePreviewPackage.npmPackageName}](https://www.npmjs.com/package/${mainNativePreviewPackage.npmPackageName}).`,
+        ];
+
+        await fs.promises.writeFile(path.join(npmDir, "README.md"), readme.join("\n") + "\n");
+
+        await generateLibs(out);
+
+        const exeName = nativePreviewExeName(nodeOs);
+        await buildTsc({
+            out: publishAsTypescript ? path.join(out, exeName) : out,
+            env: {
+                GOOS: goos,
+                GOARCH: goarch,
+                ...(options.respectGoEnv ? {} : { GOARM: "6", CGO_ENABLED: "0" }),
+            },
+            extraFlags,
+        });
+    });
+
+    if (isCI) {
+        for (const build of platformBuilders) {
+            await build();
+            // Build machines have too little space.
+            // Clear the Go build cache between platforms.
+            await run("go", ["clean", "-cache"]);
+        }
+    }
+    else {
+        await runWithConcurrencyLimit(platformBuilders, os.availableParallelism());
+    }
+}
+
+/**
+ * @param {ReturnType<typeof getPlatforms>} platforms
+ */
+async function testNativePreviewPackage(platforms) {
+    const hostPlatform = platforms.find(({ nodeOs, nodeArch }) => nodeOs === process.platform && nodeArch === process.arch);
+    assert(hostPlatform, `No package was built for the host platform ${process.platform}-${process.arch}`);
+
+    const testRoot = path.resolve("built/package-test");
+    const nodeModules = path.join(testRoot, "node_modules");
+    const mainPackageDir = path.join(nodeModules, ...mainNativePreviewPackage.npmPackageName.split("/"));
+    const platformPackageDir = path.join(nodeModules, ...hostPlatform.npmPackageName.split("/"));
+    const sourceFile = path.join(testRoot, "index.ts");
+
+    await rimraf(testRoot);
+    try {
+        await cpRecursive(mainNativePreviewPackage.npmDir, mainPackageDir);
+        await cpRecursive(hostPlatform.npmDir, platformPackageDir);
+        await fs.promises.writeFile(sourceFile, 'export const value: string = "value";\n');
+
+        const binName = publishAsTypescript ? "tsc" : "tsgo";
+        const binPath = path.join(mainPackageDir, "bin", binName);
+        const { stdout: versionOutput } = await runOutput(process.execPath, [binPath, "--version"]);
+        assert.equal(versionOutput.trim(), `Version ${getVersion()}`);
+
+        const { stdout: listFilesOutput } = await runOutput(process.execPath, [binPath, "--noEmit", "--listFiles", sourceFile]);
+        assert(!listFilesOutput.includes("bundled:///"), "Packaged compiler listed an embedded library path");
+
+        const expectedLib = path.resolve(platformPackageDir, "lib", "lib.es5.d.ts");
+        const listedFiles = listFilesOutput
+            .split(/\r?\n/)
+            .filter(Boolean)
+            .map(file => path.resolve(file));
+        assert(listedFiles.includes(expectedLib), `Expected packaged compiler to list ${expectedLib}`);
+    }
+    finally {
+        await rimraf(testRoot);
+    }
+}
+
+export const testNativePreviewPackageTask = task({
+    name: "typescript:test-package",
+    description: "Tests the TypeScript npm package for the current platform.",
+    dependencies: options.forRelease ? undefined : [buildNativePreviewPackages],
+    run: () => testNativePreviewPackage(getPlatforms()),
+});
+
+export const signNativePreviewPackages = task({
+    name: "typescript:sign",
+    hiddenFromTaskList: true,
+    run: runSignNativePreviewPackages,
+});
+
+/**
+ * @param {string} nodeOs
+ */
+function nativePreviewExeName(nodeOs) {
+    const baseName = publishAsTypescript ? "tsc" : "tsgo";
+    return nodeOs === "win32" ? `${baseName}.exe` : baseName;
+}
+
+async function runSignNativePreviewPackages() {
+    if (!options.forRelease) {
+        throw new Error("This task should not be run in non-release builds.");
+    }
+    if (usePublishedPlatformPackagesForVsix) {
+        checkPublishedPlatformPackagesForVsix();
+        console.log("Skipping npm package signing; VSIX packaging will use published platform packages.");
+        return;
+    }
+
+    const platforms = getPlatforms();
+
+    /** @type {Map<Cert, { tmpName: string; path: string }[]>} */
+    const filelistByCert = new Map();
+    for (const { npmDir, nodeOs, cert, npmDirName } of platforms) {
+        let certFilelist = filelistByCert.get(cert);
+        if (!certFilelist) {
+            filelistByCert.set(cert, certFilelist = []);
+        }
+        certFilelist.push({
+            tmpName: npmDirName,
+            path: path.join(npmDir, "lib", nativePreviewExeName(nodeOs)),
+        });
+    }
+
+    const tmp = await getSignTempDir();
+    const typescriptMacEntitlementsPath = path.join(tmp, "typescript-macos-entitlements.plist");
+    await fs.promises.writeFile(typescriptMacEntitlementsPath, createTypeScriptMacEntitlementsPlist());
+
+    /** @type {DDSignFileList} */
+    const filelist = {
+        SignFileRecordList: [],
+    };
+
+    /** @type {{ path: string; unsignedZipPath: string; signedZipPath: string; notarizedZipPath: string; }[]} */
+    const macZips = [];
+
+    // First, sign the files.
+
+    for (const [cert, filelistPaths] of filelistByCert) {
+        switch (cert) {
+            case "Microsoft400":
+                filelist.SignFileRecordList.push({
+                    SignFileList: filelistPaths.map(p => ({ SrcPath: p.path, DstPath: null })),
+                    Certs: cert,
+                    MacAppName: undefined,
+                });
+                break;
+            case "LinuxSign":
+                filelist.SignFileRecordList.push({
+                    SignFileList: filelistPaths.map(p => ({ SrcPath: p.path, DstPath: p.path + ".sig" })),
+                    Certs: cert,
+                    MacAppName: undefined,
+                });
+                break;
+            case "MacDeveloperHarden":
+                // Mac signing requires putting files into zips and then signing those,
+                // along with a notarization step.
+                for (const p of filelistPaths) {
+                    // ESRP preserves entitlements from an existing ad-hoc signature.
+                    await runOutput("go", ["-C", "./tools", "run", "./cmd/machotool", "sign", typescriptMacEntitlementsPath, p.path]);
+
+                    const unsignedZipPath = path.join(tmp, `${p.tmpName}.unsigned.zip`);
+                    const signedZipPath = path.join(tmp, `${p.tmpName}.signed.zip`);
+                    const notarizedZipPath = path.join(tmp, `${p.tmpName}.notarized.zip`);
+
+                    const zip = new AdmZip();
+                    zip.addLocalFile(p.path);
+                    zip.writeZip(unsignedZipPath);
+
+                    macZips.push({
+                        path: p.path,
+                        unsignedZipPath,
+                        signedZipPath,
+                        notarizedZipPath,
+                    });
+                }
+                filelist.SignFileRecordList.push({
+                    SignFileList: macZips.map(p => ({ SrcPath: p.unsignedZipPath, DstPath: p.signedZipPath })),
+                    Certs: cert,
+                    MacAppName: undefined, // MacAppName is only for notarization
+                });
+                break;
+            default:
+                throw new Error(`Unknown cert: ${cert}`);
+        }
+    }
+
+    await sign(filelist);
+
+    // All of the files have been signed in place / had signatures added.
+
+    if (macZips.length) {
+        // Now, notarize the Mac files.
+
+        /** @type {DDSignFileList} */
+        const notarizeFilelist = {
+            SignFileRecordList: [
+                {
+                    SignFileList: macZips.map(p => ({ SrcPath: p.signedZipPath, DstPath: p.notarizedZipPath })),
+                    Certs: "8020", // "MacNotarize" (friendly name not supported by the tooling)
+                    MacAppName: "MicrosoftTypeScript",
+                },
+            ],
+        };
+
+        // Notarizing does not change the file, it just sends it to Apple, so ignore the case
+        // where the input files are the same as the output files.
+        await sign(notarizeFilelist, /*unchangedOutputOkay*/ true);
+
+        // Finally, unzip the notarized files and move them back to their original locations.
+
+        for (const p of macZips) {
+            const zip = new AdmZip(p.notarizedZipPath);
+            zip.extractEntryTo(path.basename(p.path), path.dirname(p.path), false, true);
+        }
+
+        // chmod +x the unzipped files.
+
+        for (const p of macZips) {
+            await fs.promises.chmod(p.path, 0o755);
+            await runOutput("go", ["-C", "./tools", "run", "./cmd/machotool", "verify", typescriptMacEntitlementsPath, p.path]);
+        }
+    }
+}
+
+export const packNativePreviewPackages = task({
+    name: "typescript:pack",
+    hiddenFromTaskList: true,
+    dependencies: options.forRelease ? undefined : [buildNativePreviewPackages, cleanSignTempDirectory],
+    run: runPackNativePreviewPackages,
+});
+
+async function runPackNativePreviewPackages() {
+    if (usePublishedPlatformPackagesForVsix) {
+        checkPublishedPlatformPackagesForVsix();
+        await rimraf(builtNpm);
+        console.log("Skipping npm package packing; VSIX packaging will use published platform packages.");
+        return;
+    }
+
+    const platforms = getPlatforms();
+    await Promise.all([mainNativePreviewPackage, ...platforms].map(async ({ npmDir, npmTarball }) => {
+        const { stdout } = await runOutput("npm", ["pack", "--json", npmDir]);
+        const filename = JSON.parse(stdout)[0].filename.replace("@", "").replace("/", "-");
+        await fs.promises.rename(filename, npmTarball);
+    }));
+
+    // npm packages need to be published in dependency order: platform packages
+    // first, then the main package that references them as optionalDependencies.
+    const publishManifest = {
+        stages: [
+            platforms.map(p => ({
+                filename: path.basename(p.npmTarball),
+            })),
+            [
+                {
+                    filename: path.basename(mainNativePreviewPackage.npmTarball),
+                },
+            ],
+        ],
+    };
+
+    const publishManifestPath = path.join(builtNpm, "publish-manifest.json");
+    await fs.promises.writeFile(publishManifestPath, JSON.stringify(publishManifest, undefined, 4) + "\n");
+}
+
+export const packVsixExtensions = task({
+    name: "vscode-typescript:pack",
+    hiddenFromTaskList: true,
+    dependencies: options.forRelease || usePublishedPlatformPackagesForVsix ? undefined : [buildNativePreviewPackages, cleanSignTempDirectory],
+    run: runPackVsixExtensions,
+});
+
+/** @type {Map<string, Promise<string>>} */
+const publishedPlatformPackageLibDirs = new Map();
+
+const getPublishedTypeScriptPackageJson = memoize(() => {
+    const candidates = [
+        path.join(extensionDir, "node_modules", publishedTypeScriptAliasPackageName, "package.json"),
+        path.join(__dirname, "node_modules", publishedTypeScriptAliasPackageName, "package.json"),
+    ];
+
+    for (const candidate of candidates) {
+        if (fs.existsSync(candidate)) {
+            const packageJson = JSON.parse(fs.readFileSync(candidate, "utf8"));
+            if (packageJson.name !== "typescript") {
+                throw new Error(`${publishedTypeScriptAliasPackageName} should alias the typescript package, but found ${packageJson.name}.`);
+            }
+            if (!packageJson.version || typeof packageJson.version !== "string") {
+                throw new Error(`${publishedTypeScriptAliasPackageName} package.json did not contain a version.`);
+            }
+            if (!packageJson.optionalDependencies || typeof packageJson.optionalDependencies !== "object") {
+                throw new Error(`${publishedTypeScriptAliasPackageName} package.json did not contain platform optionalDependencies.`);
+            }
+            return packageJson;
+        }
+    }
+
+    throw new Error(`Could not find ${publishedTypeScriptAliasPackageName}; run npm install first.`);
+});
+
+function getPublishedTypeScriptVersion() {
+    const version = getPublishedTypeScriptPackageJson().version;
+    if (releaseVscodeTypescript && !stableThreeComponentVersionPattern.test(version)) {
+        throw new Error(`vscode-typescript releases require a stable three-component TypeScript version, got ${version}.`);
+    }
+    return version;
+}
+
+function checkPublishedPlatformPackagesForVsix() {
+    if (!options.forRelease) {
+        throw new Error("usePublishedPlatformPackagesForVsix requires forRelease");
+    }
+    getPublishedTypeScriptVersion();
+}
+
+const getPackageLock = memoize(() => JSON.parse(fs.readFileSync(path.join(__dirname, "package-lock.json"), "utf8")));
+
+/**
+ * @param {string} npmPackageName
+ */
+async function getPublishedPlatformPackageLibDir(npmPackageName) {
+    let promise = publishedPlatformPackageLibDirs.get(npmPackageName);
+    if (!promise) {
+        promise = getPublishedPlatformPackageLibDirWorker(npmPackageName);
+        publishedPlatformPackageLibDirs.set(npmPackageName, promise);
+    }
+    return promise;
+}
+
+/**
+ * @param {string} npmPackageName
+ */
+async function getPublishedPlatformPackageLibDirWorker(npmPackageName) {
+    const dest = path.join(builtPublishedPlatformPackages, "node_modules", ...npmPackageName.split("/"));
+    const lib = path.join(dest, "lib");
+    if (fs.existsSync(lib)) {
+        return lib;
+    }
+
+    await fs.promises.mkdir(dest, { recursive: true });
+
+    const tarballDestination = path.join(builtPublishedPlatformPackages, "tarballs");
+    await fs.promises.mkdir(tarballDestination, { recursive: true });
+
+    const version = getPublishedTypeScriptPackageJson().optionalDependencies[npmPackageName];
+    if (!version || typeof version !== "string") {
+        throw new Error(`${publishedTypeScriptAliasPackageName} does not depend on ${npmPackageName}.`);
+    }
+
+    const lockEntry = getPackageLock().packages[`node_modules/${npmPackageName}`];
+    if (!lockEntry) {
+        throw new Error(`package-lock.json does not contain ${npmPackageName}; run npm install.`);
+    }
+    if (lockEntry.version !== version) {
+        throw new Error(`package-lock.json has ${npmPackageName}@${lockEntry.version}, but ${publishedTypeScriptAliasPackageName} depends on ${version}.`);
+    }
+    if (!lockEntry.resolved || typeof lockEntry.resolved !== "string") {
+        throw new Error(`package-lock.json entry for ${npmPackageName}@${version} does not contain a tarball URL.`);
+    }
+    if (!lockEntry.integrity || typeof lockEntry.integrity !== "string") {
+        throw new Error(`package-lock.json entry for ${npmPackageName}@${version} does not contain an integrity hash.`);
+    }
+
+    const resolved = new URL(lockEntry.resolved);
+    if (resolved.origin === "https://registry.npmjs.org") {
+        const registry = new URL(await getReleasePackageRegistry());
+        resolved.protocol = registry.protocol;
+        resolved.host = registry.host;
+        resolved.pathname = path.posix.join(registry.pathname, resolved.pathname);
+    }
+
+    console.log(`Fetching locked ${npmPackageName}@${version} tarball from ${resolved}.`);
+    const response = await fetch(resolved);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch ${npmPackageName}@${version}: ${response.status} ${response.statusText}.`);
+    }
+    const tarball = Buffer.from(await response.arrayBuffer());
+    const integrityMatch = /^sha512-(.+)$/.exec(lockEntry.integrity);
+    if (!integrityMatch) {
+        throw new Error(`Unsupported integrity hash for ${npmPackageName}@${version}: ${lockEntry.integrity}.`);
+    }
+    const expectedIntegrity = Buffer.from(integrityMatch[1], "base64");
+    const actualIntegrity = crypto.createHash("sha512").update(tarball).digest();
+    if (expectedIntegrity.length !== actualIntegrity.length || !crypto.timingSafeEqual(expectedIntegrity, actualIntegrity)) {
+        throw new Error(`Integrity check failed for ${npmPackageName}@${version}.`);
+    }
+    const tarballPath = path.join(tarballDestination, path.basename(resolved.pathname));
+    await fs.promises.writeFile(tarballPath, tarball);
+    await tar.x({ file: tarballPath, cwd: dest, strip: 1 });
+
+    if (!fs.existsSync(lib)) {
+        throw new Error(`Published platform package ${npmPackageName}@${version} did not contain a lib directory.`);
+    }
+
+    return lib;
+}
+
+async function runPackVsixExtensions() {
+    await rimraf(builtVsix);
+    await fs.promises.mkdir(builtVsix, { recursive: true });
+    if (usePublishedPlatformPackagesForVsix) {
+        checkPublishedPlatformPackagesForVsix();
+        publishedPlatformPackageLibDirs.clear();
+        await rimraf(builtPublishedPlatformPackages);
+    }
+
+    const platforms = getPlatforms();
+    const extensions = platforms.flatMap(({ npmDir, npmPackageName, extensions }) => extensions.map(e => ({ npmDir, npmPackageName, ...e })));
+    if (!extensions.length) {
+        console.log("No VSIX targets configured; skipping extension packaging.");
+        return;
+    }
+
+    // We don't use vscode:prepublish, as that would run the build for each package below.
+    await run("npm", ["run", "bundle:release"], { cwd: extensionDir, env: releasePackageEnv });
+
+    let version = "0.0.0";
+    if (options.forRelease) {
+        if (releaseVscodeTypescript) {
+            version = getVscodeTypeScriptExtensionVersion();
+        }
+        else {
+            // No real semver prerelease versioning.
+            // https://code.visualstudio.com/api/working-with-extensions/publishing-extension#prerelease-extensions
+            assert(options.setPrerelease, "forRelease is true but setPrerelease is not set");
+            const prerelease = options.setPrerelease;
+            assert(typeof prerelease === "string", "setPrerelease is not a string");
+            // parse `dev.<number>.<number>`.
+            const match = prerelease.match(/dev\.(\d+)\.(\d+)/);
+            if (!match) {
+                throw new Error(`Prerelease version should be in the form of dev.<number>.<number>, but got ${prerelease}`);
+            }
+            // Set version to `0.<number>.<number>`.
+            version = `0.${match[1]}.${match[2]}`;
+        }
+    }
+
+    console.log("Version:", version);
+
+    await Promise.all(extensions.map(async ({ npmDir, npmPackageName, nodeOs, vscodeTarget, sourceDir, extensionDir: thisExtensionDir, vsixPath, vsixManifestPath, vsixSignaturePath }) => {
+        const npmLibDir = usePublishedPlatformPackagesForVsix
+            ? await getPublishedPlatformPackageLibDir(npmPackageName)
+            : path.join(npmDir, "lib");
+        const extensionLibDir = path.join(thisExtensionDir, "lib");
+        await fs.promises.mkdir(extensionLibDir, { recursive: true });
+
+        await cpWithoutNodeModulesOrTsconfig(sourceDir, thisExtensionDir);
+        await cpWithoutNodeModulesOrTsconfig(npmLibDir, extensionLibDir);
+        await fs.promises.chmod(path.join(extensionLibDir, nativePreviewExeName(nodeOs)), 0o755);
+
+        const packageJsonPath = path.join(thisExtensionDir, "package.json");
+        const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+        packageJson.version = version;
+        packageJson.bundledTypeScriptVersion = usePublishedPlatformPackagesForVsix ? getPublishedTypeScriptVersion() : getVersion();
+        fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, undefined, 4));
+
+        await fs.promises.copyFile("NOTICE.txt", path.join(thisExtensionDir, "NOTICE.txt"));
+
+        await run("vsce", ["package", version, "--no-update-package-json", "--no-dependencies", "--out", vsixPath, "--target", vscodeTarget], {
+            cwd: thisExtensionDir,
+            env: releasePackageEnv,
+        });
+
+        if (options.forRelease) {
+            await run("vsce", ["generate-manifest", "--packagePath", vsixPath, "--out", vsixManifestPath], {
+                cwd: thisExtensionDir,
+                env: releasePackageEnv,
+            });
+            await fs.promises.cp(vsixManifestPath, vsixSignaturePath);
+        }
+    }));
+}
+
+export const signVsixExtensions = task({
+    name: "vscode-typescript:sign",
+    hiddenFromTaskList: true,
+    run: runSignVsixExtensions,
+});
+
+async function runSignVsixExtensions() {
+    if (!options.forRelease) {
+        throw new Error("This task should not be run in non-release builds.");
+    }
+
+    const platforms = getPlatforms();
+    const extensions = platforms.flatMap(({ npmDir, extensions }) => extensions.map(e => ({ npmDir, ...e })));
+    if (!extensions.length) {
+        console.log("No VSIX targets configured; skipping extension signing.");
+        return;
+    }
+
+    await sign({
+        SignFileRecordList: [
+            {
+                SignFileList: extensions.map(({ vsixSignaturePath }) => ({ SrcPath: vsixSignaturePath, DstPath: null })),
+                Certs: "VSCodePublisher",
+                MacAppName: undefined,
+            },
+        ],
+    });
+}
+
+async function runWriteVscodeTypeScriptReleaseManifest() {
+    const platforms = getPlatforms();
+    const extensions = platforms.flatMap(({ extensions }) => extensions);
+    /** @type {Record<string, { sha256: string }>} */
+    const artifacts = {};
+    for (const extension of extensions) {
+        for (const artifactPath of [extension.vsixPath, extension.vsixManifestPath, extension.vsixSignaturePath]) {
+            const filename = path.basename(artifactPath);
+            artifacts[filename] = {
+                sha256: crypto.createHash("sha256").update(await fs.promises.readFile(artifactPath)).digest("hex"),
+            };
+        }
+    }
+
+    const packageJson = getVscodeTypeScriptExtensionPackageJson();
+    const manifest = {
+        extension: `${packageJson.publisher}.${packageJson.name}`,
+        extensionVersion: getVscodeTypeScriptExtensionVersion(),
+        bundledTypeScriptVersion: getPublishedTypeScriptVersion(),
+        signType: process.env.VSCODE_TYPESCRIPT_SIGN_TYPE,
+        sourceRef: process.env.BUILD_SOURCEBRANCH || process.env.GITHUB_REF || undefined,
+        sourceCommit: process.env.BUILD_SOURCEVERSION || process.env.GITHUB_SHA || undefined,
+        targets: extensions.map(({ vscodeTarget }) => vscodeTarget),
+        artifacts,
+    };
+    await fs.promises.writeFile(path.join(builtVsix, "release-manifest.json"), JSON.stringify(manifest, undefined, 4) + "\n");
+}
+
+export const vscodeTypescriptRelease = task({
+    name: "vscode-typescript:release",
+    hiddenFromTaskList: true,
+    run: async () => {
+        if (!options.forRelease || !releaseVscodeTypescript) {
+            throw new Error("vscode-typescript:release requires --forRelease and --vscodeTypescriptRelease");
+        }
+        await runPackVsixExtensions();
+        await runSignVsixExtensions();
+        await runWriteVscodeTypeScriptReleaseManifest();
+        await runCleanSignTempDirectory();
+    },
+});
+
+export const nativePreviewRelease = task({
+    name: "typescript:release",
+    hiddenFromTaskList: true,
+    run: async () => {
+        if (releaseVscodeTypescript) {
+            throw new Error("typescript:release cannot be used with --vscodeTypescriptRelease; use vscode-typescript:release");
+        }
+        if (!options.forRelease || !options.setPrerelease && (!nativePreviewReleaseVersion || produceAnyVsix)) {
+            throw new Error("typescript:release requires --forRelease and --setPrerelease flags, unless nativePreviewReleaseVersion is hardcoded and VSIX production is disabled. Example: npx hereby typescript:release --forRelease --setPrerelease=dev.1.0");
+        }
+        await runBuildNativePreviewPackages();
+        await runSignNativePreviewPackages();
+        await runPackNativePreviewPackages();
+        await runPackVsixExtensions();
+        await runSignVsixExtensions();
+        await runCleanSignTempDirectory();
+    },
+});
+
+export const nativePreview = task({
+    name: "native-preview",
+    hiddenFromTaskList: true,
+    dependencies: options.forRelease ? undefined : [packNativePreviewPackages, packVsixExtensions],
+    run: options.forRelease ? async () => {
+        throw new Error("This task should not be run in release builds.");
+    } : undefined,
+});
+
+export const allChecks = task({
+    name: "all-checks",
+    description: "Runs all checks for the Go code (fourslash, lint, tests, etc.)",
+    run: async () => {
+        await runTests();
+        await runFormat();
+        await runLint();
+        await runTests();
+    },
+});
+
+export const tidy = task({
+    name: "tidy",
+    description: "Tidies both Go modules and synchronizes the workspace.",
+    run: async () => {
+        await run("go", ["mod", "tidy"], { cwd: "./tsc" });
+        await run("go", ["mod", "tidy"], { cwd: "./tools" });
+        await run("go", ["work", "sync"]);
+    },
+});

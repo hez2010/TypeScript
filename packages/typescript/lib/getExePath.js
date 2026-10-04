@@ -19,12 +19,12 @@ export default function getExePath() {
     let binName = expectedBinName;
     let exeDir;
 
-    const expectedPackage = baseName + "-" + process.platform + "-" + process.arch;
+    const libc = process.platform === "linux" && !process.report.getReport().header.glibcVersionRuntime ? "-musl" : "";
+    const expectedPackage = baseName + "-" + process.platform + libc + "-" + process.arch;
 
     if (normalizedDirname.endsWith("/packages/" + baseName + "/lib")) {
         // We're running directly from source in the repo.
-        // The local repo build (`hereby build`) always produces `tsgo`, regardless
-        // of the published `bin` name, so don't use binName here.
+        // The local C# build uses the product executable name.
         exeDir = path.resolve(__dirname, "..", "..", "..", "built", "local");
         binName = "tsc";
     }

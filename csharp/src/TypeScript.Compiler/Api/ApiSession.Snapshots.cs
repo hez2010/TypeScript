@@ -21,6 +21,8 @@ public sealed partial class ApiSession
         return host.FileName(ApiJson.String(value));
     }
     private Utf8String[] Documents(JsonElement value, ReadOnlySpan<byte> property) => ApiJson.Array(value, property).Select(Document).ToArray();
+    private Utf8String Document(JsonElement value, CompilerProgram program) => value.ValueKind == JsonValueKind.Object
+        ? Document(value) : CompilerPath.ResolveFileName(program.CurrentDirectory, ApiJson.String(value));
     private SnapshotRequest ReadSnapshotRequest(JsonElement value)
     {
         var ensure = ApiJson.Get(value, "ensurePrograms"u8);

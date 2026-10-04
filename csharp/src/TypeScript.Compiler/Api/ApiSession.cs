@@ -229,7 +229,7 @@ public sealed partial class ApiSession : IRpcHandler, IAsyncDisposable
         }
         var program = data.Program(ApiJson.String(parameters, "project"u8));
         if (method == "getSourceFileNames"u8) return RpcResponse.Json(writer => ApiJson.Strings(writer, program.SourceFiles.Select(file => file.Syntax.FileName)));
-        var file = program.GetFile(Document(ApiJson.Get(parameters, "file"u8)));
+        var file = program.GetFile(Document(ApiJson.Get(parameters, "file"u8), program));
         return await EncodeAsync(file?.Syntax, new() { Path = file is null ? default : host.Path(file.Syntax.FileName),
             ParseOptions = file?.ParseOptions ?? default, Mapping = file?.Mapping,
             SupplementalSourceFiles = file?.SupplementalSourceFiles ?? [] }, cancellation).ConfigureAwait(false);

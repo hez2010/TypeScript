@@ -17,6 +17,7 @@ import {
     isPropertyNameLiteral,
     isTokenKind,
 } from "./is.ts";
+import { getSourcePositions } from "./positions.ts";
 import type { Scanner } from "./scanner.ts";
 import {
     createScanner,
@@ -327,12 +328,12 @@ export function getTokenPosOfNode(node: Node, sourceFile: SourceFile, includeJSD
         return node.pos;
     }
     if (isJSDocNodeKind(node.kind) || node.kind === SyntaxKind.JsxText) {
-        return skipTrivia(sourceFile.text, node.pos, /*stopAfterLineBreak*/ false, /*stopAtComments*/ true);
+        return skipTrivia(sourceFile.text, node.pos, /*stopAfterLineBreak*/ false, /*stopAtComments*/ true, false, getSourcePositions(sourceFile));
     }
     if (includeJSDoc && node.jsDoc && node.jsDoc.length > 0) {
         return getTokenPosOfNode(node.jsDoc[0], sourceFile, /*includeJSDoc*/ false);
     }
-    return skipTrivia(sourceFile.text, node.pos, /*stopAfterLineBreak*/ false, /*stopAtComments*/ false, /*inJSDoc*/ !!(node.flags & NodeFlags.JSDoc));
+    return skipTrivia(sourceFile.text, node.pos, /*stopAfterLineBreak*/ false, /*stopAtComments*/ false, /*inJSDoc*/ !!(node.flags & NodeFlags.JSDoc), getSourcePositions(sourceFile));
 }
 
 function nodeIsMissing(node: Node): boolean {
@@ -593,7 +594,7 @@ function isJSDocSingleCommentNodeList(nodes: NodeArray<Node>): boolean {
 }
 
 function getScannerForSourceFile(sourceFile: SourceFile, pos: number) {
-    const scanner = createScanner(/*skipTrivia*/ true, sourceFile.languageVariant, sourceFile.text);
+    const scanner = createScanner(/*skipTrivia*/ true, sourceFile.languageVariant, sourceFile.text, undefined, undefined, getSourcePositions(sourceFile));
     scanner.resetTokenState(pos);
     scanner.scan();
     return scanner;
@@ -669,7 +670,7 @@ function createChildren(node: Node, sourceFile: SourceFile): readonly Node[] {
     }
 
     // One scanner serves every run of synthetic tokens materialized for this node.
-    const scanner = createScanner(/*skipTrivia*/ true, sourceFile.languageVariant, sourceFile.text);
+    const scanner = createScanner(/*skipTrivia*/ true, sourceFile.languageVariant, sourceFile.text, undefined, undefined, getSourcePositions(sourceFile));
     let pos = node.pos;
     const processNode = (child: Node): undefined => {
         // Reparsed subtrees (JSDoc types materialized into the AST) have positions inside

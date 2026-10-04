@@ -68,7 +68,7 @@ describe("Encoder", () => {
         // Verify header
         const view = new DataView(encoded.buffer, encoded.byteOffset, encoded.byteLength);
         const metadata = view.getUint32(0, true);
-        assert.strictEqual(metadata >>> 24, 8, "protocol version should be 8");
+        assert.strictEqual(metadata >>> 24, 9, "protocol version should be 9");
 
         // Verify we can decode it
         const decoded = decode(encoded);
@@ -190,11 +190,11 @@ describe("Encoder", () => {
         assert.strictEqual(rootKind, SyntaxKind.IfStatement);
     });
 
-    test("protocol version is 8", () => {
+    test("protocol version is 9", () => {
         const sf = makeSF("", "/test.ts", []);
         const encoded = encodeSourceFile(sf);
         const view = new DataView(encoded.buffer, encoded.byteOffset, encoded.byteLength);
-        assert.strictEqual(view.getUint32(0, true) >>> 24, 8);
+        assert.strictEqual(view.getUint32(0, true) >>> 24, 9);
     });
 
     test("encodes source files without content mapping metadata", () => {
@@ -443,15 +443,15 @@ describe("Line and character mapping", () => {
         assert.deepStrictEqual(sf.getLineAndCharacterOfPosition(7), { line: 2, character: 0 });
     });
 
-    test("getLineAndCharacterOfPosition uses UTF-16 code units", () => {
-        // 🎉 (U+1F389) is a surrogate pair: 2 UTF-16 code units.
+    test("getLineAndCharacterOfPosition uses UTF-8 byte offsets", () => {
+        // 🎉 (U+1F389) occupies four UTF-8 bytes.
         const source = "🎉a\nb";
         const sf = makeSourceFile(source);
-        // "a" is at UTF-16 offset 2, on line 0
-        assert.deepStrictEqual(sf.getLineAndCharacterOfPosition(2), { line: 0, character: 2 });
-        // "b" is at UTF-16 offset 4 (after "🎉a\n"), on line 1
+        assert.deepStrictEqual(sf.getLineAndCharacterOfPosition(4), { line: 0, character: 4 });
+        // JavaScript string indices must be converted before calling the byte API.
         assert.strictEqual(source.indexOf("b"), 4);
-        assert.deepStrictEqual(sf.getLineAndCharacterOfPosition(4), { line: 1, character: 0 });
+        assert.deepStrictEqual(sf.getLineAndCharacterOfPosition(6), { line: 1, character: 0 });
+        assert.strictEqual(sf.getPositionOfLineAndCharacter(1, 0), 6);
     });
 
     test("getPositionOfLineAndCharacter round-trips", () => {

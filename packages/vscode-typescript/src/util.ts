@@ -335,7 +335,9 @@ export async function resolveTsdkPathToExe(tsdkPath: string): Promise<ExeInfo | 
             if (!Object.prototype.hasOwnProperty.call(bin, expectedBinName)) continue;
 
             const exeName = `${expectedBinName}${process.platform === "win32" ? ".exe" : ""}`;
-            const platformPackage = `${baseName}-${process.platform}-${process.arch}`;
+            const report = process.platform === "linux" ? process.report.getReport() as { header: { glibcVersionRuntime?: string; }; } : undefined;
+            const libc = report && !report.header.glibcVersionRuntime ? "-musl" : "";
+            const platformPackage = `${baseName}-${process.platform}${libc}-${process.arch}`;
             const exePath = vscode.Uri.file(resolvePackageExecutable(packageJsonPath.fsPath, platformPackage, exeName));
             await vscode.workspace.fs.stat(exePath);
             return { path: withLongPathPrefix(exePath.fsPath), version: typeof packageJson.version === "string" ? packageJson.version : "unknown" };

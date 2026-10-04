@@ -41,7 +41,7 @@ public sealed partial class ApiSession
             if (files.ValueKind == JsonValueKind.Array)
                 foreach (var file in files.EnumerateArray())
                 {
-                    var source = program.GetFile(Document(file))?.Syntax ?? throw new ApiException(
+                    var source = program.GetFile(Document(file, program))?.Syntax ?? throw new ApiException(
                         $"source file not found: {(file.ValueKind == JsonValueKind.Object ? ApiJson.String(file, "uri"u8) : ApiJson.String(file))}");
                     collected.AddRange(await CollectAsync([source]));
                 }

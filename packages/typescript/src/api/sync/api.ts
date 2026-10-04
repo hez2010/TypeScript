@@ -73,6 +73,7 @@ import type {
 } from "../options.ts";
 import {
     createGetCanonicalFileName,
+    getNormalizedAbsolutePath,
     toPath,
 } from "../path.ts";
 import type {
@@ -2332,7 +2333,7 @@ export class Program<Id extends ProjectId = ProjectId> implements FormatDiagnost
         this.project = project;
         this.client = client;
         this.sourceFileCache = sourceFileCache;
-        this.toPath = toPath;
+        this.toPath = fileName => toPath(getNormalizedAbsolutePath(fileName, project.currentDirectory));
         this.formatDiagnosticsHost = formatDiagnosticsHost;
     }
 
@@ -5689,7 +5690,7 @@ export class SnapshotInternalAPI {
      *
      * @param node The synthesized AST node to format.
      * @param file The target file where the node will be inserted.
-     * @param position The UTF-16 code-unit offset in the target file for insertion.
+     * @param position The UTF-8/WTF-8 byte offset in the target file for insertion.
      * @returns The formatted text of the node, indented for the insertion position.
      */
     get formatNodeForInsertion(): {

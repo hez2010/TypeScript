@@ -4,15 +4,15 @@ import {
     getPathComponents,
     normalizePath,
 } from "./path.ts";
-import type {
-    RequestDirectoryEntries,
-    RequestFileSystem,
-    RequestSymlink,
-} from "./proto.generated.ts";
 import {
     type DocumentIdentifier,
     resolveFileName,
 } from "./proto.ts";
+import type {
+    RequestDirectoryEntries,
+    RequestFileSystem,
+    RequestSymlink,
+} from "./protocol.types.ts";
 
 export interface FileSystemEntries {
     files: string[];

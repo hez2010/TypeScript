@@ -5,7 +5,7 @@ import generateTSAST from "./generate-ts-ast.ts";
 
 export default function generate() {
     generateEncoder();
-    generateGoAST();
+    if (process.argv.includes("--oracle")) generateGoAST();
     generateTSAST();
 }
 

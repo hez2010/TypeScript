@@ -39,7 +39,7 @@ defaults:
 jobs:
   sync:
     if: github.repository == 'microsoft/TypeScript'
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     environment:
       name: azure
       deployment: false
@@ -63,15 +63,18 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24
-      - uses: ./.github/actions/setup-go
+      - uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
+        with:
+          dotnet-version: '11.0.x'
+          dotnet-quality: daily
       - name: Merge main
         env:
           BRANCH_NAME: ${{ inputs.branch_name }}
         run: |
           set -euo pipefail
           releaseVersion="$(node -e '
-            const source = require("node:fs").readFileSync("tsc/internal/core/version.go", "utf8");
-            const match = source.match(/var version = "([^"]+)"/);
+            const source = require("node:fs").readFileSync("csharp/version.txt", "utf8");
+            const match = source.trim().match(/^(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)$/);
             if (!match) throw new Error("Unable to read the release version");
             process.stdout.write(match[1]);
           ')"
@@ -83,7 +86,7 @@ jobs:
 
           if ! git merge origin/main --no-ff --no-commit; then
             mapfile -t conflictedFiles < <(git diff --name-only --diff-filter=U)
-            allowedConflicts=("Herebyfile.mjs" "tsc/internal/core/version.go")
+            allowedConflicts=("csharp/version.txt")
             for conflictedFile in "${conflictedFiles[@]}"; do
               if [[ ! " ${allowedConflicts[*]} " =~ " $conflictedFile " ]]; then
                 echo "Merge conflict requires manual resolution: $conflictedFile" >&2
@@ -98,7 +101,7 @@ jobs:
           fi
 
           node "$RUNNER_TEMP/configure-release.mjs" "$releaseVersion"
-          git add Herebyfile.mjs tsc/internal/core/version.go
+          git add csharp/version.txt
           if git rev-parse --verify --quiet MERGE_HEAD >/dev/null; then
             git commit --no-edit
           elif ! git diff --cached --quiet; then

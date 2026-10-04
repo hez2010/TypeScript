@@ -12,6 +12,11 @@ export const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 export const output = path.join(root, "built/csharp");
 export const referenceRevision = "f29aeb9f825d96feea27841f3f7342dbf0df68a8";
 export const sha256 = data => createHash("sha256").update(data).digest("hex");
+export function npmCommand(args) {
+    const script = process.env.npm_execpath ?? (process.platform === "win32"
+        ? path.join(path.dirname(process.execPath), "node_modules/npm/bin/npm-cli.js") : undefined);
+    return script ? [process.execPath, [script, ...args]] : ["npm", args];
+}
 export async function json(file, value) {
     await mkdir(path.dirname(file), { recursive: true });
     await writeFile(file, JSON.stringify(value, null, 4) + "\n");

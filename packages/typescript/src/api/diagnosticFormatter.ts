@@ -1,5 +1,6 @@
+import { utf16Offset } from "../ast/positions.ts";
 import { convertToRelativePath } from "./path.ts";
-import type { DiagnosticResponse as Diagnostic } from "./proto.generated.ts";
+import type { DiagnosticResponse as Diagnostic } from "./protocol.types.ts";
 
 export interface FormatDiagnosticsHost {
     getCurrentDirectory(): string;
@@ -95,7 +96,12 @@ function formatCodeSpan(
     squiggleColor: string,
     host: FormatDiagnosticsHost,
 ): string {
-    const { startPosition, endPosition, sourceLines } = diagnostic;
+    const { sourceLines } = diagnostic;
+    const displayPosition = (position: Diagnostic["startPosition"]) => {
+        const line = sourceLines?.find(line => line.line === position?.line);
+        return position && line ? { ...position, character: utf16Offset(line.text, position.character) } : position;
+    };
+    const startPosition = displayPosition(diagnostic.startPosition), endPosition = displayPosition(diagnostic.endPosition);
     if (!startPosition || !endPosition || !sourceLines?.length) return "";
 
     const endCharacter = startPosition.line === endPosition.line &&

@@ -28,7 +28,7 @@ public sealed partial class ApiSession
         if (method == "getConfigSourceFile"u8)
         {
             SourceFileNode? source = null;
-            var path = host.Path(Document(ApiJson.Get(parameters, "file"u8)));
+            var path = host.Path(Document(ApiJson.Get(parameters, "file"u8), program));
             if (config.SourceFile is { } root)
             {
                 if (host.Path(root.FileName) == path) source = root;
@@ -40,7 +40,7 @@ public sealed partial class ApiSession
         }
         if (method == "getSourceFileMetadata"u8)
         {
-            var file = program.GetFile(Document(ApiJson.Get(parameters, "file"u8)));
+            var file = program.GetFile(Document(ApiJson.Get(parameters, "file"u8), program));
             return file is null ? RpcResponse.Null : RpcResponse.Json(writer =>
             {
                 writer.WriteStartObject(); writer.WriteBoolean("isDefaultLibrary"u8, file.Library);
@@ -53,7 +53,7 @@ public sealed partial class ApiSession
         SourceFileNode RequiredSource(ReadOnlySpan<byte> property)
         {
             var value = ApiJson.Get(parameters, property);
-            return program.GetFile(Document(value))?.Syntax ?? throw new ApiException(
+            return program.GetFile(Document(value, program))?.Syntax ?? throw new ApiException(
                 $"source file not found: {(value.ValueKind == JsonValueKind.Object ? ApiJson.String(value, "uri"u8) : ApiJson.String(value))}");
         }
         SourceFileNode sourceFile;

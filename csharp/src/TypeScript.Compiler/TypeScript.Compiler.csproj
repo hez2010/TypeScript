@@ -1,6 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk" TreatAsLocalProperty="PublishAot">
   <PropertyGroup>
-    <NuGetLockFilePath Condition="'$(PublishAot)' == 'true'">packages.aot.lock.json</NuGetLockFilePath>
     <PublishAot>false</PublishAot>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <EmbedTypeScriptLibraries Condition="'$(EmbedTypeScriptLibraries)' == ''">true</EmbedTypeScriptLibraries>

@@ -56,9 +56,6 @@ public sealed partial class NativeProfile : IDisposable
 
     public static NativeProfile Start()
     {
-        if (!OperatingSystem.IsWindows())
-            throw new PlatformNotSupportedException(
-                "The phase-1 CPU counter route is validated on Windows; other hosts need a thread CPU clock adapter.");
         var profile = new NativeProfile();
         if (Interlocked.CompareExchange(ref active, profile, null) is not null)
             throw new InvalidOperationException("CPU profiling already in progress");
@@ -300,11 +297,29 @@ public sealed partial class NativeProfile : IDisposable
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool GetThreadTimes(nint thread, out long created, out long exited, out long kernel, out long user);
 
+    [StructLayout(LayoutKind.Sequential)]
+    private struct Timespec { public nint Seconds, Nanoseconds; }
+
+    [LibraryImport("libc", EntryPoint = "clock_gettime", SetLastError = true)]
+    private static partial int ClockGetTime(int clock, out Timespec time);
+
     private static long ThreadCpu()
     {
-        if (!GetThreadTimes(-2, out _, out _, out long kernel, out long user))
+        if (OperatingSystem.IsWindows())
+        {
+            if (!GetThreadTimes(-2, out _, out _, out long kernel, out long user))
+                throw new System.ComponentModel.Win32Exception(Marshal.GetLastPInvokeError());
+            return checked((kernel + user) * 100);
+        }
+        // CLOCK_THREAD_CPUTIME_ID from each host's time.h. All retained Unix targets
+        // use native-long timespec fields; linux-arm is the 32-bit glibc ABI.
+        int clock = OperatingSystem.IsMacOS() ? 16 : OperatingSystem.IsFreeBSD() ? 14
+            : RuntimeInformation.RuntimeIdentifier.StartsWith("openbsd", StringComparison.Ordinal) ? 4
+            : RuntimeInformation.RuntimeIdentifier.StartsWith("solaris", StringComparison.Ordinal)
+                || RuntimeInformation.RuntimeIdentifier.StartsWith("illumos", StringComparison.Ordinal) ? 2 : 3;
+        if (ClockGetTime(clock, out var time) != 0)
             throw new System.ComponentModel.Win32Exception(Marshal.GetLastPInvokeError());
-        return checked((kernel + user) * 100);
+        return checked((long)time.Seconds * 1_000_000_000 + (long)time.Nanoseconds);
     }
 
     private static long ProcessCpu()

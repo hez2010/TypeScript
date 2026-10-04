@@ -8,6 +8,7 @@ import {
     ModifierFlags,
     type Node,
     type NodeArray,
+    sliceSourceText,
     type SourceFile,
     SyntaxKind,
 } from "../../ast/index.ts";
@@ -351,12 +352,12 @@ export class RemoteNode extends RemoteNodeBase implements Node {
     }
 
     getFullText(sourceFile?: SourceFile): string {
-        return (sourceFile ?? this.getSourceFile()).text.substring(this.pos, this.end);
+        return sliceSourceText(sourceFile ?? this.getSourceFile(), this.pos, this.end);
     }
 
     getText(sourceFile?: SourceFile): string {
         sourceFile ??= this.getSourceFile();
-        return sourceFile.text.substring(this.getStart(sourceFile), this.end);
+        return sliceSourceText(sourceFile, this.getStart(sourceFile), this.end);
     }
 
     getChildCount(sourceFile?: SourceFile): number {

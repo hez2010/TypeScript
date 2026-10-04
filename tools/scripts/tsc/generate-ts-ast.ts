@@ -663,6 +663,7 @@ function generateFactory(): string {
     }
     out.push(`} from "./ast.ts";`);
     out.push(`import { getChildren, getFirstToken, getLastToken, getTokenPosOfNode } from "./astnav.ts";`);
+    out.push(`import { sliceSourceText } from "./positions.ts";`);
     if (handWrittenCloneHelpers.length > 0) {
         out.push(`import {`);
         for (const helperName of [...new Set(handWrittenCloneHelpers.map(h => h.helperName))].sort((a, b) => a.localeCompare(b))) {
@@ -758,12 +759,12 @@ function generateFactory(): string {
     out.push(`    }`);
     out.push(``);
     out.push(`    getFullText(sourceFile?: SourceFile): string {`);
-    out.push(`        return (sourceFile ?? this.getSourceFile()).text.substring(this.pos, this.end);`);
+    out.push(`        return sliceSourceText(sourceFile ?? this.getSourceFile(), this.pos, this.end);`);
     out.push(`    }`);
     out.push(``);
     out.push(`    getText(sourceFile?: SourceFile): string {`);
     out.push(`        sourceFile ??= this.getSourceFile();`);
-    out.push(`        return sourceFile.text.substring(this.getStart(sourceFile), this.end);`);
+    out.push(`        return sliceSourceText(sourceFile, this.getStart(sourceFile), this.end);`);
     out.push(`    }`);
     out.push(``);
     out.push(`    getChildCount(sourceFile?: SourceFile): number {`);

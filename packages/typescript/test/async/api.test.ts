@@ -1297,6 +1297,26 @@ describe("Checker - getMemberInModuleExports", () => {
 });
 
 describe("SourceFile", () => {
+    test("resolves file requests relative to the configured project directory", async () => {
+        const source = "export const answer = 42;";
+        await using api = spawnAPI({
+            "/nested/tsconfig.json": JSON.stringify({ compilerOptions: { noLib: true, target: "esnext" } }),
+            "/nested/main.ts": source,
+        });
+        const snapshot = await api.createSnapshot({ openProject: "/nested/tsconfig.json" });
+        const project = snapshot.getConfiguredProject("/nested/tsconfig.json")!;
+        const file = await project.program.getSourceFile("main.ts");
+        assert.equal(file?.fileName, "/nested/main.ts");
+        assert.equal(file?.text, source);
+        assert.strictEqual(await project.program.getSourceFile("/nested/main.ts"), file);
+        assert.equal((await project.program.getConfigSourceFile("tsconfig.json"))?.fileName, "/nested/tsconfig.json");
+        assert.ok(await project.program.getSourceFileMetadata("main.ts"));
+        assert.equal((await project.checker.getSymbolAtPosition("main.ts", source.indexOf("answer")))?.name, "answer");
+        assert.deepEqual(await project.program.getSemanticDiagnostics(["main.ts"]), []);
+        const emit = await project.program.getJavaScriptEmit(["main.ts"]);
+        assert.match(emit.outputFiles.get("/nested/main.js")!.text, /answer = 42/);
+    });
+
     test("getSourceFile rejects invalid document identifiers", async () => {
         await using api = spawnAPI();
 
@@ -6305,7 +6325,7 @@ describe("SnapshotInternalAPI - formatNodeForInsertion", () => {
         );
 
         const sourceText = files["/src/index.ts"];
-        const insertionPos = sourceText.indexOf("\n    console.log") + 1;
+        const insertionPos = Buffer.byteLength(sourceText.slice(0, sourceText.indexOf("\n    console.log") + 1));
 
         const formatted = await snapshot.internal.formatNodeForInsertion(node, "/src/index.ts", insertionPos);
         assert.ok(formatted.includes("const x = 1;"), `Expected 'const x = 1;' in formatted output, got: ${JSON.stringify(formatted)}`);
@@ -6355,7 +6375,7 @@ describe("SnapshotInternalAPI - formatNodeForInsertion", () => {
 
         // insertionPos is the UTF-16 code-unit offset of the start of the indented line inside the function body.
         const sourceText = files["/src/index.ts"];
-        const insertionPos = sourceText.indexOf("\n    console.log") + 1;
+        const insertionPos = Buffer.byteLength(sourceText.slice(0, sourceText.indexOf("\n    console.log") + 1));
 
         const formatted = await snapshot.internal.formatNodeForInsertion(node, "/src/index.ts", insertionPos);
         // The node should be indented to match the function body (4 spaces)

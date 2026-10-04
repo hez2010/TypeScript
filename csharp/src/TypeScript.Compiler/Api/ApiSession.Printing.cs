@@ -27,7 +27,7 @@ public sealed partial class ApiSession
         await using var pin = Pin(ApiJson.UInt64(parameters, "snapshot"u8));
         var program = pin.Data.Program(ApiJson.String(parameters, "project"u8));
         var document = ApiJson.Get(parameters, "file"u8);
-        var file = program.GetFile(Document(document))?.Syntax
+        var file = program.GetFile(Document(document, program))?.Syntax
             ?? throw new ApiException($"source file not found: {(document.ValueKind == JsonValueKind.Object ? ApiJson.String(document, "uri"u8) : ApiJson.String(document))}");
         var node = DecodeFactoryNode(parameters, cancellation);
         return RpcResponse.String(await SourceFormatter.FormatNodeForInsertionAsync(node, file, ApiJson.Int32(parameters, "position"u8),

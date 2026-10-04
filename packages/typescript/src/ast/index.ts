@@ -22,3 +22,5 @@ export * from "./scanner.ts";
 export * from "./spanMap.ts";
 export * from "./utils.ts";
 export * from "./visitor.ts";
+
+export * from "./positions.ts";

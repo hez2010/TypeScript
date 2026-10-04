@@ -1,4 +1,5 @@
 import { Buffer } from "node:buffer";
+import { decodeWtf8 } from "./utf8.ts";
 
 const surrogateLeadByte = 0xED;
 const surrogateSecondByteMin = 0xA0;
@@ -112,38 +113,7 @@ export function encodeWtf8(text: string): Uint8Array {
 }
 
 export class Wtf8Decoder extends TextDecoder {
-    override decode(input?: DecodeInput, options?: DecodeOptions): string {
-        if (input == null) {
-            return super.decode(undefined, options);
-        }
-
-        const bytes = toUint8Array(input);
-        if (!hasSurrogateLeadByte(bytes)) {
-            return super.decode(bytes, options);
-        }
-
-        const parts: string[] = [];
-        let segmentStart = 0;
-
-        for (let i = 0; i < bytes.length; i++) {
-            if (!isWtf8Surrogate(bytes, i)) {
-                continue;
-            }
-
-            if (segmentStart < i) {
-                parts.push(super.decode(bytes.subarray(segmentStart, i), options));
-            }
-            parts.push(String.fromCharCode(getSurrogateCodeUnit(bytes, i)));
-            i += 2;
-            segmentStart = i + 1;
-        }
-
-        if (segmentStart === 0) {
-            return super.decode(bytes, options);
-        }
-        if (segmentStart < bytes.length) {
-            parts.push(super.decode(bytes.subarray(segmentStart), options));
-        }
-        return parts.join("");
+    override decode(input?: DecodeInput): string {
+        return input == null ? "" : decodeWtf8(toUint8Array(input));
     }
 }

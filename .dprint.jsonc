@@ -42,6 +42,9 @@
         "modulePath": "github.com/microsoft/TypeScript/tsc"
     },
     "excludes": [
+        "csharp/data/**",
+        "csharp/oracle/build/**",
+        "csharp/oracle/data/**",
         "**/.git",
         "**/node_modules",
         "**/*-lock.json",

@@ -1,0 +1,15 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "goVersion": "go1.27.1",
+    "unicodeVersion": "17.0.0",
+    "normalizationVersion": "17.0.0",
+    "localeModule": "golang.org/x/text@v0.42.0",
+    "snapshots": {
+        "enum-values.json": "3975e46c2e7ab741094d9f191d272b6e5973311cb2d9b980132f6d75ec1a3f34",
+        "go-casing.json": "632e34839012425ecc4392b43036548fb28e81cefbfa83cffac333a12830e016",
+        "locales.json": "254183eeb89a50f24fd1065e2863baad6881d6885522d4447c40833069606bad",
+        "normalization.json": "97acc603f79677d68999e93c3503ca16b453438ac8610220c24f35d773a74411",
+        "regexp-properties.json": "a694dfcceabcefa42f32b38b8cc5abd8eaad4468649f2d3a1271357bbc29c767"
+    },
+    "refresh": "node csharp/oracle/refresh-data.mjs --go <go.exe> --check"
+}

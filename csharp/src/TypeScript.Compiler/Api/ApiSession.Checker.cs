@@ -128,7 +128,7 @@ public sealed partial class ApiSession
         }
         ValueTask<SyntaxNode> ResolveNode(JsonElement value) => data.ResolveNodeAsync(program, ApiJson.String(value), cancellation);
         ValueTask<SyntaxNode> Location() => ResolveNode(ApiJson.Get(parameters, "location"u8));
-        SourceFileNode Source(JsonElement value) => program.GetFile(Document(value))?.Syntax
+        SourceFileNode Source(JsonElement value) => program.GetFile(Document(value, program))?.Syntax
             ?? throw new ApiException($"source file not found: {(value.ValueKind == JsonValueKind.Object ? ApiJson.String(value, "uri"u8) : ApiJson.String(value))}");
         if (method == "getReferencesToSymbolInFile"u8)
         {

@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
         "target": "es2022",
+        "newLine": "lf",
         "lib": ["es2022"],
         "strict": true,
         "exactOptionalPropertyTypes": true,

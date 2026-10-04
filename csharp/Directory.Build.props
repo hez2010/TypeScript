@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net11.0</TargetFramework>
     <LangVersion>15.0</LangVersion>
+    <TypeScriptVersion Condition="'$(TypeScriptVersion)' == ''">$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)version.txt').Trim())</TypeScriptVersion>
     <Features>$(Features);runtime-async=on</Features>
     <OptimizationPreference>Speed</OptimizationPreference>
     <InvariantGlobalization>true</InvariantGlobalization>
@@ -14,6 +15,6 @@
     <IlcTreatWarningsAsErrors>true</IlcTreatWarningsAsErrors>
     <TrimmerSingleWarn>false</TrimmerSingleWarn>
     <Deterministic>true</Deterministic>
-    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
   </PropertyGroup>
 </Project>

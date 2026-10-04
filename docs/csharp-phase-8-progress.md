@@ -28,7 +28,7 @@ The VS Code integration test uses the actual extension SDK resolver and installe
 
 `--certificate <thumbprint>` selects a certificate from `CurrentUser/My`; `--timestamp-url` supplies the timestamp service. `--require-signed` refuses to pack unless Authenticode reports `Valid`. The negative control published a real unsigned executable and verified rejection before any tarball or distribution manifest was created. Current artifacts are unsigned: no trusted production signing certificate was supplied.
 
-The [Windows workflow](../.github/workflows/csharp-windows.yml) builds with an installed .NET 11 SDK, checks generation, exercises the managed packages and extension integration, and publishes the native CLI and compatibility harness without running them. It is a local source change; no GitHub Actions execution is claimed.
+The [product workflow](../.github/workflows/csharp.yml) builds with an installed .NET 11 SDK, checks generation, exercises the managed packages and extension integration, and publishes the native CLI and compatibility harness without running them. It is a local source change; no GitHub Actions execution is claimed.
 
 ## Client coordinates and host contracts
 

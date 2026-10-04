@@ -264,6 +264,7 @@ import {
     getLastToken,
     getTokenPosOfNode,
 } from "./astnav.ts";
+import { sliceSourceText } from "./positions.ts";
 import { cloneSourceFileData } from "./utils.ts";
 import {
     forEachChildOfJSDocParameterTag,
@@ -729,12 +730,12 @@ export class NodeObject {
     }
 
     getFullText(sourceFile?: SourceFile): string {
-        return (sourceFile ?? this.getSourceFile()).text.substring(this.pos, this.end);
+        return sliceSourceText(sourceFile ?? this.getSourceFile(), this.pos, this.end);
     }
 
     getText(sourceFile?: SourceFile): string {
         sourceFile ??= this.getSourceFile();
-        return sourceFile.text.substring(this.getStart(sourceFile), this.end);
+        return sliceSourceText(sourceFile, this.getStart(sourceFile), this.end);
     }
 
     getChildCount(sourceFile?: SourceFile): number {

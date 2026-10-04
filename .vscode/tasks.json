@@ -9,7 +9,7 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "problemMatcher": ["$go"]
+            "problemMatcher": ["$msCompile"]
         },
         {
             "label": "Watch compiler",
@@ -36,21 +36,21 @@
             "command": "npx",
             "args": ["hereby", "test"],
             "group": "test",
-            "problemMatcher": ["$go"]
+            "problemMatcher": ["$msCompile"]
         },
         {
             "label": "Lint",
             "type": "shell",
             "command": "npx",
             "args": ["hereby", "lint"],
-            "problemMatcher": ["$go"]
+            "problemMatcher": ["$msCompile"]
         },
         {
             "label": "Generate",
             "type": "shell",
             "command": "npx",
             "args": ["hereby", "generate"],
-            "problemMatcher": ["$go"]
+            "problemMatcher": ["$msCompile"]
         },
         {
             "label": "Build extension",

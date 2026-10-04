@@ -47,7 +47,7 @@ defaults:
 jobs:
   update:
     if: github.repository == 'microsoft/TypeScript'
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     environment:
       name: azure
       deployment: false
@@ -71,7 +71,10 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24
-      - uses: ./.github/actions/setup-go
+      - uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
+        with:
+          dotnet-version: '11.0.x'
+          dotnet-quality: daily
       - run: npm ci
       - name: Load release automation from main
         run: |
@@ -94,7 +97,7 @@ jobs:
             exit 0
           fi
 
-          expectedFiles=("Herebyfile.mjs" "tsc/internal/core/version.go")
+          expectedFiles=("csharp/version.txt")
           for changedFile in "${changedFiles[@]}"; do
             if [[ ! " ${expectedFiles[*]} " =~ " $changedFile " ]]; then
               echo "Unexpected file in release configuration: $changedFile" >&2
@@ -112,14 +115,14 @@ jobs:
           set -euo pipefail
           git diff --check
           mapfile -t changedFiles < <(git diff --name-only)
-          expectedFiles=("Herebyfile.mjs" "tsc/internal/core/version.go")
+          expectedFiles=("csharp/version.txt")
           for changedFile in "${changedFiles[@]}"; do
             if [[ ! " ${expectedFiles[*]} " =~ " $changedFile " ]]; then
               echo "Validation produced unexpected change: $changedFile" >&2
               exit 1
             fi
           done
-          git add Herebyfile.mjs tsc/internal/core/version.go
+          git add csharp/version.txt
           git config user.email "290192711+typescript-automation[bot]@users.noreply.github.com"
           git config user.name "typescript-automation[bot]"
           git config core.hooksPath /dev/null

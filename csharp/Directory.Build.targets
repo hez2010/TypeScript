@@ -1,8 +1,8 @@
 <Project>
   <Target Condition="'$(UseSatoriGC)' == 'true'" Name="UseSatoriGC" AfterTargets="ResolveRuntimePackAssets" DependsOnTargets="ResolveRuntimePackAssets">
     <PropertyGroup>
-      <IlcSdkPath>$(SatoriBuildRoot)\aotsdk\</IlcSdkPath>
-      <SingleFileHostSourcePath>$(SatoriBuildRoot)\corehost\singlefilehost$(_NativeExecutableExtension)</SingleFileHostSourcePath>
+      <IlcSdkPath>$(SatoriBuildRoot)/aotsdk/</IlcSdkPath>
+      <SingleFileHostSourcePath>$(SatoriBuildRoot)/corehost/singlefilehost$(_NativeExecutableExtension)</SingleFileHostSourcePath>
     </PropertyGroup>
 
     <Error Condition="'$(SatoriBuildRoot)' == '' OR !Exists('$(SatoriBuildRoot)')" Text="A valid SatoriBuildRoot must be set." />
@@ -15,9 +15,9 @@
                                            '%(RuntimePackAsset.DestinationSubPath)' == '$(_NativeLibraryPrefix)clrjit$(_NativeLibraryExtension)' Or
                                            '%(RuntimePackAsset.DestinationSubPath)' == 'System.Private.CoreLib.dll')" />
       <RuntimePackAsset Remove="@(_SatoriRuntimePackAsset)" />
-      <RuntimePackAsset Include="@(_SatoriRuntimePackAsset->'$(SatoriBuildRoot)\%(DestinationSubPath)')" />
+      <RuntimePackAsset Include="@(_SatoriRuntimePackAsset->'$(SatoriBuildRoot)/%(DestinationSubPath)')" />
       <ReferenceCopyLocalPaths Remove="@(_SatoriRuntimePackAsset)" />
-      <ReferenceCopyLocalPaths Include="@(_SatoriRuntimePackAsset->'$(SatoriBuildRoot)\%(DestinationSubPath)')"
+      <ReferenceCopyLocalPaths Include="@(_SatoriRuntimePackAsset->'$(SatoriBuildRoot)/%(DestinationSubPath)')"
                                Condition="'$(CopyLocalLockFileAssemblies)' == 'true' And '$(SelfContained)' == 'true'" />
     </ItemGroup>
   </Target>

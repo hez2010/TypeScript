@@ -5,7 +5,7 @@
     "license": "Apache-2.0",
     "author": "Microsoft Corp.",
     "homepage": "https://www.typescriptlang.org/",
-    "description": "Preview CLI and JS API for the native TypeScript compiler port",
+    "description": "TypeScript compiler, language server and UTF-8 compiler API powered by C#",
     "keywords": [
         "TypeScript",
         "Microsoft",
@@ -24,7 +24,7 @@
     "type": "module",
     "preferUnplugged": true,
     "engines": {
-        "node": ">=16.20.0"
+        "node": ">=22.18"
     },
     "files": [
         "bin",
@@ -81,6 +81,10 @@
         "./unstable/ast/clone": {
             "@typescript/source": "./src/ast/clone.ts",
             "default": "./dist/ast/clone.js"
+        },
+        "./unstable/text": {
+            "@typescript/source": "./src/ast/positions.ts",
+            "default": "./dist/ast/positions.js"
         }
     },
     "imports": {

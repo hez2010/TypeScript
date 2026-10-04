@@ -75,81 +75,48 @@ In general, things we find useful when reviewing suggestions are:
 
 ## Prerequisites
 
-- Go 1.27
-- Node.js 24
-- npm (the version declared by `packageManager` in `package.json`)
-- Git
+- A host and .NET NativeAOT toolchain for a target in `csharp/distribution/platforms.mjs`
+- .NET 11 SDK (C# 15; the SDK is not pinned)
+- Node.js 24 and the npm version declared in `package.json`
+- Git; enable long paths with `git config --global core.longpaths true`
+- NativeAOT prerequisites for publishing: Visual Studio C++ tools/Windows SDK on Windows, Xcode tools on macOS, or the target C/C++ toolchain and development libraries on Unix
 
-On Windows, enable long paths:
+## Setup and tasks
 
-```bash
-git config --global core.longpaths true
-```
+Run `npm ci` from the repository root. Set `DOTNET_ROOT` if the .NET 11 SDK is not on `PATH`. SDK selection follows your environment; there is no SDK pin or NuGet lockfile. NuGet package references keep ordinary explicit version attributes, managed manually. Distribution publishing restores once for the selected SDK/host/RID and uses that resolved graph for the publish. Feeds are configured in `csharp/NuGet.Config`.
 
-## Setup
+`npm run build` builds the C# compiler as a Release CoreCLR executable at `built/local/tsc` (`tsc.exe` on Windows). Run it with normal compiler arguments, `--build`, `--watch`, `--lsp --stdio`, or `--api`. The product build and runtime do not invoke Go. The reference implementation and its tools are [archived separately](csharp/oracle/README.md).
 
-```bash
-git clone https://github.com/microsoft/TypeScript.git
-cd TypeScript
-npm ci
-```
-
-The repository uses a Go workspace with modules in `tsc/` and `tools/`.
-
-## Common tasks
-
-```bash
-npx hereby build         # Build the native compiler into built/local/tsc
-npx hereby test          # Run compiler and language-service Go tests
-npx hereby test:all      # Also run benchmarks, tools, and API tests
-npx hereby lint          # Run custom golangci-lint for both Go modules
-npx hereby generate      # Regenerate compiler sources and bundled assets
-npx hereby format        # Format Go, TypeScript, JSON, and YAML
-npx hereby check:format  # Check formatting without changing files
-npx hereby tidy          # Tidy both modules and synchronize go.work
-```
-
-Package-specific commands:
-
-```bash
-npm run -w @typescript/typescript build
-npm run -w @typescript/typescript test
-npm run -w native-preview build
-```
-
-## Compiler tests
-
-New compiler tests live in `tsc/testdata/tests/cases/compiler/`. Generated
-baselines are written below `tsc/testdata/baselines/local/`; accepted
-baselines live below `tsc/testdata/baselines/reference/`.
-
-Run a focused Go test with:
-
-```bash
-go -C ./tsc test -run='TestLocal/<test name>' ./internal/testrunner
-```
-
-## Before submitting a pull request
-
-Run:
-
-```bash
-npx hereby generate
+```powershell
 npx hereby build
-npx hereby test
-npx hereby test:all
-npx hereby lint
-npx hereby format
-npx hereby check:format
-npm run -w @typescript/typescript build
-npm run -w @typescript/typescript test
-npm run -w native-preview build
-go -C ./tsc mod tidy -diff
-go -C ./tools mod tidy -diff
-go work sync
-git diff --exit-code
+npx hereby build:api
+npx hereby test:tsc          # C# compiler, host, watch, LSP and API safety checks
+npx hereby test:api          # JavaScript client tests, including one-iteration benchmark smoke cases
+npx hereby test:extension
+npx hereby generate         # Node generators using checked-in schemas and frozen data
+npx hereby generate:check   # Read-only stale-table and reproducibility checks
+npx hereby test:package     # Install and exercise the managed npm packages
+npx hereby validate         # Run the checks above and VS Code SDK/transport validation
+npx hereby package          # Publish NativeAOT npm tarballs and ZIP; do not execute them
+npx hereby package:verify   # Inspect the NativeAOT distribution without running it
+npx hereby vscode-typescript:pack --managed
 ```
 
-Pull requests should describe the problem, the implementation, and the tests
-that cover the change. A Contributor License Agreement is required and is
-handled automatically when a pull request is opened.
+Packages are written below `built/csharp/distribution/<runtime>/<rid>/`. The default package is `typescript`, its executable is `tsc`, and its optional dependencies select the matching OS, architecture and libc package. No task uploads a package. `--forRelease` requires a trusted compiler signature. C# is the default on every retained target. Use `--rid <rid>` to select the target; publishing requires a matching host or cross-compilation toolchain. Signing is selected for the target OS, and NativeAOT uses its portable target instruction set unless explicitly overridden. Production signing remains a release gate.
+
+The unstable API, AST, scanner, and source line/character helpers use UTF-8/WTF-8 byte coordinates and AST protocol 9. Use the exported `unstable/text` conversion helpers at JavaScript string boundaries; LSP retains its negotiated coordinate contract.
+
+## Focused tests and clean validation
+
+C# tests live in `csharp/tests/TypeScript.Compatibility`. Filter safety commands with `npx hereby test:tsc --tests parser`. JavaScript client tests live in `packages/typescript/test`; edit the async sources before regenerating sync/generator variants. Compiler fixtures, standard libraries and historical baselines remain under `tsc/testdata` and `tsc/internal/bundled`.
+
+```powershell
+node csharp/tools/without-go.mjs node_modules/hereby/bin/hereby.js validate
+node csharp/tools/clean-product-validation.mjs --native
+```
+
+The second command creates a fresh checkout with the current patch, installs npm dependencies, and runs the managed build/test/package/VSIX checks with Go unavailable. It writes evidence below `built/csharp/clean-validation`. It does not copy existing outputs or oracle caches. With `--native`, it also publishes and inspects NativeAOT packages and VSIX contents; current validation never executes those artifacts.
+
+Before submitting changes, run the relevant tests, `npx hereby generate:check`, and `git diff --check`. Keep compiler version changes in `csharp/version.txt`; `tools/scripts/configure-release.mjs` updates this file. See [phase 9](docs/csharp-phase-9-progress.md) for the cutover evidence and validation limits.
+
+Pull requests should describe the problem, implementation, and checks. A Contributor License Agreement is handled automatically when a pull request is opened.
