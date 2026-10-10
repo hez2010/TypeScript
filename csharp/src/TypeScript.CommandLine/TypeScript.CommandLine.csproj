@@ -9,21 +9,26 @@
     <ProjectReference Include="../TypeScript.Compiler/TypeScript.Compiler.csproj" />
   </ItemGroup>
   <!--
-    Performance-tuned GC configuration for the compiler CLI, measured on a 32-logical-processor host
-    (paired A/B inside one binary, 11 samples per workload):
-      * Workstation GC beats Server GC by 5-11% on every multi-file workload and uses 44-66% less
-        peak RSS; Server GC only wins on a single huge file (-7.2%).
-      * gen0size 4 MiB cuts peak RSS by 17-19% with no measurable time cost (huge-file -4.7%).
-      * LOHThreshold 1 MiB cuts huge-file peak RSS by a further 13.1% and its time by 3.4%.
-    Combined: huge-file peak 238 -> 193 MiB, medium 55.5 -> 43.8 MiB, declarations -4.3% time.
+    Performance-tuned GC configuration for the compiler CLI, measured on a 32-logical-processor host.
+    The first pass pinned Workstation GC plus a fixed 4 MiB gen0 budget and a 1 MiB LOH threshold.
+    Re-measured against the unmodified product baseline, that pinned budget cost the short-lived
+    workloads 3-8% (it is a fixed per-process charge paid before Main) while it only paid off on the
+    longest runs:
+      * DATAS (Server GC + dynamic adaptation) instead removes those regressions: small-first-diagnostic
+        -4.9%, project-references-implementation -9.4%, project-references-config -5.6%,
+        tiny-files-noemit -1.5% (15 paired samples, CIs excluding 1.0) and lower peak RSS on each
+        (22.1 -> 18.4 MiB, 23.0 -> 19.7 MiB, 22.7 -> 19.3 MiB).
+      * Cost is confined to the single huge-file workload: +0.9% time and 175.5 -> 213.2 MiB, which is
+        still better than the unmodified baseline on both counts (238 MiB, -10%).
+      * A fixed gen0 budget is therefore no longer set: DATAS sizes the heap from the observed
+        allocation rate, so short and long runs are no longer forced into the same shape.
   -->
   <PropertyGroup>
-    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
     <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
   </PropertyGroup>
   <ItemGroup>
-    <RuntimeHostConfigurationOption Include="System.GC.Server" Value="false" />
-    <RuntimeHostConfigurationOption Include="System.GC.gen0size" Value="0x400000" />
-    <RuntimeHostConfigurationOption Include="System.GC.LOHThreshold" Value="1000000" />
+    <RuntimeHostConfigurationOption Include="System.GC.Server" Value="true" />
+    <RuntimeHostConfigurationOption Include="System.GC.DynamicAdaptationMode" Value="1" />
   </ItemGroup>
 </Project>

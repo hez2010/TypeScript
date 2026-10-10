@@ -16,6 +16,59 @@ internal sealed class CompilationCapture : IAsyncDisposable
     private static readonly AsyncLocal<CompilationCapture?> ambient = new();
     internal static CompilationCapture? Current => ambient.Value;
     private readonly CompilationCapture? previous;
+    private readonly long[] checkKindAllocations = new long[512];
+    /// <summary>
+    /// Records the allocation a checked node is responsible for on its own, i.e. the subtree total
+    /// minus what its children already reported. Fills the checker half of the allocation map that
+    /// the printer-side equivalent already covered.
+    /// </summary>
+    private readonly long[] transformKindAllocations = new long[512];
+    /// <summary>Transform-phase counterpart of <see cref="NoteCheckKind"/>.</summary>
+    internal void NoteTransformKind(int kind, long bytes)
+    {
+        if (bytes > 0 && (uint)kind < (uint)transformKindAllocations.Length)
+            Interlocked.Add(ref transformKindAllocations[kind], bytes);
+    }
+
+    internal void NoteCheckKind(int kind, long bytes)
+    {
+        if (bytes > 0 && (uint)kind < (uint)checkKindAllocations.Length)
+            Interlocked.Add(ref checkKindAllocations[kind], bytes);
+    }
+
+    private readonly long[] probeAllocations = new long[AllocationProbes.Count];
+    private long commentAdds, commentSets, nodeDataCalls, linkCreates;
+
+    private void NoteProbe(int id, long bytes)
+    {
+        if (bytes > 0 && (uint)id < (uint)probeAllocations.Length)
+            Interlocked.Add(ref probeAllocations[id], bytes);
+    }
+
+    internal void NoteCommentAdd() => Interlocked.Increment(ref commentAdds);
+    internal void NoteCommentSet() => Interlocked.Increment(ref commentSets);
+    internal void NoteNodeData() => Interlocked.Increment(ref nodeDataCalls);
+    internal void NoteLinkCreate() => Interlocked.Increment(ref linkCreates);
+
+    private static int activeCaptures;
+
+    /// <summary>
+    /// True while any capture is active. Checked by every probe call site, so it must stay a plain
+    /// static read: allocation probes are only collected for diagnostic runs, and a normal compile
+    /// must not pay an <c>AsyncLocal</c> read on its hot paths.
+    /// </summary>
+    internal static bool ProbesEnabled => Volatile.Read(ref activeCaptures) != 0;
+
+    /// <summary>Allocation mark for an inclusive probe frame; 0 when no probe run is active.</summary>
+    internal static long Mark() => ProbesEnabled ? GC.GetTotalAllocatedBytes() : 0;
+
+    /// <summary>Reports the allocation performed since <paramref name="mark"/>; no-op without a capture.</summary>
+    internal static void Report(int id, long mark)
+    {
+        if (mark == 0 || Current is not { } capture)
+            return;
+        capture.NoteProbe(id, GC.GetTotalAllocatedBytes() - mark);
+    }
     private readonly long started = Stopwatch.GetTimestamp();
     private readonly long allocated = GC.GetTotalAllocatedBytes();
     private readonly ConcurrentDictionary<Utf8String, long> durations = new();
@@ -38,6 +91,7 @@ internal sealed class CompilationCapture : IAsyncDisposable
             { warnings.WriteLine($"Warning: Failed to start tracing: {error.Message}"); }
         }
         ambient.Value = this;
+        Interlocked.Increment(ref activeCaptures);
     }
 
     internal static CompilationCapture? Start(IFileSystem fileSystem, Utf8String currentDirectory, ParsedConfig config,
@@ -69,13 +123,25 @@ internal sealed class CompilationCapture : IAsyncDisposable
     }
 
     /// <summary>Starts a scope for the active capture, or returns a no-op scope when none is active.</summary>
-    internal static Scope Measure(Utf8String category) => Current?.Begin(category, category) ?? default;
+    internal static Scope Measure(Utf8String category)
+    {
+        var capture = Current;
+        if (capture is null) return default;
+        // The transform attribution frames are only valid inside the transform scope: rewriters also
+        // run while printing, and counting those frames would double-book allocation across phases.
+        if (category == "transform"u8) transformDepth.Value++;
+        return capture.Begin(category, category);
+    }
+
+    private static readonly AsyncLocal<int> transformDepth = new();
+    internal static bool InTransformPhase => transformDepth.Value > 0;
 
     internal readonly struct Scope(CompilationCapture owner, Utf8String category, long started, long allocated, CompilationTrace.EventScope? trace) : IDisposable
     {
         public void Dispose()
         {
             if (owner is null || owner.disposed) return;
+            if (category == "transform"u8) transformDepth.Value--;
             long elapsed = Stopwatch.GetTimestamp() - started;
             owner.durations.AddOrUpdate(category, elapsed, (_, value) => value + elapsed);
             long growth = GC.GetTotalAllocatedBytes() - allocated;
@@ -112,6 +178,11 @@ internal sealed class CompilationCapture : IAsyncDisposable
             AllocatedProgram = Allocated("program"u8), AllocatedParse = Allocated("parse"u8), AllocatedBind = Allocated("bind"u8),
             AllocatedCheck = Allocated("check"u8), AllocatedEmit = Allocated("emit"u8),
             AllocatedTransform = Allocated("transform"u8), AllocatedPrint = Allocated("print"u8),
+            CheckKindAllocations = (long[])checkKindAllocations.Clone(),
+            TransformKindAllocations = (long[])transformKindAllocations.Clone(),
+            ProbeAllocations = (long[])probeAllocations.Clone(),
+            CommentAdds = Volatile.Read(ref commentAdds), CommentSets = Volatile.Read(ref commentSets),
+            NodeDataCalls = Volatile.Read(ref nodeDataCalls), LinkCreates = Volatile.Read(ref linkCreates),
         };
     }
 
@@ -132,6 +203,7 @@ internal sealed class CompilationCapture : IAsyncDisposable
         finally
         {
             disposed = true;
+            Interlocked.Decrement(ref activeCaptures);
             lock (contexts)
             {
                 foreach (var reference in contexts)

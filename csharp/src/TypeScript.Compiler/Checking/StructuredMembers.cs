@@ -64,6 +64,7 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
         var oldConstructors = type.ConstructSignatures;
         var oldIndexes = type.IndexInfos;
         var oldFlags = type.ObjectFlags & (O.MembersResolved | O.UnresolvedMembers);
+        long allocMark = Diagnostics.CompilationCapture.Mark();
         try
         {
             switch (type)
@@ -110,6 +111,10 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
             type.IndexInfos = oldIndexes;
             type.ObjectFlags = type.ObjectFlags & ~(O.MembersResolved | O.UnresolvedMembers) | oldFlags;
             throw;
+        }
+        finally
+        {
+            Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.ResolveMembers, allocMark);
         }
     }
 
@@ -306,6 +311,21 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
         IReadOnlyList<Signature> constructors, IReadOnlyList<IndexInfo> indexes, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
+        long allocMark = Diagnostics.CompilationCapture.Mark();
+        try
+        {
+            await SetCoreAsync(type, members, calls, constructors, indexes, cancellation).ConfigureAwait(false);
+        }
+        finally
+        {
+            Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.SetMembers, allocMark);
+        }
+    }
+
+    private async ValueTask SetCoreAsync(StructuredType type, IReadOnlyDictionary<Utf8String, Symbol>? members, IReadOnlyList<Signature> calls,
+        IReadOnlyList<Signature> constructors, IReadOnlyList<IndexInfo> indexes, CancellationToken cancellation = default)
+    {
+        cancellation.ThrowIfCancellationRequested();
         context.RequireOwned(type);
         // Alias resolution can re-enter member lookup for a sibling export.
         // ResolveAsync restores this provisional state if resolution fails.
@@ -324,8 +344,11 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
                 else
                     inherited.Add(symbol);
             }
-        declared.Sort(order.CompareSymbols);
-        inherited.Sort(order.CompareSymbols);
+        // TypeOrder implements IComparer<Symbol>: sorting through the interface avoids the delegate
+        // (and the Comparer wrapper the delegate overload builds) that List.Sort(method group) would
+        // allocate on every member table.
+        declared.Sort(order);
+        inherited.Sort(order);
         cancellation.ThrowIfCancellationRequested();
         type.Properties = Array.AsReadOnly<Symbol>([.. declared, .. inherited]);
         type.CallSignatures = calls;

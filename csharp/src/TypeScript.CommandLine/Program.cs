@@ -1,7 +1,15 @@
+using System.Diagnostics;
 using System.Text;
 using TypeScript.Compiler.Execution;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Text;
+
+// Startup accounting for the fixed per-process cost: with TSHARP_STARTUP_TRACE set, report how
+// much of the process lifetime is spent inside Main. The harness measures the whole process, so
+// the difference isolates runtime/AOT image initialisation from our own startup work.
+var trace = Environment.GetEnvironmentVariable("TSHARP_STARTUP_TRACE") is { Length: > 0 };
+var mainStart = Stopwatch.GetTimestamp();
+var processStart = Environment.TickCount64;
 
 Console.OutputEncoding = new UTF8Encoding(false);
 using var cancellation = new CancellationTokenSource();
@@ -19,4 +27,9 @@ try
     return (int)status;
 }
 catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { return 0; }
-finally { Console.CancelKeyPress -= cancel; }
+finally
+{
+    Console.CancelKeyPress -= cancel;
+    if (trace)
+        Console.Error.WriteLine($"startup: in-main {Stopwatch.GetElapsedTime(mainStart).TotalMilliseconds:F1} ms, in-process {Environment.TickCount64 - processStart} ms");
+}

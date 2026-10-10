@@ -66,6 +66,20 @@ internal sealed class VariableTypes(TypeContext context, TypeAlgebra algebra, Ty
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
             ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
         cancellation.ThrowIfCancellationRequested();
+        long allocMark = Diagnostics.CompilationCapture.Mark();
+        try
+        {
+            return await DeclaredOrInferredCoreAsync(declaration, includeOptionality, mode, cancellation).ConfigureAwait(false);
+        }
+        finally
+        {
+            Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.VariableType, allocMark);
+        }
+    }
+
+    private async ValueTask<Type?> DeclaredOrInferredCoreAsync(SyntaxNode declaration, bool includeOptionality, CheckMode mode,
+        CancellationToken cancellation)
+    {
         if (declaration is VariableDeclarationNode variable
             && variable.Parent?.Parent is { Kind: SyntaxKind.ForInStatement or SyntaxKind.ForOfStatement } statement)
             return await host.IterationVariableAsync(variable, statement, mode, cancellation).ConfigureAwait(false);

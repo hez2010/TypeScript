@@ -38,6 +38,19 @@ internal sealed class SymbolTypes(TypeContext context, CheckerLinks links, Check
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
             ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
         cancellation.ThrowIfCancellationRequested();
+        long symbolMark = Diagnostics.CompilationCapture.Mark();
+        try
+        {
+            return await GetCoreAsync(symbol, cancellation).ConfigureAwait(false);
+        }
+        finally
+        {
+            Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.SymbolTypesGet, symbolMark);
+        }
+    }
+
+    private async ValueTask<Type> GetCoreAsync(Symbol symbol, CancellationToken cancellation)
+    {
         if ((symbol.CheckFlags & CheckFlags.DeferredType) != 0)
             return await DeferredAsync(symbol, false, cancellation).ConfigureAwait(false);
         if ((symbol.CheckFlags & CheckFlags.Instantiated) != 0)

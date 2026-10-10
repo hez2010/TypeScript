@@ -105,6 +105,13 @@ internal sealed partial class Checker
         bool previousUnreachable = withinUnreachable;
         CurrentSourceNode = node;
         Instantiation.Engine.ResetExpressionCount();
+        // Allocation attribution (diagnostics only): each frame reports what it allocated on its own,
+        // i.e. its subtree total minus what the children below it already claimed. The stack is an
+        // instance field because a checker is leased to one file at a time by the pool.
+        var capture = CompilationCapture.Current;
+        long allocationMark = capture is not null ? GC.GetTotalAllocatedBytes() : 0;
+        if (capture is not null)
+            checkAllocationStack.Add(0);
         try
         {
             BeforeSourceElement?.Invoke(node);
@@ -431,6 +438,15 @@ internal sealed partial class Checker
         {
             CurrentSourceNode = previous;
             withinUnreachable = previousUnreachable;
+            if (capture is not null)
+            {
+                long delta = GC.GetTotalAllocatedBytes() - allocationMark;
+                long children = checkAllocationStack[^1];
+                checkAllocationStack.RemoveAt(checkAllocationStack.Count - 1);
+                if (checkAllocationStack.Count != 0)
+                    checkAllocationStack[^1] += delta;
+                capture.NoteCheckKind((int)node.Kind, Math.Max(0, delta - children));
+            }
         }
     }
 

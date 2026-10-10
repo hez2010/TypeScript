@@ -107,6 +107,19 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
         cancellation.ThrowIfCancellationRequested();
         context.RequireOwned(source);
         context.RequireOwned(target);
+        long allocMark = Diagnostics.CompilationCapture.Mark();
+        try
+        {
+            return await RelatedCoreAsync(source, target, kind, cancellation).ConfigureAwait(false);
+        }
+        finally
+        {
+            Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.RelationRelated, allocMark);
+        }
+    }
+
+    private async ValueTask<bool> RelatedCoreAsync(Type source, Type target, RelationKind kind, CancellationToken cancellation)
+    {
         if (source is LiteralType sl && sl.FreshType == source)
             source = sl.RegularType;
         if (target is LiteralType tl && tl.FreshType == target)
@@ -366,6 +379,20 @@ internal sealed class RelationOperation(
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
             ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
         cancellation.ThrowIfCancellationRequested();
+        long allocMark = Diagnostics.CompilationCapture.Mark();
+        try
+        {
+            return await CompareCoreInnerAsync(source, target, recursion, intersection, cancellation).ConfigureAwait(false);
+        }
+        finally
+        {
+            Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.RelationCompare, allocMark);
+        }
+    }
+
+    private async ValueTask<Ternary> CompareCoreInnerAsync(Type source, Type target, RecursionFlags recursion,
+            IntersectionState intersection, CancellationToken cancellation)
+    {
         context.RequireOwned(source);
         context.RequireOwned(target);
         if (source == target)

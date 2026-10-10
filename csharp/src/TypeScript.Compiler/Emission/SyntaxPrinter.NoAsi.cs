@@ -76,14 +76,18 @@ public sealed partial class SyntaxPrinter
         while (true)
         {
             cancellation.ThrowIfCancellationRequested();
-            var comments = CommentRanges(sourceFile.Source.Text, node.Pos, trailing: false);
-            if (comments.Any(c => c.Kind == SyntaxKind.SingleLineCommentTrivia || c.HasTrailingNewLine)
-                || comments.Count != 0 && context.ParseNode(node)?.Parent is ParenthesizedExpressionNode
-                || context.LeadingComments(node).Any(c => c.Kind == SyntaxKind.SingleLineCommentTrivia || c.HasTrailingNewLine))
+            if (sourceHasComments)
+            {
+                var comments = CommentRanges(sourceFile.Source.Text, node.Pos, trailing: false);
+                if (comments.Any(c => c.Kind == SyntaxKind.SingleLineCommentTrivia || c.HasTrailingNewLine)
+                    || comments.Count != 0 && context.ParseNode(node)?.Parent is ParenthesizedExpressionNode)
+                    return true;
+            }
+            if (context.LeadingComments(node).Any(c => c.Kind == SyntaxKind.SingleLineCommentTrivia || c.HasTrailingNewLine))
                 return true;
             if (node is not PartiallyEmittedExpressionNode { Expression: { } expression })
                 return false;
-            if (node.Pos != expression.Pos && CommentRanges(sourceFile.Source.Text, expression.Pos, trailing: true)
+            if (sourceHasComments && node.Pos != expression.Pos && CommentRanges(sourceFile.Source.Text, expression.Pos, trailing: true)
                 .Any(c => c.Kind == SyntaxKind.SingleLineCommentTrivia || c.HasTrailingNewLine))
                 return true;
             node = expression;

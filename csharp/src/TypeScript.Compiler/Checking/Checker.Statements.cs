@@ -9,6 +9,9 @@ internal sealed partial class Checker
 {
     private readonly HashSet<SyntaxNode> reportedUnreachable = [];
     private bool withinUnreachable;
+    // Per-frame "allocation claimed by descendants" totals for the diagnostics-only attribution in
+    // CheckSourceElementAsync. A checker is leased to one file at a time, so a plain list is safe.
+    private readonly List<long> checkAllocationStack = [];
 
     private async ValueTask<bool> CheckUnreachableAsync(SyntaxNode node, CancellationToken cancellation)
     {

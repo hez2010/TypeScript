@@ -30,6 +30,13 @@ internal sealed record CompilationStatistics
     internal long AllocatedEmit { get; init; }
     internal long AllocatedTransform { get; init; }
     internal long AllocatedPrint { get; init; }
+    internal long[] CheckKindAllocations { get; init; } = [];
+    internal long[] TransformKindAllocations { get; init; } = [];
+    internal long[] ProbeAllocations { get; init; } = [];
+    internal long CommentAdds { get; init; }
+    internal long CommentSets { get; init; }
+    internal long NodeDataCalls { get; init; }
+    internal long LinkCreates { get; init; }
 
     internal void Report(TextWriter output, int? projects = null, int built = 0, int timestamps = 0)
     {
@@ -52,6 +59,37 @@ internal sealed record CompilationStatistics
         Count("Alloc program (summed)", AllocatedProgram); Count("Alloc parse (summed)", AllocatedParse); Count("Alloc bind (summed)", AllocatedBind);
         Count("Alloc check (summed)", AllocatedCheck); Count("Alloc emit (summed)", AllocatedEmit);
         Count("Alloc transform (summed)", AllocatedTransform); Count("Alloc print (summed)", AllocatedPrint);
+        if (CheckKindAllocations.Length != 0)
+        {
+            var top = CheckKindAllocations.Select((bytes, kind) => (bytes, kind)).Where(entry => entry.bytes > 0)
+                .OrderByDescending(entry => entry.bytes).Take(12);
+            foreach (var (bytes, kind) in top)
+                Count($"Check alloc kind {Enum.GetName(typeof(Syntax.SyntaxKind), kind) ?? kind.ToString(CultureInfo.InvariantCulture)}", bytes);
+        }
+        if (TransformKindAllocations.Length != 0)
+        {
+            var top = TransformKindAllocations.Select((bytes, kind) => (bytes, kind)).Where(entry => entry.bytes > 0)
+                .OrderByDescending(entry => entry.bytes).Take(12);
+            foreach (var (bytes, kind) in top)
+                Count($"Transform alloc kind {Enum.GetName(typeof(Syntax.SyntaxKind), kind) ?? kind.ToString(CultureInfo.InvariantCulture)}", bytes);
+        }
+        if (ProbeAllocations.Length != 0)
+        {
+            var top = ProbeAllocations.Select((bytes, id) => (bytes, id)).Where(entry => entry.bytes > 0)
+                .OrderByDescending(entry => entry.bytes).Take(16);
+            foreach (var (bytes, id) in top)
+            {
+                string name = (uint)id < AllocationProbes.Names.Length
+                    ? AllocationProbes.Names[id] : id.ToString(CultureInfo.InvariantCulture);
+                Count("Probe alloc " + name, bytes);
+            }        }
+        if (NodeDataCalls != 0)
+        {
+            Count("EmitContext.NodeData calls", NodeDataCalls);
+            Count("EmitContext comment adds", CommentAdds);
+            Count("EmitContext comment sets", CommentSets);
+            Count("LinkStore creates", LinkCreates);
+        }
         int nameWidth = rows.Max(row => row.Name.Length) + 1, valueWidth = rows.Max(row => row.Value.Length);
         foreach (var row in rows) output.WriteLine((row.Name + ":").PadRight(nameWidth) + " " + row.Value.PadLeft(valueWidth));
     }

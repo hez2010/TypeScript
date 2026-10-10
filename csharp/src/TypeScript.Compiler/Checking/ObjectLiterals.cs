@@ -49,6 +49,22 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
         CheckMode mode = 0,
         CancellationToken cancellation = default)
     {
+        long allocMark = Diagnostics.CompilationCapture.Mark();
+        try
+        {
+            return await CheckCoreAsync(node, mode, cancellation).ConfigureAwait(false);
+        }
+        finally
+        {
+            Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.ObjectLiteral, allocMark);
+        }
+    }
+
+    private async ValueTask<Type> CheckCoreAsync(
+        ObjectLiteralExpressionNode node,
+        CheckMode mode,
+        CancellationToken cancellation)
+    {
         var symbol = symbols.Declaration(node);
         if (node.Properties is null or { Count: 0 } && symbol?.Exports.Count > 0)
             return await spreads.ObjectAsync(symbol, new(symbol.Exports), [], JsLiteral(node) ? ObjectFlags.JSLiteral : 0,
@@ -73,6 +89,7 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
             foreach (var declaration in node.Properties!)
                 if (declaration is INamedNode { Name: ComputedPropertyNameNode computed })
                     await ComputedAsync(computed, cancellation).ConfigureAwait(false);
+            long propertyMark = Diagnostics.CompilationCapture.Mark();
             foreach (var declaration in node.Properties)
             {
                 cancellation.ThrowIfCancellationRequested();
@@ -205,6 +222,7 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
                     table[member!.Name] = member;
                 ordered.Add(member!);
             }
+            Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.ObjectProperty, propertyMark);
             if (spreadType == context.ErrorType || (spreadType.Flags & TypeFlags.Any) != 0 && spreadType.Alias is not null)
                 return context.ErrorType;
             if (spreadType != context.EmptyObjectType)
@@ -237,11 +255,13 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
                     indexes.Add(await IndexAsync(context.NumberType, ordered.Skip(offset), readOnly, cancellation).ConfigureAwait(false));
                 if (symbolKey)
                     indexes.Add(await IndexAsync(context.ESSymbolType, ordered.Skip(offset), readOnly, cancellation).ConfigureAwait(false));
+                long typeMark = Diagnostics.CompilationCapture.Mark();
                 var result = await spreads.ObjectAsync(
                     symbol,
                     table,
                     indexes,
                     flags | ObjectFlags.ObjectLiteral | ObjectFlags.ContainsObjectOrArrayLiteral, cancellation).ConfigureAwait(false);
+                Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.ObjectType, typeMark);
                 if (contextual is null && JsLiteral(node))
                     result.ObjectFlags |= ObjectFlags.JSLiteral;
                 if (computedPattern)
@@ -343,6 +363,19 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
             return type;
         if (regular.TryGetValue(type, out var cached))
             return cached;
+        long regularMark = Diagnostics.CompilationCapture.Mark();
+        try
+        {
+            return await RegularCoreAsync(type, cancellation).ConfigureAwait(false);
+        }
+        finally
+        {
+            Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.ObjectRegular, regularMark);
+        }
+    }
+
+    private async ValueTask<Type> RegularCoreAsync(Type type, CancellationToken cancellation)
+    {
         var resolved = await members.ResolveAsync((StructuredType)type, cancellation).ConfigureAwait(false);
         var table = new Dictionary<Utf8String, Symbol>();
         foreach (var property in resolved.Properties!)

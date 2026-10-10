@@ -53,7 +53,10 @@ public sealed partial class EmitContext
     internal NodeData Data(SyntaxNode node)
     {
         if (!nodes.TryGetValue(node, out var data))
+        {
+            Diagnostics.CompilationCapture.Current?.NoteNodeData();
             nodes.Add(node, data = new());
+        }
         return data;
     }
 
@@ -76,6 +79,22 @@ public sealed partial class EmitContext
         else if (nodes.TryGetValue(original, out var data))
             nodes[node] = data.Clone();
         originals[node] = original;
+    }
+
+    // Transform-phase allocation attribution frames (diagnostics only).
+    private readonly List<long> transformAllocationStack = [];
+
+    internal void PushTransformAllocationFrame() => transformAllocationStack.Add(0);
+
+    internal long PopTransformAllocationFrame(long mark)
+    {
+        long delta = GC.GetTotalAllocatedBytes() - mark;
+        long children = transformAllocationStack[^1];
+        transformAllocationStack.RemoveAt(transformAllocationStack.Count - 1);
+        // Hand this subtree's total to the parent so a frame only reports what its children did not.
+        if (transformAllocationStack.Count != 0)
+            transformAllocationStack[^1] += delta;
+        return Math.Max(0, delta - children);
     }
 
     public SyntaxNode? Original(SyntaxNode node) => originals.GetValueOrDefault(node);
@@ -113,10 +132,29 @@ public sealed partial class EmitContext
     public void SetTokenSourceMapRange(SyntaxNode node, SyntaxKind token, EmitRange range) => (Data(node).TokenRanges ??= [])[token] = range;
     public IReadOnlyList<SyntheticComment> LeadingComments(SyntaxNode node) => TryData(node)?.LeadingComments ?? [];
     public IReadOnlyList<SyntheticComment> TrailingComments(SyntaxNode node) => TryData(node)?.TrailingComments ?? [];
-    public void AddLeadingComment(SyntaxNode node, SyntheticComment comment) => (Data(node).LeadingComments ??= []).Add(comment);
-    public void AddTrailingComment(SyntaxNode node, SyntheticComment comment) => (Data(node).TrailingComments ??= []).Add(comment);
-    public void SetLeadingComments(SyntaxNode node, IEnumerable<SyntheticComment> comments) => Data(node).LeadingComments = [.. comments];
-    public void SetTrailingComments(SyntaxNode node, IEnumerable<SyntheticComment> comments) => Data(node).TrailingComments = [.. comments];
+    public void AddLeadingComment(SyntaxNode node, SyntheticComment comment)
+    {
+        Diagnostics.CompilationCapture.Current?.NoteCommentAdd();
+        (Data(node).LeadingComments ??= []).Add(comment);
+    }
+
+    public void AddTrailingComment(SyntaxNode node, SyntheticComment comment)
+    {
+        Diagnostics.CompilationCapture.Current?.NoteCommentAdd();
+        (Data(node).TrailingComments ??= []).Add(comment);
+    }
+
+    public void SetLeadingComments(SyntaxNode node, IEnumerable<SyntheticComment> comments)
+    {
+        Diagnostics.CompilationCapture.Current?.NoteCommentSet();
+        Data(node).LeadingComments = [.. comments];
+    }
+
+    public void SetTrailingComments(SyntaxNode node, IEnumerable<SyntheticComment> comments)
+    {
+        Diagnostics.CompilationCapture.Current?.NoteCommentSet();
+        Data(node).TrailingComments = [.. comments];
+    }
 
     public void RequestHelper(EmitHelper helper)
     {

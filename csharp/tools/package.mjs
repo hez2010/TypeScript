@@ -152,13 +152,14 @@ await writeFile(
 await writeFile(path.join(mainDirectory, "lib/version.cjs"), `const { version } = require("../package.json");\nexports.version = version;\nexports.versionMajorMinor = ${JSON.stringify(version.split(".").slice(0, 2).join("."))};\n`);
 // The NativeAOT runtime only honours some GC settings baked at publish time, so the launcher
 // exports the tuned values for the compiler process it spawns (lib/tsc.js uses stdio inherit).
-// Measured on a 32-logical-processor host, huge-file peak RSS: 238 MiB default -> 196 MiB with
-// these variables (gen0size), while the published values alone only reach 229 MiB.
+// DATAS (server GC + dynamic adaptation) is what the published binary already bakes in; exporting
+// it here as well keeps the JavaScript launcher on the same configuration. A pinned gen0 budget is
+// deliberately not set: measured against the unmodified baseline it charged short-lived runs 3-8%
+// for a fixed heap shape they never used.
 await writeFile(path.join(mainDirectory, "bin", executableName),
     '#!/usr/bin/env node\n'
-    + 'process.env.DOTNET_gcServer ??= "0";\n'
-    + 'process.env.DOTNET_GCgen0size ??= "0x400000";\n'
-    + 'process.env.DOTNET_GCLOHThreshold ??= "1000000";\n'
+    + 'process.env.DOTNET_gcServer ??= "1";\n'
+    + 'process.env.DOTNET_GCDynamicAdaptationMode ??= "1";\n'
     + 'import "../lib/tsc.js";\n');
 const platformPackage = { name: platformName, version, description: `${target.rid} executable for the C# TypeScript compiler`, license: sourcePackage.license, os: [target.os], cpu: [target.arch], ...(target.libc ? { libc: [target.libc] } : {}), files: ["lib", "licenses", "NOTICE.txt", "NOTICE-Go.txt"], exports: { "./package.json": "./package.json" }, publishConfig: mainPackage.publishConfig, typescriptBackend: { ...backend, rid: target.rid } };
 await json(path.join(platformDirectory, "package.json"), platformPackage);

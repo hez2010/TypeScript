@@ -110,7 +110,7 @@ public sealed partial class IncrementalProgram
                         emitChecker ??= await Program.CreateCheckerAsync(cancellation).ConfigureAwait(false);
                         results[index] = await Program.EmitWithCheckerAsync(new()
                         {
-                            SourceFiles = [file.Syntax], WriteFile = Write,
+                            SourceFiles = [file.Syntax], WriteFile = Write, PipelineDeclarationTransform = true,
                             Only = javascript && declarations ? EmitOnly.All : javascript ? EmitOnly.JavaScript : EmitOnly.Declarations
                         }, emitChecker, cancellation).ConfigureAwait(false);
                     }
