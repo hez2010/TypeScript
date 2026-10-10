@@ -29,7 +29,9 @@ public sealed partial class SyntaxPrinter
 
     private bool LeadingComments(int position, bool elided = false)
     {
-        if (commentsDisabled || sourceFile is null || position < 0 || position == containerPos || elided && position != 0)
+        // A source with no comment markers cannot yield a source comment, so the range scan (and the
+        // empty backing list it allocates) is skipped outright for generated or comment-free files.
+        if (!sourceHasComments || commentsDisabled || sourceFile is null || position < 0 || position == containerPos || elided && position != 0)
             return false;
         bool omitReferences = !elided && position == 0 && sourceFile.IsDeclarationFile;
         if (detachedComments.TryPeek(out var detached) && detached.Pos == position)
@@ -43,7 +45,7 @@ public sealed partial class SyntaxPrinter
 
     private void TrailingComments(int position, bool prefixSpace = true)
     {
-        if (commentsDisabled || sourceFile is null || position < 0 || containerEnd != -1
+        if (!sourceHasComments || commentsDisabled || sourceFile is null || position < 0 || containerEnd != -1
             && (position == containerEnd || position == declarationListContainerEnd))
             return;
         var comments = CommentRanges(sourceFile.Source.Text, position, trailing: true).Where(ShouldWrite).ToArray();
@@ -52,7 +54,7 @@ public sealed partial class SyntaxPrinter
 
     private void ListComments(int position)
     {
-        if (commentsDisabled || sourceFile is null || position < 0 || containerEnd != -1
+        if (!sourceHasComments || commentsDisabled || sourceFile is null || position < 0 || containerEnd != -1
             && (position == containerEnd || position == declarationListContainerEnd))
             return;
         Comments(CommentRanges(sourceFile.Source.Text, position, trailing: true), before: false);
@@ -60,7 +62,7 @@ public sealed partial class SyntaxPrinter
 
     private void DetachedComments(int position)
     {
-        if (sourceFile is null || position < 0)
+        if (!sourceHasComments || sourceFile is null || position < 0)
             return;
         var leading = CommentRanges(sourceFile.Source.Text, position, trailing: false);
         if (commentsDisabled)

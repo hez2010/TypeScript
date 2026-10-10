@@ -1,6 +1,7 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Checking;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 using TypeScript.Compiler.Text;
 using K = TypeScript.Compiler.Syntax.SyntaxKind;
@@ -27,37 +28,133 @@ public sealed record PrinterOptions
 public readonly record struct SourceMapPosition(Utf8String FileName, SourceText Source, int Position);
 
 /// <summary>Prints parsed and transformed trees without changing their parent or binding state.</summary>
-public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitContext? context = null)
+public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitContext? context = null, int pendingCapacity = 0)
 {
     private readonly PrinterOptions options = options ?? new();
     private readonly EmitContext context = context ?? new();
-    private readonly Stack<Part> pending = [];
+    // The work stack's backing array is the printer's largest single allocation on a large file: it
+    // grows by doubling, so a deep stack transiently allocates about twice its final size. Callers that
+    // know how many statements they are about to push pass a capacity so the array is sized once.
+    private readonly Stack<Part> pending = pendingCapacity > 0 ? new(pendingCapacity) : [];
     private readonly Stack<NodeState> states = [];
+    // Node states are strictly stack-disciplined, so a popped state can be reused instead of
+    // allocating one per visited node (measured: 100 MB of 960 MB on the large-file fixture).
+    private readonly Stack<NodeState> statePool = [];
     private PrinterWriter writer = null!;
     private SourceFileNode? sourceFile;
     private Scanner? sourceScanner;
     private SourceMapGenerator? sourceMap;
+    private SourceText? recipeSource;
+    private Scanner? recipeScanner;
     private int sourceIndex;
+    // Files without "//" or "/*" cannot contain source comments; the per-node comment scans are
+    // skipped for them, which is the common case for generated or comment-free sources.
+    private bool sourceHasComments;
+    // True when recipes can bypass token scanning (no source map and no source comments).
+    private bool fastCode;
     private PrintPositions? positions;
     private CancellationToken cancellation;
     private bool commentsDisabled, mapsDisabled;
     private int containerPos, containerEnd, declarationListContainerEnd;
     private readonly Stack<(int Pos, int End)> detachedComments = [];
 
-    private readonly record struct Part(SyntaxNode? Node = null, Utf8String? Text = null, IReadOnlyList<Part>? Parts = null,
-        int IndentationChange = 0, bool NewLine = false, bool EndNode = false, bool Raw = false, int? CommentPosition = null,
-        bool ListComment = false, bool TrailingComment = false, int NameScopeChange = 0, NodeList? GenerateList = null,
-        SyntaxNode? GenerateNode = null, bool TrailingSemicolon = false, SyntaxNode? Helpers = null, int? DetachedPosition = null,
-        SourceFileNode? Directives = null, object? PositionTarget = null, bool EndPosition = false);
-
-    private sealed class NodeState(SyntaxNode node, EmitFlags flags, int cursor)
+    /// <summary>
+    /// One printer work item. Deliberately a hand-written struct instead of a record: a large file
+    /// pushes about a million of these, so the layout is packed to 64 bytes (from roughly 120) by
+    /// folding the booleans into one flags byte, turning the nullable ints into -1 sentinels, and
+    /// moving the five rarely used references into a payload allocated only when one is set.
+    /// </summary>
+    private readonly struct Part
     {
-        internal readonly SyntaxNode Node = node;
-        internal readonly EmitFlags Flags = flags;
-        internal int Cursor = cursor;
+        private const byte NewLineFlag = 1 << 0, EndNodeFlag = 1 << 1, RawFlag = 1 << 2, ListCommentFlag = 1 << 3,
+            TrailingCommentFlag = 1 << 4, TrailingSemicolonFlag = 1 << 5, EndPositionFlag = 1 << 6, TextSetFlag = 1 << 7;
+
+        private sealed class Payload
+        {
+            internal NodeList? GenerateList;
+            internal SyntaxNode? GenerateNode;
+            internal SyntaxNode? Helpers;
+            internal SourceFileNode? Directives;
+            internal object? PositionTarget;
+        }
+
+        private readonly SyntaxNode? node;
+        private readonly Utf8String text;
+        private readonly IReadOnlyList<Part>? parts;
+        private readonly Payload? payload;
+        private readonly int indentationChange;
+        private readonly int commentPosition;
+        private readonly int nameScopeChange;
+        private readonly int detachedPosition;
+        private readonly byte flags;
+
+        internal Part(SyntaxNode? Node = null, Utf8String? Text = null, IReadOnlyList<Part>? Parts = null,
+            int IndentationChange = 0, bool NewLine = false, bool EndNode = false, bool Raw = false, int? CommentPosition = null,
+            bool ListComment = false, bool TrailingComment = false, int NameScopeChange = 0, NodeList? GenerateList = null,
+            SyntaxNode? GenerateNode = null, bool TrailingSemicolon = false, SyntaxNode? Helpers = null, int? DetachedPosition = null,
+            SourceFileNode? Directives = null, object? PositionTarget = null, bool EndPosition = false)
+        {
+            node = Node;
+            text = Text ?? default;
+            parts = Parts;
+            indentationChange = IndentationChange;
+            commentPosition = CommentPosition ?? -1;
+            nameScopeChange = NameScopeChange;
+            detachedPosition = DetachedPosition ?? -1;
+            flags = (byte)((NewLine ? NewLineFlag : 0) | (EndNode ? EndNodeFlag : 0) | (Raw ? RawFlag : 0)
+                | (ListComment ? ListCommentFlag : 0) | (TrailingComment ? TrailingCommentFlag : 0)
+                | (TrailingSemicolon ? TrailingSemicolonFlag : 0) | (EndPosition ? EndPositionFlag : 0)
+                | (Text is null ? 0 : TextSetFlag));
+            payload = GenerateList is null && GenerateNode is null && Helpers is null && Directives is null && PositionTarget is null
+                ? null
+                : new Payload
+                {
+                    GenerateList = GenerateList, GenerateNode = GenerateNode, Helpers = Helpers,
+                    Directives = Directives, PositionTarget = PositionTarget
+                };
+        }
+
+        internal SyntaxNode? Node => node;
+        internal Utf8String? Text => (flags & TextSetFlag) != 0 ? text : null;
+        internal IReadOnlyList<Part>? Parts => parts;
+        internal int IndentationChange => indentationChange;
+        internal bool NewLine => (flags & NewLineFlag) != 0;
+        internal bool EndNode => (flags & EndNodeFlag) != 0;
+        internal bool Raw => (flags & RawFlag) != 0;
+        internal int? CommentPosition => commentPosition < 0 ? null : commentPosition;
+        internal bool ListComment => (flags & ListCommentFlag) != 0;
+        internal bool TrailingComment => (flags & TrailingCommentFlag) != 0;
+        internal int NameScopeChange => nameScopeChange;
+        internal NodeList? GenerateList => payload?.GenerateList;
+        internal SyntaxNode? GenerateNode => payload?.GenerateNode;
+        internal bool TrailingSemicolon => (flags & TrailingSemicolonFlag) != 0;
+        internal SyntaxNode? Helpers => payload?.Helpers;
+        internal int? DetachedPosition => detachedPosition < 0 ? null : detachedPosition;
+        internal SourceFileNode? Directives => payload?.Directives;
+        internal object? PositionTarget => payload?.PositionTarget;
+        internal bool EndPosition => (flags & EndPositionFlag) != 0;
+    }
+
+    private sealed class NodeState
+    {
+        internal SyntaxNode Node = null!;
+        internal EmitFlags Flags;
+        internal int Cursor;
         internal bool Comments, Maps, OldCommentsDisabled, OldMapsDisabled, Parenthesized, InExtends, FunctionBody;
         internal int ContainerPos, ContainerEnd, DeclarationListContainerEnd;
         internal EmitRange CommentRange, MapRange;
+
+        /// <summary>Prepares a pooled instance for reuse; every field is overwritten.</summary>
+        internal void Reset(SyntaxNode node, EmitFlags flags, int cursor)
+        {
+            Node = node;
+            Flags = flags;
+            Cursor = cursor;
+            Comments = Maps = OldCommentsDisabled = OldMapsDisabled = Parenthesized = InExtends = FunctionBody = false;
+            ContainerPos = ContainerEnd = DeclarationListContainerEnd = 0;
+            CommentRange = default;
+            MapRange = default;
+        }
     }
 
     public Utf8String Print(SyntaxNode node, SourceFileNode? source = null, SourceMapGenerator? map = null,
@@ -73,12 +170,33 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
     {
         ArgumentNullException.ThrowIfNull(node);
         ArgumentNullException.ThrowIfNull(output);
+        BeginWrite(node, source, output, map, cancellation);
+        pending.Push(N(node));
+        try
+        {
+            InitializeNames();
+            DrainPending();
+        }
+        finally
+        {
+            EndWrite();
+        }
+    }
+
+    /// <summary>Per-run printer state (writer, root file, scanner, flags). Shared by the serial and segmented paths.</summary>
+    private void BeginWrite(SyntaxNode node, SourceFileNode? source, EmitTextWriter output, SourceMapGenerator? map,
+        CancellationToken cancellation)
+    {
         this.cancellation = cancellation;
         writer = new(output, options.OmitTrailingSemicolon, positions is not null);
         writer.Clear();
         sourceFile = node as SourceFileNode ?? source;
+        sourceHasComments = sourceFile is not null && HasSourceComments(sourceFile.Source.Text);
         sourceScanner = sourceFile is null ? null : new(sourceFile.Source);
         sourceMap = map;
+        // Token boundaries only matter for comment placement and source-map positions. Without
+        // either, recipes can be written verbatim instead of being re-scanned token by token.
+        fastCode = map is null && !sourceHasComments;
         commentsDisabled = options.RemoveComments;
         mapsDisabled = sourceFile?.ScriptKind == ScriptKind.JSON;
         containerPos = containerEnd = declarationListContainerEnd = -1;
@@ -91,85 +209,104 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
         pending.Clear();
         states.Clear();
         detachedComments.Clear();
-        pending.Push(N(node));
-        try
+    }
+
+    private void EndWrite()
+    {
+        pending.Clear();
+        states.Clear();
+        sourceScanner = null;
+        sourceFile = null;
+        sourceMap = null;
+        nameGenerator = null!;
+    }
+
+    private void DrainPending()
+    {
+        while (pending.TryPop(out var part))
         {
-            InitializeNames();
-            while (pending.TryPop(out var part))
+            cancellation.ThrowIfCancellationRequested();
+            if (part.IndentationChange > 0)
+                writer.IncreaseIndent();
+            else if (part.IndentationChange < 0)
+                writer.DecreaseIndent();
+            if (part.PositionTarget is { } positionTarget)
+                positions?.Record(positionTarget, writer.LastNonTriviaPosition, part.EndPosition);
+            else if (part.NameScopeChange != 0)
             {
-                cancellation.ThrowIfCancellationRequested();
-                if (part.IndentationChange > 0)
-                    writer.IncreaseIndent();
-                else if (part.IndentationChange < 0)
-                    writer.DecreaseIndent();
-                if (part.PositionTarget is { } positionTarget)
-                    positions?.Record(positionTarget, writer.LastNonTriviaPosition, part.EndPosition);
-                else if (part.NameScopeChange != 0)
-                {
-                    bool reuse = (states.Peek().Flags & EmitFlags.ReuseTempVariableScope) != 0;
-                    if (part.NameScopeChange > 0)
-                        nameGenerator.PushScope(reuse);
-                    else
-                        nameGenerator.PopScope(reuse);
-                }
-                else if (part.GenerateList is { } generateList)
-                {
-                    foreach (var declaration in generateList)
-                        GenerateNames(declaration);
-                }
-                else if (part.GenerateNode is { } generateNode)
-                    GenerateNames(generateNode);
-                else if (part.EndNode)
-                    EndNode();
-                else if (part.TrailingSemicolon)
-                    writer.WriteTrailingSemicolon();
-                else if (part.Helpers is { } helpers)
-                    WriteHelpers(helpers);
-                else if (part.DetachedPosition is { } detachedPosition)
-                    DetachedComments(detachedPosition);
-                else if (part.Directives is { } directives)
-                    WriteDirectives(directives);
-                else if (part.NewLine)
-                    writer.WriteLine();
-                else if (part.CommentPosition is { } position)
-                {
-                    if (part.ListComment)
-                        ListComments(position);
-                    else if (part.TrailingComment)
-                        TrailingComments(position);
-                    else
-                        LeadingComments(position);
-                    if (states.TryPeek(out var owner))
-                        owner.Cursor = Math.Max(owner.Cursor, SkipTrivia(position));
-                }
-                else if (part.Text is { } text)
-                {
-                    if (part.Raw)
-                        writer.Write(text);
-                    else
-                        Code(text);
-                }
-                else if (part.Parts is { } parts)
-                    for (int i = parts.Count - 1; i >= 0; i--)
-                        pending.Push(parts[i]);
-                else if (part.Node is { } child)
-                {
-                    BeginNode(child);
-                    pending.Push(new(EndNode: true));
-                    Emit(child);
-                }
+                bool reuse = (states.Peek().Flags & EmitFlags.ReuseTempVariableScope) != 0;
+                if (part.NameScopeChange > 0)
+                    nameGenerator.PushScope(reuse);
+                else
+                    nameGenerator.PopScope(reuse);
+            }
+            else if (part.GenerateList is { } generateList)
+            {
+                foreach (var declaration in generateList)
+                    GenerateNames(declaration);
+            }
+            else if (part.GenerateNode is { } generateNode)
+                GenerateNames(generateNode);
+            else if (part.EndNode)
+                EndNode();
+            else if (part.TrailingSemicolon)
+                writer.WriteTrailingSemicolon();
+            else if (part.Helpers is { } helpers)
+                WriteHelpers(helpers);
+            else if (part.DetachedPosition is { } detachedPosition)
+                DetachedComments(detachedPosition);
+            else if (part.Directives is { } directives)
+                WriteDirectives(directives);
+            else if (part.NewLine)
+                writer.WriteLine();
+            else if (part.CommentPosition is { } position)
+            {
+                if (part.ListComment)
+                    ListComments(position);
+                else if (part.TrailingComment)
+                    TrailingComments(position);
+                else
+                    LeadingComments(position);
+                if (states.TryPeek(out var owner))
+                    owner.Cursor = Math.Max(owner.Cursor, SkipTrivia(position));
+            }
+            else if (part.Text is { } text)
+            {
+                if (part.Raw)
+                    writer.Write(text);
+                else
+                    Code(text);
+            }
+            else if (part.Parts is { } parts)
+            {
+                for (int i = parts.Count - 1; i >= 0; i--)
+                    pending.Push(parts[i]);
+            }
+            else if (part.Node is { } child)
+            {
+                BeginNode(child);
+                pending.Push(new(EndNode: true));
+                Emit(child);
             }
         }
-        finally
-        {
-            pending.Clear();
-            states.Clear();
-            sourceScanner = null;
-            sourceFile = null;
-            sourceMap = null;
-            nameGenerator = null!;
-        }
     }
+
+    /// <summary>
+    /// The enclosing node's state (second from the top). Stack enumeration uses a struct
+    /// enumerator, so this replaces the per-call LINQ iterators that previously showed up as
+    /// allocation in the printer's hottest path.
+    /// </summary>
+    private NodeState? ParentState()
+    {
+        int index = 0;
+        foreach (var state in states)
+            if (index++ == 1)
+                return state;
+        return null;
+    }
+
+    private static bool HasSourceComments(Utf8String text) =>
+        text.Span.IndexOf("//"u8) >= 0 || text.Span.IndexOf("/*"u8) >= 0;
 
     private void BeginNode(SyntaxNode node)
     {
@@ -180,34 +317,42 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
         if (parenthesized && !arrowBody)
             writer.Write("("u8);
         if (node is not SourceFileNode) positions?.Record(node, writer.LastNonTriviaPosition, false);
-        var state = new NodeState(node, flags, node.Pos)
-        {
-            Parenthesized = parenthesized,
-            FunctionBody = functionBody,
-            InExtends = !parenthesized && enclosing is not null && InExtendsForChild(enclosing.Node, node),
-            Comments = !functionBody && !commentsDisabled && sourceFile is not null && node is not SourceFileNode,
-            Maps = !functionBody && !mapsDisabled && sourceFile is not null && sourceMap is not null && node is not SourceFileNode,
-            OldCommentsDisabled = commentsDisabled, OldMapsDisabled = mapsDisabled,
-            ContainerPos = containerPos, ContainerEnd = containerEnd, DeclarationListContainerEnd = declarationListContainerEnd,
-            CommentRange = context.GetCommentRange(node), MapRange = context.GetSourceMapRange(node)
-        };
+        var state = statePool.Count != 0 ? statePool.Pop() : new NodeState();
+        state.Reset(node, flags, node.Pos);
+        state.Parenthesized = parenthesized;
+        state.FunctionBody = functionBody;
+        state.InExtends = !parenthesized && enclosing is not null && InExtendsForChild(enclosing.Node, node);
+        state.Comments = !functionBody && !commentsDisabled && sourceFile is not null && node is not SourceFileNode;
+        state.Maps = !functionBody && !mapsDisabled && sourceFile is not null && sourceMap is not null && node is not SourceFileNode;
+        state.OldCommentsDisabled = commentsDisabled;
+        state.OldMapsDisabled = mapsDisabled;
+        state.ContainerPos = containerPos;
+        state.ContainerEnd = containerEnd;
+        state.DeclarationListContainerEnd = declarationListContainerEnd;
+        state.CommentRange = context.GetCommentRange(node);
+        state.MapRange = context.GetSourceMapRange(node);
         states.Push(state);
         if ((flags & EmitFlags.Indented) != 0 && node is not ClassDeclarationNode and not ClassExpressionNode)
             writer.IncreaseIndent();
         if (state.Comments)
         {
-            var range = state.CommentRange;
-            if ((range.Pos >= 0 || range.End >= 0) && range.Pos != range.End && node.Kind != K.JsxText)
+            // A file without "//" or "/*" can never yield a source comment, so the whole scan is
+            // skipped; synthetic comments (added by transforms) are emitted either way.
+            if (sourceHasComments)
             {
-                if ((flags & EmitFlags.NoLeadingComments) == 0)
-                    LeadingComments(range.Pos, node.Kind == K.NotEmittedStatement);
-                if (range.Pos >= 0)
-                    containerPos = range.Pos;
-                if (range.End >= 0)
+                var range = state.CommentRange;
+                if ((range.Pos >= 0 || range.End >= 0) && range.Pos != range.End && node.Kind != K.JsxText)
                 {
-                    containerEnd = range.End;
-                    if (node.Kind == K.VariableDeclarationList)
-                        declarationListContainerEnd = range.End;
+                    if ((flags & EmitFlags.NoLeadingComments) == 0)
+                        LeadingComments(range.Pos, node.Kind == K.NotEmittedStatement);
+                    if (range.Pos >= 0)
+                        containerPos = range.Pos;
+                    if (range.End >= 0)
+                    {
+                        containerEnd = range.End;
+                        if (node.Kind == K.VariableDeclarationList)
+                            declarationListContainerEnd = range.End;
+                    }
                 }
             }
             if ((flags & EmitFlags.NoLeadingComments) == 0)
@@ -239,7 +384,7 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
             containerPos = state.ContainerPos;
             containerEnd = state.ContainerEnd;
             declarationListContainerEnd = state.DeclarationListContainerEnd;
-            if ((state.Flags & EmitFlags.NoTrailingComments) == 0 && state.Node.Kind is not (K.JsxText or K.NotEmittedStatement))
+            if (sourceHasComments && (state.Flags & EmitFlags.NoTrailingComments) == 0 && state.Node.Kind is not (K.JsxText or K.NotEmittedStatement))
             {
                 TrailingComments(state.CommentRange.End);
                 if (context.GetTypeNode(state.Node) is { } type)
@@ -253,6 +398,8 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
             writer.Write(")"u8);
         if (states.TryPeek(out var parent) && state.Node.End >= 0 && state.Node.End <= parent.Node.End)
             parent.Cursor = Math.Max(parent.Cursor, Math.Max(state.Node.End, context.GetTypeNode(state.Node)?.End ?? -1));
+        if (statePool.Count < 64)
+            statePool.Push(state);
     }
 
     private void MapPosition(int position)
@@ -290,9 +437,19 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
 
     private void Code(Utf8String text)
     {
+        if (fastCode)
+        {
+            writer.Write(text);
+            return;
+        }
         // Recipes contain only punctuation, keywords, and spaces. Literal and JSX
         // text use Literal, so embedded comment-like text is never scanned here.
-        var scanner = new Scanner(new SourceText(text));
+        // The scanner and its source text are reused: constructing them per call cost one
+        // text copy, one scanner and two lists for every punctuation/keyword written.
+        var recipeText = recipeSource ??= new SourceText([]);
+        recipeText.Reset(text.Span);
+        var scanner = recipeScanner ??= new Scanner(recipeText);
+        scanner.Reset(recipeText);
         int previous = 0;
         while (scanner.Scan() != K.EndOfFile)
         {
@@ -308,7 +465,7 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
                     start = sourceScanner.TokenStart;
                     end = sourceScanner.Position;
                     matched = end <= state.Node.End;
-                    if (matched && TokenComments(state.Node, scanner.Kind) && context.ParseNode(state.Node)?.Kind == state.Node.Kind && state.Cursor != state.Node.Pos)
+                    if (sourceHasComments && matched && TokenComments(state.Node, scanner.Kind) && context.ParseNode(state.Node)?.Kind == state.Node.Kind && state.Cursor != state.Node.Pos)
                         LeadingComments(state.Cursor);
                 }
             }
@@ -338,7 +495,7 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
             if (matched)
             {
                 state!.Cursor = end;
-                if (end != state.Node.End && TokenComments(state.Node, scanner.Kind))
+                if (sourceHasComments && end != state.Node.End && TokenComments(state.Node, scanner.Kind))
                     TrailingComments(end, state.Node.Kind != K.JsxExpression);
             }
             previous = scanner.Position;
@@ -368,7 +525,19 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
     private static Part N(SyntaxNode? node) => new(Node: node);
     private static Part T(Utf8String text) => new(Text: text);
     private static Part Semicolon() => new(TrailingSemicolon: true);
-    private static Part S(params ReadOnlySpan<Part> parts) => new(Parts: parts.ToArray());
+    private static Part S(params ReadOnlySpan<Part> parts)
+    {
+        return new(Parts: parts.ToArray());
+    }
+    // Scoped wraps a node in name-scope markers. The small-arity overloads build an exact-size
+    // array instead of copying the caller's parts into a parts.Length + 2 array: a container
+    // element expands to the same sequence, so nesting the inner container is equivalent and
+    // avoids copying every part of large lists (object literals, type literals) a second time.
+    private static Part Scoped(Part inner) => new(Parts: [new(NameScopeChange: 1), inner, new(NameScopeChange: -1)]);
+    private static Part Scoped(Part first, Part second) =>
+        new(Parts: [new(NameScopeChange: 1), first, second, new(NameScopeChange: -1)]);
+    private static Part Scoped(Part first, Part second, Part third) =>
+        new(Parts: [new(NameScopeChange: 1), first, second, third, new(NameScopeChange: -1)]);
     private static Part Scoped(params ReadOnlySpan<Part> parts)
     {
         var result = new Part[parts.Length + 2];
@@ -384,13 +553,80 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
             pending.Push(parts[i]);
     }
 
+    // Part buffers are pooled per printer. A buffer never escapes: its contents are either copied
+    // into a container or pushed onto the work stack before it is returned, so reuse cannot alias
+    // live parts, and Clear() drops the element references so a pooled buffer cannot keep a tree
+    // alive. This removes the List doubling chain that dominated list-shaped nodes.
+    private readonly Stack<List<Part>> partListPool = [];
+
+    private List<Part> RentPartList(int capacity)
+    {
+        if (partListPool.TryPop(out var list))
+        {
+            list.EnsureCapacity(capacity);
+            return list;
+        }
+        return new List<Part>(capacity);
+    }
+
+    private void ReturnPartList(List<Part> list)
+    {
+        list.Clear();
+        if (partListPool.Count < 8)
+            partListPool.Push(list);
+    }
+
     private Part List(IReadOnlyList<SyntaxNode>? nodes, Utf8String before, Utf8String separator, Utf8String after, bool required = false, bool indent = false)
     {
         if (nodes is null && !required)
             return default;
         if (nodes is { Count: 0 } && before == Utf8Literals.Space && after.Length == 0)
             return S(ListPosition(nodes as NodeList), ListPosition(nodes as NodeList, true));
-        var parts = new List<Part> { T(before), ListPosition(nodes as NodeList) };
+        var parts = RentPartList(4 * (nodes?.Count ?? 0) + 8);
+        try
+        {
+            BuildList(parts, nodes, before, separator, after, required, indent);
+            return new(Parts: parts.ToArray());
+        }
+        finally
+        {
+            ReturnPartList(parts);
+        }
+    }
+
+    /// <summary>
+    /// Composes the same parts as <see cref="List"/> but pushes them straight onto the work stack
+    /// instead of materializing a container. A container would be filled (copying every part) and
+    /// then expanded (copying them all again); pushing in reverse yields the identical order.
+    /// </summary>
+    private void PushList(IReadOnlyList<SyntaxNode>? nodes, Utf8String before, Utf8String separator, Utf8String after, bool required = false, bool indent = false)
+    {
+        if (nodes is null && !required)
+            return;
+        if (nodes is { Count: 0 } && before == Utf8Literals.Space && after.Length == 0)
+        {
+            pending.Push(ListPosition(nodes as NodeList, true));
+            pending.Push(ListPosition(nodes as NodeList));
+            return;
+        }
+        var parts = RentPartList(4 * (nodes?.Count ?? 0) + 8);
+        try
+        {
+            BuildList(parts, nodes, before, separator, after, required, indent);
+            for (int i = parts.Count - 1; i >= 0; i--)
+                pending.Push(parts[i]);
+        }
+        finally
+        {
+            ReturnPartList(parts);
+        }
+    }
+
+    private void BuildList(List<Part> parts, IReadOnlyList<SyntaxNode>? nodes, Utf8String before, Utf8String separator,
+        Utf8String after, bool required, bool indent)
+    {
+        parts.Add(T(before));
+        parts.Add(ListPosition(nodes as NodeList));
         indent |= separator == Utf8Literals.CommaSpace && nodes?.Any(node => (context.GetFlags(node) & EmitFlags.StartOnNewLine) != 0) == true;
         if (indent)
             parts.Add(new(IndentationChange: 1));
@@ -426,7 +662,6 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
             if (closingLine) parts.Add(new(NewLine: true));
             parts.Add(T(closingLine ? after.TrimStart((byte)' ') : after));
         }
-        return new(Parts: parts);
     }
 
     private Part Modifiers(SyntaxNode node)
@@ -456,7 +691,7 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
             }
             return S(ListPosition(modified.Modifiers), new(Parts: preserved), ListPosition(modified.Modifiers, true));
         }
-        var parts = new List<Part>();
+        var parts = new List<Part>(3 * modified.Modifiers.Count + 1);
         foreach (var modifier in modified.Modifiers)
         {
             if (modifier is DecoratorNode)
@@ -478,6 +713,20 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
     }
     private static Part Annotation(SyntaxNode? type) => type is null ? default : S(T(Utf8Literals.ColonSpace), N(type));
     private static Part Initializer(SyntaxNode? value) => value is null ? default : S(T(Utf8Literals.AssignmentSeparator), N(value));
+    // Container-free counterparts of the two helpers above. The printer's work stack is
+    // last-in-first-out, so a caller pushes the trailing group first and the leading group last; the
+    // parts then pop in source order.
+    private void PushAnnotation(SyntaxNode? type)
+    {
+        if (type is not null)
+            Push(T(Utf8Literals.ColonSpace), N(type));
+    }
+
+    private void PushInitializer(SyntaxNode? value)
+    {
+        if (value is not null)
+            Push(T(Utf8Literals.AssignmentSeparator), N(value));
+    }
     private Part Parameters(NodeList? nodes) => List(nodes, Utf8Literals.OpenParen, Utf8Literals.CommaSpace, Utf8Literals.CloseParen, true);
     private Part TypeArguments(NodeList? nodes) => List(nodes, Utf8Literals.LessThan, Utf8Literals.CommaSpace, Utf8Literals.GreaterThan);
     private Part Braces(NodeList? nodes, Utf8String separator, bool spaceWhenEmpty = false) => nodes is { Count: > 0 }
@@ -487,13 +736,34 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
     private Part TypeMembers(TypeLiteralNode node) => Scoped(Generate(node.Members),
         (context.GetFlags(node) & EmitFlags.SingleLine) != 0 || node.Members is not { Count: > 0 }
             ? Braces(node.Members, Utf8Literals.Space) : BlockMembers(node.Members));
+
+    /// <summary>Container-free counterpart of <see cref="TypeMembers"/>.</summary>
+    private void PushTypeMembers(TypeLiteralNode node)
+    {
+        pending.Push(new(NameScopeChange: -1));
+        if ((context.GetFlags(node) & EmitFlags.SingleLine) != 0 || node.Members is not { Count: > 0 })
+            PushBraces(node.Members, Utf8Literals.Space);
+        else
+            PushBlockMembers(node.Members);
+        pending.Push(Generate(node.Members));
+        pending.Push(new(NameScopeChange: 1));
+    }
+
+    /// <summary>Container-free counterpart of <see cref="Braces"/>.</summary>
+    private void PushBraces(NodeList? nodes, Utf8String separator, bool spaceWhenEmpty = false)
+    {
+        if (nodes is { Count: > 0 })
+            PushList(nodes, Utf8Literals.OpenBraceSpace, separator, Utf8Literals.SpaceCloseBrace);
+        else
+            PushList(nodes, Utf8Literals.OpenBrace, default, spaceWhenEmpty ? Utf8Literals.SpaceCloseBrace : Utf8Literals.CloseBrace, required: true);
+    }
     private bool SingleLine(SyntaxNode node) => (context.GetFlags(node) & EmitFlags.SingleLine) != 0
         || (context.GetFlags(node) & EmitFlags.MultiLine) == 0 && sourceFile is not null && node.Pos >= 0 && node.End >= 0
             && LineOf(SkipTrivia(node.Pos)) == LineOf(node.End);
 
     private Part BlockBody(BlockNode block)
     {
-        bool functionBody = states.Count > 1 && states.ElementAt(1).Node is IFunctionSignature or ClassStaticBlockDeclarationNode;
+        bool functionBody = states.Count > 1 && ParentState()!.Node is IFunctionSignature or ClassStaticBlockDeclarationNode;
         bool singleLine = (context.GetFlags(block) & EmitFlags.SingleLine) != 0
             || functionBody && !block.MultiLine && (SingleLine(block) || block.Pos < 0 || sourceFile is null)
             || block.Statements is not { Count: > 0 } && !block.MultiLine;
@@ -504,7 +774,7 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
             singleLine = false;
         if (!functionBody)
             return singleLine ? Braces(block.Statements, Utf8Literals.Space, true) : BlockMembers(block.Statements, endComments: true);
-        var parts = new List<Part> { new(GenerateNode: block), T("{"u8), new(IndentationChange: 1), new(DetachedPosition: block.Statements?.Pos ?? block.Pos) };
+        var parts = new List<Part>(3 * (block.Statements?.Count ?? 0) + 10) { new(GenerateNode: block), T("{"u8), new(IndentationChange: 1), new(DetachedPosition: block.Statements?.Pos ?? block.Pos) };
         int offset = AddPrologues(parts, block.Statements);
         parts.Add(new(Helpers: block));
         singleLine &= offset == 0 && !HelpersFor(block).Any(h => h.Text.Length != 0 || h.TextFactory is not null);
@@ -533,10 +803,44 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
         return new(Parts: parts);
     }
 
+    /// <summary>
+    /// Container-free counterpart of <see cref="BlockMembers"/>: identical part sequence, pushed in
+    /// reverse order so the work stack processes it in the same order without a parts container.
+    /// </summary>
+    private void PushBlockMembers(NodeList? nodes, bool comma = false, bool endComments = false,
+        Utf8String open = default, Utf8String close = default, bool trailingComma = true)
+    {
+        bool closingLine = !options.PreserveSourceNewlines
+            || ClosingLines(states.Peek().Node, nodes?.LastOrDefault(), nodes?.End ?? -1, true) > 0;
+        pending.Push(T(close.Length == 0 ? Utf8Literals.CloseBrace : close));
+        pending.Push(new(IndentationChange: -1, NewLine: closingLine));
+        if (nodes is not null && endComments)
+            pending.Push(new(CommentPosition: nodes.End));
+        pending.Push(ListPosition(nodes, true));
+        if (nodes is not null)
+            for (int i = nodes.Count - 1; i >= 0; i--)
+            {
+                if (comma && (i + 1 < nodes.Count || trailingComma && nodes.HasTrailingComma))
+                    pending.Push(T(Utf8Literals.Comma));
+                pending.Push(N(nodes[i]));
+                if (options.PreserveSourceNewlines)
+                {
+                    pending.Push(new(CommentPosition: nodes[i].Pos, ListComment: true));
+                    pending.Push(ListBoundary(states.Peek().Node, i == 0 ? null : nodes[i - 1], nodes[i], true,
+                        comma && i != 0 && states.Peek().Node is TupleTypeNode));
+                }
+                else
+                    pending.Push(new(NewLine: true));
+            }
+        pending.Push(new(IndentationChange: 1));
+        pending.Push(ListPosition(nodes));
+        pending.Push(T(open.Length == 0 ? Utf8Literals.OpenBrace : open));
+    }
+
     private Part BlockMembers(NodeList? nodes, bool comma = false, bool endComments = false,
         Utf8String open = default, Utf8String close = default, bool trailingComma = true)
     {
-        var parts = new List<Part> { T(open.Length == 0 ? Utf8Literals.OpenBrace : open), ListPosition(nodes), new(IndentationChange: 1) };
+        var parts = new List<Part>(4 * (nodes?.Count ?? 0) + 7) { T(open.Length == 0 ? Utf8Literals.OpenBrace : open), ListPosition(nodes), new(IndentationChange: 1) };
         if (nodes is not null)
             for (int i = 0; i < nodes.Count; i++)
             {

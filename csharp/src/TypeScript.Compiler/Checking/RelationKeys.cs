@@ -54,11 +54,29 @@ internal sealed class RelationKeys(TypeContext context, TypeReferences reference
     internal async ValueTask<(RelationKey Key, bool Constrained)> CreateAsync(Type source, Type target,
         IntersectionState intersection = 0, bool identity = false, bool ignoreConstraints = false, CancellationToken cancellation = default)
     {
+        var mark = Diagnostics.CompilationCapture.Mark();
+        try
+        {
+            return await CreateCoreAsync(source, target, intersection, identity, ignoreConstraints, cancellation).ConfigureAwait(false);
+        }
+        finally
+        {
+            Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.RelKeys, mark);
+        }
+    }
+
+    private async ValueTask<(RelationKey Key, bool Constrained)> CreateCoreAsync(Type source, Type target,
+        IntersectionState intersection, bool identity, bool ignoreConstraints, CancellationToken cancellation)
+    {
         cancellation.ThrowIfCancellationRequested();
         context.RequireOwned(source);
         context.RequireOwned(target);
         if (identity && source.Id > target.Id)
             (source, target) = (target, source);
+        // The plain two-type key is the common case, and a non-reference can never be generic, so the
+        // two probing calls are skipped outright instead of being awaited to return false.
+        if (source is not TypeReference && target is not TypeReference)
+            return (new(source, target, intersection), false);
         if (!await GenericAsync(source, cancellation).ConfigureAwait(false)
             || !await GenericAsync(target, cancellation).ConfigureAwait(false))
             return (new(source, target, intersection), false);

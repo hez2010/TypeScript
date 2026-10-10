@@ -74,8 +74,37 @@ internal sealed class TypeProperties(TypeContext context, CheckerLinks links, Ch
         return type.ResolvedProperties = result.AsReadOnly();
     }
 
-    internal async ValueTask<Symbol?> PropertyAsync(Type type, Utf8String name, bool skipAugment = false, bool includeTypeOnly = false,
+    internal ValueTask<Symbol?> PropertyAsync(Type type, Utf8String name, bool skipAugment = false, bool includeTypeOnly = false,
         CancellationToken cancellation = default)
+    {
+        // Fast path for the shape contextual queries hit constantly: a plain object type whose member
+        // table is already resolved. ReducedAsync and ApparentAsync are identity for such a type (they
+        // only transform unions, intersections, mapped types, references and instantiable types),
+        // ResolveAsync returns immediately once MembersResolved is set, and what remains are flag tests.
+        // Aliases fall through because their value flags need the resolver, and the module check reads
+        // its link without creating one.
+        if (type is ObjectType obj && (obj.ObjectFlags & ObjectFlags.MembersResolved) != 0
+            && (type.Flags & TypeFlags.Instantiable) == 0 && type is not (TypeReference or MappedType or UnionOrIntersectionType)
+            && obj.Members is { } members && members.GetValueOrDefault(name) is { } symbol
+            && (symbol.Flags & S.Value) != 0
+            && (includeTypeOnly || !(type.Symbol is { } owner && (owner.Flags & S.ValueModule) != 0
+                && links.Modules.TryGet(owner)?.TypeOnlyExportStars?.ContainsKey(name) == true)))
+        {
+            return ValueTask.FromResult<Symbol?>(symbol);
+        }
+        Diagnostics.CompilationCapture.ProbeMark lookupMark = Diagnostics.CompilationCapture.Mark();
+        try
+        {
+            return PropertySlowAsync(type, name, skipAugment, includeTypeOnly, cancellation);
+        }
+        finally
+        {
+            Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.PropertyLookup, lookupMark);
+        }
+    }
+
+    private async ValueTask<Symbol?> PropertySlowAsync(Type type, Utf8String name, bool skipAugment, bool includeTypeOnly,
+        CancellationToken cancellation)
     {
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
             ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);

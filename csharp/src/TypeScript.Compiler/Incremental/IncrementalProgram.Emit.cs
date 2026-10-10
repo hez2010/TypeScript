@@ -4,6 +4,7 @@ using TypeScript.Compiler.Configuration;
 using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Emission;
 using TypeScript.Compiler.Hosts;
+using TypeScript.Compiler.Programs;
 
 namespace TypeScript.Compiler.Incremental;
 
@@ -28,6 +29,7 @@ public sealed partial class IncrementalProgram
         List<Utf8String> emitted = [];
         List<SourceMapEmitResult> maps = [];
         bool skipped = false;
+        object writeGate = new();
         bool noOutput = !options.Force && options.Only != EmitOnly.BuilderSignature && Options.NoEmit == true;
         if (!noOutput && !options.Force && options.Only != EmitOnly.BuilderSignature && Options.NoEmitOnError == true)
         {
@@ -44,7 +46,7 @@ public sealed partial class IncrementalProgram
                 return result;
             }
             if (CanUseState) await CollectAffectedFilesAsync(cancellation).ConfigureAwait(false);
-            Checker? emitChecker = null;
+            var work = new List<(ProgramFile File, Utf8String Path, FileEmitKind Pending)>();
             foreach (var file in Program.SourceFiles)
             {
                 var path = file.Syntax.FileName;
@@ -64,23 +66,69 @@ public sealed partial class IncrementalProgram
                     snapshot.PendingEmit.Remove(path); snapshot.BuildInfoPending = true;
                     continue;
                 }
-                bool javascript = (pending & FileEmitKind.AllJavaScript) != 0;
-                bool declarations = (pending & FileEmitKind.AllDeclarations) != 0;
-                emitChecker ??= await Program.CreateCheckerAsync(cancellation).ConfigureAwait(false);
-                var result = await Program.EmitWithCheckerAsync(new()
+                work.Add((file, path, pending));
+            }
+            if (work.Count != 0)
+            {
+                var results = new EmitResult?[work.Count];
+                // Measurement prototype (campaign 2026-10-06): the upstream loop emits every file
+                // serially with one checker. Go queues one goroutine per file and borrows each
+                // file's pooled checker (tsc/internal/compiler/program.go:1845-1880). This variant
+                // does the same with the existing CheckerPool, and can be forced back to the
+                // serial path with TSHARP_EMIT_CONCURRENCY=1 for an A/B measurement.
+                int requested = int.TryParse(Environment.GetEnvironmentVariable("TSHARP_EMIT_CONCURRENCY"), out var configured) ? configured : 0;
+                CheckerPool? pool = null;
+                int workers = 1;
+                if (requested != 1 && work.Count > 1 && Options.SingleThreaded != true)
                 {
-                    SourceFiles = [file.Syntax], WriteFile = Write,
-                    Only = javascript && declarations ? EmitOnly.All : javascript ? EmitOnly.JavaScript : EmitOnly.Declarations
-                }, emitChecker, cancellation).ConfigureAwait(false);
-                skipped |= result.EmitSkipped;
-                errors.AddRange(result.Diagnostics); emitted.AddRange(result.EmittedFiles); maps.AddRange(result.SourceMaps);
-                if (result.Diagnostics.Count == 0) snapshot.EmitDiagnostics.Remove(path);
-                else snapshot.EmitDiagnostics[path] = result.Diagnostics;
-                if (CanUseState)
+                    pool = await Program.CreateCheckerPoolAsync(false, cancellation).ConfigureAwait(false);
+                    workers = Math.Max(1, Math.Min(requested > 1 ? requested : pool.Count, work.Count));
+                }
+                if (workers > 1)
                 {
-                    var remaining = BuildInfo.GetPendingEmitKind(snapshot.PendingEmit.GetValueOrDefault(path), pending);
-                    if (remaining == FileEmitKind.None) snapshot.PendingEmit.Remove(path); else snapshot.PendingEmit[path] = remaining;
-                    snapshot.BuildInfoPending = true;
+                    await Parallel.ForAsync(0, work.Count, new ParallelOptions { MaxDegreeOfParallelism = workers, CancellationToken = cancellation }, async (index, token) =>
+                    {
+                        var (file, _, pending) = work[index];
+                        bool javascript = (pending & FileEmitKind.AllJavaScript) != 0;
+                        bool declarations = (pending & FileEmitKind.AllDeclarations) != 0;
+                        using var lease = await pool!.AcquireAsync(file.Syntax, token).ConfigureAwait(false);
+                        results[index] = await Program.EmitWithCheckerAsync(new()
+                        {
+                            SourceFiles = [file.Syntax], WriteFile = Write,
+                            Only = javascript && declarations ? EmitOnly.All : javascript ? EmitOnly.JavaScript : EmitOnly.Declarations
+                        }, lease.Checker, token).ConfigureAwait(false);
+                    }).ConfigureAwait(false);
+                }
+                else
+                {
+                    Checker? emitChecker = null;
+                    for (int index = 0; index < work.Count; index++)
+                    {
+                        var (file, _, pending) = work[index];
+                        bool javascript = (pending & FileEmitKind.AllJavaScript) != 0;
+                        bool declarations = (pending & FileEmitKind.AllDeclarations) != 0;
+                        emitChecker ??= await Program.CreateCheckerAsync(cancellation).ConfigureAwait(false);
+                        results[index] = await Program.EmitWithCheckerAsync(new()
+                        {
+                            SourceFiles = [file.Syntax], WriteFile = Write, PipelineDeclarationTransform = true,
+                            Only = javascript && declarations ? EmitOnly.All : javascript ? EmitOnly.JavaScript : EmitOnly.Declarations
+                        }, emitChecker, cancellation).ConfigureAwait(false);
+                    }
+                }
+                for (int index = 0; index < work.Count; index++)
+                {
+                    var (_, path, pending) = work[index];
+                    var result = results[index]!;
+                    skipped |= result.EmitSkipped;
+                    errors.AddRange(result.Diagnostics); emitted.AddRange(result.EmittedFiles); maps.AddRange(result.SourceMaps);
+                    if (result.Diagnostics.Count == 0) snapshot.EmitDiagnostics.Remove(path);
+                    else snapshot.EmitDiagnostics[path] = result.Diagnostics;
+                    if (CanUseState)
+                    {
+                        var remaining = BuildInfo.GetPendingEmitKind(snapshot.PendingEmit.GetValueOrDefault(path), pending);
+                        if (remaining == FileEmitKind.None) snapshot.PendingEmit.Remove(path); else snapshot.PendingEmit[path] = remaining;
+                        snapshot.BuildInfoPending = true;
+                    }
                 }
             }
             foreach (var path in snapshot.PendingEmit.Keys.Where(path => Program.GetFile(path) is null).ToArray()) snapshot.PendingEmit.Remove(path);
@@ -122,29 +170,33 @@ public sealed partial class IncrementalProgram
             var source = data.SourceFile.FileName;
             if (CompilerPath.IsDeclarationFile(path) && (Options.Declaration == true || Options.Composite == true))
             {
-                if (CanUseState && snapshot.Files.TryGetValue(source, out var info))
+                // Guarded because the parallel emitter calls this from several workers at once.
+                lock (writeGate)
                 {
-                    if (info.Signature == info.Version)
+                    if (CanUseState && snapshot.Files.TryGetValue(source, out var info))
                     {
-                        var signature = BuildInfoDiagnostics.Signature(source, text, data.SourceMapUrlPosition, data.Diagnostics, hashWithText);
-                        if (signature != info.Version) snapshot.Files[source] = info with { Signature = signature, Expanded = false };
-                        snapshot.BuildInfoPending = true;
-                    }
-                    if (Options.Composite == true)
-                    {
-                        var signature = BuildInfo.ComputeHash(data.SourceMapUrlPosition >= 0 ? text[..data.SourceMapUrlPosition] : text, hashWithText);
-                        if (snapshot.EmitSignatures.TryGetValue(source, out var previous) && previous.Text == signature)
+                        if (info.Signature == info.Version)
                         {
-                            if (!previous.DifferentOptions) { data.SkippedDeclarationWrite = true; return; }
-                            if (Options.Build == true) originalTime = fileSystem.Stat(path)?.LastWriteTimeUtc;
+                            var signature = BuildInfoDiagnostics.Signature(source, text, data.SourceMapUrlPosition, data.Diagnostics, hashWithText);
+                            if (signature != info.Version) snapshot.Files[source] = info with { Signature = signature, Expanded = false };
+                            snapshot.BuildInfoPending = true;
                         }
-                        else
+                        if (Options.Composite == true)
                         {
-                            snapshot.LatestChangedDeclaration = path;
-                            hasChangedDeclaration = true;
+                            var signature = BuildInfo.ComputeHash(data.SourceMapUrlPosition >= 0 ? text[..data.SourceMapUrlPosition] : text, hashWithText);
+                            if (snapshot.EmitSignatures.TryGetValue(source, out var previous) && previous.Text == signature)
+                            {
+                                if (!previous.DifferentOptions) { data.SkippedDeclarationWrite = true; return; }
+                                if (Options.Build == true) originalTime = fileSystem.Stat(path)?.LastWriteTimeUtc;
+                            }
+                            else
+                            {
+                                snapshot.LatestChangedDeclaration = path;
+                                hasChangedDeclaration = true;
+                            }
+                            snapshot.EmitSignatures[source] = new(signature);
+                            snapshot.BuildInfoPending = true;
                         }
-                        snapshot.EmitSignatures[source] = new(signature);
-                        snapshot.BuildInfoPending = true;
                     }
                 }
             }

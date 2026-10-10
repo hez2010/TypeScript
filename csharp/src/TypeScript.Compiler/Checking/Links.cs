@@ -21,7 +21,12 @@ internal sealed class LinkStore<TKey, TValue> where TKey : class where TValue : 
     internal TValue Get(TKey key)
     {
         ref var value = ref CollectionsMarshal.GetValueRefOrAddDefault(values, key, out _);
-        return value ??= new();
+        if (value is null)
+        {
+            Diagnostics.CompilationCapture.Current?.NoteLinkCreate();
+            value = new();
+        }
+        return value;
     }
 }
 

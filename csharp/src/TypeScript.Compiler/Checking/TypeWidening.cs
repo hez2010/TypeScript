@@ -58,6 +58,19 @@ internal sealed class TypeWidening(TypeContext context, TypeAlgebra algebra, Typ
             return type;
         if (widening is null && widened.TryGetValue(type, out var cached))
             return cached;
+        Diagnostics.CompilationCapture.ProbeMark allocMark = Diagnostics.CompilationCapture.Mark();
+        try
+        {
+            return await WidenCoreAsync(type, widening, cancellation).ConfigureAwait(false);
+        }
+        finally
+        {
+            Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.Widen, allocMark);
+        }
+    }
+
+    private async ValueTask<Type> WidenCoreAsync(Type type, WideningContext? widening, CancellationToken cancellation)
+    {
         Type? result = null;
         if ((type.Flags & (TypeFlags.Any | TypeFlags.Nullable)) != 0)
             result = context.AnyType;
@@ -107,6 +120,19 @@ internal sealed class TypeWidening(TypeContext context, TypeAlgebra algebra, Typ
     {
         if (widening?.Types.TryGetValue(type, out var cached) == true)
             return cached;
+        Diagnostics.CompilationCapture.ProbeMark allocMark = Diagnostics.CompilationCapture.Mark();
+        try
+        {
+            return await ObjectCoreAsync(type, widening, cancellation).ConfigureAwait(false);
+        }
+        finally
+        {
+            Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.WidenObject, allocMark);
+        }
+    }
+
+    private async ValueTask<Type> ObjectCoreAsync(Type type, WideningContext? widening, CancellationToken cancellation)
+    {
         var members = new Dictionary<Utf8String, Symbol>();
         foreach (var property in await host.ObjectPropertiesAsync(type, cancellation).ConfigureAwait(false))
         {

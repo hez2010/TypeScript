@@ -71,18 +71,24 @@ internal sealed class TypeRecursion(Func<MappedType, CancellationToken, ValueTas
 
     internal async ValueTask<bool> MatchesAsync(Type type, RecursionIdentity identity, CancellationToken cancellation = default)
     {
-        var pending = new Stack<Type>();
-        pending.Push(type);
-        while (pending.TryPop(out var current))
+        // The work list is only needed once an intersection constituent appears; the single-type
+        // input that dominates this call used to allocate a Stack and its backing array for nothing.
+        Type current = type;
+        Stack<Type>? pending = null;
+        while (true)
         {
             var target = await TargetAsync(current, cancellation).ConfigureAwait(false);
             if (target is IntersectionType intersection)
-                foreach (var constituent in intersection.Types)
-                    pending.Push(constituent);
+            {
+                pending ??= new Stack<Type>();
+                for (int i = 0; i < intersection.Types.Count; i++)
+                    pending.Push(intersection.Types[i]);
+            }
             else if (FromTarget(target) == identity)
                 return true;
+            if (pending is null || !pending.TryPop(out current!))
+                return false;
         }
-        return false;
     }
 
     internal async ValueTask<bool> IsDeeplyNestedAsync(
@@ -93,28 +99,34 @@ internal sealed class TypeRecursion(Func<MappedType, CancellationToken, ValueTas
     {
         if (stack.Count < maximumDepth)
             return false;
-        var pending = new Stack<Type>();
-        pending.Push(type);
-        while (pending.TryPop(out var current))
+        // Same lazy work list: most inputs are not intersections, so the stack is only created when
+        // one is actually seen.
+        Type current = type;
+        Stack<Type>? pending = null;
+        while (true)
         {
             var target = await TargetAsync(current, cancellation).ConfigureAwait(false);
             if (target is IntersectionType intersection)
             {
-                foreach (var constituent in intersection.Types)
-                    pending.Push(constituent);
-                continue;
+                pending ??= new Stack<Type>();
+                for (int i = 0; i < intersection.Types.Count; i++)
+                    pending.Push(intersection.Types[i]);
             }
-            var identity = FromTarget(target);
-            int count = 0;
-            uint lastId = 0;
-            foreach (var entry in stack)
-                if (await MatchesAsync(entry, identity, cancellation).ConfigureAwait(false))
-                {
-                    if (entry.Id >= lastId && ++count >= maximumDepth)
-                        return true;
-                    lastId = entry.Id;
-                }
+            else
+            {
+                var identity = FromTarget(target);
+                int count = 0;
+                uint lastId = 0;
+                foreach (var entry in stack)
+                    if (await MatchesAsync(entry, identity, cancellation).ConfigureAwait(false))
+                    {
+                        if (entry.Id >= lastId && ++count >= maximumDepth)
+                            return true;
+                        lastId = entry.Id;
+                    }
+            }
+            if (pending is null || !pending.TryPop(out current!))
+                return false;
         }
-        return false;
     }
 }

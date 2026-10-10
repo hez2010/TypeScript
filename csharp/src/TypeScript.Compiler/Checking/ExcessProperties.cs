@@ -20,6 +20,19 @@ internal sealed class ExcessProperties(TypeContext context, TypeAlgebra algebra,
 {
     internal async ValueTask<bool> HasAsync(RelationOperation operation, Type source, Type target, CancellationToken cancellation = default)
     {
+        Diagnostics.CompilationCapture.ProbeMark excessMark = Diagnostics.CompilationCapture.Mark();
+        try
+        {
+            return await HasCoreAsync(operation, source, target, cancellation).ConfigureAwait(false);
+        }
+        finally
+        {
+            Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.RelationExcess, excessMark);
+        }
+    }
+
+    private async ValueTask<bool> HasCoreAsync(RelationOperation operation, Type source, Type target, CancellationToken cancellation)
+    {
         if (!Target(target) || !host.NoImplicitAny && (target.ObjectFlags & ObjectFlags.JSLiteral) != 0)
             return false;
         bool jsx = (source.ObjectFlags & ObjectFlags.JsxAttributes) != 0;

@@ -8,14 +8,17 @@ namespace TypeScript.Compiler.Emission;
 internal sealed class ImportElision : SyntaxRewriter
 {
     private readonly Checker checker;
+    private readonly bool markLinkedReferences;
     private SourceFileNode? sourceFile;
 
-    internal ImportElision(EmitContext context, CompilerOptions options, Checker checker, CancellationToken cancellation = default)
+    internal ImportElision(EmitContext context, CompilerOptions options, Checker checker, bool markLinkedReferences = true,
+        CancellationToken cancellation = default)
         : base(context, cancellation)
     {
         if (options.VerbatimModuleSyntax == true)
             throw new ArgumentException("Import elision requires verbatimModuleSyntax to be disabled", nameof(options));
         this.checker = checker;
+        this.markLinkedReferences = markLinkedReferences;
     }
 
     protected override async ValueTask<SyntaxNode?> VisitNodeAsync(SyntaxNode node)
@@ -27,7 +30,11 @@ internal sealed class ImportElision : SyntaxRewriter
                 sourceFile = file;
                 try
                 {
-                    await checker.MarkLinkedReferencesForEmitAsync((SourceFileNode)Context.MostOriginal(file), Cancellation);
+                    // The marking pass walks every reference in the file to record which aliases the
+                    // emit can drop. A file without import/export, JSX or `export =` syntax cannot
+                    // declare an alias, so there is nothing for it to mark.
+                    if (markLinkedReferences)
+                        await checker.MarkLinkedReferencesForEmitAsync((SourceFileNode)Context.MostOriginal(file), Cancellation);
                     return await VisitEachChildAsync(file);
                 }
                 finally { sourceFile = previous; }

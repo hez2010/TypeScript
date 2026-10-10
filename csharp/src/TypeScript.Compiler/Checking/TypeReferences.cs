@@ -143,11 +143,12 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
     internal async ValueTask<Type> ClassReferenceAsync(SyntaxNode node, Symbol symbol, CancellationToken cancellation)
     {
         var type = await scopes.ClassOrInterfaceAsync(symbols.Merger.GetMergedSymbol(symbol)!, cancellation).ConfigureAwait(false);
-        var parameters = type.AllTypeParameters.Skip(type.OuterTypeParameterCount)
-            .Take(
-                type.AllTypeParameters.Count - type.OuterTypeParameterCount - (type.ThisType is null
-                    ? 0
-                    : 1)).Cast<TypeParameter>().ToArray();
+        var allParameters = type.AllTypeParameters;
+        int skip = type.OuterTypeParameterCount;
+        int parameterCount = allParameters.Count - skip - (type.ThisType is null ? 0 : 1);
+        var parameters = parameterCount <= 0 ? [] : new TypeParameter[parameterCount];
+        for (int i = 0; i < parameterCount; i++)
+            parameters[i] = (TypeParameter)allParameters[skip + i];
         if (parameters.Length == 0)
             return NoArguments(node, symbol) ? type : context.ErrorType;
         int count = Arguments(node)?.Count ?? 0, minimum = Minimum(parameters);
@@ -166,7 +167,7 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
         var arguments = await EffectiveArgumentsAsync(node, parameters, cancellation).ConfigureAwait(false);
         return context.CreateTypeReference(
             type,
-            [.. type.AllTypeParameters.Take(type.OuterTypeParameterCount), .. arguments],
+            CombineArguments(type.AllTypeParameters, type.OuterTypeParameterCount, arguments),
             ObjectFlags.FromTypeNode);
     }
 
@@ -260,9 +261,10 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
         {
             Type[] arguments = reference.Node switch
             {
-                TypeReferenceNode node => [.. target.AllTypeParameters.Take(target.OuterTypeParameterCount),
-                    .. await EffectiveArgumentsAsync(node, target.AllTypeParameters.Skip(target.OuterTypeParameterCount)
-                        .Take(count - target.OuterTypeParameterCount).Cast<TypeParameter>().ToArray(), cancellation).ConfigureAwait(false)],
+                TypeReferenceNode node => CombineArguments(
+                    target.AllTypeParameters,
+                    target.OuterTypeParameterCount,
+                    await EffectiveArgumentsAsync(node, OwnTypeParameters(target), cancellation).ConfigureAwait(false)),
                 ArrayTypeNode node => [await host.TypeFromNodeAsync(node.ElementType!, cancellation).ConfigureAwait(false)],
                 TupleTypeNode node => await NodesAsync(node.Elements!, cancellation).ConfigureAwait(false),
                 null => [],
@@ -288,6 +290,35 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
             if (active)
                 resolutions.Pop();
         }
+    }
+
+    // The reference's outer type parameters (the enclosing type's) followed by its own arguments.
+    // Written as index loops because the LINQ forms (Take plus Skip plus Cast plus ToArray) allocated
+    // four enumerators and an array on every deferred-reference resolution. When the reference has no
+    // outer parameters - the common case - the argument array itself is returned, so the collection
+    // expression that used to concatenate the two no longer copies it into a second array.
+    private static Type[] CombineArguments(IReadOnlyList<Type> allParameters, int outer, IReadOnlyList<Type> arguments)
+    {
+        if (outer == 0 && arguments is Type[] own)
+            return own;
+        var combined = new Type[outer + arguments.Count];
+        for (int i = 0; i < outer; i++)
+            combined[i] = allParameters[i];
+        for (int i = 0; i < arguments.Count; i++)
+            combined[outer + i] = arguments[i];
+        return combined;
+    }
+
+    private static TypeParameter[] OwnTypeParameters(InterfaceType target)
+    {
+        int skip = target.OuterTypeParameterCount;
+        int count = target.AllTypeParameters.Count - skip - (target.ThisType is null ? 0 : 1);
+        if (count <= 0)
+            return [];
+        var parameters = new TypeParameter[count];
+        for (int i = 0; i < count; i++)
+            parameters[i] = (TypeParameter)target.AllTypeParameters[skip + i];
+        return parameters;
     }
 
     internal async ValueTask<bool> DeferredAsync(SyntaxNode node, bool hasDefaults, CancellationToken cancellation = default)

@@ -111,8 +111,7 @@ internal sealed class RelationSession(
         Func<Type, Type, CancellationToken, ValueTask> reportOverflow,
         CancellationToken cancellation)
     {
-        await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
-            ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
+        await Task.CompletedTask.ConfigureAwait(Diagnostics.CompilationCapture.StackGuard());
         cancellation.ThrowIfCancellationRequested();
         context.RequireOwned(source);
         context.RequireOwned(target);
@@ -167,18 +166,26 @@ internal sealed class RelationSession(
             {
                 sourceStack.Add(source);
                 if ((expanding & ExpandingFlags.Source) == 0
-                    && await recursion.IsDeeplyNestedAsync(source, sourceStack, 3, cancellation).ConfigureAwait(false))
+                    && await DeeplyNestedAsync(recursion, source, sourceStack, cancellation).ConfigureAwait(false))
                     expanding |= ExpandingFlags.Source;
             }
             if ((flags & RecursionFlags.Target) != 0)
             {
                 targetStack.Add(target);
                 if ((expanding & ExpandingFlags.Target) == 0
-                    && await recursion.IsDeeplyNestedAsync(target, targetStack, 3, cancellation).ConfigureAwait(false))
+                    && await DeeplyNestedAsync(recursion, target, targetStack, cancellation).ConfigureAwait(false))
                     expanding |= ExpandingFlags.Target;
             }
             state.Reliability = 0;
-            result = expanding == ExpandingFlags.Both ? Ternary.Maybe : await structured(comparisonState).ConfigureAwait(false);
+            var stampMark = Diagnostics.CompilationCapture.Mark();
+            try
+            {
+                result = expanding == ExpandingFlags.Both ? Ternary.Maybe : await structured(comparisonState).ConfigureAwait(false);
+            }
+            finally
+            {
+                Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.RecStamp, stampMark);
+            }
             cancellation.ThrowIfCancellationRequested();
             reliability = state.Reliability;
         }
@@ -209,6 +216,14 @@ internal sealed class RelationSession(
             Reset(start, reliability, false);
         }
         return result;
+    }
+
+    private static async ValueTask<bool> DeeplyNestedAsync(TypeRecursion recursion, Type type, IReadOnlyList<Type> stack,
+        CancellationToken cancellation)
+    {
+        var mark = Diagnostics.CompilationCapture.Mark();
+        try { return await recursion.IsDeeplyNestedAsync(type, stack, 3, cancellation).ConfigureAwait(false); }
+        finally { Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.RecDeep, mark); }
     }
 
     private void Reset(int start, RelationComparisonResult reliability, bool succeeded)

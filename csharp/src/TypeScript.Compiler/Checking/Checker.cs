@@ -374,10 +374,18 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
         CancellationToken cancellation)
             => Indexed.GetAsync(objectType, indexType, node: node, alias: alias, cancellation: cancellation);
 
-    public ValueTask<IReadOnlyDictionary<Utf8String, Symbol>> MembersAsync(Symbol symbol, CancellationToken cancellation)
+    public async ValueTask<IReadOnlyDictionary<Utf8String, Symbol>> MembersAsync(Symbol symbol, CancellationToken cancellation)
     {
         BeforeMemberTable?.Invoke(symbol);
-        return LateMembers.TableAsync(symbol, cancellation: cancellation);
+        TypeScript.Compiler.Diagnostics.CompilationCapture.ProbeMark allocMark = TypeScript.Compiler.Diagnostics.CompilationCapture.Mark();
+        try
+        {
+            return await LateMembers.TableAsync(symbol, cancellation: cancellation).ConfigureAwait(false);
+        }
+        finally
+        {
+            TypeScript.Compiler.Diagnostics.CompilationCapture.Report(TypeScript.Compiler.Diagnostics.AllocationProbes.MembersTable, allocMark);
+        }
     }
 
     public async ValueTask<Type> TypeQueryAsync(TypeQueryNode node, CancellationToken cancellation)

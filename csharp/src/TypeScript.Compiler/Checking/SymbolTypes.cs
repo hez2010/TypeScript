@@ -35,9 +35,21 @@ internal sealed class SymbolTypes(TypeContext context, CheckerLinks links, Check
 {
     internal async ValueTask<Type> GetAsync(Symbol symbol, CancellationToken cancellation = default)
     {
-        await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
-            ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
+        await Task.CompletedTask.ConfigureAwait(Diagnostics.CompilationCapture.StackGuard());
         cancellation.ThrowIfCancellationRequested();
+        Diagnostics.CompilationCapture.ProbeMark symbolMark = Diagnostics.CompilationCapture.Mark();
+        try
+        {
+            return await GetCoreAsync(symbol, cancellation).ConfigureAwait(false);
+        }
+        finally
+        {
+            Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.SymbolTypesGet, symbolMark);
+        }
+    }
+
+    private async ValueTask<Type> GetCoreAsync(Symbol symbol, CancellationToken cancellation)
+    {
         if ((symbol.CheckFlags & CheckFlags.DeferredType) != 0)
             return await DeferredAsync(symbol, false, cancellation).ConfigureAwait(false);
         if ((symbol.CheckFlags & CheckFlags.Instantiated) != 0)
@@ -50,7 +62,7 @@ internal sealed class SymbolTypes(TypeContext context, CheckerLinks links, Check
             return await AccessorAsync(symbol, false, cancellation).ConfigureAwait(false);
         if ((symbol.Flags & (S.Variable | S.Property)) != 0)
             return await VariableAsync(symbol, cancellation).ConfigureAwait(false);
-        var data = links.Values.Get(symbol);
+        var data = ValueLinks(symbol);
         if ((symbol.Flags & (S.Function | S.Method | S.Class | S.Enum | S.ValueModule)) != 0)
         {
             if (data.ResolvedType is { } cached)
@@ -68,6 +80,15 @@ internal sealed class SymbolTypes(TypeContext context, CheckerLinks links, Check
             return data.ResolvedType = result;
         }
         return (symbol.Flags & S.Alias) != 0 ? await AliasAsync(symbol, cancellation).ConfigureAwait(false) : context.ErrorType;
+    }
+
+    // Probe frame for the symbol's value-link record: first access allocates it, and this frame
+    // exists to attribute that allocation inside the enclosing symbolTypesGet frame.
+    private ValueSymbolLinks ValueLinks(Symbol symbol)
+    {
+        var mark = Diagnostics.CompilationCapture.Mark();
+        try { return links.Values.Get(symbol); }
+        finally { Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.LinkGet, mark); }
     }
 
     internal async ValueTask<Type> WriteAsync(Symbol symbol, CancellationToken cancellation = default)

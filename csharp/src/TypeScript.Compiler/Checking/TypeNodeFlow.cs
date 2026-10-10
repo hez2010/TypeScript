@@ -15,7 +15,7 @@ internal sealed class TypeNodeFlow(TypeContext context, TypeAlgebra algebra, Map
             ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
         cancellation.ThrowIfCancellationRequested();
         context.RequireOwned(type);
-        var constraints = new List<Type>();
+        List<Type>? constraints = null;
         bool covariant = true;
         while (node is not null && !Statement(node) && node.Kind != K.JSDoc)
         {
@@ -32,7 +32,7 @@ internal sealed class TypeNodeFlow(TypeContext context, TypeAlgebra algebra, Map
                     conditional.ExtendsType!,
                     cancellation).ConfigureAwait(false);
                 if (constraint is not null)
-                    constraints.Add(constraint);
+                    (constraints ??= []).Add(constraint);
             }
             else if (type is TypeParameter && parent is MappedTypeNode { NameType: null } mappedNode && node == mappedNode.Type)
             {
@@ -46,7 +46,7 @@ internal sealed class TypeNodeFlow(TypeContext context, TypeAlgebra algebra, Map
                         var constraint = await host.ParameterConstraintAsync(typeParameter, cancellation).ConfigureAwait(false);
                         if (constraint is not null
                             && (constraint is UnionType union ? union.Types.All(ArrayOrTuple) : ArrayOrTuple(constraint)))
-                            constraints.Add(
+                            (constraints ??= []).Add(
                                 await algebra.UnionAsync(
                                     [context.NumberType, context.NumericStringType],
                                     cancellation: cancellation).ConfigureAwait(false));
@@ -55,7 +55,7 @@ internal sealed class TypeNodeFlow(TypeContext context, TypeAlgebra algebra, Map
             }
             node = parent;
         }
-        return constraints.Count == 0 ? type : context.GetSubstitutionType(type,
+        return constraints is null ? type : context.GetSubstitutionType(type,
             await algebra.IntersectionAsync(constraints, cancellation: cancellation).ConfigureAwait(false));
     }
 

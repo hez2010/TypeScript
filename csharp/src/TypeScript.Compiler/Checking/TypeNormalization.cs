@@ -102,9 +102,13 @@ internal sealed class TypeNormalization(TypeContext context, TypeAlgebra algebra
     private async ValueTask<Type> TupleAsync(TypeReference type, bool writing, CancellationToken cancellation)
     {
         var target = (TupleType)type.ReferencedType;
-        var elements = (await references.TypeArgumentsAsync(
+        var allArguments = await references.TypeArgumentsAsync(
             type,
-            cancellation).ConfigureAwait(false)).Take(target.ElementInfos.Count).ToArray();
+            cancellation).ConfigureAwait(false);
+        int count = target.ElementInfos.Count;
+        var elements = new Type[count];
+        for (int i = 0; i < count; i++)
+            elements[i] = allArguments[i];
         bool changed = false;
         for (int i = 0; i < elements.Length; i++)
             if ((elements[i].Flags & TypeFlags.Simplifiable) != 0)
@@ -143,10 +147,20 @@ internal sealed class TypeNormalization(TypeContext context, TypeAlgebra algebra
             Type result = baseTypes[0];
             if (count != 0)
             {
-                var arguments = await references.TypeArgumentsAsync(type, cancellation).ConfigureAwait(false);
+                var allArguments = await references.TypeArgumentsAsync(type, cancellation).ConfigureAwait(false);
+                // Own parameters (skipping the outer ones) and the matching argument prefix, copied by
+                // index because the Take/ToArray chains allocated two enumerators and an array per
+                // single-base normalization.
+                var parameters = new Type[count];
+                var arguments = new Type[count];
+                for (int i = 0; i < count; i++)
+                {
+                    parameters[i] = target.AllTypeParameters[i];
+                    arguments[i] = allArguments[i];
+                }
                 result = await instantiation.InstantiateAsync(
                     result,
-                    TypeMapper.Create(target.AllTypeParameters.Take(count).ToArray(), arguments.Take(count).ToArray()),
+                    TypeMapper.Create(parameters, arguments),
                     cancellation: cancellation).ConfigureAwait(false)
                     ?? throw new InvalidOperationException("Base normalization returned no type");
             }

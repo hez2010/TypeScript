@@ -16,9 +16,18 @@ public sealed partial class SyntaxPrinter
         helperNames.Clear();
         importedHelpers = sourceFile is not null && (context.GetFlags(context.MostOriginal(sourceFile)) & EmitFlags.ExternalHelpers) != 0;
         externalHelpers = sourceFile is not null ? context.GetExternalHelpersModuleName(sourceFile) : null;
-        HashSet<Utf8String> identifiers = [];
-        if (sourceFile is not null)
-            foreach (var node in context.MostOriginal(sourceFile).DescendantsAndSelf())
+        // Collecting every identifier in the file is only needed to keep a generated name from
+        // colliding with a declared one, so the walk is deferred until a name is actually generated.
+        // Files whose transform minted no names (the common case) never pay for it.
+        HashSet<Utf8String>? identifiers = null;
+        nameGenerator = new(context, (name, _) =>
+            sourceFile is null || !Identifiers().Contains(name) && options.HasGlobalName?.Invoke(name) != true, NameText);
+        HashSet<Utf8String> Identifiers()
+        {
+            if (identifiers is not null)
+                return identifiers;
+            identifiers = [];
+            foreach (var node in context.MostOriginal(sourceFile!).DescendantsAndSelf())
             {
                 cancellation.ThrowIfCancellationRequested();
                 if (node is IdentifierNode identifier)
@@ -26,7 +35,8 @@ public sealed partial class SyntaxPrinter
                 else if (node is PrivateIdentifierNode privateIdentifier)
                     identifiers.Add(privateIdentifier.Text);
             }
-        nameGenerator = new(context, (name, _) => sourceFile is null || !identifiers.Contains(name) && options.HasGlobalName?.Invoke(name) != true, NameText);
+            return identifiers;
+        }
     }
 
     private Utf8String HelperText(IdentifierNode node)

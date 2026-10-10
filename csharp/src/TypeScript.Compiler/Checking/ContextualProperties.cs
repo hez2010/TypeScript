@@ -11,13 +11,47 @@ internal sealed class ContextualProperties(TypeContext context, CheckerLinks lin
     MappedMembers mappedMembers, IndexedTypes indexed, IndexSignatures indexes, TupleTypes tuples,
     TypeConstraints constraints, TypeViews views, TypeRelations relations, TypeResolutionStack resolutions)
 {
-    internal ValueTask<Type?> GetAsync(Type type, Utf8String name, Type? nameType = null, CancellationToken cancellation = default)
-        => algebra.MapAsync(type, async part =>
+    internal async ValueTask<Type?> GetAsync(Type type, Utf8String name, Type? nameType = null, CancellationToken cancellation = default)
+    {
+        Diagnostics.CompilationCapture.ProbeMark propertiesMark = Diagnostics.CompilationCapture.Mark();
+        try
+        {
+            return await GetCoreAsync(type, name, nameType, cancellation).ConfigureAwait(false);
+        }
+        finally
+        {
+            Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.CtxProperties, propertiesMark);
+        }
+    }
+
+    private async ValueTask<Type?> GetCoreAsync(Type type, Utf8String name, Type? nameType, CancellationToken cancellation)
+    {
+        // The common case is a single object type, and going through MapAsync would allocate a closure
+        // and an async state machine for it on every contextual property query. Only the union case
+        // needs the mapping machinery.
+        if (type is not UnionType)
+        {
+            if ((type.Flags & TypeFlags.Never) != 0)
+                return type;
+            var single = await ConstituentAsync(type, name, nameType, cancellation).ConfigureAwait(false);
+            if (single is not null)
+                context.RequireOwned(single);
+            return single;
+        }
+        return await algebra.MapAsync(type, part => ConstituentAsync(part, name, nameType, cancellation), true, cancellation)
+            .ConfigureAwait(false);
+    }
+
+    private async ValueTask<Type?> ConstituentAsync(Type part, Utf8String name, Type? nameType, CancellationToken cancellation)
+    {
         {
             if (part is IntersectionType intersection)
             {
-                var types = new List<Type>();
-                var candidates = new List<Type>();
+                // Both lists are bounded by the intersection's constituent count, and the candidates
+                // list is cleared and refilled as properties are found, so sizing them up front avoids
+                // the doubling chain on every contextual query over an intersection.
+                var types = new List<Type>(intersection.Types.Count);
+                var candidates = new List<Type>(intersection.Types.Count);
                 bool ignoreIndexes = false;
                 foreach (var constituent in intersection.Types)
                 {
@@ -55,7 +89,8 @@ internal sealed class ContextualProperties(TypeContext context, CheckerLinks lin
                 return await MappedAsync((MappedType)part, name, nameType, cancellation).ConfigureAwait(false);
             return await ConcreteAsync(part, name, cancellation).ConfigureAwait(false)
                 ?? await IndexAsync(part, name, nameType, cancellation).ConfigureAwait(false);
-        }, true, cancellation);
+        }
+    }
 
     private async ValueTask<bool> GenericMappedAsync(Type type, CancellationToken cancellation) => type is MappedType mapping
         && await mapped.IsGenericAsync(mapping, cancellation).ConfigureAwait(false)

@@ -463,7 +463,7 @@ public sealed partial class SyntaxPrinter
                 Literal("this"u8);
                 break;
             case SyntaxNode when node.Kind is K.EmptyStatement or K.SemicolonClassElement:
-                if (node.Kind == K.EmptyStatement && states.Count > 1 && states.ElementAt(1).Node is IfStatementNode or WhileStatementNode or DoStatementNode or ForStatementNode or ForInOrOfStatementNode or WithStatementNode)
+                if (node.Kind == K.EmptyStatement && states.Count > 1 && ParentState()!.Node is IfStatementNode or WhileStatementNode or DoStatementNode or ForStatementNode or ForInOrOfStatementNode or WithStatementNode)
                     Literal((byte)';');
                 else
                     writer.WriteTrailingSemicolon();
@@ -665,54 +665,63 @@ public sealed partial class SyntaxPrinter
     {
         if (obj.MultiLine && obj.Properties is { Count: > 0 })
         {
-            var parts = new List<Part> { T(Utf8Literals.OpenBrace), ListPosition(obj.Properties), new(IndentationChange: 1, NewLine: true) };
+            // Pushed straight onto the work stack in reverse order instead of building a parts list:
+            // a container would have to be filled (copying every part), then expanded (copying them
+            // all again), and this shape is one of the printer's largest allocation sources.
+            pending.Push(new(NameScopeChange: -1));
+            pending.Push(T(Utf8Literals.CloseBrace));
+            pending.Push(ListPosition(obj.Properties, true));
+            pending.Push(new(IndentationChange: -1, NewLine: true));
+            if (HasTrailingComma(obj.Properties) && sourceFile is { ScriptKind: not ScriptKind.JSON })
+            {
+                pending.Push(new(CommentPosition: obj.Properties!.End, TrailingComment: true));
+                pending.Push(T(Utf8Literals.Comma));
+            }
             if (obj.Properties is { } properties)
-                for (int i = 0; i < properties.Count; i++)
+                for (int i = properties.Count - 1; i >= 0; i--)
                 {
-                    if (i != 0)
+                    pending.Push(N(properties[i]));
+                    if (i == 0)
+                        pending.Push(new(CommentPosition: (context.GetFlags(properties[i]) & EmitFlags.NoLeadingComments) == 0 ? context.GetCommentRange(properties[i]).Pos : -1, ListComment: true));
+                    else
                     {
                         var previous = properties[i - 1];
                         var next = properties[i];
                         bool sameLine = previous.Pos >= 0 && previous.End >= 0 && next.Pos >= 0 && next.End >= 0
                             && context.MostOriginal(previous).Parent is { } parent && parent == context.MostOriginal(next).Parent && !NewLineBetween(previous, next);
-                        parts.Add(T(sameLine ? Utf8Literals.CommaSpace : Utf8Literals.Comma));
-                        parts.Add(new(CommentPosition: (context.GetFlags(next) & EmitFlags.NoLeadingComments) == 0
+                        if (!sameLine) pending.Push(new(NewLine: true));
+                        pending.Push(new(CommentPosition: (context.GetFlags(next) & EmitFlags.NoLeadingComments) == 0
                             ? context.GetCommentRange(next).Pos : -1, TrailingComment: true));
-                        if (!sameLine) parts.Add(new(NewLine: true));
+                        pending.Push(T(sameLine ? Utf8Literals.CommaSpace : Utf8Literals.Comma));
                     }
-                    if (i == 0)
-                        parts.Add(new(CommentPosition: (context.GetFlags(properties[i]) & EmitFlags.NoLeadingComments) == 0 ? context.GetCommentRange(properties[i]).Pos : -1, ListComment: true));
-                    parts.Add(N(properties[i]));
                 }
-            if (HasTrailingComma(obj.Properties) && sourceFile is { ScriptKind: not ScriptKind.JSON })
-            {
-                parts.Add(T(Utf8Literals.Comma));
-                parts.Add(new(CommentPosition: obj.Properties!.End, TrailingComment: true));
-            }
-            parts.Add(new(IndentationChange: -1, NewLine: true));
-            parts.Add(ListPosition(obj.Properties, true));
-            parts.Add(T(Utf8Literals.CloseBrace));
-            Push(Scoped(Generate(obj.Properties), new(Parts: parts)));
+            pending.Push(new(IndentationChange: 1, NewLine: true));
+            pending.Push(ListPosition(obj.Properties));
+            pending.Push(T(Utf8Literals.OpenBrace));
+            pending.Push(Generate(obj.Properties));
+            pending.Push(new(NameScopeChange: 1));
             return;
         }
-        Push(Scoped(Generate(obj.Properties),
-            obj.Properties is { Count: > 0 }
-                ? List(
-                    obj.Properties,
-                    Utf8Literals.OpenBraceSpace,
-                    Utf8Literals.CommaSpace,
-                    HasTrailingComma(obj.Properties) && sourceFile is { ScriptKind: not ScriptKind.JSON } ? Utf8Literals.CommaSpaceCloseBrace : Utf8Literals.SpaceCloseBrace, indent: true)
-                : Braces(obj.Properties, default)));
+        pending.Push(new(NameScopeChange: -1));
+        if (obj.Properties is { Count: > 0 })
+            PushList(
+                obj.Properties,
+                Utf8Literals.OpenBraceSpace,
+                Utf8Literals.CommaSpace,
+                HasTrailingComma(obj.Properties) && sourceFile is { ScriptKind: not ScriptKind.JSON } ? Utf8Literals.CommaSpaceCloseBrace : Utf8Literals.SpaceCloseBrace, indent: true);
+        else
+            PushList(obj.Properties, Utf8Literals.OpenBrace, default, Utf8Literals.CloseBrace, required: true);
+        pending.Push(Generate(obj.Properties));
+        pending.Push(new(NameScopeChange: 1));
     }
 
-    private void Emit(PropertyAssignmentNode property) =>
-        Push(
-            Modifiers(property),
-            N(property.Name),
-            N(property.PostfixToken),
-            Annotation(property.Type),
-            T(Utf8Literals.ColonSpace),
-            N(property.Initializer));
+    private void Emit(PropertyAssignmentNode property)
+    {
+        Push(N(property.Initializer));
+        Push(T(Utf8Literals.ColonSpace));
+        PushAnnotation(property.Type);
+        Push(Modifiers(property), N(property.Name), N(property.PostfixToken));
+    }
 
     private void Emit(ShorthandPropertyAssignmentNode shorthand) =>
         Push(
@@ -789,14 +798,12 @@ public sealed partial class SyntaxPrinter
             Scoped(Generate(constructor.Parameters), TypeArguments(constructor.TypeParameters), Parameters(constructor.Parameters),
                 Annotation(constructor.Type), Body(constructor.Body)));
 
-    private void Emit(ParameterDeclarationNode parameter) =>
-        Push(
-            Modifiers(parameter),
-            N(parameter.DotDotDotToken),
-            N(parameter.Name),
-            N(parameter.QuestionToken),
-            Annotation(parameter.Type),
-            Initializer(parameter.Initializer));
+    private void Emit(ParameterDeclarationNode parameter)
+    {
+        PushInitializer(parameter.Initializer);
+        PushAnnotation(parameter.Type);
+        Push(Modifiers(parameter), N(parameter.DotDotDotToken), N(parameter.Name), N(parameter.QuestionToken));
+    }
 
     private void Emit(PropertyDeclarationNode property) =>
         Push(
@@ -860,11 +867,18 @@ public sealed partial class SyntaxPrinter
     private void Emit(VariableStatementNode statement) =>
         Push(Modifiers(statement), N(statement.DeclarationList), Semicolon());
 
-    private void Emit(VariableDeclarationListNode list) =>
-        Push(T(VariableKind(list.Flags)), List(list.Declarations, Utf8String.Empty, Utf8Literals.CommaSpace, Utf8String.Empty));
+    private void Emit(VariableDeclarationListNode list)
+    {
+        PushList(list.Declarations, Utf8String.Empty, Utf8Literals.CommaSpace, Utf8String.Empty);
+        pending.Push(T(VariableKind(list.Flags)));
+    }
 
-    private void Emit(VariableDeclarationNode variable) =>
-        Push(N(variable.Name), N(variable.ExclamationToken), Annotation(variable.Type), Initializer(variable.Initializer));
+    private void Emit(VariableDeclarationNode variable)
+    {
+        PushInitializer(variable.Initializer);
+        PushAnnotation(variable.Type);
+        Push(N(variable.Name), N(variable.ExclamationToken));
+    }
 
     private void Emit(BindingPatternNode pattern) =>
         Push(
@@ -1082,7 +1096,7 @@ public sealed partial class SyntaxPrinter
 
     private void Emit(ImportAttributesNode attributes)
     {
-        if (states.Skip(1).FirstOrDefault()?.Node is ImportTypeNode)
+        if (ParentState()?.Node is ImportTypeNode)
             Push(T(attributes.Token == K.AssertKeyword ? "{ assert: "u8 : "{ with: "u8), Braces(attributes.Attributes, Utf8Literals.CommaSpace), T(" }"u8));
         else
             Push(T(Utf8String.Concat(TokenFacts.Text(attributes.Token), " "u8)), Braces(attributes.Attributes, Utf8Literals.CommaSpace));
@@ -1108,7 +1122,7 @@ public sealed partial class SyntaxPrinter
         Push(T(Utf8Literals.Typeof), N(query.ExprName), query.TypeArguments is { Count: > 0 } ? TypeArguments(query.TypeArguments) : default);
 
     private void Emit(TypeLiteralNode literal) =>
-        Push(TypeMembers(literal));
+        PushTypeMembers(literal);
 
     private void Emit(ArrayTypeNode array) =>
         Push(N(array.ElementType), T(Utf8Literals.EmptyBrackets));
@@ -1208,14 +1222,13 @@ public sealed partial class SyntaxPrinter
             T(Utf8Literals.ArrowSeparator),
             N(function.Type)));
 
-    private void Emit(PropertySignatureDeclarationNode property) =>
-        Push(
-            Modifiers(property),
-            N(property.Name),
-            N(property.PostfixToken),
-            Annotation(property.Type),
-            Initializer(property.Initializer),
-            Semicolon());
+    private void Emit(PropertySignatureDeclarationNode property)
+    {
+        Push(Semicolon());
+        PushInitializer(property.Initializer);
+        PushAnnotation(property.Type);
+        Push(Modifiers(property), N(property.Name), N(property.PostfixToken));
+    }
 
     private void Emit(MethodSignatureDeclarationNode method) =>
         Push(

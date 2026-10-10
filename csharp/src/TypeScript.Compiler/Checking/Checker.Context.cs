@@ -78,6 +78,19 @@ internal sealed partial class Checker : IBindingPatternHost, IExpressionContextH
 
     public async ValueTask<Type?> ObjectElementContextAsync(SyntaxNode node, ContextFlags flags, CancellationToken cancellation)
     {
+        TypeScript.Compiler.Diagnostics.CompilationCapture.ProbeMark elementMark = TypeScript.Compiler.Diagnostics.CompilationCapture.Mark();
+        try
+        {
+            return await ObjectElementContextCoreAsync(node, flags, cancellation).ConfigureAwait(false);
+        }
+        finally
+        {
+            TypeScript.Compiler.Diagnostics.CompilationCapture.Report(TypeScript.Compiler.Diagnostics.AllocationProbes.CtxElement, elementMark);
+        }
+    }
+
+    private async ValueTask<Type?> ObjectElementContextCoreAsync(SyntaxNode node, ContextFlags flags, CancellationToken cancellation)
+    {
         if (node is ITypedNode { Type: { } annotation } && node is not MethodDeclarationNode)
             return await Nodes.FromNodeAsync(annotation, cancellation);
         if (await Contexts.ApparentAsync(node.Parent!, flags, cancellation) is not { } type)
@@ -85,7 +98,9 @@ internal sealed partial class Checker : IBindingPatternHost, IExpressionContextH
         if (await BindableNameAsync(node, cancellation))
         {
             var symbol = program.Symbols.Declaration(node)!;
-            return await ContextualProperties.GetAsync(type, symbol.Name, links.Values.Get(symbol).NameType, cancellation);
+            // The name type is only set on the link by computed-name handling; reading it without
+            // creating a link keeps the common property path allocation-free.
+            return await ContextualProperties.GetAsync(type, symbol.Name, links.Values.TryGet(symbol)?.NameType, cancellation);
         }
         if (node is INamedNode { Name: ComputedPropertyNameNode computed })
         {

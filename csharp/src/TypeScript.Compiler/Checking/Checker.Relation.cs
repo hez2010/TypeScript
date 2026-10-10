@@ -28,14 +28,29 @@ internal sealed partial class Checker : ITypeNormalizationHost, ITypeRelationHos
     public ValueTask<Ternary> IdentityAsync(RelationOperation operation, Type source, Type target, CancellationToken cancellation)
             => Identity.CompareAsync(operation, source, target, cancellation);
 
-    public ValueTask<Ternary> RelatedAsync(
+    public async ValueTask<Ternary> RelatedAsync(
         RelationOperation operation,
         Type source,
         Type target,
         RecursionFlags recursion,
         IntersectionState intersection,
         CancellationToken cancellation)
-            => Structural.RelatedAsync(operation, source, target, recursion, intersection, cancellation);
+    {
+        bool counted = TypeScript.Compiler.Diagnostics.CompilationCapture.ProbesEnabled;
+        if (counted)
+            TypeScript.Compiler.Diagnostics.CompilationCapture.NoteRelationEnter();
+        TypeScript.Compiler.Diagnostics.CompilationCapture.ProbeMark mark = TypeScript.Compiler.Diagnostics.CompilationCapture.Mark();
+        try
+        {
+            return await Structural.RelatedAsync(operation, source, target, recursion, intersection, cancellation).ConfigureAwait(false);
+        }
+        finally
+        {
+            TypeScript.Compiler.Diagnostics.CompilationCapture.Report(TypeScript.Compiler.Diagnostics.AllocationProbes.CheckerRelated, mark);
+            if (counted)
+                TypeScript.Compiler.Diagnostics.CompilationCapture.NoteRelationExit();
+        }
+    }
 
     private readonly Dictionary<(Symbol Source, Symbol Target), bool> enumRelations = [];
 

@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
+using TypeScript.Compiler.Diagnostics;
 
 namespace TypeScript.Compiler.Emission;
 
@@ -29,8 +30,21 @@ public abstract partial class SyntaxRewriter(EmitContext context, CancellationTo
         if (!RuntimeHelpers.TryEnsureSufficientExecutionStack())
             await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
         var depth = Context.EnvironmentDepth;
+        // Allocation attribution for the transform phase (diagnostics only): each visited node
+        // reports its own share, i.e. the subtree total minus what its children already claimed.
+        // This is the transform-side counterpart of the checker accounting and only runs while a
+        // capture is active, so the shipping path is untouched.
+        var capture = CompilationCapture.InTransformPhase ? CompilationCapture.Current : null;
+        long allocationMark = capture is not null ? GC.GetTotalAllocatedBytes() : 0;
+        if (capture is not null)
+            Context.PushTransformAllocationFrame();
         try { return await VisitNodeAsync(node).ConfigureAwait(false); }
         catch { Context.RestoreEnvironmentDepth(depth); throw; }
+        finally
+        {
+            if (capture is not null)
+                capture.NoteTransformKind((int)node.Kind, Context.PopTransformAllocationFrame(allocationMark));
+        }
     }
 
     protected virtual ValueTask<SyntaxNode?> VisitNodeAsync(SyntaxNode node) => VisitEachChildAsync(node);
