@@ -129,6 +129,20 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
     internal async ValueTask<Ternary> PropertiesAsync(RelationOperation operation, Type source, Type target, bool optionalsOnly,
         IntersectionState intersection, CancellationToken cancellation = default, IReadOnlySet<Utf8String>? excluded = null)
     {
+        Diagnostics.CompilationCapture.ProbeMark propertiesMark = Diagnostics.CompilationCapture.Mark();
+        try
+        {
+            return await PropertiesCoreAsync(operation, source, target, optionalsOnly, intersection, cancellation, excluded).ConfigureAwait(false);
+        }
+        finally
+        {
+            Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.RelationProperties, propertiesMark);
+        }
+    }
+
+    private async ValueTask<Ternary> PropertiesCoreAsync(RelationOperation operation, Type source, Type target, bool optionalsOnly,
+        IntersectionState intersection, CancellationToken cancellation, IReadOnlySet<Utf8String>? excluded)
+    {
         if (target is TypeReference { Target: TupleType targetTuple })
         {
             if (ArrayOrTuple(source))

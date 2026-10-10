@@ -715,14 +715,13 @@ public sealed partial class SyntaxPrinter
         pending.Push(new(NameScopeChange: 1));
     }
 
-    private void Emit(PropertyAssignmentNode property) =>
-        Push(
-            Modifiers(property),
-            N(property.Name),
-            N(property.PostfixToken),
-            Annotation(property.Type),
-            T(Utf8Literals.ColonSpace),
-            N(property.Initializer));
+    private void Emit(PropertyAssignmentNode property)
+    {
+        Push(N(property.Initializer));
+        Push(T(Utf8Literals.ColonSpace));
+        PushAnnotation(property.Type);
+        Push(Modifiers(property), N(property.Name), N(property.PostfixToken));
+    }
 
     private void Emit(ShorthandPropertyAssignmentNode shorthand) =>
         Push(
@@ -799,14 +798,12 @@ public sealed partial class SyntaxPrinter
             Scoped(Generate(constructor.Parameters), TypeArguments(constructor.TypeParameters), Parameters(constructor.Parameters),
                 Annotation(constructor.Type), Body(constructor.Body)));
 
-    private void Emit(ParameterDeclarationNode parameter) =>
-        Push(
-            Modifiers(parameter),
-            N(parameter.DotDotDotToken),
-            N(parameter.Name),
-            N(parameter.QuestionToken),
-            Annotation(parameter.Type),
-            Initializer(parameter.Initializer));
+    private void Emit(ParameterDeclarationNode parameter)
+    {
+        PushInitializer(parameter.Initializer);
+        PushAnnotation(parameter.Type);
+        Push(Modifiers(parameter), N(parameter.DotDotDotToken), N(parameter.Name), N(parameter.QuestionToken));
+    }
 
     private void Emit(PropertyDeclarationNode property) =>
         Push(
@@ -876,8 +873,12 @@ public sealed partial class SyntaxPrinter
         pending.Push(T(VariableKind(list.Flags)));
     }
 
-    private void Emit(VariableDeclarationNode variable) =>
-        Push(N(variable.Name), N(variable.ExclamationToken), Annotation(variable.Type), Initializer(variable.Initializer));
+    private void Emit(VariableDeclarationNode variable)
+    {
+        PushInitializer(variable.Initializer);
+        PushAnnotation(variable.Type);
+        Push(N(variable.Name), N(variable.ExclamationToken));
+    }
 
     private void Emit(BindingPatternNode pattern) =>
         Push(
@@ -1221,14 +1222,13 @@ public sealed partial class SyntaxPrinter
             T(Utf8Literals.ArrowSeparator),
             N(function.Type)));
 
-    private void Emit(PropertySignatureDeclarationNode property) =>
-        Push(
-            Modifiers(property),
-            N(property.Name),
-            N(property.PostfixToken),
-            Annotation(property.Type),
-            Initializer(property.Initializer),
-            Semicolon());
+    private void Emit(PropertySignatureDeclarationNode property)
+    {
+        Push(Semicolon());
+        PushInitializer(property.Initializer);
+        PushAnnotation(property.Type);
+        Push(Modifiers(property), N(property.Name), N(property.PostfixToken));
+    }
 
     private void Emit(MethodSignatureDeclarationNode method) =>
         Push(

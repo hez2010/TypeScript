@@ -28,11 +28,14 @@ public sealed record PrinterOptions
 public readonly record struct SourceMapPosition(Utf8String FileName, SourceText Source, int Position);
 
 /// <summary>Prints parsed and transformed trees without changing their parent or binding state.</summary>
-public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitContext? context = null)
+public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitContext? context = null, int pendingCapacity = 0)
 {
     private readonly PrinterOptions options = options ?? new();
     private readonly EmitContext context = context ?? new();
-    private readonly Stack<Part> pending = [];
+    // The work stack's backing array is the printer's largest single allocation on a large file: it
+    // grows by doubling, so a deep stack transiently allocates about twice its final size. Callers that
+    // know how many statements they are about to push pass a capacity so the array is sized once.
+    private readonly Stack<Part> pending = pendingCapacity > 0 ? new(pendingCapacity) : [];
     private readonly Stack<NodeState> states = [];
     // Node states are strictly stack-disciplined, so a popped state can be reused instead of
     // allocating one per visited node (measured: 100 MB of 960 MB on the large-file fixture).
@@ -710,6 +713,20 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
     }
     private static Part Annotation(SyntaxNode? type) => type is null ? default : S(T(Utf8Literals.ColonSpace), N(type));
     private static Part Initializer(SyntaxNode? value) => value is null ? default : S(T(Utf8Literals.AssignmentSeparator), N(value));
+    // Container-free counterparts of the two helpers above. The printer's work stack is
+    // last-in-first-out, so a caller pushes the trailing group first and the leading group last; the
+    // parts then pop in source order.
+    private void PushAnnotation(SyntaxNode? type)
+    {
+        if (type is not null)
+            Push(T(Utf8Literals.ColonSpace), N(type));
+    }
+
+    private void PushInitializer(SyntaxNode? value)
+    {
+        if (value is not null)
+            Push(T(Utf8Literals.AssignmentSeparator), N(value));
+    }
     private Part Parameters(NodeList? nodes) => List(nodes, Utf8Literals.OpenParen, Utf8Literals.CommaSpace, Utf8Literals.CloseParen, true);
     private Part TypeArguments(NodeList? nodes) => List(nodes, Utf8Literals.LessThan, Utf8Literals.CommaSpace, Utf8Literals.GreaterThan);
     private Part Braces(NodeList? nodes, Utf8String separator, bool spaceWhenEmpty = false) => nodes is { Count: > 0 }

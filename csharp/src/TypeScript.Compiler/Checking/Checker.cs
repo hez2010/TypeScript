@@ -377,7 +377,7 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
     public async ValueTask<IReadOnlyDictionary<Utf8String, Symbol>> MembersAsync(Symbol symbol, CancellationToken cancellation)
     {
         BeforeMemberTable?.Invoke(symbol);
-        long allocMark = TypeScript.Compiler.Diagnostics.CompilationCapture.Mark();
+        TypeScript.Compiler.Diagnostics.CompilationCapture.ProbeMark allocMark = TypeScript.Compiler.Diagnostics.CompilationCapture.Mark();
         try
         {
             return await LateMembers.TableAsync(symbol, cancellation: cancellation).ConfigureAwait(false);

@@ -59,6 +59,10 @@ internal sealed class RelationKeys(TypeContext context, TypeReferences reference
         context.RequireOwned(target);
         if (identity && source.Id > target.Id)
             (source, target) = (target, source);
+        // The plain two-type key is the common case, and a non-reference can never be generic, so the
+        // two probing calls are skipped outright instead of being awaited to return false.
+        if (source is not TypeReference && target is not TypeReference)
+            return (new(source, target, intersection), false);
         if (!await GenericAsync(source, cancellation).ConfigureAwait(false)
             || !await GenericAsync(target, cancellation).ConfigureAwait(false))
             return (new(source, target, intersection), false);

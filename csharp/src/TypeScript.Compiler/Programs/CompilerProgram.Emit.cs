@@ -165,7 +165,7 @@ public sealed partial class CompilerProgram
                             RemoveComments = options.RemoveComments == true, NewLine = NewLine,
                             NoEmitHelpers = options.NoEmitHelpers == true, TargetYear = options.EmitTargetYear,
                             InlineSources = options.InlineSources == true
-                        }, context);
+                        }, context, tree.Statements?.Count + 1024 ?? 0);
                         if (emitOptions.PipelineDeclarationTransform && emitOptions.Only == EmitOnly.All && paths.Declaration.Length != 0)
                             // Off the calling thread: PrintAsync prints synchronously before its first
                             // await, so without Task.Run the JavaScript print would finish before the

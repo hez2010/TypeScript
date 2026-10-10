@@ -14,15 +14,38 @@ internal sealed class TypePredicates(TypeContext context, TypeConstraints constr
     internal bool Maybe(Type type, TypeFlags flags, CancellationToken cancellation = default)
     {
         context.RequireOwned(type);
+        cancellation.ThrowIfCancellationRequested();
+        if ((type.Flags & flags) != 0)
+            return true;
+        if (type is not UnionOrIntersectionType composite)
+            return false;
+        // Union and intersection constituents are flattened when the composite is built, so a direct
+        // scan decides the common case without a work list. Nested composites, which the walk below
+        // would descend into, keep the explicit work list.
+        var constituents = composite.Types;
+        bool nested = false;
+        for (int i = 0; i < constituents.Count; i++)
+        {
+            cancellation.ThrowIfCancellationRequested();
+            var part = constituents[i];
+            if ((part.Flags & flags) != 0)
+                return true;
+            nested |= part is UnionOrIntersectionType;
+        }
+        return nested && Nested(composite, flags, cancellation);
+    }
+
+    private static bool Nested(UnionOrIntersectionType composite, TypeFlags flags, CancellationToken cancellation)
+    {
         var pending = new Stack<Type>();
-        pending.Push(type);
+        pending.Push(composite);
         while (pending.TryPop(out var current))
         {
             cancellation.ThrowIfCancellationRequested();
             if ((current.Flags & flags) != 0)
                 return true;
-            if (current is UnionOrIntersectionType composite)
-                foreach (var part in composite.Types)
+            if (current is UnionOrIntersectionType nested)
+                foreach (var part in nested.Types)
                     pending.Push(part);
         }
         return false;

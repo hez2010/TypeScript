@@ -187,6 +187,8 @@ internal sealed partial class Checker : IStructuralRelationHost, IObjectRelation
     public ValueTask<Ternary> DiscriminatedAsync(RelationOperation operation, Type source, UnionType target, CancellationToken cancellation)
             => Discriminants.RelatedAsync(operation, source, target, cancellation);
 
+    public Type? ResolvedSymbolType(Symbol symbol) => links.Values.TryGet(symbol)?.ResolvedType;
+
     public ValueTask<bool> ExcessPropertiesAsync(
         RelationOperation operation,
         Type source,

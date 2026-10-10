@@ -104,7 +104,7 @@ internal sealed class TypeNodes(TypeContext context, CheckerLinks links, Checker
         var data = links.TypeNodes.Get(node);
         if (data.ResolvedType is { } cached)
             return cached;
-        long allocMark = Diagnostics.CompilationCapture.Mark();
+        Diagnostics.CompilationCapture.ProbeMark allocMark = Diagnostics.CompilationCapture.Mark();
         try
         {
             return await WorkerCoreAsync(node, data, cancellation).ConfigureAwait(false);
@@ -164,7 +164,7 @@ internal sealed class TypeNodes(TypeContext context, CheckerLinks links, Checker
                     Alias(node), cancellation).ConfigureAwait(false);
                 break;
             case { Kind: K.TypeLiteral or K.FunctionType or K.ConstructorType }:
-                long literalMark = Diagnostics.CompilationCapture.Mark();
+                Diagnostics.CompilationCapture.ProbeMark literalMark = Diagnostics.CompilationCapture.Mark();
                 var alias = Alias(node);
                 var symbol = symbols.Binding(node)?.Get(node)?.Symbol;
                 if (symbol is null || (await host.MembersAsync(symbol, cancellation).ConfigureAwait(false)).Count == 0 && alias is null)

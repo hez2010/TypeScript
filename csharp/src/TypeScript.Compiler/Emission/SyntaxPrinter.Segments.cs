@@ -45,7 +45,8 @@ public sealed partial class SyntaxPrinter
         var segments = new EmitTextWriter[k];
         Parallel.For(0, k, new ParallelOptions { CancellationToken = cancellation, MaxDegreeOfParallelism = k }, i =>
         {
-            var member = new SyntaxPrinter(options, context);
+            // A range pushes three parts per statement at once, so the work stack can be sized for it.
+            var member = new SyntaxPrinter(options, context, ranges[i].Count * 3 + 64);
             var writer = new EmitTextWriter(options.NewLine);
             member.PrintStatementRange(tree, writer, ranges[i].Start, ranges[i].Count, cancellation);
             segments[i] = writer;

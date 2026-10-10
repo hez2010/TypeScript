@@ -66,7 +66,7 @@ internal sealed class VariableTypes(TypeContext context, TypeAlgebra algebra, Ty
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
             ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
         cancellation.ThrowIfCancellationRequested();
-        long allocMark = Diagnostics.CompilationCapture.Mark();
+        Diagnostics.CompilationCapture.ProbeMark allocMark = Diagnostics.CompilationCapture.Mark();
         try
         {
             return await DeclaredOrInferredCoreAsync(declaration, includeOptionality, mode, cancellation).ConfigureAwait(false);

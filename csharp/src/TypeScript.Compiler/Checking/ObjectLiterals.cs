@@ -49,7 +49,7 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
         CheckMode mode = 0,
         CancellationToken cancellation = default)
     {
-        long allocMark = Diagnostics.CompilationCapture.Mark();
+        Diagnostics.CompilationCapture.ProbeMark allocMark = Diagnostics.CompilationCapture.Mark();
         try
         {
             return await CheckCoreAsync(node, mode, cancellation).ConfigureAwait(false);
@@ -74,9 +74,13 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
         await GrammarAsync(node, destructuring, cancellation).ConfigureAwait(false);
         return await contexts.CachedAsync(node, async () =>
         {
-            var all = context.StrictNullChecks ? new Dictionary<Utf8String, Symbol>() : null;
+            // `all` answers spread-override questions and `ordered` feeds index signatures or the
+            // spread path; a literal with neither spread nor computed name never reads either one, so
+            // both stay unallocated for the common case.
+            Dictionary<Utf8String, Symbol>? all = null;
             var table = new Dictionary<Utf8String, Symbol>();
-            var ordered = new List<Symbol>();
+            bool needsOrdered = HasSpreadOrComputedName(node);
+            List<Symbol>? ordered = needsOrdered ? [] : null;
             Type spreadType = context.EmptyObjectType;
             var contextual = await contexts.ApparentAsync(node, cancellation: cancellation).ConfigureAwait(false);
             bool patternContext = contextual is not null && patterns.TryGetValue(contextual, out var pattern)
@@ -89,7 +93,7 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
             foreach (var declaration in node.Properties!)
                 if (declaration is INamedNode { Name: ComputedPropertyNameNode computed })
                     await ComputedAsync(computed, cancellation).ConfigureAwait(false);
-            long propertyMark = Diagnostics.CompilationCapture.Mark();
+            Diagnostics.CompilationCapture.ProbeMark propertyMark = Diagnostics.CompilationCapture.Mark();
             foreach (var declaration in node.Properties)
             {
                 cancellation.ThrowIfCancellationRequested();
@@ -98,9 +102,12 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
                     ? await ComputedAsync(computedName, cancellation).ConfigureAwait(false) : null;
                 if (declaration is PropertyAssignmentNode or ShorthandPropertyAssignmentNode or MethodDeclarationNode)
                 {
+                    Diagnostics.CompilationCapture.ProbeMark initMark = Diagnostics.CompilationCapture.Mark();
                     var type = declaration is MethodDeclarationNode method
                         ? await host.ObjectMethodAsync(method, mode, cancellation).ConfigureAwait(false)
                         : await PropertyAsync(declaration, destructuring, mode, cancellation).ConfigureAwait(false);
+                    Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.ObjectPropertyInit, initMark);
+                    Diagnostics.CompilationCapture.ProbeMark bookMark = Diagnostics.CompilationCapture.Mark();
                     flags |= type.ObjectFlags & ObjectFlags.PropagatingFlags;
                     var nameType = computed is not null && (computed.Flags & TypeFlags.StringOrNumberLiteralOrUnique) != 0
                         ? computed
@@ -142,10 +149,11 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
                         && declaration is PropertyAssignmentNode or MethodDeclarationNode && host.ContextSensitive(declaration))
                         contexts.InferenceFor(node)!.IntraExpressionSites.Add(
                             (declaration is PropertyAssignmentNode p ? p.Initializer! : declaration, type));
+                    Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.ObjectPropertyBook, bookMark);
                 }
                 else if (declaration is SpreadAssignmentNode spread)
                 {
-                    if (ordered.Count > 0)
+                    if (ordered is { Count: > 0 } orderedBeforeSpread)
                     {
                         spreadType = await spreads.GetAsync(
                             spreadType,
@@ -154,7 +162,7 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
                             flags,
                             isConst,
                             cancellation).ConfigureAwait(false);
-                        ordered.Clear();
+                        orderedBeforeSpread.Clear();
                         table = new(Utf8StringComparer.Ordinal);
                         stringKey = numberKey = symbolKey = false;
                     }
@@ -167,12 +175,21 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
                     if (await bindings.ValidSpreadAsync(type, cancellation).ConfigureAwait(false))
                     {
                         type = await spreads.MergeEmptyAsync(type, isConst, cancellation).ConfigureAwait(false);
-                        if (all is not null)
+                        if (context.StrictNullChecks)
+                        {
+                            // First spread: the override check needs the properties collected so far,
+                            // so `all` is materialized from `ordered` at exactly this point.
+                            if (all is null)
+                            {
+                                all = new(Utf8StringComparer.Ordinal);
+                                foreach (var property in ordered!) all[property.Name] = property;
+                            }
                             foreach (var right in await properties.GetAsync(type, cancellation).ConfigureAwait(false))
                                 if ((right.Flags & SymbolFlags.Optional) == 0 && (right.CheckFlags & CheckFlags.Partial) == 0
                                     && all.TryGetValue(right.Name, out var left))
                                     host.SpreadOverride(left.ValueDeclaration!, left, spread);
-                        offset = ordered.Count;
+                        }
+                        offset = ordered?.Count ?? 0;
                         if (spreadType != context.ErrorType && !((spreadType.Flags & TypeFlags.Any) != 0 && spreadType.Alias is not null))
                             spreadType = await spreads.GetAsync(
                                 spreadType,
@@ -220,14 +237,14 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
                 }
                 else
                     table[member!.Name] = member;
-                ordered.Add(member!);
+                ordered?.Add(member!);
             }
             Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.ObjectProperty, propertyMark);
             if (spreadType == context.ErrorType || (spreadType.Flags & TypeFlags.Any) != 0 && spreadType.Alias is not null)
                 return context.ErrorType;
             if (spreadType != context.EmptyObjectType)
             {
-                if (ordered.Count > 0)
+                if (ordered is { Count: > 0 } orderedBeforeSpread)
                 {
                     spreadType = await spreads.GetAsync(
                         spreadType,
@@ -236,7 +253,7 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
                         flags,
                         isConst,
                         cancellation).ConfigureAwait(false);
-                    ordered.Clear();
+                    orderedBeforeSpread.Clear();
                     table = new(Utf8StringComparer.Ordinal);
                     stringKey = numberKey = false;
                 }
@@ -249,13 +266,14 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
             {
                 var indexes = new List<IndexInfo>();
                 bool readOnly = await contexts.ConstAsync(node, cancellation).ConfigureAwait(false);
+                IReadOnlyList<Symbol> orderedSymbols = ordered ?? [];
                 if (stringKey)
-                    indexes.Add(await IndexAsync(context.StringType, ordered.Skip(offset), readOnly, cancellation).ConfigureAwait(false));
+                    indexes.Add(await IndexAsync(context.StringType, orderedSymbols.Skip(offset), readOnly, cancellation).ConfigureAwait(false));
                 if (numberKey)
-                    indexes.Add(await IndexAsync(context.NumberType, ordered.Skip(offset), readOnly, cancellation).ConfigureAwait(false));
+                    indexes.Add(await IndexAsync(context.NumberType, orderedSymbols.Skip(offset), readOnly, cancellation).ConfigureAwait(false));
                 if (symbolKey)
-                    indexes.Add(await IndexAsync(context.ESSymbolType, ordered.Skip(offset), readOnly, cancellation).ConfigureAwait(false));
-                long typeMark = Diagnostics.CompilationCapture.Mark();
+                    indexes.Add(await IndexAsync(context.ESSymbolType, orderedSymbols.Skip(offset), readOnly, cancellation).ConfigureAwait(false));
+                Diagnostics.CompilationCapture.ProbeMark typeMark = Diagnostics.CompilationCapture.Mark();
                 var result = await spreads.ObjectAsync(
                     symbol,
                     table,
@@ -363,7 +381,7 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
             return type;
         if (regular.TryGetValue(type, out var cached))
             return cached;
-        long regularMark = Diagnostics.CompilationCapture.Mark();
+        Diagnostics.CompilationCapture.ProbeMark regularMark = Diagnostics.CompilationCapture.Mark();
         try
         {
             return await RegularCoreAsync(type, cancellation).ConfigureAwait(false);
@@ -496,11 +514,21 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
         }
     }
 
+    /// <summary>True when the literal needs its members in source order (spread or computed name).</summary>
+    private static bool HasSpreadOrComputedName(ObjectLiteralExpressionNode node)
+    {
+        if (node.Properties is not { } properties)
+            return false;
+        foreach (var property in properties)
+            if (property is SpreadAssignmentNode || property is INamedNode { Name: ComputedPropertyNameNode })
+                return true;
+        return false;
+    }
+
     private static bool JsLiteral(SyntaxNode node) =>
         (node.Flags & NodeFlags.JavaScriptFile) != 0 && SemanticSyntax.Source(node)?.ScriptKind != ScriptKind.JSON;
 
-    internal static bool DefaultValue(SyntaxNode node) => node switch
-    {
+    internal static bool DefaultValue(SyntaxNode node) => node switch    {
         BindingElementNode element => element.Initializer is not null,
         PropertyAssignmentNode property => DefaultValue(property.Initializer!),
         ShorthandPropertyAssignmentNode property => property.ObjectAssignmentInitializer is not null,

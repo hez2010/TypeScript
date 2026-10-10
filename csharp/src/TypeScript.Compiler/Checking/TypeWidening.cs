@@ -58,7 +58,7 @@ internal sealed class TypeWidening(TypeContext context, TypeAlgebra algebra, Typ
             return type;
         if (widening is null && widened.TryGetValue(type, out var cached))
             return cached;
-        long allocMark = Diagnostics.CompilationCapture.Mark();
+        Diagnostics.CompilationCapture.ProbeMark allocMark = Diagnostics.CompilationCapture.Mark();
         try
         {
             return await WidenCoreAsync(type, widening, cancellation).ConfigureAwait(false);
@@ -120,7 +120,7 @@ internal sealed class TypeWidening(TypeContext context, TypeAlgebra algebra, Typ
     {
         if (widening?.Types.TryGetValue(type, out var cached) == true)
             return cached;
-        long allocMark = Diagnostics.CompilationCapture.Mark();
+        Diagnostics.CompilationCapture.ProbeMark allocMark = Diagnostics.CompilationCapture.Mark();
         try
         {
             return await ObjectCoreAsync(type, widening, cancellation).ConfigureAwait(false);

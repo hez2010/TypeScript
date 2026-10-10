@@ -88,11 +88,18 @@ public sealed partial class EmitContext
 public sealed class NameGenerator(EmitContext context, Func<Utf8String, bool, bool>? isFileLevelUnique = null, Func<SyntaxNode, Utf8String>? getText = null)
 {
     private const uint LoopFlag = 0x10000000;
+    // Scopes are opened for every name scope in the emitted tree, but only scopes that actually
+    // generate a name ever need their collections. Allocating them lazily keeps tens of thousands of
+    // empty dictionaries and sets out of the emit path.
     private sealed class Scope(Scope? parent)
     {
         internal readonly Scope? Parent = parent;
-        internal readonly Dictionary<Utf8String, uint> Counters = [];
-        internal readonly HashSet<Utf8String> Reserved = [];
+        private Dictionary<Utf8String, uint>? counters;
+        private HashSet<Utf8String>? reserved;
+        internal Dictionary<Utf8String, uint> Counters => counters ??= [];
+        internal HashSet<Utf8String> Reserved => reserved ??= [];
+        /// <summary>Reserved names without forcing the set to exist; null means "nothing reserved".</summary>
+        internal HashSet<Utf8String>? ReservedOrNull => reserved;
     }
     private Scope? scope, privateScope;
     private readonly HashSet<Utf8String> generated = [];
@@ -313,7 +320,7 @@ public sealed class NameGenerator(EmitContext context, Func<Utf8String, bool, bo
         if (generated.Contains(name))
             return false;
         for (var current = privateName ? privateScope : scope; current is not null; current = current.Parent)
-            if (current.Reserved.Contains(name))
+            if (current.ReservedOrNull is { Count: > 0 } names && names.Contains(name))
                 return false;
         return true;
     }

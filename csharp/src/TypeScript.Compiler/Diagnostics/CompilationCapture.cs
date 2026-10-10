@@ -37,12 +37,15 @@ internal sealed class CompilationCapture : IAsyncDisposable
     }
 
     private readonly long[] probeAllocations = new long[AllocationProbes.Count];
+    private readonly long[] probeDurations = new long[AllocationProbes.Count];
     private long commentAdds, commentSets, nodeDataCalls, linkCreates;
 
-    private void NoteProbe(int id, long bytes)
+    private void NoteProbe(int id, long bytes, long ticks)
     {
-        if (bytes > 0 && (uint)id < (uint)probeAllocations.Length)
-            Interlocked.Add(ref probeAllocations[id], bytes);
+        if ((uint)id >= (uint)probeAllocations.Length)
+            return;
+        if (bytes > 0) Interlocked.Add(ref probeAllocations[id], bytes);
+        if (ticks > 0) Interlocked.Add(ref probeDurations[id], ticks);
     }
 
     internal void NoteCommentAdd() => Interlocked.Increment(ref commentAdds);
@@ -60,19 +63,28 @@ internal sealed class CompilationCapture : IAsyncDisposable
     internal static bool ProbesEnabled => Volatile.Read(ref activeCaptures) != 0;
 
     /// <summary>
-    /// Allocation mark for an inclusive probe frame; 0 when no probe run is active. Uses the
-    /// per-thread counter: probes are collected only for diagnostic runs, but they still fire on hot
-    /// paths, and the per-thread read is what keeps that affordable. Attribution is also more exact
-    /// than the process-wide counter when several checkers run in parallel.
+    /// Start of an inclusive probe frame. Uses the per-thread allocation counter and the timestamp
+    /// clock: probes are collected only for diagnostic runs, but they still fire on hot paths, and
+    /// these two reads are what keep that affordable. Per-thread allocation attribution is also more
+    /// exact than the process-wide counter when several checkers run in parallel.
     /// </summary>
-    internal static long Mark() => ProbesEnabled ? GC.GetAllocatedBytesForCurrentThread() : 0;
+    internal static ProbeMark Mark() => ProbesEnabled
+        ? new ProbeMark(GC.GetAllocatedBytesForCurrentThread(), Stopwatch.GetTimestamp())
+        : default;
 
-    /// <summary>Reports the allocation performed since <paramref name="mark"/>; no-op without a capture.</summary>
-    internal static void Report(int id, long mark)
+    /// <summary>Reports what happened since <paramref name="mark"/>; no-op without a capture.</summary>
+    internal static void Report(int id, ProbeMark mark)
     {
-        if (mark == 0 || Current is not { } capture)
+        if (mark.Allocated == 0 || Current is not { } capture)
             return;
-        capture.NoteProbe(id, GC.GetAllocatedBytesForCurrentThread() - mark);
+        capture.NoteProbe(id, GC.GetAllocatedBytesForCurrentThread() - mark.Allocated, Stopwatch.GetTimestamp() - mark.Started);
+    }
+
+    /// <summary>Inclusive allocation and time captured at the start of a probe frame.</summary>
+    internal readonly struct ProbeMark(long allocated, long started)
+    {
+        internal readonly long Allocated = allocated;
+        internal readonly long Started = started;
     }
     private readonly long started = Stopwatch.GetTimestamp();
     private readonly long allocated = GC.GetTotalAllocatedBytes();
@@ -191,6 +203,7 @@ internal sealed class CompilationCapture : IAsyncDisposable
                 name => name,
                 name => durations.GetValueOrDefault(Utf8String.FromString(name)) / (double)Stopwatch.Frequency),
             ProbeAllocations = (long[])probeAllocations.Clone(),
+            ProbeDurations = (long[])probeDurations.Clone(),
             CommentAdds = Volatile.Read(ref commentAdds), CommentSets = Volatile.Read(ref commentSets),
             NodeDataCalls = Volatile.Read(ref nodeDataCalls), LinkCreates = Volatile.Read(ref linkCreates),
         };

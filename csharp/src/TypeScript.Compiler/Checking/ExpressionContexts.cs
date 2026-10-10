@@ -430,13 +430,18 @@ internal sealed class ExpressionContexts(TypeContext context, TypeAlgebra algebr
 
     internal async ValueTask<bool> ConstAsync(SyntaxNode node, CancellationToken cancellation = default)
     {
+        // The middle branch below resolves the contextual type and then runs const-parameter
+        // inference on it. That query is skipped when it provably cannot find a const type parameter:
+        // see TypeParameterQueryPossible.
+        bool typeParameterPossible = TypeParameterQueryPossible(node);
         while (true)
         {
             cancellation.ThrowIfCancellationRequested();
             var parent = node.Parent;
             if (parent is not null && SemanticSyntax.ConstAssertion(parent) || host.InlineImportAttributes(node))
                 return true;
-            if (await host.ConstArgumentAsync(node, cancellation).ConfigureAwait(false)
+            if (typeParameterPossible
+                && await host.ConstArgumentAsync(node, cancellation).ConfigureAwait(false)
                 && await GetAsync(node, cancellation: cancellation).ConfigureAwait(false) is { } type
                 && await inference.ConstVariableAsync(type, cancellation).ConfigureAwait(false))
                 return true;
@@ -449,19 +454,69 @@ internal sealed class ExpressionContexts(TypeContext context, TypeAlgebra algebr
         }
     }
 
+    /// <summary>
+    /// True when resolving the contextual type of <paramref name="node"/> can plausibly yield a type
+    /// that is or contains a const type parameter, which is the only case the const-variable branch
+    /// of <see cref="ConstAsync"/> can act on. Two ways in: a type parameter declared by an enclosing
+    /// signature, class, interface, alias, mapped type, conditional type or infer clause, or a
+    /// contextual type supplied by a callee signature, which is reachable from argument, decorator,
+    /// tagged-template and JSX positions. Both walks are pure type tests over the ancestors; anything
+    /// not covered here keeps the query, so the shortcut only removes work it can prove irrelevant.
+    /// </summary>
+    private static bool TypeParameterQueryPossible(SyntaxNode node)
+    {
+        for (var current = node; current is not null; current = current.Parent)
+            switch (current)
+            {
+                case IFunctionSignature { TypeParameters: { Count: > 0 } }:
+                case ClassDeclarationNode { TypeParameters: { Count: > 0 } }:
+                case ClassExpressionNode { TypeParameters: { Count: > 0 } }:
+                case InterfaceDeclarationNode { TypeParameters: { Count: > 0 } }:
+                case TypeAliasDeclarationNode { TypeParameters: { Count: > 0 } }:
+                case MappedTypeNode or ConditionalTypeNode or InferTypeNode:
+                case CallExpressionNode or NewExpressionNode or TaggedTemplateExpressionNode or DecoratorNode:
+                case JsxOpeningElementNode or JsxSelfClosingElementNode or JsxAttributeNode or JsxSpreadAttributeNode:
+                    return true;
+            }
+        return false;
+    }
+
     internal async ValueTask<Type> MutableAsync(SyntaxNode node, CheckMode mode, CancellationToken cancellation = default)
     {
-        var type = await host.CheckExpressionAsync(node, mode, cancellation).ConfigureAwait(false);
-        if (await ConstAsync(node, cancellation).ConfigureAwait(false))
-            return await algebra.RegularTypeAsync(type, cancellation).ConfigureAwait(false);
-        if (node is AsExpressionNode or TypeAssertionNode)
-            return type;
-        var contextual = await InstantiateAsync(
-            await GetAsync(node, cancellation: cancellation).ConfigureAwait(false),
-            node,
-            0,
-            cancellation).ConfigureAwait(false);
-        return await WidenLiteralAsync(type, contextual, cancellation).ConfigureAwait(false);
+        Diagnostics.CompilationCapture.ProbeMark mutableMark = Diagnostics.CompilationCapture.Mark();
+        try
+        {
+            Diagnostics.CompilationCapture.ProbeMark checkMark = Diagnostics.CompilationCapture.Mark();
+            var type = await host.CheckExpressionAsync(node, mode, cancellation).ConfigureAwait(false);
+            Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.ObjectCheckExpr, checkMark);
+            Diagnostics.CompilationCapture.ProbeMark constMark = Diagnostics.CompilationCapture.Mark();
+            bool constant = await ConstAsync(node, cancellation).ConfigureAwait(false);
+            Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.MutableConst, constMark);
+            if (constant)
+                return await algebra.RegularTypeAsync(type, cancellation).ConfigureAwait(false);
+            if (node is AsExpressionNode or TypeAssertionNode)
+                return type;
+            Diagnostics.CompilationCapture.ProbeMark contextualMark = Diagnostics.CompilationCapture.Mark();
+            var contextual = await InstantiateAsync(
+                await GetAsync(node, cancellation: cancellation).ConfigureAwait(false),
+                node,
+                0,
+                cancellation).ConfigureAwait(false);
+            Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.MutableContextual, contextualMark);
+            Diagnostics.CompilationCapture.ProbeMark widenMark = Diagnostics.CompilationCapture.Mark();
+            try
+            {
+                return await WidenLiteralAsync(type, contextual, cancellation).ConfigureAwait(false);
+            }
+            finally
+            {
+                Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.MutableWiden, widenMark);
+            }
+        }
+        finally
+        {
+            Diagnostics.CompilationCapture.Report(Diagnostics.AllocationProbes.ObjectMutable, mutableMark);
+        }
     }
 
     internal async ValueTask<Type> WidenLiteralAsync(Type type, Type? contextual, CancellationToken cancellation = default)

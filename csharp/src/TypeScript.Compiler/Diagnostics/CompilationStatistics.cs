@@ -37,6 +37,7 @@ internal sealed record CompilationStatistics
     internal long[] CheckKindAllocations { get; init; } = [];
     internal long[] TransformKindAllocations { get; init; } = [];
     internal long[] ProbeAllocations { get; init; } = [];
+    internal long[] ProbeDurations { get; init; } = [];
     internal long CommentAdds { get; init; }
     internal long CommentSets { get; init; }
     internal long NodeDataCalls { get; init; }
@@ -86,7 +87,19 @@ internal sealed record CompilationStatistics
                 string name = (uint)id < AllocationProbes.Names.Length
                     ? AllocationProbes.Names[id] : id.ToString(CultureInfo.InvariantCulture);
                 Count("Probe alloc " + name, bytes);
-            }        }
+            }
+        }
+        if (ProbeDurations.Length != 0)
+        {
+            var top = ProbeDurations.Select((ticks, id) => (ticks, id)).Where(entry => entry.ticks > 0)
+                .OrderByDescending(entry => entry.ticks).Take(16);
+            foreach (var (ticks, id) in top)
+            {
+                string name = (uint)id < AllocationProbes.Names.Length
+                    ? AllocationProbes.Names[id] : id.ToString(CultureInfo.InvariantCulture);
+                Time("Probe time " + name, ticks / (double)System.Diagnostics.Stopwatch.Frequency);
+            }
+        }
         if (NodeDataCalls != 0)
         {
             Count("EmitContext.NodeData calls", NodeDataCalls);

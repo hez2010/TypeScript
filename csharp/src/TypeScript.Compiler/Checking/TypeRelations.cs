@@ -107,7 +107,7 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
         cancellation.ThrowIfCancellationRequested();
         context.RequireOwned(source);
         context.RequireOwned(target);
-        long allocMark = Diagnostics.CompilationCapture.Mark();
+        Diagnostics.CompilationCapture.ProbeMark allocMark = Diagnostics.CompilationCapture.Mark();
         try
         {
             return await RelatedCoreAsync(source, target, kind, cancellation).ConfigureAwait(false);
@@ -379,7 +379,7 @@ internal sealed class RelationOperation(
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
             ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
         cancellation.ThrowIfCancellationRequested();
-        long allocMark = Diagnostics.CompilationCapture.Mark();
+        Diagnostics.CompilationCapture.ProbeMark allocMark = Diagnostics.CompilationCapture.Mark();
         try
         {
             return await CompareCoreInnerAsync(source, target, recursion, intersection, cancellation).ConfigureAwait(false);

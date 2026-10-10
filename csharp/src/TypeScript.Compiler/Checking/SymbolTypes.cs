@@ -38,7 +38,7 @@ internal sealed class SymbolTypes(TypeContext context, CheckerLinks links, Check
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
             ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
         cancellation.ThrowIfCancellationRequested();
-        long symbolMark = Diagnostics.CompilationCapture.Mark();
+        Diagnostics.CompilationCapture.ProbeMark symbolMark = Diagnostics.CompilationCapture.Mark();
         try
         {
             return await GetCoreAsync(symbol, cancellation).ConfigureAwait(false);

@@ -6,6 +6,12 @@ namespace TypeScript.Compiler.Checking;
 
 internal interface IStructuralRelationHost
 {
+    /// <summary>
+    /// The property symbol's already resolved type, or null when it has not been resolved yet. Used by
+    /// the identical-shape fast path, which must not force any resolution of its own.
+    /// </summary>
+    Type? ResolvedSymbolType(Symbol symbol);
+
     ValueTask<Ternary?> GenericTupleRelationAsync(RelationOperation operation, Type source, Type target, CancellationToken cancellation);
 
     Type GlobalObject { get; }
@@ -82,6 +88,12 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
             return Ternary.True;
         if (((source.Flags | target.Flags) & TypeFlags.StructuredOrInstantiable) == 0)
             return Ternary.False;
+        // Identical shapes are the common case in structural checking (a fresh object literal against
+        // the declared object type it is checked against), and the full algorithm would only rediscover
+        // that every property matches. When both member tables are already resolved and agree exactly,
+        // the answer is True without entering the session, the variance pass or the property walk.
+        if (operation.Kind is RelationKind.Assignable or RelationKind.Comparable && IdenticalShape(source, target))
+            return Ternary.True;
         if ((intersection & IntersectionState.Target) == 0
             && (source.ObjectFlags & (ObjectFlags.ObjectLiteral | ObjectFlags.FreshLiteral)) == (ObjectFlags.ObjectLiteral | ObjectFlags.FreshLiteral)
             && await host.ExcessPropertiesAsync(operation, source, target, intersection, cancellation).ConfigureAwait(false))
@@ -200,6 +212,52 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
         if (await VarianceAsync(operation, source, target, intersection, previousExplanation, cancellation).ConfigureAwait(false) is { } variance)
             return variance;
         return await AfterVarianceAsync(operation, source, target, intersection, previousExplanation, cancellation).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// True when two anonymous object types have the same properties: equal counts, every source
+    /// property present in the target with a reference-identical resolved type and the same
+    /// optionality, and no index, call or construct signatures on either side. Under those conditions
+    /// every check the full algorithm would run (property relation, excess properties, index
+    /// signatures, call signatures, weak-type) succeeds, so the comparison is True.
+    /// Only resolved member tables are consulted, so nothing is forced into resolution here.
+    /// </summary>
+    private bool IdenticalShape(Type source, Type target)
+    {
+        if (source is not ObjectType sourceObject || target is not ObjectType targetObject)
+            return false;
+        if (source is TypeReference || target is TypeReference)
+            return false;
+        const ObjectFlags unsupported = ObjectFlags.JsxAttributes | ObjectFlags.Mapped | ObjectFlags.Reference | ObjectFlags.Tuple;
+        if (((sourceObject.ObjectFlags | targetObject.ObjectFlags) & unsupported) != 0)
+            return false;
+        if ((sourceObject.ObjectFlags & ObjectFlags.MembersResolved) == 0 || (targetObject.ObjectFlags & ObjectFlags.MembersResolved) == 0)
+            return false;
+        if (sourceObject.Properties is not { Count: > 0 } sourceProperties || targetObject.Properties is not { Count: > 0 } targetProperties
+            || sourceProperties.Count != targetProperties.Count)
+            return false;
+        if (sourceObject.IndexInfos.Count != 0 || sourceObject.CallSignatures.Count != 0 || sourceObject.ConstructSignatures.Count != 0
+            || targetObject.IndexInfos.Count != 0 || targetObject.CallSignatures.Count != 0 || targetObject.ConstructSignatures.Count != 0)
+            return false;
+        foreach (var property in sourceProperties)
+        {
+            Symbol? match = null;
+            foreach (var candidate in targetProperties)
+                if (candidate.Name == property.Name)
+                {
+                    match = candidate;
+                    break;
+                }
+            if (match is null)
+                return false;
+            if ((match.Flags & SymbolFlags.Optional) != (property.Flags & SymbolFlags.Optional)
+                || (match.CheckFlags & CheckFlags.Partial) != (property.CheckFlags & CheckFlags.Partial))
+                return false;
+            if (host.ResolvedSymbolType(property) is not { } sourceType || host.ResolvedSymbolType(match) is not { } targetType
+                || !ReferenceEquals(sourceType, targetType))
+                return false;
+        }
+        return true;
     }
 
     private static bool HasNonInferrableOrTarget(IntersectionType source, Type target)

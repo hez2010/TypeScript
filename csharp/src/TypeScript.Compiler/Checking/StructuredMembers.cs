@@ -64,7 +64,7 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
         var oldConstructors = type.ConstructSignatures;
         var oldIndexes = type.IndexInfos;
         var oldFlags = type.ObjectFlags & (O.MembersResolved | O.UnresolvedMembers);
-        long allocMark = Diagnostics.CompilationCapture.Mark();
+        Diagnostics.CompilationCapture.ProbeMark allocMark = Diagnostics.CompilationCapture.Mark();
         try
         {
             switch (type)
@@ -311,7 +311,7 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
         IReadOnlyList<Signature> constructors, IReadOnlyList<IndexInfo> indexes, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
-        long allocMark = Diagnostics.CompilationCapture.Mark();
+        Diagnostics.CompilationCapture.ProbeMark allocMark = Diagnostics.CompilationCapture.Mark();
         try
         {
             await SetCoreAsync(type, members, calls, constructors, indexes, cancellation).ConfigureAwait(false);
