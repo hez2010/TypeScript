@@ -11,6 +11,23 @@ public sealed partial class CompilerProgram
 {
     private sealed partial class FileEmitter
     {
+        /// <summary>
+        /// Upper bound on print segments per file. Defaults to an eighth of the machine (capped at 8,
+        /// the printer's own limit): the emit pipeline already overlaps the two passes, and more
+        /// concurrent printers only add GC contention. TSHARP_EMIT_SEGMENTS overrides it for
+        /// measurement (0 disables segmented printing, N sets the cap).
+        /// </summary>
+        private static readonly int EmitSegments = ConfiguredSegments();
+
+        private static int ConfiguredSegments()
+        {
+            string? configured = Environment.GetEnvironmentVariable("TSHARP_EMIT_SEGMENTS");
+            if (string.IsNullOrEmpty(configured))
+                return Math.Clamp(Environment.ProcessorCount / 8, 2, 8);
+            if (!int.TryParse(configured, out int value) || value < 0) return 2;
+            return value == 0 ? 1 : Math.Min(value, 64);
+        }
+
         private async ValueTask PrintAsync(SourceFileNode tree, SyntaxPrinter printer, Utf8String outputPath, Utf8String mapPath, bool sourceMap, bool inline)
         {
             SourceMapGenerator? generator = (sourceMap || inline) && source.ScriptKind != ScriptKind.JSON
@@ -18,7 +35,11 @@ public sealed partial class CompilerProgram
                     ? CompilerPath.EnsureTrailingSeparator(CompilerPath.NormalizeSlashes(root)) : Utf8String.Empty,
                     MapDirectory(outputPath), program.UseCaseSensitiveFileNames, program.CurrentDirectory) : null;
             var writer = new EmitTextWriter(NewLine);
-            printer.Write(tree, tree, writer, generator, cancellation);
+            // A single large file has no file-level parallelism to fall back on, so its statements
+            // are printed as independent ranges instead. Everything the split cannot preserve
+            // (source maps, comments, helpers, generated names) makes the printer decline.
+            if (!printer.TryWriteSegmented(tree, writer, generator, EmitSegments, cancellation))
+                printer.Write(tree, tree, writer, generator, cancellation);
             int mapPosition = -1;
             if (generator is not null)
             {

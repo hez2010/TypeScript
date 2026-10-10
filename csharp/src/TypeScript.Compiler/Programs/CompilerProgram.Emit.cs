@@ -119,6 +119,9 @@ public sealed partial class CompilerProgram
         private bool skipped;
         private Utf8String NewLine => options.NewLine == NewLineKind.CRLF ? "\r\n"u8 : "\n"u8;
 
+        /// <summary>Statement count from which overlapping the two transforms pays for the thread hand-off.</summary>
+        private const int ParallelTransformMinStatements = 512;
+
         internal async ValueTask<EmitResult> EmitAsync(EmitOutputPaths paths)
         {
             // The JavaScript and declaration outputs of one file are independent: separate trees,
@@ -127,12 +130,30 @@ public sealed partial class CompilerProgram
             // share is the checker, so instead of running both passes at once we overlap the part
             // that never touches it: the JavaScript print runs while the declaration transform
             // borrows the checker, and the declaration print follows once the checker is free.
+            // When the JavaScript transform itself never calls the checker, the declaration
+            // transform starts first and overlaps that transform too.
             Task? javascriptPrint = null;
+            Task<DeclarationPass>? declaration = null;
             try
             {
-                if (emitOptions.Only is EmitOnly.All or EmitOnly.JavaScript && paths.JavaScript.Length != 0)
+                bool wantJavaScript = emitOptions.Only is EmitOnly.All or EmitOnly.JavaScript && paths.JavaScript.Length != 0;
+                bool wantDeclaration = emitOptions.Only != EmitOnly.JavaScript && paths.Declaration.Length != 0;
+                bool javascriptBlocked = wantJavaScript && !emitOptions.Force
+                    && (options.NoEmit == true || program.IsEmitBlocked(paths.JavaScript));
+                // Starting the second transform on a worker costs a thread hand-off and, for small
+                // files, buys nothing: the two transforms together finish faster than the hand-off.
+                if (wantJavaScript && !javascriptBlocked && wantDeclaration && emitOptions.PipelineDeclarationTransform
+                    && !emitOptions.Force && source.Statements is { Count: >= ParallelTransformMinStatements }
+                    && ScriptTransformer.IsCheckerFree(source, options))
                 {
-                    if (!emitOptions.Force && (options.NoEmit == true || program.IsEmitBlocked(paths.JavaScript))) skipped = true;
+                    // Prime the program's per-file caches on this thread before either transform reads
+                    // them concurrently.
+                    program.EmitModuleFormat(source);
+                    declaration = Task.Run(() => DeclarationPassAsync(paths), cancellation);
+                }
+                if (wantJavaScript)
+                {
+                    if (javascriptBlocked) skipped = true;
                     else
                     {
                         var context = new EmitContext();
@@ -155,24 +176,19 @@ public sealed partial class CompilerProgram
                                 await PrintAsync(tree, printer, paths.JavaScript, paths.SourceMap, options.SourceMap == true, options.InlineSourceMap == true);
                     }
                 }
-                if (emitOptions.Only != EmitOnly.JavaScript && paths.Declaration.Length != 0)
+                if (wantDeclaration)
                 {
-                    var context = new EmitContext();
-                    var transform = new DeclarationTransformer(context, checker, options, cancellation, paths.Declaration);
-                    SourceFileNode declarationTree;
-                    using (CompilationCapture.Measure("transform"u8))
-                        declarationTree = (SourceFileNode)(await transform.VisitAsync(source))!;
-                    var tree = declarationTree;
-                    AddSupplementalReferences(tree, paths.Declaration);
-                    bool signature = emitOptions.Only == EmitOnly.BuilderSignature;
-                    bool declarationDiagnostics = transform.Diagnostics.Count != 0;
-                    bool skipDeclaration = !emitOptions.Force && !signature
-                        && (options.NoEmit == true || program.IsEmitBlocked(paths.Declaration) || declarationDiagnostics);
+                    var pass = declaration is null
+                        ? await DeclarationPassAsync(paths).ConfigureAwait(false)
+                        : await declaration.ConfigureAwait(false);
+                    var tree = pass.Tree;
+                    bool signature = pass.Signature;
+                    bool skipDeclaration = pass.Skip;
                     if (skipDeclaration) skipped = true;
                     // Deferred until the JavaScript print has finished so neither pass mutates the
                     // shared diagnostic list while the other reads it.
                     if (javascriptPrint is not null) await javascriptPrint.ConfigureAwait(false);
-                    diagnostics.AddRange(transform.Diagnostics);
+                    diagnostics.AddRange(pass.Diagnostics);
                     if (!skipDeclaration)
                     {
                         var mapping = program.GetFile(source.FileName)?.Mapping;
@@ -185,7 +201,7 @@ public sealed partial class CompilerProgram
                             MapSourcePosition = mapping is null ? null : (file, position) => file.FileName != source.FileName
                                 ? new(file.FileName, file.Source, position) : mapping.Map.TryMapExactPosition(position, out int original)
                                     ? new(originalName, mapping.Original, original) : null
-                        }, context);
+                        }, pass.Context);
                         using (CompilationCapture.Measure("print"u8))
                             await PrintAsync(tree, printer, paths.Declaration, paths.DeclarationMap, !signature && options.DeclarationMap == true, false);
                     }
@@ -198,6 +214,24 @@ public sealed partial class CompilerProgram
                     await javascriptPrint.ConfigureAwait(false);
             }
             return new(skipped, DiagnosticCollection.SortAndDeduplicate(diagnostics), emitted.ToArray(), maps.ToArray());
+        }
+
+        private sealed record DeclarationPass(SourceFileNode Tree, EmitContext Context, IReadOnlyList<Diagnostic> Diagnostics,
+            bool Skip, bool Signature);
+
+        private async Task<DeclarationPass> DeclarationPassAsync(EmitOutputPaths paths)
+        {
+            var context = new EmitContext();
+            var transform = new DeclarationTransformer(context, checker, options, cancellation, paths.Declaration);
+            SourceFileNode tree;
+            using (CompilationCapture.Measure("transform"u8))
+                tree = (SourceFileNode)(await transform.VisitAsync(source))!;
+            AddSupplementalReferences(tree, paths.Declaration);
+            bool signature = emitOptions.Only == EmitOnly.BuilderSignature;
+            bool declarationDiagnostics = transform.Diagnostics.Count != 0;
+            bool skip = !emitOptions.Force && !signature
+                && (options.NoEmit == true || program.IsEmitBlocked(paths.Declaration) || declarationDiagnostics);
+            return new(tree, context, transform.Diagnostics, skip, signature);
         }
 
         private async Task PrintJavaScriptAsync(SourceFileNode tree, SyntaxPrinter printer, EmitOutputPaths paths)

@@ -167,6 +167,23 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
     {
         ArgumentNullException.ThrowIfNull(node);
         ArgumentNullException.ThrowIfNull(output);
+        BeginWrite(node, source, output, map, cancellation);
+        pending.Push(N(node));
+        try
+        {
+            InitializeNames();
+            DrainPending();
+        }
+        finally
+        {
+            EndWrite();
+        }
+    }
+
+    /// <summary>Per-run printer state (writer, root file, scanner, flags). Shared by the serial and segmented paths.</summary>
+    private void BeginWrite(SyntaxNode node, SourceFileNode? source, EmitTextWriter output, SourceMapGenerator? map,
+        CancellationToken cancellation)
+    {
         this.cancellation = cancellation;
         writer = new(output, options.OmitTrailingSemicolon, positions is not null);
         writer.Clear();
@@ -189,85 +206,85 @@ public sealed partial class SyntaxPrinter(PrinterOptions? options = null, EmitCo
         pending.Clear();
         states.Clear();
         detachedComments.Clear();
-        pending.Push(N(node));
-        try
+    }
+
+    private void EndWrite()
+    {
+        pending.Clear();
+        states.Clear();
+        sourceScanner = null;
+        sourceFile = null;
+        sourceMap = null;
+        nameGenerator = null!;
+    }
+
+    private void DrainPending()
+    {
+        while (pending.TryPop(out var part))
         {
-            InitializeNames();
-            while (pending.TryPop(out var part))
+            cancellation.ThrowIfCancellationRequested();
+            if (part.IndentationChange > 0)
+                writer.IncreaseIndent();
+            else if (part.IndentationChange < 0)
+                writer.DecreaseIndent();
+            if (part.PositionTarget is { } positionTarget)
+                positions?.Record(positionTarget, writer.LastNonTriviaPosition, part.EndPosition);
+            else if (part.NameScopeChange != 0)
             {
-                cancellation.ThrowIfCancellationRequested();
-                if (part.IndentationChange > 0)
-                    writer.IncreaseIndent();
-                else if (part.IndentationChange < 0)
-                    writer.DecreaseIndent();
-                if (part.PositionTarget is { } positionTarget)
-                    positions?.Record(positionTarget, writer.LastNonTriviaPosition, part.EndPosition);
-                else if (part.NameScopeChange != 0)
-                {
-                    bool reuse = (states.Peek().Flags & EmitFlags.ReuseTempVariableScope) != 0;
-                    if (part.NameScopeChange > 0)
-                        nameGenerator.PushScope(reuse);
-                    else
-                        nameGenerator.PopScope(reuse);
-                }
-                else if (part.GenerateList is { } generateList)
-                {
-                    foreach (var declaration in generateList)
-                        GenerateNames(declaration);
-                }
-                else if (part.GenerateNode is { } generateNode)
-                    GenerateNames(generateNode);
-                else if (part.EndNode)
-                    EndNode();
-                else if (part.TrailingSemicolon)
-                    writer.WriteTrailingSemicolon();
-                else if (part.Helpers is { } helpers)
-                    WriteHelpers(helpers);
-                else if (part.DetachedPosition is { } detachedPosition)
-                    DetachedComments(detachedPosition);
-                else if (part.Directives is { } directives)
-                    WriteDirectives(directives);
-                else if (part.NewLine)
-                    writer.WriteLine();
-                else if (part.CommentPosition is { } position)
-                {
-                    if (part.ListComment)
-                        ListComments(position);
-                    else if (part.TrailingComment)
-                        TrailingComments(position);
-                    else
-                        LeadingComments(position);
-                    if (states.TryPeek(out var owner))
-                        owner.Cursor = Math.Max(owner.Cursor, SkipTrivia(position));
-                }
-                else if (part.Text is { } text)
-                {
-                    if (part.Raw)
-                        writer.Write(text);
-                    else
-                        Code(text);
-                }
-                else if (part.Parts is { } parts)
-                {
-                    for (int i = parts.Count - 1; i >= 0; i--)
-                        pending.Push(parts[i]);
-                }
-                else if (part.Node is { } child)
-                {
-                    BeginNode(child);
-                    pending.Push(new(EndNode: true));
-                    Emit(child);
-                }
+                bool reuse = (states.Peek().Flags & EmitFlags.ReuseTempVariableScope) != 0;
+                if (part.NameScopeChange > 0)
+                    nameGenerator.PushScope(reuse);
+                else
+                    nameGenerator.PopScope(reuse);
             }
-        }
-        finally
-        {
-            pending.Clear();
-            states.Clear();
-            sourceScanner = null;
-            sourceFile = null;
-            sourceMap = null;
-            nameGenerator = null!;
+            else if (part.GenerateList is { } generateList)
+            {
+                foreach (var declaration in generateList)
+                    GenerateNames(declaration);
+            }
+            else if (part.GenerateNode is { } generateNode)
+                GenerateNames(generateNode);
+            else if (part.EndNode)
+                EndNode();
+            else if (part.TrailingSemicolon)
+                writer.WriteTrailingSemicolon();
+            else if (part.Helpers is { } helpers)
+                WriteHelpers(helpers);
+            else if (part.DetachedPosition is { } detachedPosition)
+                DetachedComments(detachedPosition);
+            else if (part.Directives is { } directives)
+                WriteDirectives(directives);
+            else if (part.NewLine)
+                writer.WriteLine();
+            else if (part.CommentPosition is { } position)
+            {
+                if (part.ListComment)
+                    ListComments(position);
+                else if (part.TrailingComment)
+                    TrailingComments(position);
+                else
+                    LeadingComments(position);
+                if (states.TryPeek(out var owner))
+                    owner.Cursor = Math.Max(owner.Cursor, SkipTrivia(position));
+            }
+            else if (part.Text is { } text)
+            {
+                if (part.Raw)
+                    writer.Write(text);
+                else
+                    Code(text);
+            }
+            else if (part.Parts is { } parts)
+            {
+                for (int i = parts.Count - 1; i >= 0; i--)
+                    pending.Push(parts[i]);
+            }
+            else if (part.Node is { } child)
+            {
+                BeginNode(child);
+                pending.Push(new(EndNode: true));
+                Emit(child);
+            }
         }
     }
 
