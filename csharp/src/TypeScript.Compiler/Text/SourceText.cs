@@ -3,10 +3,10 @@ namespace TypeScript.Compiler.Text;
 /// <summary>Owns UTF-8 source text. Syntax and scanner positions are byte offsets.</summary>
 public sealed class SourceText
 {
-    private readonly byte[] bytes;
+    private byte[] bytes;
     private int ascii;
     private int[]? lineStarts;
-    public Utf8String Text { get; }
+    public Utf8String Text { get; private set; }
     public ReadOnlyMemory<byte> Bytes => bytes;
     internal byte[] Buffer => bytes;
     public int Length => Text.Length;
@@ -33,6 +33,21 @@ public sealed class SourceText
     }
 
     public SourceText(Utf8String text) : this(text.Span.ToArray()) { }
+
+    /// <summary>
+    /// Re-points this instance at new content, reusing the buffer when it is large enough. Intended
+    /// for private scratch instances (the printer's recipe scanner) so per-call text scanning does
+    /// not allocate a copy of the text on every call. Not safe for shared instances.
+    /// </summary>
+    internal void Reset(ReadOnlySpan<byte> value)
+    {
+        if (bytes.Length < value.Length)
+            bytes = new byte[Math.Max(value.Length, 64)];
+        value.CopyTo(bytes);
+        Text = new Utf8String(bytes.AsMemory(0, value.Length));
+        lineStarts = null;
+        ascii = 0;
+    }
 
     public ReadOnlySpan<int> LineStarts
     {

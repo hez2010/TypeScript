@@ -15,15 +15,15 @@ public readonly record struct ScannerState(int Position, int FullStart, int Toke
 /// <summary>Scans UTF-8 source directly. All positions and text slices use byte offsets.</summary>
 public sealed partial class Scanner(SourceText source, bool skipTrivia = true, bool jsx = false)
 {
-    private readonly Utf8String text = source.Text;
-    private readonly byte[] input = source.Buffer;
+    private Utf8String text = source.Text;
+    private byte[] input = source.Buffer;
     private int end = source.Length;
     private int pos;
     private int jsDocDepth;
     private static readonly SearchValues<byte> IdentifierAscii = SearchValues.Create(
         "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_$"u8);
     private static readonly SearchValues<byte> CommentStops = SearchValues.Create((ReadOnlySpan<byte>)[(byte)'*', (byte)'\r', (byte)'\n', 0xE2]);
-    public SourceText Source { get; } = source;
+    public SourceText Source { get; private set; } = source;
     public bool SkipTrivia { get; set; } = skipTrivia;
     public bool Jsx { get; set; } = jsx;
     public int FullStart { get; private set; }
@@ -85,6 +85,30 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         Kind = SyntaxKind.Unknown;
         Flags = 0;
         Value = Utf8String.Empty;
+    }
+
+    /// <summary>
+    /// Re-points this scanner at another <see cref="SourceText"/> and returns it to its initial
+    /// state, so a single scanner instance can serve repeated scans of scratch text (the printer's
+    /// recipe scanning) without allocating a scanner, a source text and its two lists per call.
+    /// </summary>
+    internal void Reset(SourceText source)
+    {
+        Source = source;
+        text = source.Text;
+        input = source.Buffer;
+        end = source.Length;
+        pos = 0;
+        FullStart = 0;
+        TokenStart = 0;
+        Kind = SyntaxKind.Unknown;
+        Value = Utf8String.Empty;
+        Flags = 0;
+        jsDocDepth = 0;
+        SkipTrivia = true;
+        Jsx = false;
+        Diagnostics.Clear();
+        CommentDirectives.Clear();
     }
 
     public void SetTextRange(int start, int end)

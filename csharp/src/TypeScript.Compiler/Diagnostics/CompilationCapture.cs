@@ -19,6 +19,7 @@ internal sealed class CompilationCapture : IAsyncDisposable
     private readonly long started = Stopwatch.GetTimestamp();
     private readonly long allocated = GC.GetTotalAllocatedBytes();
     private readonly ConcurrentDictionary<Utf8String, long> durations = new();
+    private readonly ConcurrentDictionary<Utf8String, long> allocations = new();
     private readonly List<WeakReference<TypeContext>> contexts = [];
     private readonly TextWriter warnings;
     private readonly CompilationTrace? trace;
@@ -59,21 +60,27 @@ internal sealed class CompilationCapture : IAsyncDisposable
     internal void Instantiated() => Interlocked.Increment(ref instantiations);
 
     internal Scope Begin(Utf8String category, Utf8String name, Utf8String path = default, int? checker = null,
-        uint sourceId = 0, uint targetId = 0, bool sampled = false)
-    {
+        uint sourceId = 0, uint targetId = 0, bool sampled = false)    {
         if (disposed) return default;
         long start = Stopwatch.GetTimestamp();
+        long allocated = GC.GetTotalAllocatedBytes();
         var token = trace?.Begin(category, name, path, checker, sourceId, targetId, sampled);
-        return new(this, category, start, token);
+        return new(this, category, start, allocated, token);
     }
 
-    internal readonly struct Scope(CompilationCapture owner, Utf8String category, long started, CompilationTrace.EventScope? trace) : IDisposable
+    /// <summary>Starts a scope for the active capture, or returns a no-op scope when none is active.</summary>
+    internal static Scope Measure(Utf8String category) => Current?.Begin(category, category) ?? default;
+
+    internal readonly struct Scope(CompilationCapture owner, Utf8String category, long started, long allocated, CompilationTrace.EventScope? trace) : IDisposable
     {
         public void Dispose()
         {
             if (owner is null || owner.disposed) return;
             long elapsed = Stopwatch.GetTimestamp() - started;
             owner.durations.AddOrUpdate(category, elapsed, (_, value) => value + elapsed);
+            long growth = GC.GetTotalAllocatedBytes() - allocated;
+            if (growth > 0)
+                owner.allocations.AddOrUpdate(category, growth, (_, value) => value + growth);
             trace?.Dispose();
         }
     }
@@ -92,6 +99,7 @@ internal sealed class CompilationCapture : IAsyncDisposable
             }
         }
         double Seconds(Utf8String category) => durations.GetValueOrDefault(category) / (double)Stopwatch.Frequency;
+        long Allocated(Utf8String category) => allocations.GetValueOrDefault(category);
         return new()
         {
             Files = program.SourceFiles.Count, Lines = program.SourceFiles.Sum(file => file.Syntax.Source.LineStarts.Length),
@@ -101,6 +109,9 @@ internal sealed class CompilationCapture : IAsyncDisposable
             ConfigTime = configTime, ProgramTime = Seconds("program"u8), ParseTime = Seconds("parse"u8), BindTime = Seconds("bind"u8),
             CheckTime = Seconds("check"u8), EmitTime = Seconds("emit"u8), BuildInfoTime = Seconds("buildInfo"u8),
             ChangesTime = Seconds("changes"u8), TotalTime = Stopwatch.GetElapsedTime(started).TotalSeconds + configTime,
+            AllocatedProgram = Allocated("program"u8), AllocatedParse = Allocated("parse"u8), AllocatedBind = Allocated("bind"u8),
+            AllocatedCheck = Allocated("check"u8), AllocatedEmit = Allocated("emit"u8),
+            AllocatedTransform = Allocated("transform"u8), AllocatedPrint = Allocated("print"u8),
         };
     }
 

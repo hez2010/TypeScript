@@ -102,7 +102,7 @@ public sealed partial class SyntaxPrinter
             case CallExpressionNode n when n.Expression == child:
                 if (expression is NewExpressionNode { Arguments: null })
                     return true;
-                if (expression is FunctionExpressionNode or ArrowFunctionNode && states.Skip(1).FirstOrDefault()?.Node is ExpressionStatementNode)
+                if (expression is FunctionExpressionNode or ArrowFunctionNode && ParentState()?.Node is ExpressionStatementNode)
                     return true;
                 minimum = (n.Flags & NodeFlags.OptionalChain) != 0 ? Precedence.OptionalChain : Precedence.Member;
                 break;
@@ -215,7 +215,7 @@ public sealed partial class SyntaxPrinter
             TypeOperatorNode n when n.Type == child => n.Operator == K.ReadonlyKeyword ? 6 : 5,
             ConditionalTypeNode n when n.CheckType == child => 3,
             ConditionalTypeNode n when n.ExtendsType == child => 2,
-            TypeParameterDeclarationNode n when n.Constraint == child && states.Skip(1).FirstOrDefault()?.Node is InferTypeNode => 2,
+            TypeParameterDeclarationNode n when n.Constraint == child && ParentState()?.Node is InferTypeNode => 2,
             _ => 0
         };
         if (minimum == 6 && parent is ArrayTypeNode or OptionalTypeNode or IndexedAccessTypeNode && child is TypeQueryNode
@@ -233,7 +233,7 @@ public sealed partial class SyntaxPrinter
     private bool InExtendsForChild(SyntaxNode parent, SyntaxNode child) => parent switch
     {
         ConditionalTypeNode n => n.ExtendsType == child,
-        TypeParameterDeclarationNode n when n.Constraint == child && states.Skip(1).FirstOrDefault()?.Node is InferTypeNode => true,
+        TypeParameterDeclarationNode n when n.Constraint == child && ParentState()?.Node is InferTypeNode => true,
         FunctionTypeNode n when n.Type == child => states.Peek().InExtends,
         ConstructorTypeNode n when n.Type == child => states.Peek().InExtends,
         UnionTypeNode or IntersectionTypeNode or TypeOperatorNode or ArrayTypeNode or OptionalTypeNode => states.Peek().InExtends,

@@ -115,7 +115,9 @@ internal static class CheckerPoolTests
         var nodes = program.SourceFiles.SelectMany(f => f.Syntax.DescendantsAndSelf())
             .Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
         var pool = await program.CreateCheckerPoolAsync();
-        Check(pool.Count == 4);
+        // The default pool size is adaptive (4 to 8 depending on the machine); an explicit
+        // --checkers value still wins, which the single-threaded case below exercises.
+        Check(pool.Count == CheckerPool.DefaultCheckerCount && pool.Count is >= 4 and <= 8);
         var unique = new HashSet<Checker>();
         using var barrier = new CountdownEvent(pool.Count);
         foreach (var file in program.SourceFiles)

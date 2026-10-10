@@ -127,21 +127,27 @@ public sealed partial class CompilerProgram
                 else
                 {
                     var context = new EmitContext();
-                    var tree = await ScriptTransformer.TransformAsync(source, context, program, checker, cancellation);
+                    SourceFileNode tree;
+                    using (CompilationCapture.Measure("transform"u8))
+                        tree = await ScriptTransformer.TransformAsync(source, context, program, checker, cancellation);
                     var printer = new SyntaxPrinter(new()
                     {
                         RemoveComments = options.RemoveComments == true, NewLine = NewLine,
                         NoEmitHelpers = options.NoEmitHelpers == true, TargetYear = options.EmitTargetYear,
                         InlineSources = options.InlineSources == true
                     }, context);
-                    await PrintAsync(tree, printer, paths.JavaScript, paths.SourceMap, options.SourceMap == true, options.InlineSourceMap == true);
+                    using (CompilationCapture.Measure("print"u8))
+                        await PrintAsync(tree, printer, paths.JavaScript, paths.SourceMap, options.SourceMap == true, options.InlineSourceMap == true);
                 }
             }
             if (emitOptions.Only != EmitOnly.JavaScript && paths.Declaration.Length != 0)
             {
                 var context = new EmitContext();
                 var transform = new DeclarationTransformer(context, checker, options, cancellation, paths.Declaration);
-                var tree = (SourceFileNode)(await transform.VisitAsync(source))!;
+                SourceFileNode declarationTree;
+                using (CompilationCapture.Measure("transform"u8))
+                    declarationTree = (SourceFileNode)(await transform.VisitAsync(source))!;
+                var tree = declarationTree;
                 AddSupplementalReferences(tree, paths.Declaration);
                 diagnostics.AddRange(transform.Diagnostics);
                 bool signature = emitOptions.Only == EmitOnly.BuilderSignature;
@@ -159,7 +165,8 @@ public sealed partial class CompilerProgram
                             ? new(file.FileName, file.Source, position) : mapping.Map.TryMapExactPosition(position, out int original)
                                 ? new(originalName, mapping.Original, original) : null
                     }, context);
-                    await PrintAsync(tree, printer, paths.Declaration, paths.DeclarationMap, !signature && options.DeclarationMap == true, false);
+                    using (CompilationCapture.Measure("print"u8))
+                        await PrintAsync(tree, printer, paths.Declaration, paths.DeclarationMap, !signature && options.DeclarationMap == true, false);
                 }
             }
             return new(skipped, DiagnosticCollection.SortAndDeduplicate(diagnostics), emitted.ToArray(), maps.ToArray());

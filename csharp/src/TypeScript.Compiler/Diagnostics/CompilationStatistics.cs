@@ -21,6 +21,15 @@ internal sealed record CompilationStatistics
     internal double BuildInfoTime { get; init; }
     internal double ChangesTime { get; init; }
     internal double TotalTime { get; init; }
+    // Per-phase allocation attribution, summed across parallel work like the phase times above.
+    // Only collected when diagnostics are enabled; used to target allocation-reduction work.
+    internal long AllocatedProgram { get; init; }
+    internal long AllocatedParse { get; init; }
+    internal long AllocatedBind { get; init; }
+    internal long AllocatedCheck { get; init; }
+    internal long AllocatedEmit { get; init; }
+    internal long AllocatedTransform { get; init; }
+    internal long AllocatedPrint { get; init; }
 
     internal void Report(TextWriter output, int? projects = null, int built = 0, int timestamps = 0)
     {
@@ -40,6 +49,9 @@ internal sealed record CompilationStatistics
         Time("Config time", ConfigTime); Time("Program time", ProgramTime);
         Time("Parse time (summed)", ParseTime); Time("Bind time (summed)", BindTime); Time("Check time (summed)", CheckTime);
         Time("Emit time (summed)", EmitTime); Time("BuildInfo read time", BuildInfoTime); Time("Changes compute time", ChangesTime); Time("Total time", TotalTime);
+        Count("Alloc program (summed)", AllocatedProgram); Count("Alloc parse (summed)", AllocatedParse); Count("Alloc bind (summed)", AllocatedBind);
+        Count("Alloc check (summed)", AllocatedCheck); Count("Alloc emit (summed)", AllocatedEmit);
+        Count("Alloc transform (summed)", AllocatedTransform); Count("Alloc print (summed)", AllocatedPrint);
         int nameWidth = rows.Max(row => row.Name.Length) + 1, valueWidth = rows.Max(row => row.Value.Length);
         foreach (var row in rows) output.WriteLine((row.Name + ":").PadRight(nameWidth) + " " + row.Value.PadLeft(valueWidth));
     }
@@ -56,6 +68,9 @@ internal sealed record CompilationStatistics
             ParseTime = entries.Sum(value => value.ParseTime), BindTime = entries.Sum(value => value.BindTime), CheckTime = entries.Sum(value => value.CheckTime),
             EmitTime = entries.Sum(value => value.EmitTime), BuildInfoTime = entries.Sum(value => value.BuildInfoTime), ChangesTime = entries.Sum(value => value.ChangesTime),
             TotalTime = elapsed,
+            AllocatedProgram = entries.Sum(value => value.AllocatedProgram), AllocatedParse = entries.Sum(value => value.AllocatedParse),
+            AllocatedBind = entries.Sum(value => value.AllocatedBind), AllocatedCheck = entries.Sum(value => value.AllocatedCheck),
+            AllocatedEmit = entries.Sum(value => value.AllocatedEmit),
         };
     }
 }
