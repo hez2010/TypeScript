@@ -13,22 +13,28 @@
     The first pass pinned Workstation GC plus a fixed 4 MiB gen0 budget and a 1 MiB LOH threshold.
     Re-measured against the unmodified product baseline, that pinned budget cost the short-lived
     workloads 3-8% (it is a fixed per-process charge paid before Main) while it only paid off on the
-    longest runs:
-      * DATAS (Server GC + dynamic adaptation) instead removes those regressions: small-first-diagnostic
-        -4.9%, project-references-implementation -9.4%, project-references-config -5.6%,
-        tiny-files-noemit -1.5% (15 paired samples, CIs excluding 1.0) and lower peak RSS on each
-        (22.1 -> 18.4 MiB, 23.0 -> 19.7 MiB, 22.7 -> 19.3 MiB).
-      * Cost is confined to the single huge-file workload: +0.9% time and 175.5 -> 213.2 MiB, which is
-        still better than the unmodified baseline on both counts (238 MiB, -10%).
-      * A fixed gen0 budget is therefore no longer set: DATAS sizes the heap from the observed
-        allocation rate, so short and long runs are no longer forced into the same shape.
+    longest runs, so the pinned budget was dropped.
+      * Server GC without a pinned budget then measured faster than DATAS on every heavy workload:
+        medium -26%, declarations -29%, medium-checkers-8 -31%, huge-file -14%, medium-checkers-1 -14%
+        (AB92/AB93, 23 workloads x 15 pairs, CIs excluding 1.0; AB86/AB89 confirmed on 7 workloads).
+        DATAS starts with one heap and grows it on demand, and the checker's parallel checkers
+        allocate the whole heap within the first moments of the run, which is exactly the ramp-up
+        case the runtime documents as allocation waits; it also runs full-compacting GCs to hold
+        the heap down. A short-lived process pays that on every run and never banks the memory
+        saving, so dynamic adaptation is off.
+      * Workstation GC (background and non-concurrent) also beats DATAS on the medium family but
+        loses 17-28% on huge-file, where one heap and one GC thread cannot absorb the parallel
+        allocation burst of the 32K-object-literal file (AB87/AB88/AB90/AB91).
+      * Cost of turning DATAS off is peak RSS on the bursty shapes: huge-file 254 -> 376 MiB and
+        the tiny-files family 61 -> 186 MiB (within-batch ratios; absolute values move with machine
+        memory state, see the r18 report). The medium family and project references are flat.
   -->
   <PropertyGroup>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+    <GarbageCollectionAdaptationMode>0</GarbageCollectionAdaptationMode>
   </PropertyGroup>
   <ItemGroup>
     <RuntimeHostConfigurationOption Include="System.GC.Server" Value="true" />
-    <RuntimeHostConfigurationOption Include="System.GC.DynamicAdaptationMode" Value="1" />
   </ItemGroup>
 </Project>

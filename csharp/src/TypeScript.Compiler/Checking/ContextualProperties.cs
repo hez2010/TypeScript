@@ -47,8 +47,11 @@ internal sealed class ContextualProperties(TypeContext context, CheckerLinks lin
         {
             if (part is IntersectionType intersection)
             {
-                var types = new List<Type>();
-                var candidates = new List<Type>();
+                // Both lists are bounded by the intersection's constituent count, and the candidates
+                // list is cleared and refilled as properties are found, so sizing them up front avoids
+                // the doubling chain on every contextual query over an intersection.
+                var types = new List<Type>(intersection.Types.Count);
+                var candidates = new List<Type>(intersection.Types.Count);
                 bool ignoreIndexes = false;
                 foreach (var constituent in intersection.Types)
                 {

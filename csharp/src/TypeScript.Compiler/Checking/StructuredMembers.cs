@@ -160,12 +160,16 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
         await ResolveDeclaredAsync(source, cancellation).ConfigureAwait(false);
         bool instantiated = !parameters.SequenceEqual(arguments);
         TypeMapper? mapper = instantiated ? TypeMapper.Create(parameters.ToArray(), arguments.ToArray()) : null;
+        // When the table is instantiated the dictionary built here is fresh and mutable, so the base
+        // loop can inherit into it directly. Only a non-instantiated table needs the copy below.
+        Dictionary<Utf8String, Symbol>? owned = null;
         IReadOnlyDictionary<Utf8String, Symbol>? members = source.DeclaredMembers;
         IReadOnlyList<Signature> calls = source.DeclaredCallSignatures ?? [], constructors = source.DeclaredConstructSignatures ?? [];
         IReadOnlyList<IndexInfo> indexes = source.DeclaredIndexInfos ?? [];
         if (mapper is not null)
         {
-            members = await InstantiateTableAsync(source.DeclaredMembers, mapper, cancellation).ConfigureAwait(false);
+            owned = await InstantiateTableAsync(source.DeclaredMembers, mapper, cancellation).ConfigureAwait(false);
+            members = owned?.AsReadOnly();
             calls = await InstantiateSignaturesAsync(calls, mapper, cancellation).ConfigureAwait(false);
             constructors = await InstantiateSignaturesAsync(constructors, mapper, cancellation).ConfigureAwait(false);
             indexes = await InstantiateIndexesAsync(indexes, mapper, cancellation).ConfigureAwait(false);
@@ -173,10 +177,10 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
         var bases = await host.BaseTypesAsync(source, cancellation).ConfigureAwait(false);
         if (bases.Count != 0)
         {
-            var ownedMembers = members is null
+            owned ??= members is null
                 ? new Dictionary<Utf8String, Symbol>()
                 : new(members, Utf8StringComparer.Ordinal);
-            members = ownedMembers.AsReadOnly();
+            members = owned.AsReadOnly();
             await SetAsync(type, members, calls, constructors, indexes, cancellation).ConfigureAwait(false);
             type.ObjectFlags |= O.UnresolvedMembers;
             foreach (var baseType in bases)
@@ -191,15 +195,34 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
                         ?? throw new InvalidOperationException("Base instantiation returned no type");
                     instantiatedBase = await host.WithThisAsync(instantiatedBase, arguments[^1], cancellation).ConfigureAwait(false);
                 }
-                Inherit(ownedMembers, await host.PropertiesAsync(instantiatedBase, cancellation).ConfigureAwait(false));
+                Inherit(owned, await host.PropertiesAsync(instantiatedBase, cancellation).ConfigureAwait(false));
                 calls = Concatenate(calls, await host.SignaturesAsync(instantiatedBase, false, cancellation).ConfigureAwait(false));
                 constructors = Concatenate(
                     constructors,
                     await host.SignaturesAsync(instantiatedBase, true, cancellation).ConfigureAwait(false));
                 var inheritedIndexes = instantiatedBase == context.AnyType ? [anyBaseIndex]
                     : await host.IndexesAsync(instantiatedBase, cancellation).ConfigureAwait(false);
-                indexes = Array.AsReadOnly<IndexInfo>(
-                    [.. indexes, .. inheritedIndexes.Where(next => !indexes.Any(old => old.KeyType == next.KeyType))]);
+                if (inheritedIndexes.Count == 0)
+                    continue;
+                // The merge is a per-base-type append of the inherited index infos whose key type the
+                // type does not declare yet. Doing it with one list and nested scans keeps the whole
+                // loop at a single allocation per base type instead of a LINQ chain (a Where enumerator
+                // plus an Any enumerator per inherited entry) over a fresh merged array.
+                var merged = new List<IndexInfo>(indexes.Count + inheritedIndexes.Count);
+                merged.AddRange(indexes);
+                foreach (var next in inheritedIndexes)
+                {
+                    bool duplicate = false;
+                    foreach (var old in indexes)
+                        if (old.KeyType == next.KeyType)
+                        {
+                            duplicate = true;
+                            break;
+                        }
+                    if (!duplicate)
+                        merged.Add(next);
+                }
+                indexes = merged.AsReadOnly();
             }
             type.ObjectFlags &= ~O.UnresolvedMembers;
         }
@@ -211,8 +234,9 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
         if (type.Target is { } target)
         {
             await SetAsync(type, null, [], [], [], cancellation).ConfigureAwait(false);
-            var members = new Dictionary<Utf8String, Symbol>();
-            foreach (var property in await host.PropertiesAsync(target, cancellation).ConfigureAwait(false))
+            var targetProperties = await host.PropertiesAsync(target, cancellation).ConfigureAwait(false);
+            var members = new Dictionary<Utf8String, Symbol>(targetProperties.Count, Utf8StringComparer.Ordinal);
+            foreach (var property in targetProperties)
                 members[property.Name] = (await instantiation.SymbolAsync(property, type.Mapper!, cancellation).ConfigureAwait(false))!;
             await SetAsync(type, members.AsReadOnly(),
                 await InstantiateSignaturesAsync(
@@ -331,15 +355,15 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
         // ResolveAsync restores this provisional state if resolution fails.
         type.Members = members;
         type.ObjectFlags |= O.MembersResolved;
-        var declared = new List<Symbol>();
-        var inherited = new List<Symbol>();
+        var declared = new List<Symbol>(members?.Count ?? 0);
+        var inherited = new List<Symbol>(members?.Count ?? 0);
         if (members is not null)
             foreach (var (name, symbol) in members)
             {
                 if (!await NamedAsync(name, symbol, cancellation).ConfigureAwait(false))
                     continue;
                 if (type.Symbol is { } owner && (owner.Flags & (S.Class | S.Interface)) != 0 && symbol.ValueDeclaration is { } value
-                    && owner.Declarations.Any(d => value.Pos >= d.Pos && value.End <= d.End))
+                    && DeclaredIn(owner, value))
                     declared.Add(symbol);
                 else
                     inherited.Add(symbol);
@@ -356,18 +380,33 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
         type.IndexInfos = indexes;
     }
 
-    private async ValueTask<IReadOnlyDictionary<Utf8String, Symbol>?> InstantiateTableAsync(
+    // Positional containment test for one member against its owner's declarations. Written as a loop
+    // because the LINQ form captured `value` and allocated a closure plus delegate for every member of
+    // every member table.
+    private static bool DeclaredIn(Symbol owner, SyntaxNode value)
+    {
+        var declarations = owner.Declarations;
+        for (int i = 0; i < declarations.Length; i++)
+        {
+            var declaration = declarations[i];
+            if (value.Pos >= declaration.Pos && value.End <= declaration.End)
+                return true;
+        }
+        return false;
+    }
+
+    private async ValueTask<Dictionary<Utf8String, Symbol>?> InstantiateTableAsync(
         IReadOnlyDictionary<Utf8String, Symbol>? table,
         TypeMapper mapper,
         CancellationToken cancellation)
     {
         if (table is null)
             return null;
-        var result = new Dictionary<Utf8String, Symbol>();
+        var result = new Dictionary<Utf8String, Symbol>(table.Count, Utf8StringComparer.Ordinal);
         foreach (var (name, symbol) in table)
             if (await NamedAsync(name, symbol, cancellation).ConfigureAwait(false))
                 result[name] = (await instantiation.SymbolAsync(symbol, mapper, cancellation).ConfigureAwait(false))!;
-        return result.AsReadOnly();
+        return result;
     }
 
     private async ValueTask<IReadOnlyList<Signature>> InstantiateSignaturesAsync(

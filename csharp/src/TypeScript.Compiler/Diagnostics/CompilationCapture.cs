@@ -38,14 +38,25 @@ internal sealed class CompilationCapture : IAsyncDisposable
 
     private readonly long[] probeAllocations = new long[AllocationProbes.Count];
     private readonly long[] probeDurations = new long[AllocationProbes.Count];
+    private readonly long[] probeOwn = new long[AllocationProbes.Count];
+    private readonly long[] probeChildren = new long[AllocationProbes.Count];
+    private readonly long[] probeCounts = new long[AllocationProbes.Count];
     private long commentAdds, commentSets, nodeDataCalls, linkCreates;
 
-    private void NoteProbe(int id, long bytes, long ticks)
+    private void NoteProbe(int id, long bytes, long ticks, FrameNode? node)
     {
         if ((uint)id >= (uint)probeAllocations.Length)
             return;
         if (bytes > 0) Interlocked.Add(ref probeAllocations[id], bytes);
         if (ticks > 0) Interlocked.Add(ref probeDurations[id], ticks);
+        if (node is not null)
+        {
+            // Exclusive attribution: the frame's own bytes minus what its direct children reported.
+            long own = bytes - node.ChildBytes;
+            if (own > 0) Interlocked.Add(ref probeOwn[id], own);
+            if (node.ChildBytes > 0) Interlocked.Add(ref probeChildren[id], node.ChildBytes);
+            Interlocked.Increment(ref probeCounts[id]);
+        }
     }
 
     internal void NoteCommentAdd() => Interlocked.Increment(ref commentAdds);
@@ -68,23 +79,72 @@ internal sealed class CompilationCapture : IAsyncDisposable
     /// these two reads are what keep that affordable. Per-thread allocation attribution is also more
     /// exact than the process-wide counter when several checkers run in parallel.
     /// </summary>
-    internal static ProbeMark Mark() => ProbesEnabled
-        ? new ProbeMark(GC.GetAllocatedBytesForCurrentThread(), Stopwatch.GetTimestamp())
-        : default;
+    internal static ProbeMark Mark()
+    {
+        if (!ProbesEnabled) return default;
+        // Pooled: a fresh node per frame would charge ~40 bytes to the parent's frame on every probe
+        // call (about 2M per real-project run), which would swamp the numbers being measured.
+        var pool = nodePool ??= [];
+        var node = pool.Count > 0 ? pool.Pop() : new FrameNode();
+        node.Parent = currentFrame;
+        currentFrame = node;
+        return new ProbeMark(GC.GetAllocatedBytesForCurrentThread(), Stopwatch.GetTimestamp(), node);
+    }
+
+    [ThreadStatic]
+    private static Stack<FrameNode>? nodePool;
 
     /// <summary>Reports what happened since <paramref name="mark"/>; no-op without a capture.</summary>
     internal static void Report(int id, ProbeMark mark)
     {
-        if (mark.Allocated == 0 || Current is not { } capture)
+        if (mark.Node is not { } node)
             return;
-        capture.NoteProbe(id, GC.GetAllocatedBytesForCurrentThread() - mark.Allocated, Stopwatch.GetTimestamp() - mark.Started);
+        // Always unwind the frame stack, even when this frame is not being recorded.
+        currentFrame = node.Parent;
+        if (Current is not { } capture)
+        {
+            node.Recycle();
+            return;
+        }
+        var bytes = GC.GetAllocatedBytesForCurrentThread() - mark.Allocated;
+        // Children finished before this frame (LIFO), so the node already carries their sum.
+        node.Id = id;
+        node.Bytes = bytes;
+        if (node.Parent is { } parent)
+            parent.ChildBytes += bytes;
+        capture.NoteProbe(id, bytes, Stopwatch.GetTimestamp() - mark.Started, node);
+        node.Recycle();
     }
 
+    internal sealed class FrameNode
+    {
+        internal int Id = -1;
+        internal FrameNode? Parent;
+        internal long Bytes;
+        internal long ChildBytes;
+        internal void Recycle()
+        {
+            Id = -1;
+            Parent = null;
+            Bytes = 0;
+            ChildBytes = 0;
+            nodePool!.Push(this);
+        }
+    }
+
+    // Thread-static rather than AsyncLocal: an AsyncLocal write per frame allocates, and that
+    // allocation lands in the parent's frame. The trade-off matches the assumption the inclusive
+    // numbers already make - frames complete synchronously on their starting thread - so a frame
+    // that suspends across threads only loses its exclusive attribution, not its inclusive one.
+    [ThreadStatic]
+    private static FrameNode? currentFrame;
+
     /// <summary>Inclusive allocation and time captured at the start of a probe frame.</summary>
-    internal readonly struct ProbeMark(long allocated, long started)
+    internal readonly struct ProbeMark(long allocated, long started, FrameNode? node)
     {
         internal readonly long Allocated = allocated;
         internal readonly long Started = started;
+        internal readonly FrameNode? Node = node;
     }
     private readonly long started = Stopwatch.GetTimestamp();
     private readonly long allocated = GC.GetTotalAllocatedBytes();
@@ -203,6 +263,9 @@ internal sealed class CompilationCapture : IAsyncDisposable
                 name => name,
                 name => durations.GetValueOrDefault(Utf8String.FromString(name)) / (double)Stopwatch.Frequency),
             ProbeAllocations = (long[])probeAllocations.Clone(),
+            ProbeOwn = (long[])probeOwn.Clone(),
+            ProbeChildren = (long[])probeChildren.Clone(),
+            ProbeCounts = (long[])probeCounts.Clone(),
             ProbeDurations = (long[])probeDurations.Clone(),
             CommentAdds = Volatile.Read(ref commentAdds), CommentSets = Volatile.Read(ref commentSets),
             NodeDataCalls = Volatile.Read(ref nodeDataCalls), LinkCreates = Volatile.Read(ref linkCreates),
