@@ -167,7 +167,7 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
         var arguments = await EffectiveArgumentsAsync(node, parameters, cancellation).ConfigureAwait(false);
         return context.CreateTypeReference(
             type,
-            [.. type.AllTypeParameters.Take(type.OuterTypeParameterCount), .. arguments],
+            CombineArguments(type.AllTypeParameters, type.OuterTypeParameterCount, arguments),
             ObjectFlags.FromTypeNode);
     }
 
@@ -261,9 +261,10 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
         {
             Type[] arguments = reference.Node switch
             {
-                TypeReferenceNode node => [
-                    .. OuterTypeParameters(target),
-                    .. await EffectiveArgumentsAsync(node, OwnTypeParameters(target), cancellation).ConfigureAwait(false)],
+                TypeReferenceNode node => CombineArguments(
+                    target.AllTypeParameters,
+                    target.OuterTypeParameterCount,
+                    await EffectiveArgumentsAsync(node, OwnTypeParameters(target), cancellation).ConfigureAwait(false)),
                 ArrayTypeNode node => [await host.TypeFromNodeAsync(node.ElementType!, cancellation).ConfigureAwait(false)],
                 TupleTypeNode node => await NodesAsync(node.Elements!, cancellation).ConfigureAwait(false),
                 null => [],
@@ -291,19 +292,21 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
         }
     }
 
-    // The reference's outer type parameters (the enclosing type's), then its own parameters (the rest,
-    // minus the this-parameter). Written as index loops because the LINQ forms (Take plus Skip plus
-    // Cast plus ToArray) allocated four enumerators and an array on every deferred-reference
-    // resolution.
-    private static Type[] OuterTypeParameters(InterfaceType target)
+    // The reference's outer type parameters (the enclosing type's) followed by its own arguments.
+    // Written as index loops because the LINQ forms (Take plus Skip plus Cast plus ToArray) allocated
+    // four enumerators and an array on every deferred-reference resolution. When the reference has no
+    // outer parameters - the common case - the argument array itself is returned, so the collection
+    // expression that used to concatenate the two no longer copies it into a second array.
+    private static Type[] CombineArguments(IReadOnlyList<Type> allParameters, int outer, IReadOnlyList<Type> arguments)
     {
-        int count = target.OuterTypeParameterCount;
-        if (count <= 0)
-            return [];
-        var parameters = new Type[count];
-        for (int i = 0; i < count; i++)
-            parameters[i] = target.AllTypeParameters[i];
-        return parameters;
+        if (outer == 0 && arguments is Type[] own)
+            return own;
+        var combined = new Type[outer + arguments.Count];
+        for (int i = 0; i < outer; i++)
+            combined[i] = allParameters[i];
+        for (int i = 0; i < arguments.Count; i++)
+            combined[outer + i] = arguments[i];
+        return combined;
     }
 
     private static TypeParameter[] OwnTypeParameters(InterfaceType target)

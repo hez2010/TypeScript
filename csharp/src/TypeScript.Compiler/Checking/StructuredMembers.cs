@@ -158,7 +158,12 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
         IReadOnlyList<Type> arguments, CancellationToken cancellation)
     {
         await ResolveDeclaredAsync(source, cancellation).ConfigureAwait(false);
-        bool instantiated = !parameters.SequenceEqual(arguments);
+        // Reference comparison in an index loop rather than SequenceEqual: the enumerable overload
+        // boxed an enumerator for each side on every instantiated member table. Type carries no
+        // Equals override, so reference inequality is what the default comparer resolved to.
+        bool instantiated = parameters.Count != arguments.Count;
+        for (int i = 0; !instantiated && i < parameters.Count; i++)
+            instantiated = parameters[i] != arguments[i];
         TypeMapper? mapper = instantiated ? TypeMapper.Create(parameters.ToArray(), arguments.ToArray()) : null;
         // When the table is instantiated the dictionary built here is fresh and mutable, so the base
         // loop can inherit into it directly. Only a non-instantiated table needs the copy below.
@@ -374,7 +379,10 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
         declared.Sort(order);
         inherited.Sort(order);
         cancellation.ThrowIfCancellationRequested();
-        type.Properties = Array.AsReadOnly<Symbol>([.. declared, .. inherited]);
+        var properties = new Symbol[declared.Count + inherited.Count];
+        declared.CopyTo(properties, 0);
+        inherited.CopyTo(properties, declared.Count);
+        type.Properties = properties;
         type.CallSignatures = calls;
         type.ConstructSignatures = constructors;
         type.IndexInfos = indexes;
@@ -414,6 +422,10 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
         TypeMapper mapper,
         CancellationToken cancellation)
     {
+        // An empty table is the common case (most object types declare no call or construct
+        // signatures) and used to allocate an array plus the read-only wrapper around it.
+        if (source.Count == 0)
+            return [];
         var result = new Signature[source.Count];
         for (int i = 0; i < result.Length; i++)
             result[i] = await instantiation.SignatureAsync(
@@ -421,7 +433,7 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
                 mapper,
                 mapper == instantiation.PermissiveMapper,
                 cancellation).ConfigureAwait(false);
-        return Array.AsReadOnly(result);
+        return result;
     }
 
     private async ValueTask<IReadOnlyList<IndexInfo>> InstantiateIndexesAsync(
@@ -429,10 +441,12 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
         TypeMapper mapper,
         CancellationToken cancellation)
     {
+        if (source.Count == 0)
+            return [];
         var result = new IndexInfo[source.Count];
         for (int i = 0; i < result.Length; i++)
             result[i] = await instantiation.IndexInfoAsync(source[i], mapper, cancellation).ConfigureAwait(false);
-        return Array.AsReadOnly(result);
+        return result;
     }
 
     internal async ValueTask<bool> NamedAsync(Utf8String name, Symbol symbol, CancellationToken cancellation)
@@ -455,5 +469,14 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
     }
 
     private static IReadOnlyList<T> Concatenate<T>(IReadOnlyList<T> left, IReadOnlyList<T> right)
-        => right.Count == 0 ? left : left.Count == 0 ? right : Array.AsReadOnly<T>([.. left, .. right]);
+    {
+        if (right.Count == 0)
+            return left;
+        if (left.Count == 0)
+            return right;
+        // An exact-size array rather than Array.AsReadOnly around it: the wrapper was one extra
+        // allocation per merged base signature list.
+        T[] combined = [.. left, .. right];
+        return combined;
+    }
 }

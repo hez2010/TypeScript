@@ -73,18 +73,17 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
     internal async ValueTask<Ternary> RelatedAsync(RelationOperation operation, Type source, Type target, RecursionFlags recursion,
         IntersectionState intersection, CancellationToken cancellation = default)
     {
-        await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
-            ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
+        await Task.CompletedTask.ConfigureAwait(CompilationCapture.StackGuard());
         cancellation.ThrowIfCancellationRequested();
         if (source is TypeParameter && await constraints.ConstraintAsync(source, cancellation).ConfigureAwait(false) == target)
             return Ternary.True;
-        target = await normalization.RelationTargetAsync(source, target, cancellation).ConfigureAwait(false);
+        target = await NormalizedTargetAsync(source, target, cancellation).ConfigureAwait(false);
         if (source == target)
             return Ternary.True;
         if (operation.Kind == RelationKind.Comparable
             && (target.Flags & TypeFlags.Never) == 0
-            && await operation.SimpleAsync(target, source, cancellation, report: false).ConfigureAwait(false)
-            || await operation.SimpleAsync(source, target, cancellation).ConfigureAwait(false))
+            && await SimpleProbeAsync(operation, target, source, cancellation, report: false).ConfigureAwait(false)
+            || await SimpleProbeAsync(operation, source, target, cancellation, report: true).ConfigureAwait(false))
             return Ternary.True;
         if (((source.Flags | target.Flags) & TypeFlags.StructuredOrInstantiable) == 0)
             return Ternary.False;
@@ -92,25 +91,13 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
         // the declared object type it is checked against), and the full algorithm would only rediscover
         // that every property matches. When both member tables are already resolved and agree exactly,
         // the answer is True without entering the session, the variance pass or the property walk.
-        if (operation.Kind is RelationKind.Assignable or RelationKind.Comparable && IdenticalShape(source, target))
+        if (operation.Kind is RelationKind.Assignable or RelationKind.Comparable && IdenticalShapeProbed(source, target))
             return Ternary.True;
         if ((intersection & IntersectionState.Target) == 0
             && (source.ObjectFlags & (ObjectFlags.ObjectLiteral | ObjectFlags.FreshLiteral)) == (ObjectFlags.ObjectLiteral | ObjectFlags.FreshLiteral)
             && await host.ExcessPropertiesAsync(operation, source, target, intersection, cancellation).ConfigureAwait(false))
             return Ternary.False;
-        if ((operation.Kind != RelationKind.Comparable || (source.Flags & TypeFlags.Unit) != 0)
-            && (intersection & IntersectionState.Target) == 0
-            && (source.Flags & (TypeFlags.Primitive | TypeFlags.Object | TypeFlags.Intersection)) != 0 && source != host.GlobalObject
-            && (target.Flags & (TypeFlags.Object | TypeFlags.Intersection)) != 0 && await objects.WeakAsync(
-                target,
-                cancellation).ConfigureAwait(false)
-            && ((await properties.GetAsync(source, cancellation).ConfigureAwait(false)).Count > 0
-                || await objects.CallableAsync(source, cancellation).ConfigureAwait(false))
-            && !await objects.CommonPropertiesAsync(
-                source,
-                target,
-                (source.ObjectFlags & ObjectFlags.JsxAttributes) != 0,
-                cancellation).ConfigureAwait(false))
+        if (await WeakSourceCheckAsync(operation, source, target, intersection, cancellation).ConfigureAwait(false))
         {
             if (operation.ReportErrors)
             {
@@ -137,8 +124,16 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
         }
         bool skip = source is UnionType su && su.Types.Count < 4 && target is not UnionType
             || target is UnionType tu && tu.Types.Count < 4 && (source.Flags & TypeFlags.StructuredOrInstantiable) == 0;
-        return skip ? await UnionIntersectionAsync(operation, source, target, intersection, cancellation).ConfigureAwait(false)
-            : await operation.RecursiveAsync(
+        if (skip)
+        {
+            var unionMark = CompilationCapture.Mark();
+            try { return await UnionIntersectionAsync(operation, source, target, intersection, cancellation).ConfigureAwait(false); }
+            finally { CompilationCapture.Report(AllocationProbes.RelUnion, unionMark); }
+        }
+        var recurseMark = CompilationCapture.Mark();
+        try
+        {
+            return await operation.RecursiveAsync(
                 source,
                 target,
                 recursion,
@@ -146,6 +141,57 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
                 (Relations: this, Operation: operation, Source: source, Target: target, Intersection: intersection, Cancellation: cancellation),
                 static state => state.Relations.StructuredAsync(state.Operation, state.Source, state.Target, state.Intersection, state.Cancellation),
                 cancellation).ConfigureAwait(false);
+        }
+        finally { CompilationCapture.Report(AllocationProbes.RelRecurse, recurseMark); }
+    }
+
+    // Probe frames for the pieces of the relation entry point. Attribution only: the enclosing
+    // checkerRelated frame keeps its inclusive bytes, and these split its exclusive remainder.
+    private async ValueTask<Type> NormalizedTargetAsync(Type source, Type target, CancellationToken cancellation)
+    {
+        var mark = CompilationCapture.Mark();
+        try { return await normalization.RelationTargetAsync(source, target, cancellation).ConfigureAwait(false); }
+        finally { CompilationCapture.Report(AllocationProbes.RelNormalize, mark); }
+    }
+
+    private static async ValueTask<bool> SimpleProbeAsync(RelationOperation operation, Type left, Type right,
+        CancellationToken cancellation, bool report)
+    {
+        var mark = CompilationCapture.Mark();
+        try { return await operation.SimpleAsync(left, right, cancellation, report).ConfigureAwait(false); }
+        finally { CompilationCapture.Report(AllocationProbes.RelSimple, mark); }
+    }
+
+    private bool IdenticalShapeProbed(Type source, Type target)
+    {
+        var mark = CompilationCapture.Mark();
+        try { return IdenticalShape(source, target); }
+        finally { CompilationCapture.Report(AllocationProbes.RelIdentical, mark); }
+    }
+
+    // The weak-type condition, extracted so its own probe frame can be reported without changing
+    // the short-circuit order of the original inline expression.
+    private async ValueTask<bool> WeakSourceCheckAsync(RelationOperation operation, Type source, Type target,
+        IntersectionState intersection, CancellationToken cancellation)
+    {
+        var mark = CompilationCapture.Mark();
+        try
+        {
+            return (operation.Kind != RelationKind.Comparable || (source.Flags & TypeFlags.Unit) != 0)
+                && (intersection & IntersectionState.Target) == 0
+                && (source.Flags & (TypeFlags.Primitive | TypeFlags.Object | TypeFlags.Intersection)) != 0 && source != host.GlobalObject
+                && (target.Flags & (TypeFlags.Object | TypeFlags.Intersection)) != 0 && await objects.WeakAsync(
+                    target,
+                    cancellation).ConfigureAwait(false)
+                && ((await properties.GetAsync(source, cancellation).ConfigureAwait(false)).Count > 0
+                    || await objects.CallableAsync(source, cancellation).ConfigureAwait(false))
+                && !await objects.CommonPropertiesAsync(
+                    source,
+                    target,
+                    (source.ObjectFlags & ObjectFlags.JsxAttributes) != 0,
+                    cancellation).ConfigureAwait(false);
+        }
+        finally { CompilationCapture.Report(AllocationProbes.RelWeak, mark); }
     }
 
     private async ValueTask<Ternary> StructuredAsync(

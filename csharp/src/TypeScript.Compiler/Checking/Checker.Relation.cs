@@ -36,6 +36,9 @@ internal sealed partial class Checker : ITypeNormalizationHost, ITypeRelationHos
         IntersectionState intersection,
         CancellationToken cancellation)
     {
+        bool counted = TypeScript.Compiler.Diagnostics.CompilationCapture.ProbesEnabled;
+        if (counted)
+            TypeScript.Compiler.Diagnostics.CompilationCapture.NoteRelationEnter();
         TypeScript.Compiler.Diagnostics.CompilationCapture.ProbeMark mark = TypeScript.Compiler.Diagnostics.CompilationCapture.Mark();
         try
         {
@@ -44,6 +47,8 @@ internal sealed partial class Checker : ITypeNormalizationHost, ITypeRelationHos
         finally
         {
             TypeScript.Compiler.Diagnostics.CompilationCapture.Report(TypeScript.Compiler.Diagnostics.AllocationProbes.CheckerRelated, mark);
+            if (counted)
+                TypeScript.Compiler.Diagnostics.CompilationCapture.NoteRelationExit();
         }
     }
 

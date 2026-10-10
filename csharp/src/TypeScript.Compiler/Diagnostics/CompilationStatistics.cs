@@ -45,6 +45,10 @@ internal sealed record CompilationStatistics
     internal long CommentSets { get; init; }
     internal long NodeDataCalls { get; init; }
     internal long LinkCreates { get; init; }
+    internal int MaxRelationDepth { get; init; }
+    internal long MaxRelationStackBytes { get; init; }
+    internal long StackGuardCalls { get; init; }
+    internal long StackGuardYields { get; init; }
 
     internal void Report(TextWriter output, int? projects = null, int built = 0, int timestamps = 0)
     {
@@ -95,7 +99,7 @@ internal sealed record CompilationStatistics
         if (ProbeOwn.Length != 0)
         {
             var top = ProbeOwn.Select((bytes, id) => (bytes, id)).Where(entry => entry.bytes > 0)
-                .OrderByDescending(entry => entry.bytes).Take(24);
+                .OrderByDescending(entry => entry.bytes).Take(32);
             foreach (var (bytes, id) in top)
             {
                 string name = (uint)id < AllocationProbes.Names.Length
@@ -121,6 +125,10 @@ internal sealed record CompilationStatistics
             Count("EmitContext comment adds", CommentAdds);
             Count("EmitContext comment sets", CommentSets);
             Count("LinkStore creates", LinkCreates);
+            Count("Max relation depth", MaxRelationDepth);
+            Count("Max relation stack bytes", MaxRelationStackBytes);
+            Count("Stack guard calls", StackGuardCalls);
+            Count("Stack guard yields", StackGuardYields);
         }
         if (PassDurations.Count != 0)
             foreach (var (name, seconds) in PassDurations.OrderByDescending(pass => pass.Value).Take(20))

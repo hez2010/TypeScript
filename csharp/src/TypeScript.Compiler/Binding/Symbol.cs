@@ -9,17 +9,12 @@ namespace TypeScript.Compiler.Binding;
 public sealed class Symbol
 {
     private static long nextId;
-    private long id;
+    // Assigned once at construction instead of lazily through an Interlocked compare-exchange on
+    // first read: the relation-key hash reads both sides' Id on every key it builds, so the lazy
+    // form paid a volatile read plus a branch per read, and every symbol is created exactly once.
+    private readonly long id;
 
-    public long Id
-    {
-        get
-        {
-            if (Volatile.Read(ref id) == 0)
-                Interlocked.CompareExchange(ref id, Interlocked.Increment(ref nextId), 0);
-            return Volatile.Read(ref id);
-        }
-    }
+    public long Id => id;
 
     public SymbolFlags Flags { get; internal set; }
     public CheckFlags CheckFlags { get; internal set; }
@@ -75,6 +70,7 @@ public sealed class Symbol
 
     internal Symbol(SymbolFlags flags, Utf8String name)
     {
+        id = Interlocked.Increment(ref nextId);
         Flags = flags;
         Name = name;
     }

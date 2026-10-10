@@ -43,6 +43,71 @@ internal sealed class CompilationCapture : IAsyncDisposable
     private readonly long[] probeCounts = new long[AllocationProbes.Count];
     private long commentAdds, commentSets, nodeDataCalls, linkCreates;
 
+    // Maximum nesting depth of the relation entry point reached on any thread. The checked-in-async
+    // shape keeps this depth off the stack (state machines live on the heap), so the checker sync
+    // rewrite needs it to size the dedicated large-stack thread. Collected only while probes are on.
+    [ThreadStatic]
+    private static int relationDepth;
+    private static int maxRelationDepth;
+    [ThreadStatic]
+    private static long lowestStack, highestStack;
+    private static long maxRelationStackBytes;
+    internal static int MaxRelationDepth => Volatile.Read(ref maxRelationDepth);
+    internal static long MaxRelationStackBytes => Volatile.Read(ref maxRelationStackBytes);
+
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    private static unsafe long StackAddress()
+    {
+        byte marker = 0;
+        return (long)&marker;
+    }
+
+    internal static void NoteRelationEnter()
+    {
+        int depth = ++relationDepth;
+        if (depth > Volatile.Read(ref maxRelationDepth))
+            Volatile.Write(ref maxRelationDepth, depth);
+        // Stack span traversed while the relation entry point is on the stack. The sync rewrite
+        // needs a dedicated large-stack thread, so the range the recursion actually spans is
+        // measured instead of assumed. Indicative only: an await that resumes on another thread
+        // re-bases on that thread's own samples.
+        long address = StackAddress();
+        if (lowestStack == 0 || address < lowestStack)
+            lowestStack = address;
+        if (address > highestStack)
+            highestStack = address;
+        long span = highestStack - lowestStack;
+        if (span > Volatile.Read(ref maxRelationStackBytes))
+            Volatile.Write(ref maxRelationStackBytes, span);
+    }
+
+    internal static void NoteRelationExit() => relationDepth--;
+
+    private static long stackGuardCalls, stackGuardYields;
+    internal static long StackGuardCalls => Volatile.Read(ref stackGuardCalls);
+    internal static long StackGuardYields => Volatile.Read(ref stackGuardYields);
+
+    /// <summary>
+    /// The runtime execution-stack guard used at the top of the recursive checking entry points.
+    /// Beyond its <see cref="ConfigureAwaitOptions"/> result it counts how often the guard forces a
+    /// real yield, which is what promotes the async state machines on this path to the heap: the
+    /// checker sync rewrite removes the need for the guard entirely, so the rate is the input R
+    /// needs to size the dedicated checker thread.
+    /// </summary>
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    internal static ConfigureAwaitOptions StackGuard()
+    {
+        if (System.Runtime.CompilerServices.RuntimeHelpers.TryEnsureSufficientExecutionStack())
+        {
+            if (ProbesEnabled)
+                Interlocked.Increment(ref stackGuardCalls);
+            return ConfigureAwaitOptions.None;
+        }
+        if (ProbesEnabled)
+            Interlocked.Increment(ref stackGuardYields);
+        return ConfigureAwaitOptions.ForceYielding;
+    }
+
     private void NoteProbe(int id, long bytes, long ticks, FrameNode? node)
     {
         if ((uint)id >= (uint)probeAllocations.Length)
@@ -269,6 +334,10 @@ internal sealed class CompilationCapture : IAsyncDisposable
             ProbeDurations = (long[])probeDurations.Clone(),
             CommentAdds = Volatile.Read(ref commentAdds), CommentSets = Volatile.Read(ref commentSets),
             NodeDataCalls = Volatile.Read(ref nodeDataCalls), LinkCreates = Volatile.Read(ref linkCreates),
+            MaxRelationDepth = MaxRelationDepth,
+            MaxRelationStackBytes = MaxRelationStackBytes,
+            StackGuardCalls = StackGuardCalls,
+            StackGuardYields = StackGuardYields,
         };
     }
 
